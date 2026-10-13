@@ -180,10 +180,17 @@ menu_drag_out_test):
   driving frames once its far edge's swing is under 0.25 pt
   (`MorphMenuTuning.flexSwayRest`); the remainder shows until the next
   frame drawn for another reason.
+- CONTENT rides the flex 1:1 (`MorphMenuMotion.contentStretch`): rows,
+  icons, the highlight, headers, the glow and submenu cards take the one
+  affine map from the unflexed shape onto the flexed one, the same
+  anchor, shift and per-axis stretch, the sway included (it keeps the
+  shape a rectangle, so the map is exact for the frame). The rows are not
+  re-laid in the flexed shape, they stretch with it, as UIKit stretches
+  the platter. Hit testing maps the finger back through the same map.
+  NEAR: the corners keep their radius while the content under them
+  stretches by a few percent at most.
 - Approximations (not measured): an upward menu mirrors the anchoring
-  and the sway; the rows are not re-laid inside the flexed shape (they
-  ride its center or top edge, as they ride the morph); a diagonal drag
-  combines the two axes independently.
+  and the sway; a diagonal drag combines the two axes independently.
 
 ## Fixtures
 

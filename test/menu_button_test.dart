@@ -1609,6 +1609,76 @@ void main() {
     expect(heights[2], greaterThan(heights[1]));
   });
 
+  testWidgets('the rows ride the menu a finger stretches off it', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_app(_button(<String>[])));
+    await tester.tap(find.byType(MorphMenuButton));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    Rect shape() {
+      Element? clip;
+      tester.element(find.text('Copy')).visitAncestorElements((
+        Element element,
+      ) {
+        if (element is RenderObjectElement &&
+            element.renderObject is RenderClipRRect) {
+          clip = element;
+        }
+        return true;
+      });
+      return tester.getRect(
+        find.byElementPredicate((Element e) => identical(e, clip)),
+      );
+    }
+
+    final restShape = shape();
+    final rest = {
+      for (final title in ['Copy', 'Share', 'Rename'])
+        title: tester.getRect(find.text(title)),
+    };
+    final gesture = await tester.startGesture(rest['Share']!.center);
+    await tester.pump(const Duration(milliseconds: 16));
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveBy(const Offset(12, 10));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final flexed = shape();
+    expect(
+      (flexed.height - restShape.height).abs() +
+          (flexed.width - restShape.width).abs(),
+      greaterThan(4),
+      reason: 'the finger off the menu stretches it',
+    );
+    final sx = flexed.width / restShape.width;
+    final sy = flexed.height / restShape.height;
+    for (final MapEntry(key: title, value: from) in rest.entries) {
+      final expected = Rect.fromLTRB(
+        flexed.left + (from.left - restShape.left) * sx,
+        flexed.top + (from.top - restShape.top) * sy,
+        flexed.left + (from.right - restShape.left) * sx,
+        flexed.top + (from.bottom - restShape.top) * sy,
+      );
+      final painted = tester.getRect(find.text(title));
+      expect(painted.left, closeTo(expected.left, 0.5), reason: title);
+      expect(painted.top, closeTo(expected.top, 0.5), reason: title);
+      expect(painted.right, closeTo(expected.right, 0.5), reason: title);
+      expect(painted.bottom, closeTo(expected.bottom, 0.5), reason: title);
+    }
+    await gesture.up();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+  });
+
   testWidgets('the close plays out on the button after the latch', (
     WidgetTester tester,
   ) async {

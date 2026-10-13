@@ -267,6 +267,32 @@ void main() {
     final ratio = (held.height / medium.height) / (held.width / medium.width);
     expect(ratio, greaterThan(1.012));
     expect(ratio, lessThan(1.018));
+    final content = tester.renderObject(find.byKey(_contentKey));
+    bool hits(Offset at) => tester
+        .hitTestOnBinding(at)
+        .path
+        .any((HitTestEntry entry) => identical(entry.target, content));
+    for (final (inside, outside) in [
+      (
+        held.topCenter + const Offset(0, 0.5),
+        held.topCenter - const Offset(0, 0.5),
+      ),
+      (
+        held.centerLeft + const Offset(0.5, 0),
+        held.centerLeft - const Offset(0.5, 0),
+      ),
+      (
+        held.centerRight - const Offset(0.5, 0),
+        held.centerRight + const Offset(0.5, 0),
+      ),
+    ]) {
+      expect(
+        hits(inside),
+        isTrue,
+        reason: 'the stretched content takes $inside',
+      );
+      expect(hits(outside), isFalse, reason: '$outside is off the content');
+    }
     await gesture.up();
     await _settle(tester);
     final back = tester.getRect(find.byKey(_contentKey));

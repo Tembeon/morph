@@ -77,9 +77,7 @@ List<_Gesture> _load() {
   return gestures;
 }
 
-/// The rms error, in points, of the four frame edges [MorphMenuMotion]
-/// flexes against the recorded ones, each relative to its rest frame.
-double _replay(_Gesture gesture) {
+MorphMenuMotion _openMenu() {
   final motion = MorphMenuMotion(
     button: const Rect.fromLTWH(179, 300, 44, 44),
     itemCount: 4,
@@ -90,6 +88,44 @@ double _replay(_Gesture gesture) {
   motion.advance(-4);
   motion.open(-3);
   motion.advance(-0.5);
+  return motion;
+}
+
+/// Plays [gesture]'s touches on [motion] up to each recorded frame and
+/// hands the frame to [onFrame] once the motion stands at its time.
+void _play(
+  MorphMenuMotion motion,
+  _Gesture gesture,
+  void Function(({double t, Rect frame}) frame, Offset offset) onFrame,
+) {
+  final rest = motion.menuRect;
+  final native = gesture.frames.first.frame;
+  final offset = rest.center - native.center;
+  var touch = 0;
+  for (final frame in gesture.frames) {
+    while (touch < gesture.touches.length &&
+        gesture.touches[touch].t <= frame.t) {
+      final event = gesture.touches[touch];
+      final at = event.at + offset;
+      switch (event.phase) {
+        case 0:
+          motion.pointerDown(event.t, at);
+        case 3:
+          motion.pointerUp(event.t, at);
+        default:
+          motion.pointerMove(event.t, at);
+      }
+      touch++;
+    }
+    motion.advance(frame.t);
+    onFrame(frame, offset);
+  }
+}
+
+/// The rms error, in points, of the four frame edges [MorphMenuMotion]
+/// flexes against the recorded ones, each relative to its rest frame.
+double _replay(_Gesture gesture) {
+  final motion = _openMenu();
   final rest = motion.menuRect;
   final native = gesture.frames.first.frame;
   final offset = rest.center - native.center;
@@ -144,6 +180,78 @@ void main() {
       expect(_replay(gesture), lessThan(bounds[gesture.name]!));
     });
   }
+
+  for (final gesture in gestures) {
+    test('the content rides the menu flexed ${gesture.name} on every '
+        'recorded frame', () {
+      final motion = _openMenu();
+      var largest = 0.0;
+      _play(motion, gesture, (frame, offset) {
+        if (!motion.isOpen) return;
+        final shape = motion.menuBlob.rect;
+        final content = motion.contentRect;
+        final reason = '${gesture.name} at ${frame.t}';
+        expect(content.left, closeTo(shape.left, 0.5), reason: reason);
+        expect(content.top, closeTo(shape.top, 0.5), reason: reason);
+        expect(content.right, closeTo(shape.right, 0.5), reason: reason);
+        expect(content.bottom, closeTo(shape.bottom, 0.5), reason: reason);
+        final stretch = motion.contentStretch;
+        final scale = motion.contentScale;
+        final rest = motion.menuRect.size;
+        expect(
+          rest.width * scale * stretch.dx,
+          closeTo(content.width, 1e-6),
+          reason: reason,
+        );
+        expect(
+          rest.height * scale * stretch.dy,
+          closeTo(content.height, 1e-6),
+          reason: reason,
+        );
+        final rect = motion.flexedMenuRect;
+        largest = [
+          largest,
+          (rect.left - motion.menuRect.left).abs(),
+          (rect.top - motion.menuRect.top).abs(),
+          (rect.right - motion.menuRect.right).abs(),
+          (rect.bottom - motion.menuRect.bottom).abs(),
+        ].reduce(math.max);
+      });
+      expect(largest, greaterThan(4), reason: 'the replay flexes the menu');
+    });
+  }
+
+  test('a row is hit where the flexed menu shows it', () {
+    final gesture = gestures.firstWhere((g) => g.name == 'down');
+    final motion = _openMenu();
+    final rest = motion.menuRect;
+    final spans = [
+      for (var i = 0; i < 4; i++)
+        Rect.fromLTWH(rest.left, rest.top + 41 + 42.0 * i, rest.width, 42),
+    ];
+    final rows = [for (final span in spans) motion.rowAt(span.center)];
+    expect(rows.toSet(), hasLength(4));
+    var checked = 0;
+    var moved = 0;
+    _play(motion, gesture, (frame, offset) {
+      final shown = motion.flexedMenuRect;
+      if (!motion.isOpen || shown.bottom - rest.bottom < 6 || checked > 0) {
+        return;
+      }
+      checked++;
+      double y(double at) =>
+          shown.top + (at - rest.top) * shown.height / rest.height;
+      for (var i = 0; i < spans.length; i++) {
+        for (final at in [y(spans[i].top) + 1, y(spans[i].bottom) - 1]) {
+          final point = Offset(shown.center.dx, at);
+          expect(motion.rowAt(point), rows[i], reason: 'row $i at $at');
+          if (!spans[i].contains(point)) moved++;
+        }
+      }
+    });
+    expect(checked, 1, reason: 'the drag down stretches the menu by 6 pt');
+    expect(moved, greaterThan(0), reason: 'some rows show off their rest');
+  });
 
   test('a finger resting where it touched down leaves the menu still', () {
     final motion = MorphMenuMotion(

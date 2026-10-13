@@ -579,7 +579,8 @@ class MorphMenuTuning {
   /// area is kept), the stretch anchored on the edge facing the button
   /// and centered across it. The pull follows the finger [flexDelay]
   /// after each touch and springs back on [flexReleaseSpring] once the
-  /// finger lifts, starts to scroll or the menu closes.
+  /// finger lifts, starts to scroll or the menu closes. The content
+  /// stretches with the shape ([MorphMenuMotion.contentStretch]).
   ///
   /// Fitted together with every other flex number below to the four
   /// gestures of `ios27-device/menu/drag-out.jsonl` (iPhone 16 Pro,
@@ -1607,8 +1608,9 @@ class MorphMenuMotion {
   /// cards use their measured container; other content follows the menu
   /// shape's scale plus its kick.
   ///
-  /// The content is placed by [contentRect] at this scale. Root rows
-  /// clip to their platter; each submenu clips its rows independently.
+  /// The content is placed by [contentRect] at this scale, times
+  /// [contentStretch] along each axis. Root rows clip to their platter;
+  /// each submenu clips its rows independently.
   double get contentScale {
     if (!_cardContainerActive) return _contentScale(menuBlob);
     final end = (tuning.cardContainerEndWidth / tuning.menuWidth).clamp(
@@ -1627,7 +1629,26 @@ class MorphMenuMotion {
   /// A menu taller than it is wide keeps its first row on the shape's top
   /// edge, like a list scrolled to its start, and grows below it; a menu
   /// as wide as it is tall or wider is centered on the shape.
+  ///
+  /// While a finger flexes the open menu, the frame is stretched with the
+  /// shape by [contentStretch].
   Rect get contentRect {
+    final rect = _contentRectUnflexed;
+    final stretch = _stretch;
+    if (stretch == null) return rect;
+    final from = stretch.from;
+    final to = stretch.to;
+    final sx = to.width / from.width;
+    final sy = to.height / from.height;
+    return Rect.fromLTWH(
+      to.left + (rect.left - from.left) * sx,
+      to.top + (rect.top - from.top) * sy,
+      rect.width * sx,
+      rect.height * sy,
+    );
+  }
+
+  Rect get _contentRectUnflexed {
     if (_cardContainerActive) {
       final frame = _menu;
       final scale = contentScale;
@@ -1639,7 +1660,7 @@ class MorphMenuMotion {
         frame.height * scale,
       );
     }
-    final menu = menuBlob;
+    final menu = _blobFor(_menu, flexed: false);
     final frame = _menu;
     final scale = _contentScale(menu);
     final width = frame.width * scale;
@@ -1818,7 +1839,11 @@ class MorphMenuMotion {
   /// The menu shape: grows out of the button into the menu.
   MorphMenuBlob get menuBlob => _blobFor(_menu);
 
-  MorphMenuBlob _blobFor(Rect frame, {double parentScale = 1}) {
+  MorphMenuBlob _blobFor(
+    Rect frame, {
+    double parentScale = 1,
+    bool flexed = true,
+  }) {
     final p = progress;
     final w = frame.width;
     final h = frame.height;
@@ -1828,7 +1853,7 @@ class MorphMenuMotion {
     final from = _button.center;
     final to = frame.center;
     final sign = _down ? 1.0 : -1.0;
-    final flex = _flexAt(_now);
+    final flex = flexed ? _flexAt(_now) : _noFlex;
     final center = Offset(
       from.dx + (to.dx - from.dx) * p + flex.shift.dx,
       from.dy + (to.dy - from.dy) * p + sign * menuKick + flex.shift.dy,
@@ -1842,6 +1867,58 @@ class MorphMenuMotion {
       radius: _localRadius(p, localHeight, h) * parentScale * scale,
       scale: scale,
       localSize: Size(w, localHeight),
+    );
+  }
+
+  static const ({Offset shift, double width, double height}) _noFlex = (
+    shift: Offset.zero,
+    width: 0,
+    height: 0,
+  );
+
+  /// The menu shape without the flex ([from]) and with it ([to]), or null
+  /// while nothing flexes it. The content and the hit testing follow the
+  /// one affine map that takes [from] onto [to].
+  ({Rect from, Rect to})? get _stretch {
+    final flex = _flexAt(_now);
+    if (flex.shift == Offset.zero && flex.width == 0 && flex.height == 0) {
+      return null;
+    }
+    final from = _blobFor(_menu, flexed: false).rect;
+    if (from.width <= 0 || from.height <= 0) return null;
+    return (from: from, to: menuBlob.rect);
+  }
+
+  /// How much the flex of the open menu stretches its content along each
+  /// axis on top of [contentScale]: the content fills the flexed
+  /// [menuBlob] as it fills the shape without the flex, the one stretch,
+  /// about the same anchor and with the same shift as the shape's, so
+  /// rows, icons, the highlight, headers and submenu cards ride the
+  /// shape 1:1 while a finger pulls, stretches and sways it. (1, 1)
+  /// while nothing flexes the menu.
+  ///
+  /// The flex keeps the shape a rectangle, so the map is exact for its
+  /// frame; the corners keep their radius while the content in them
+  /// stretches by at most a few percent (NEAR).
+  Offset get contentStretch {
+    final stretch = _stretch;
+    if (stretch == null) return const Offset(1, 1);
+    return Offset(
+      stretch.to.width / stretch.from.width,
+      stretch.to.height / stretch.from.height,
+    );
+  }
+
+  /// [position] mapped back through the flex: where the unflexed menu has
+  /// what the flexed one shows at [position].
+  Offset _unflexed(Offset position) {
+    final stretch = _stretch;
+    if (stretch == null) return position;
+    final from = stretch.from;
+    final to = stretch.to;
+    return Offset(
+      from.left + (position.dx - to.left) * from.width / to.width,
+      from.top + (position.dy - to.top) * from.height / to.height,
     );
   }
 
@@ -1976,9 +2053,16 @@ class MorphMenuMotion {
   }
 
   /// The target at [position] on the top card, or null.
+  ///
+  /// [position] is where the target shows: the hit testing follows the
+  /// content through the flex ([contentStretch]).
   int? rowAt(Offset position) => _hitAt(position).target;
 
-  ({int card, int? target, bool beside}) _hitAt(Offset position) {
+  /// Whether [position] is on the menu as it shows, flexed.
+  bool _onMenu(Offset position) => _menu.contains(_unflexed(position));
+
+  ({int card, int? target, bool beside}) _hitAt(Offset shown) {
+    final position = _unflexed(shown);
     final top = _topCard;
     if (_phase == _Phase.idle) return (card: top, target: null, beside: false);
     final frame = _menu;
@@ -2004,7 +2088,8 @@ class MorphMenuMotion {
     );
   }
 
-  bool _onWidgetRow(Offset position) {
+  bool _onWidgetRow(Offset shown) {
+    final position = _unflexed(shown);
     final frame = _menu;
     if (!frame.contains(position)) return false;
     final local = position - frame.topLeft;
@@ -2091,7 +2176,7 @@ class MorphMenuMotion {
       final pointer = _Pointer(
         fromButton: false,
         position: position,
-        startedInMenu: _menu.contains(position),
+        startedInMenu: _onMenu(position),
       );
       _pointer = pointer;
       if (_onWidgetRow(position)) {
@@ -2268,7 +2353,7 @@ class MorphMenuMotion {
     _setHighlight(null, _highlightCard);
     if (hit.beside) {
       _timeline.at(t + tuning.backDelay, _back);
-    } else if (!pointer.fromButton && !_menu.contains(position)) {
+    } else if (!pointer.fromButton && !_onMenu(position)) {
       _timeline.at(t + tuning.dismissDelay, _close);
     }
   }
@@ -2487,7 +2572,7 @@ class MorphMenuMotion {
       _setHighlight(row, 0);
       _timeline.at(t + tuning.actionDelay, (double s) => _activate(0, row));
       _timeline.at(t + tuning.earlyCloseDelay, _close);
-    } else if (!_menu.contains(release.position)) {
+    } else if (!_onMenu(release.position)) {
       _timeline.at(t + tuning.earlyCloseDelay, _close);
     }
   }

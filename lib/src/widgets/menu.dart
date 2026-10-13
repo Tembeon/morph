@@ -1559,10 +1559,14 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                       },
                       child: MorphLiveTemplate(
                         live: _ticks,
-                        template: () => Transform.scale(
-                          scale: _frame!.scale,
-                          alignment: .topLeft,
-                        ),
+                        template: () {
+                          final now = _frame!;
+                          return Transform.scale(
+                            scaleX: now.scale * now.stretch.dx,
+                            scaleY: now.scale * now.stretch.dy,
+                            alignment: .topLeft,
+                          );
+                        },
                         child: Stack(
                           clipBehavior: .none,
                           children: [
@@ -2219,6 +2223,7 @@ class _LayerFrame {
     final scale = motion.contentScale;
     final content = motion.contentRect;
     this.scale = scale;
+    stretch = motion.contentStretch;
     at = content.topLeft - menu.rect.topLeft;
     size = motion.menuRect.size;
     shapes = (
@@ -2280,6 +2285,10 @@ class _LayerFrame {
 
   /// The content's scale.
   late final double scale;
+
+  /// The flex's stretch of the content along each axis, on top of
+  /// [scale].
+  late final Offset stretch;
 
   /// The fade of everything under the top card.
   late final _Look faded;
@@ -2534,7 +2543,13 @@ class _CardHeader extends StatelessWidget {
 /// size, which [MorphMenuMotion.contentRect] shows scaled.
 Offset _contentLocal(MorphMenuMotion motion, Offset position) {
   final frame = motion.contentRect;
-  return (position - frame.topLeft) / motion.contentScale;
+  final scale = motion.contentScale;
+  final stretch = motion.contentStretch;
+  final local = position - frame.topLeft;
+  return Offset(
+    local.dx / (scale * stretch.dx),
+    local.dy / (scale * stretch.dy),
+  );
 }
 
 /// The rows of one card: [layout]'s elements in [style], drawn through
