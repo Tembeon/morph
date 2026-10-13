@@ -141,63 +141,71 @@ of the morph container):
   246,246,252 - 3 levels under native; the renderer's light material, not
   the color, is off (see glass-optics.md).
 
-## Spec - finger dragged off the open menu [device, 2026-10-13]
+## Spec - finger dragged on and off the open menu [tuning + device, 2026-10-13]
 
-Fixture `ios27-device/menu/drag-out.jsonl` (iPhone 16 Pro, iOS 27.0.1,
-scenario `lab/scenarios/menu-drag-out.json`): a finger on the second row
-of an open downward 4-row menu (250 x 250, center 201, 417.5) slides
-220 pt up / down / left / right in 0.6 s (sideways it stops at the screen
-edge, 201 pt), holds 0.6 s, comes back, goes out again and lifts. Tracked:
-the presentation frame of `_UIContextMenuListView`. Fitted model
-(`MorphMenuTuning.flex*`, `MorphMenuMotion` `_flexAt`; replay
-menu_drag_out_test):
+Mechanism read from UIKitCore and confirmed live; details, addresses and
+validation in `tool/audit/2026-10-13-uikit-menu-stretch.md`.
 
-- PULL per axis, signed toward the finger's travel from its touch-down:
-  0.007 x |travel| + 0.034 x (distance beyond the menu's edge). The knee
-  sits on the edge (a free fit puts it 2 pt inside), so the response is
-  small while the finger is on the menu and ~6x steeper off it.
-- The menu's center moves 1.056 x pull; it stretches by |pull| along the
-  axis and narrows by as much across it (area kept, w x h within 0.2 %).
-  The stretch is anchored on the edge facing the button (the top of this
-  downward menu) and centered across: dragged right, the top stays put
-  and the bottom rises by the pull; dragged down, the top moves by the
-  pull and the bottom by twice it.
-- The pull follows the finger with NO spring (a free tracking spring
-  settles under 10 ms), 0.048 s after each touch's time stamp (delivery
-  latency included); it returns on MorphSpring(0.33, 0.72) after the lift.
-- SWAY: vertical finger motion, and only vertical, kicks a spring
-  MorphSpring(0.83, 0.42) resting at 0 by 0.17 /s per point of travel
-  (on the same 0.048 s delay). Per unit of sway the top edge moves 1.45,
-  the bottom 3.6 and each side 1.62 inward, signed with the motion (a
-  finger moving up squashes the menu and lifts it). This is why the
-  vertical drags overshoot while the finger moves (center 8 pt at
-  220 pt) and settle back to ~4 pt during the hold, and why the menu
-  squashes while the finger returns.
-- Fit: 0.32 pt rms over the four frame edges, largest excursion 12.4 pt
-  (up 0.40, down 0.36, left 0.17, right 0.17 pt rms). Residuals peak in
-  the vertical release (its undershoot is up to 1 pt deeper on device).
-- NEAR trade (performance, awaiting approval by eye): the sway stops
-  driving frames once its far edge's swing is under 0.25 pt
-  (`MorphMenuTuning.flexSwayRest`); the remainder shows until the next
-  frame drawn for another reason.
+- It is `_UIFlexInteraction` in its menu variant (`preferredVariant` 5,
+  spec `_UIFlexInteractionSpec.menu` = `MorphFlexSpec.menu`), attached by
+  UIKit to `_UIContextMenuListView` (in `interactions`, not a
+  `flexInteraction` property) because the list's glass is built
+  `flexible` with `_setFlexVariant:5`. The variant skips the velocity
+  integrator: every update-link frame runs
+  `-[_UIFlexInteraction updateWithInteractionPulse]`.
+- Inputs, from the touch-down point: t = translation, it = the location
+  clamped into the list's bounds minus the touch-down point. W, H = list
+  bounds.
+- Targets while the finger is down [tuning]:
+  kx = (|t.x| - |it.x| + 40 |it.x| / W) / 6000 (ky likewise with H);
+  sx = 1 + kx - ky, sy = 1 - kx + ky; driftX = sign(t.x) kx W,
+  driftY = sign(t.y) ky H. Pulse: p = v * ay / 8000 with v the velocity
+  of `translationY`, a spring (0.574, 0.548, tracking) chasing t.y and
+  ay = +1 for a menu below its button and -1 above (measured; UIKit reads
+  it through the view's anchor). Then sx *= 1 - 50 p / W,
+  sy *= 1 + 32 p / H, driftY += ay 22.4 p; sx and sy are clamped to
+  [0.9, 1.1]. Lifted: 1, 1, 0, 0.
+- The targets reach the screen directly while the finger is down (the
+  presentation is within one frame) and return on the spec's scaleSpring
+  MorphSpring(0.6, 0.5) after the lift [device fit lands on 0.6/0.5].
+- Geometry [device]: width W sx, height H sy, center x + driftX, and the
+  edge facing the button + driftY (the top of a downward menu, the bottom
+  of an upward one). The transform is on the whole list, so the glass,
+  rows and footer stretch together.
+- Readings: per point the finger travels inside the menu, the menu moves
+  40/6000 = 0.0067 pt; per point beyond the edge, W/6000 (0.042 for
+  250 pt) along that axis. It grows along the drag by the drift and
+  narrows across by k times the cross size. The "sway" is the pulse: the
+  vertical finger velocity, filtered by the translationY spring, makes the
+  menu narrower, taller and carried along when moving away from the
+  button, wider and shorter when moving toward it. Horizontal motion has
+  no pulse.
+- Validation (`lab/menu_flex_model.py`, fixtures
+  `ios27-device/menu/drag-out-flex.jsonl` and `drag-out-upward-flex.jsonl`):
+  0.25 / 0.26 pt edge rms with UIKit's recorded translationY velocity and
+  no fitted constant. OPEN: a plain (0.574, 0.548) spring under-drives
+  that velocity (device peaks ~2.1x the finger speed, the spring ~1.1x;
+  0.77 / 0.86 pt, vertical ~1 pt). AnimationKit's low-refresh-rate
+  retarget is not reproduced yet.
+- morph today (9d8f32c, `MorphMenuTuning.flex*`, `_flexAt`) is a fit to
+  `drag-out.jsonl` that predates this reading: its pull, release spring
+  (0.33/0.72 against UIKit's 0.6/0.5) and separate sway spring are
+  replaced by the above in the port plan of the audit.
 - CONTENT rides the flex 1:1 (`MorphMenuMotion.contentStretch`): rows,
   icons, the highlight, headers, the glow and submenu cards take the one
-  affine map from the unflexed shape onto the flexed one, the same
-  anchor, shift and per-axis stretch, the sway included (it keeps the
-  shape a rectangle, so the map is exact for the frame). The rows are not
-  re-laid in the flexed shape, they stretch with it, as UIKit stretches
-  the platter. Hit testing maps the finger back through the same map.
-  NEAR: the corners keep their radius while the content under them
-  stretches by a few percent at most.
-- Approximations (not measured): an upward menu mirrors the anchoring
-  and the sway; a diagonal drag combines the two axes independently.
+  affine map from the unflexed shape onto the flexed one, as UIKit
+  transforms the whole list. Hit testing maps the finger back through
+  the same map. NEAR: the corners keep their radius while the content
+  under them stretches by a few percent at most.
+- Not measured: a diagonal drag (the equations combine both axes as
+  written).
 
 ## Fixtures
 
 Device `ios27-device/menu/*` (center3 tap/quicktap/hold700/dismiss/
 dragselect/select/closemidopen/retap-midopen/repeat/reopen*/early-outside-*,
 center-items{2,5,10}, pos-{tl,tr,bl,br,left}, bottom3, wide3, navbar3,
-tl-items{1,4,8}, fusion.json, drag-out); simulator `ios27/menu/*` (manifest documents
+tl-items{1,4,8}, fusion.json, drag-out, drag-out-flex, drag-out-upward-flex); simulator `ios27/menu/*` (manifest documents
 G_*/S_* row keys). Film crops `references/menu-video/`. Settings dump
 `/tmp/morph-native/menu-settings-dump.txt` (volatile).
 

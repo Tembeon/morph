@@ -126,7 +126,15 @@ Native selectors support view class regex, accessibility identifier/label,
 ancestor identifier, index or all matches. `source: layer` traverses the
 actual CALayer tree under those views and filters `layerClass`.
 `source: flex` reads available flex channels through the probe's typed
-Objective-C getters. `scalars` maps a channel name to a getter path; missing
+Objective-C getters; it finds the `_UIFlexInteraction` through the view's
+`flexInteraction` property or, for glass UIKit adds itself (the context
+menu's list view), among its `interactions`. A top-level `dumps`
+(`every`, `max`, `depth`) makes the native side log every flex
+interaction under an open context menu each frame (`lab_flex`: model,
+presentation and velocity of scaleX/scaleY/driftX/driftY/translationY,
+translation, internalTranslation, frame, anchor), object-graph dumps of
+the menu (`lab_dump`) and the defaults of a fresh
+`UIViewSpringAnimationBehaviorSettings` (`lab_spring_defaults`). `scalars` maps a channel name to a getter path; missing
 getters stay unobserved. Private runtime inspection belongs only to the
 reference probe. Flutter selectors use widget type, ValueKey, Text, ancestor
 key, index or all matches. `paintChild: true` includes a Transform's painted

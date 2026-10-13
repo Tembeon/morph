@@ -163,6 +163,12 @@ def validate(data):
         if key not in ("geometryRmsPt", "geometryMaxPt", "horizontalStepPt", "clipLossPt", "touchPathRmsPt", "eventLatencyMs", "frameGapMs"):
             raise LabError(f"unknown gate {key}")
         number(value, f"gate {key}", 0)
+    dumps = data.get("dumps")
+    if dumps is not None:
+        if not isinstance(dumps, dict) or set(dumps) - {"every", "max", "depth"}:
+            raise LabError("dumps takes every, max and depth")
+        for key in dumps:
+            number(dumps[key], f"dumps.{key}", 0)
     return data
 
 

@@ -27,6 +27,10 @@ struct LabScenario: Decodable {
         let scalars: [String: String]?
     }
     struct Track: Decodable { let id: String; let native: Selector; let properties: [String]? }
+    /// Object-graph dumps of an open context menu and a per-frame record of
+    /// every flex interaction under it (`lab_flex`); `every` seconds apart,
+    /// at most `max` dumps, ivar graph `depth` levels deep.
+    struct Dumps: Decodable { let every: Double?; let max: Int?; let depth: Int? }
     let id: String
     let canvas: Canvas
     let appearance: String
@@ -35,6 +39,7 @@ struct LabScenario: Decodable {
     let tracks: [Track]
     let marker: [Double]?
     let scroll: Bool?
+    let dumps: Dumps?
 
     static func environment() -> LabScenario? {
         guard let raw = ProcessInfo.processInfo.environment["PROBE_LAB_JSON"],
@@ -213,6 +218,23 @@ final class LabCapture: NSObject {
         link.preferredFrameRateRange = CAFrameRateRange(minimum: 60, maximum: 120, preferred: 120)
         link.add(to: .main, forMode: .common)
         self.link = link
+        if spec.dumps != nil { logSpringDefaults() }
+    }
+
+    /// The defaults of a fresh `UIViewSpringAnimationBehaviorSettings`, the
+    /// behavior `_UIFlexInteraction` builds for its `translationY` channel.
+    private func logSpringDefaults() {
+        guard let type = NSClassFromString("UIViewSpringAnimationBehaviorSettings") as? NSObject.Type else { return }
+        let settings = type.init()
+        var values: [String: Any] = [:]
+        for key in ["behaviorType", "deceleration", "dampingRatio", "response", "retargetImpulse", "trackingDampingRatio",
+                    "trackingResponse", "trackingRetargetImpulse", "smoothingAndProjectionEnabled", "dampingRatioSmoothing",
+                    "responseSmoothing", "trackingDampingRatioSmoothing", "trackingResponseSmoothing",
+                    "inertialTargetSmoothingRatio", "inertialProjectionDeceleration", "settlingDuration"] {
+            if let x = Probe.scalar(settings, key) { values[key] = x }
+        }
+        values["description"] = "\(settings)"
+        Recorder.shared.log(["k": "lab_spring_defaults", "t": CACurrentMediaTime(), "values": values])
     }
 
     private func views() -> [UIView] {
@@ -276,7 +298,7 @@ final class LabCapture: NSObject {
                                              "radius": layer.cornerRadius]
                 if let scroll = view as? UIScrollView { values["scrollX"] = scroll.contentOffset.x; values["scrollY"] = scroll.contentOffset.y }
                 if track.native.source == "flex" {
-                    guard let flex = Probe.object(view, "flexInteraction") ?? Probe.object(view, "_flexInteraction") else {
+                    guard let flex = LabCapture.flexInteraction(of: view) else {
                         Recorder.shared.log(["k": "lab_missing", "id": track.id, "t": link.timestamp, "e": "no flex interaction"])
                         continue
                     }
@@ -338,6 +360,144 @@ final class LabCapture: NSObject {
                 if layerIndex == 0 { Recorder.shared.log(["k": "lab_missing", "id": track.id, "t": link.timestamp]) }
             }
         }
+        if let dumps = spec.dumps { menuProbe(all, dumps: dumps, now: link.timestamp) }
         Recorder.shared.log(["k": "lab_tick", "t": link.timestamp, "cost_ms": (CACurrentMediaTime() - began) * 1000])
+    }
+
+    /// The flex interaction that deforms [view]: the `flexInteraction`
+    /// property when the view has one, otherwise a `_UIFlexInteraction`
+    /// (UIKit adds `UIPlatformGlassFlexInteraction` to glass views) among
+    /// its interactions.
+    static func flexInteraction(of view: UIView) -> AnyObject? {
+        if let flex = Probe.object(view, "flexInteraction") ?? Probe.object(view, "_flexInteraction") { return flex }
+        return view.interactions.first { NSStringFromClass(type(of: $0)).contains("FlexInteraction") }
+    }
+
+    private var dumpCount = 0
+    private var lastDump: CFTimeInterval = 0
+
+    private func menuProbe(_ all: [UIView], dumps: LabScenario.Dumps, now: CFTimeInterval) {
+        let menus = all.filter { NSStringFromClass(type(of: $0)).hasPrefix("_UIContextMenuContainerView") }
+        guard !menus.isEmpty else { return }
+        for menu in menus { logFlex(under: menu, now: now) }
+        guard dumpCount < (dumps.max ?? 24), now - lastDump >= (dumps.every ?? 0.25) else { return }
+        lastDump = now
+        dumpCount += 1
+        for menu in menus {
+            Recorder.shared.log(["k": "lab_dump", "t": now, "n": dumpCount, "tree": dumpView(menu, depth: dumps.depth ?? 3)])
+        }
+    }
+
+    private func channel(_ object: AnyObject, _ key: String, into values: inout [String: Any]) {
+        guard let property = Probe.object(object, key) else { return }
+        if let x = Probe.scalar(property, "value") { values[key] = x }
+        if let x = Probe.scalar(property, "presentationValue") { values[key + "_p"] = x }
+        if let x = Probe.scalar(property, "velocity") { values[key + "_v"] = x }
+    }
+
+    private func logFlex(under root: UIView, now: CFTimeInterval) {
+        func walk(_ view: UIView) {
+            for interaction in view.interactions where NSStringFromClass(type(of: interaction)).contains("FlexInteraction") {
+                let flex = interaction as AnyObject
+                var values: [String: Any] = ["cls": NSStringFromClass(type(of: flex)), "view": NSStringFromClass(type(of: view)),
+                                             "identity": "\(ObjectIdentifier(view))"]
+                for key in ["scaleX", "scaleY", "driftX", "driftY", "translationY"] { channel(flex, key, into: &values) }
+                for key in ["translation", "internalTranslation", "initialTouchLocation"] {
+                    if let p = Probe.point(flex, key) { values[key] = [p.x, p.y] }
+                }
+                for key in ["preferredVariant", "resolvedActivationMode", "preferredFlexSources", "shouldUsePresentationLayers"] {
+                    if let x = Probe.scalar(flex, key) { values[key] = x }
+                }
+                if let pan = Probe.object(flex, "panGesture") as? UIGestureRecognizer {
+                    values["panState"] = pan.state.rawValue
+                    values["panLocation"] = [pan.location(in: view).x, pan.location(in: view).y]
+                }
+                let layer = view.layer.presentation() ?? view.layer
+                let window = view.window.map { $0.layer.presentation() ?? $0.layer }
+                let box = window.map { layer.convert(layer.bounds, to: $0) } ?? .zero
+                let t = layer.transform
+                values["bounds"] = [view.bounds.width, view.bounds.height]
+                values["anchor"] = [view.layer.anchorPoint.x, view.layer.anchorPoint.y]
+                values["frame"] = [box.minX, box.minY, box.width, box.height]
+                values["transform"] = [t.m11, t.m12, t.m21, t.m22, t.m41, t.m42]
+                Recorder.shared.log(["k": "lab_flex", "t": now, "values": values])
+            }
+            for child in view.subviews { walk(child) }
+        }
+        walk(root)
+    }
+
+    private func animations(_ layer: CALayer) -> [[String: Any]] {
+        (layer.animationKeys() ?? []).compactMap { key in
+            guard let animation = layer.animation(forKey: key) else { return nil }
+            var row: [String: Any] = ["key": key, "cls": NSStringFromClass(type(of: animation)), "begin": animation.beginTime,
+                                      "dur": animation.duration, "speed": animation.speed]
+            if let a = animation as? CAPropertyAnimation { row["kp"] = a.keyPath ?? ""; row["additive"] = a.isAdditive }
+            if let a = animation as? CABasicAnimation {
+                row["from"] = a.fromValue.map { "\($0)" } ?? ""; row["to"] = a.toValue.map { "\($0)" } ?? ""
+            }
+            if let a = animation as? CASpringAnimation {
+                row["mass"] = a.mass; row["stiffness"] = a.stiffness; row["damping"] = a.damping
+                row["initialVelocity"] = a.initialVelocity; row["settling"] = a.settlingDuration
+            }
+            return row
+        }
+    }
+
+    private func ivarGraph(_ object: AnyObject, depth: Int, seen: inout Set<ObjectIdentifier>) -> [String: Any] {
+        var row: [String: Any] = ["cls": NSStringFromClass(type(of: object))]
+        guard depth > 0, seen.insert(ObjectIdentifier(object)).inserted else { return row }
+        var fields: [String: Any] = [:]
+        var current: AnyClass? = object_getClass(object)
+        while let cls = current, !["UIView", "NSObject", "UIResponder", "CALayer"].contains(NSStringFromClass(cls)) {
+            var count: UInt32 = 0
+            if let ivars = class_copyIvarList(cls, &count) {
+                for index in 0..<Int(count) {
+                    let ivar = ivars[index]
+                    let name = ivar_getName(ivar).map { String(cString: $0) } ?? "?"
+                    let encoding = ivar_getTypeEncoding(ivar).map { String(cString: $0) } ?? ""
+                    guard encoding.hasPrefix("@"), !encoding.contains("Block"), let value = object_getIvar(object, ivar) else { continue }
+                    let child = value as AnyObject
+                    let childName = NSStringFromClass(type(of: child))
+                    if childName.hasPrefix("_UI") || childName.contains("Flex") || childName.contains("Glass") || childName.contains("Menu")
+                        || childName.contains("Animat") || childName.contains("Spring") || childName.contains("Integrator") {
+                        fields[name] = ivarGraph(child, depth: depth - 1, seen: &seen)
+                    } else {
+                        fields[name] = childName
+                    }
+                }
+                free(ivars)
+            }
+            current = class_getSuperclass(cls)
+        }
+        row["ivars"] = fields
+        return row
+    }
+
+    private func dumpView(_ view: UIView, depth: Int) -> [String: Any] {
+        let layer = view.layer.presentation() ?? view.layer
+        let window = view.window.map { $0.layer.presentation() ?? $0.layer }
+        let box = window.map { layer.convert(layer.bounds, to: $0) } ?? .zero
+        let t = layer.transform
+        let name = NSStringFromClass(type(of: view))
+        var row: [String: Any] = ["cls": name, "layer": NSStringFromClass(type(of: view.layer)),
+                                  "frame": [box.minX, box.minY, box.width, box.height],
+                                  "bounds": [view.bounds.width, view.bounds.height],
+                                  "anchor": [view.layer.anchorPoint.x, view.layer.anchorPoint.y],
+                                  "transform": [t.m11, t.m12, t.m21, t.m22, t.m41, t.m42],
+                                  "animations": animations(view.layer),
+                                  "interactions": view.interactions.map { NSStringFromClass(type(of: $0)) },
+                                  "gestures": (view.gestureRecognizers ?? []).map { "\($0)" }]
+        let sublayers = (view.layer.sublayers ?? []).filter { !($0.delegate is UIView) }
+        let layerAnimations = sublayers.flatMap { sub in animations(sub).map { $0.merging(["layer": NSStringFromClass(type(of: sub))]) { a, _ in a } } }
+        if !layerAnimations.isEmpty { row["sublayerAnimations"] = layerAnimations }
+        if name.hasPrefix("_UIContextMenu") || name.contains("Glass") || name.contains("Platter") || !view.interactions.isEmpty {
+            var seen = Set<ObjectIdentifier>()
+            row["graph"] = ivarGraph(view, depth: depth, seen: &seen)
+            let flexes = view.interactions.filter { NSStringFromClass(type(of: $0)).contains("FlexInteraction") }
+            if !flexes.isEmpty { row["flex"] = flexes.map { ivarGraph($0 as AnyObject, depth: depth, seen: &seen) } }
+        }
+        row["subviews"] = view.subviews.map { dumpView($0, depth: depth) }
+        return row
     }
 }
