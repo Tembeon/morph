@@ -521,3 +521,16 @@ Local patches (some commits include related package changes):
   uShapeBounds[MAX_SHAPES * 5 / 4] (shapeCull(i)); the float layout and
   the Vulkan UBO layout are unchanged. test/analytic_geometry_test.dart
   counts the declarations of each variant against the 31 slots.
+- 2026-10-13 analytic cull inside a box: the separate-shape analytic
+  variants skipped a shape whose box distance (scaled by its cull
+  factor) exceeded the nearest distance so far. Inside the box that
+  distance is 0, which is no lower bound of a signed distance, so once an
+  earlier shape had a negative distance every later shape whose box held
+  the pixel was skipped: a shape inside a larger, later one drew its own
+  disc and rim where the matte's plain minimum hides it (the open menu's
+  12 pt shrunk source, inside the menu, on every analytic frame and not on
+  the matte frames). The box distance now culls only outside the box
+  (bound > max(nearest, 0)), in nearestShape and in the fused variants'
+  nearestShapeTint. Host tests: example/test/analytic_geometry_host_test
+  ("a shape inside a larger one") and analytic_gallery_host_test (an open
+  gallery menu, analytic against the matte).

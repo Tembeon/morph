@@ -702,4 +702,114 @@ void main() {
     expect(renderer.holdsOutput, isTrue);
     expect(HarnessDiff.of(await harness.shoot(), matte).max, 0);
   });
+
+  testWidgets('a shape inside a larger one is hidden by it, as in the matte', (
+    WidgetTester tester,
+  ) async {
+    if (!ui.ImageFilter.isShaderFilterSupported) return;
+    tester.view.physicalSize = const ui.Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    addTearDown(() {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
+      RenderLiquidGlassLayer.debugAnalyticMode = null;
+    });
+    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    final harness = ShaderHarness(tester);
+    final dpr = harness.devicePixelRatio;
+    bool layerAnalytic() => tester.allRenderObjects
+        .whereType<RenderLiquidGlassLayer>()
+        .any((layer) => layer.debugAnalytic);
+
+    // A menu's shrunk source (12 pt) lies inside its menu while the menu
+    // is open: listed first, it must not draw its own disc and rim.
+    const inner = ui.Rect.fromLTWH(160, 250, 12, 12);
+    const outer = ui.Rect.fromLTWH(60, 220, 250, 260);
+    const tinted = LiquidGlassAppearance.ios27RegularDark(
+      tint: ui.Color(0x9934C759),
+    );
+    final cases = [
+      for (final (name, appearance) in [
+        ('nested', const LiquidGlassAppearance.ios27RegularDark()),
+        ('nested-tint', tinted),
+      ])
+        HarnessCase(name, const LiquidGlassSettings(frost: 0), [
+          HarnessShape(inner, const LiquidOval(), appearance),
+          const HarnessShape(
+            outer,
+            LiquidRoundedRectangle(borderRadius: 32),
+            LiquidGlassAppearance.ios27RegularDark(),
+          ),
+        ]),
+    ];
+    bool covered(int x, int y) =>
+        inner.inflate(3).contains(ui.Offset((x + 0.5) / dpr, (y + 0.5) / dpr));
+    for (final glassCase in cases) {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+      await harness.show(glassCase, ShaderVariant.candidate);
+      final matte = await harness.shoot();
+      RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+      await harness.show(glassCase, ShaderVariant.candidate);
+      expect(layerAnalytic(), isTrue, reason: glassCase.name);
+      final analytic = await harness.shoot();
+      var max = 0;
+      for (var p = 0; p < matte.width * matte.height; p++) {
+        if (!covered(p % matte.width, p ~/ matte.width)) continue;
+        for (var c = 0; c < 4; c++) {
+          final d = (matte.bytes[p * 4 + c] - analytic.bytes[p * 4 + c]).abs();
+          if (d > max) max = d;
+        }
+      }
+      // ignore: avoid_print
+      print('${glassCase.name} analytic vs matte over the inner shape: $max');
+      expect(max, lessThanOrEqualTo(2), reason: glassCase.name);
+    }
+
+    // A merged body takes its tint from the nearest box the same way.
+    HarnessCase merged(LiquidGlassAppearance innerAppearance) => HarnessCase(
+      'nested-merged',
+      const LiquidGlassSettings(frost: 0),
+      [
+        HarnessShape(
+          inner,
+          const LiquidRoundedSuperellipse(borderRadius: 6),
+          innerAppearance,
+        ),
+        const HarnessShape(
+          outer,
+          LiquidRoundedSuperellipse(borderRadius: 32),
+          LiquidGlassAppearance.ios27RegularDark(),
+        ),
+      ],
+      field: morphGlassOutlineField(
+        morphGlassContainerBoxOutline([
+          ui.RRect.fromRectAndRadius(inner, const ui.Radius.circular(6)),
+          ui.RRect.fromRectAndRadius(outer, const ui.Radius.circular(32)),
+        ], 12),
+      ),
+    );
+    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    await harness.show(
+      merged(const LiquidGlassAppearance.ios27RegularDark()),
+      ShaderVariant.candidate,
+    );
+    expect(layerAnalytic(), isTrue);
+    final plain = await harness.shoot();
+    await harness.show(merged(tinted), ShaderVariant.candidate);
+    expect(layerAnalytic(), isTrue);
+    final tint = await harness.shoot();
+    var max = 0;
+    for (var p = 0; p < plain.width * plain.height; p++) {
+      if (!covered(p % plain.width, p ~/ plain.width)) continue;
+      for (var c = 0; c < 4; c++) {
+        final d = (plain.bytes[p * 4 + c] - tint.bytes[p * 4 + c]).abs();
+        if (d > max) max = d;
+      }
+    }
+    // ignore: avoid_print
+    print('nested-merged inner tint vs none over the inner box: $max');
+    expect(max, 0);
+  });
 }

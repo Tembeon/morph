@@ -2,6 +2,7 @@
 // ignore_for_file: invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
 
 import 'dart:async';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -26,7 +27,8 @@ import 'package:morph_example/gallery/glass_settings.dart';
 ///       test/analytic_gallery_host_test.dart
 ///
 /// Prints one line per layer: its owner, its shapes, whether it is
-/// analytic and why not. Without Impeller the test does nothing.
+/// analytic and why not. An open menu of the Menu page draws the same
+/// analytically as from its matte. Without Impeller the test does nothing.
 void main() {
   testWidgets('analytic layers of the gallery navigation page', (
     WidgetTester tester,
@@ -133,6 +135,127 @@ void main() {
     // ignore: avoid_print
     print('fields fused on the CPU ${morphGlassOutlineDebugTraces - traces}');
     expect(morphGlassOutlineDebugTraces - traces, 0);
+  });
+
+  testWidgets('an open menu draws the same analytically as from its matte', (
+    WidgetTester tester,
+  ) async {
+    if (!ui.ImageFilter.isShaderFilterSupported) return;
+    tester.view.physicalSize = const ui.Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    addTearDown(() {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
+      RenderLiquidGlassLayer.debugAnalyticMode = null;
+    });
+    await tester.runAsync(MorphGlassRenderer.precache);
+    if (!MorphGlassRenderer.liquidAvailable) return;
+    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+
+    Future<void> frames(int count) async {
+      for (var i = 0; i < count; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 5)),
+        );
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+    }
+
+    Future<void> settle() async {
+      for (var i = 0; tester.binding.hasScheduledFrame; i++) {
+        expect(i, lessThan(300), reason: 'the app never went idle');
+        await frames(1);
+      }
+    }
+
+    Future<Uint8List> shot() async {
+      final image = await tester.runAsync(
+        () => captureImage(tester.binding.rootElement!),
+      );
+      final bytes = await tester.runAsync(
+        () => image!.toByteData(format: ui.ImageByteFormat.rawRgba),
+      );
+      return bytes!.buffer.asUint8List();
+    }
+
+    final navigator = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(GalleryApp(navigatorKey: navigator));
+    await frames(10);
+    final settings = GalleryGlassScope.of(navigator.currentContext!);
+    settings.tier = MorphGlassTier.liquid;
+    settings.appearance = ThemeMode.dark;
+    await frames(10);
+    final entry = galleryEntries.firstWhere((e) => e.title == 'Menu');
+    unawaited(
+      navigator.currentState!.push(
+        MorphNavigationRoute<void>(builder: entry.builder),
+      ),
+    );
+    await settle();
+    // The menus whose rows leave the shrunk source (12 pt, inside the
+    // open menu) uncovered: the middle one and a corner one.
+    for (final index in [0, 4]) {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+      await tester.tapAt(
+        tester.getCenter(find.byType(MorphMenuButton).at(index)),
+      );
+      await settle();
+      // The menu's layer holds the menu and its shrunk source; the
+      // smaller of the two is the source.
+      final menuLayer = tester.allRenderObjects
+          .whereType<RenderLiquidGlassLayer>()
+          .where(
+            (layer) =>
+                layer.debugAnalytic &&
+                layer.shapesWithGeometry.fold<int>(
+                      0,
+                      (sum, entry) => sum + entry.$2.shapes.length,
+                    ) ==
+                    2,
+          );
+      expect(
+        menuLayer,
+        isNotEmpty,
+        reason: 'menu $index: the menu and its source shade analytically',
+      );
+      final rects = [
+        for (final (_, geometry, _) in menuLayer.first.shapesWithGeometry)
+          for (final shape in geometry.shapes)
+            MatrixUtils.transformRect(
+              shape.renderObject.getTransformTo(null),
+              Offset.zero & shape.renderObject.size,
+            ),
+      ];
+      rects.sort((a, b) => a.width.compareTo(b.width));
+      final source = rects.first;
+      expect(source.width, lessThan(20), reason: 'menu $index');
+      final dpr = tester.view.devicePixelRatio;
+      final width = tester.view.physicalSize.width.round();
+      final region = source.inflate(2);
+      final analytic = await shot();
+      RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+      await frames(2);
+      final matte = await shot();
+      var over = 0;
+      for (var i = 0; i < analytic.length; i++) {
+        final pixel = i ~/ 4;
+        final at = Offset(
+          (pixel % width + 0.5) / dpr,
+          (pixel ~/ width + 0.5) / dpr,
+        );
+        if (!region.contains(at)) continue;
+        if ((analytic[i] - matte[i]).abs() > 12) over++;
+      }
+      expect(
+        over,
+        0,
+        reason: 'menu $index: channels over the source off by more than 12',
+      );
+      await tester.tapAt(const Offset(5, 5));
+      await settle();
+    }
   });
 }
 

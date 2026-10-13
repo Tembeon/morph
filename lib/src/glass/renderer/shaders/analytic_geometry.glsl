@@ -263,9 +263,13 @@ SceneSample nearestShape(
     for (int i = 0; i < MAX_SHAPES; i++) {
         if (i >= count) break;
         // A lower bound of the shape's distance that cannot beat the
-        // nearest so far: the shape cannot win, not even a tie.
+        // nearest so far: the shape cannot win, not even a tie. The box
+        // distance bounds only a pixel outside the box; inside it the
+        // shape can lie deeper than any shape before it (a small shape
+        // inside a larger one, which the matte's plain minimum hides), so
+        // it is never skipped there.
         float bound = sqrt(shapeBoundsDistanceSquared(uShapeBounds[i], p)) * shapeCull(i);
-        if (bound > best.distance) continue;
+        if (bound > max(best.distance, 0.0)) continue;
         SceneSample shape = i == container
             ? flatFaceSample(i, p)
             : getShapeSampleFromArray(i, p, false);
@@ -326,7 +330,7 @@ vec4 nearestShapeTint(vec2 p, int count) {
         float boxDistance = shapeBoundsDistanceSquared(uShapeBounds[i], p);
         nearestBox = min(nearestBox, boxDistance);
         float bound = sqrt(boxDistance) * shapeCull(i);
-        if (bound > bestDistance) continue;
+        if (bound > max(bestDistance, 0.0)) continue;
         float distance = getShapeDistanceFromArray(i, p);
         bool nearer = i == count - 1
             ? distance < bestDistance
