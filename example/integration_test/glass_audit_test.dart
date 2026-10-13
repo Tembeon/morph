@@ -519,6 +519,7 @@ class _Audit implements MatrixDriver {
       _idleFrames['idle-frames'] = timings.length - before;
     }
     for (final (name, scene) in [
+      ('page-open', _pageOpen),
       ('home-scroll', _homeScroll),
       ('segmented', _segmented),
       ('tab-bar', _tabBar),
@@ -781,6 +782,22 @@ class _Audit implements MatrixDriver {
       }
     });
     await back();
+  }
+
+  // The first open of each page in the process is cold: its shaders,
+  // glyphs and isolates start here, as on a user's first visit.
+  Future<void> _pageOpen() async {
+    await measure('page-open', () async {
+      for (final title in const ['Menu', 'Navigation']) {
+        final entry = find.text(title);
+        await tester.ensureVisible(entry);
+        await settle(300);
+        await tester.tap(entry);
+        await settle(1200);
+        await back();
+        await settle(300);
+      }
+    });
   }
 
   Future<void> _homeScroll() async {
