@@ -48,6 +48,7 @@ class LiquidGlassLayer extends StatefulWidget {
     this.backdropKey,
     this.blursOwnBackdrop = false,
     this.solidBackdrop,
+    this.keepsAnalytic = false,
     this._field,
     super.key,
   }) : live = null,
@@ -72,6 +73,7 @@ class LiquidGlassLayer extends StatefulWidget {
     this.backdropKey,
     this.blursOwnBackdrop = false,
     this.solidBackdrop,
+    this.keepsAnalytic = false,
     super.key,
   }) : _settings = const LiquidGlassSettings(),
        _field = null;
@@ -186,6 +188,12 @@ class LiquidGlassLayer extends StatefulWidget {
   /// shapes (an image, text, a second fill) would not show through the
   /// glass. Fake glass ignores it.
   final Color? solidBackdrop;
+
+  /// Whether the layer shades every frame it can in its final shader, at
+  /// rest too and whatever its area, instead of resting on a geometry
+  /// matte: for a glass container drawn under a scale, whose members' mattes
+  /// would not meet on one pixel grid.
+  final bool keepsAnalytic;
 
   /// Whether there is a [LiquidGlassLayer] in the widget tree above the given
   /// [context].
@@ -377,6 +385,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
               backdropKey: backdropKey,
               blursOwnBackdrop: widget.blursOwnBackdrop,
               solidBackdrop: widget.solidBackdrop,
+              keepsAnalytic: widget.keepsAnalytic,
               // A keyed group reads its own copy on purpose (glass painted
               // in between belongs in it); only an unkeyed read is cached.
               backdropCache: backdropKey == null
@@ -452,6 +461,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required this.backdropKey,
     required this.blursOwnBackdrop,
     required this.solidBackdrop,
+    required this.keepsAnalytic,
     required this.backdropCache,
     required this.live,
     required this.settingsOf,
@@ -470,6 +480,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final BackdropKey? backdropKey;
   final bool blursOwnBackdrop;
   final Color? solidBackdrop;
+  final bool keepsAnalytic;
   final GlassBackdropCache? backdropCache;
   final Listenable? live;
   final LiquidGlassSettings Function() settingsOf;
@@ -496,6 +507,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     );
     layer.blursOwnBackdrop = blursOwnBackdrop;
     layer.solidBackdrop = solidBackdrop;
+    layer.keepsAnalytic = keepsAnalytic;
     layer.backdropCache = backdropCache;
     layer.bindLive(live, () => _apply(layer));
     return layer;
@@ -518,6 +530,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     renderObject.gpuGeometryRenderer = gpuGeometryRenderer;
     renderObject.blursOwnBackdrop = blursOwnBackdrop;
     renderObject.solidBackdrop = solidBackdrop;
+    renderObject.keepsAnalytic = keepsAnalytic;
     renderObject.backdropCache = backdropCache;
     renderObject.bindLive(live, () => _apply(renderObject));
   }
@@ -731,12 +744,25 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   @visibleForTesting
   bool get debugResting => _resting;
 
+  bool _keepsAnalytic = false;
+
+  /// See [LiquidGlassLayer.keepsAnalytic].
+  bool get keepsAnalytic => _keepsAnalytic;
+  set keepsAnalytic(bool value) {
+    if (_keepsAnalytic == value) return;
+    _keepsAnalytic = value;
+    _resting = false;
+    _restRequested = false;
+    needsGeometryUpdate = true;
+    markNeedsPaint();
+  }
+
   // Notes before a geometry frame whether its geometry is [unchanged] since
   // the last one, up to a uniform translation.
   void _noteGeometryFrame({required bool unchanged}) {
     final changed = !unchanged || _geometryInputsChanged;
     _geometryInputsChanged = false;
-    if (analyticMode != AnalyticGeometryMode.changes) {
+    if (analyticMode != AnalyticGeometryMode.changes || _keepsAnalytic) {
       _resting = false;
       _restRequested = false;
       return;
@@ -762,7 +788,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     var still = -1;
     final scheduler = SchedulerBinding.instance;
     void check(Duration _) {
-      if (!attached || !_analytic) {
+      if (!attached || !_analytic || _keepsAnalytic) {
         _restWatched = false;
         return;
       }
@@ -1895,7 +1921,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (_resting) return 'resting';
     final pixels =
         bounds.width * bounds.height * devicePixelRatio * devicePixelRatio;
-    if (pixels > (debugAnalyticMaxPixels ?? analyticMaxPixels)) {
+    if (!_keepsAnalytic &&
+        pixels > (debugAnalyticMaxPixels ?? analyticMaxPixels)) {
       return 'larger than analyticMaxPixels';
     }
     return analyticIneligibility(
