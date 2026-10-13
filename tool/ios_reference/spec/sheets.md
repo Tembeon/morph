@@ -36,6 +36,22 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
 - Touch: floating sheet swells 1.00854 on 0.2835/0.70 after 28 ms.
 - Drag moves the height point for point (nothing above the largest detent,
   a slide below the smallest).
+- STRETCH [device, 18 drags/flicks]: a sheet floating when the drag
+  begins stretches along the drag, up or down alike, keeping its area
+  (sqrt(sx sy) holds the swell to 1e-4) about its BOTTOM edge (held still,
+  the bottom moves 0.1 pt while the top rings 1.4). Ratio sy/sx = 1 +
+  8.9e-5 per pt of finger travel since the drag began (held: 100 pt down
+  1.0079, 320 down 1.0270, 140 up 1.0113 = 8.80 - 9.00e-5) + 2.4e-4 x a
+  lag that follows the travel and its velocity on 0.8/0.5 (a start or a
+  speed-up overshoots: 1300 pt/s flick 1.043 at 168 pt; a stop dips 0.005
+  - 0.009). Held from the lift, released with the settle on 0.355/0.62
+  (0.0005 - 0.0008 rms). Not on a sheet docked when the drag began
+  (large-drag-down, l-*, lfd-*: exactly 1), nor in programmatic detent
+  changes. Replay 0.0011 - 0.0066 rms in the ratio (0.0016 - 0.0123
+  without the lag); left: two to three frames of UIKit lag in a flick
+  and the ringing after the finger starts and stops.
+  `MorphSheetTuning.stretchPerPoint`, `stretchLagSpring`,
+  `stretchLagGain`, `stretchSpring`.
 - Release: settle 25 ms after the lift on the detent nearest the height
   projected by 0.143 s of finger velocity, carrying 2x that velocity.
 - Below the smallest detent: dismiss when the projected slide passes half
@@ -94,7 +110,9 @@ sheet.dart (`presentMorphSheet(from:)`, `MorphSheetRoute`, `MorphSheet.of`,
 
 - The present's 8 pt horizontal drift (first-frame artifact).
 - One frame per docking reading the sheet at y 0.
-- ~2 percent vertical stretch of a sheet pulled below its smallest detent.
+- The touch swell holds through a drag (sqrt(sx sy) stays 1.00854 x the
+  floating scale in every device drag of a floating sheet); morph lets it
+  go when the drag begins.
 - Keyboard avoidance MOTION (layout only: the maximum shrinks).
 - ~0.1 s of interactive scrub before a drag commits; random immediate zoom
   dismissals.
@@ -143,7 +161,10 @@ sheet.dart (`presentMorphSheet(from:)`, `MorphSheetRoute`, `MorphSheet.of`,
   not start point.
 - Replays: sheet_test (programmatic, 0.8 - 2.1 pt rms incl. present jank),
   sheet_drag_test (16 simulator + 26 device drags/flicks, outcomes exact,
-  tolerances in the file).
+  edge tolerances in the file; the stretch ratio of every one within
+  0.0075 rms). The stretch is drawn by the sheet's one MorphLiveBox
+  transform (x and y scale apart, bottom-anchored rect from
+  `visibleRect`); no frame builds.
 - Glass containers in the content: the sheet wraps its content in a
   `MorphGlassContainerGate` that is open only while the content is drawn
   unscaled (docked, not zooming, not scrubbed). A floating sheet scales its

@@ -345,7 +345,7 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [context-menu](context-menu.md) | D | P | preview-vc, commit/pop preview, badges, rich/compact appearance |
 | [bars](bars.md) | D (incl. per-segment push / pop, birth law) | P | title menu, subtitles, search integration, badges, toolbar drift, newborn start timing, per-page edge effect |
 | [navigation-pages](navigation-pages.md) | D | P (incl. push zoom) | zoom alignment rect, interactive dismiss filter |
-| [sheets](sheets.md) | D + film (zoom) | P | 8 pt present drift, 2 percent stretch, keyboard avoid motion, edge-attached, placement |
+| [sheets](sheets.md) | D + film (zoom) | P | 8 pt present drift, swell held through a drag, keyboard avoid motion, edge-attached, placement |
 | [alerts](alerts.md) | D+S | P | source tint dim, severity, popover arrow in glass |
 | [search](search.md) | D + film | P | scope bar, suggestions, placements other than bottom toolbar |
 | [date-picker](date-picker.md) | D + film (incl. month/year wheels) | P | inline/wheels styles, countdown, yearAndMonth mode, minuteInterval, locale/calendar |

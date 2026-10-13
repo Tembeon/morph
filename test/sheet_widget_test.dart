@@ -191,6 +191,47 @@ void main() {
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
+  testWidgets('a floating sheet stretches along a drag and springs back', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(402, 874) * 3;
+    tester.view.devicePixelRatio = 3;
+    tester.view.padding = const FakeViewPadding(top: 62 * 3, bottom: 34 * 3);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => presentMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+          builder: _content,
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    final medium = tester.getRect(find.byKey(_contentKey));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('sheet')),
+    );
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveBy(const Offset(0, 10));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    for (var i = 0; i < 120; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final held = tester.getRect(find.byKey(_contentKey));
+    final ratio = (held.height / medium.height) / (held.width / medium.width);
+    expect(ratio, greaterThan(1.012));
+    expect(ratio, lessThan(1.018));
+    await gesture.up();
+    await _settle(tester);
+    final back = tester.getRect(find.byKey(_contentKey));
+    expect(back.width, moreOrLessEquals(medium.width, epsilon: 0.01));
+    expect(back.height, moreOrLessEquals(medium.height, epsilon: 0.01));
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
   testWidgets('a finger moving on a resting sheet schedules no frames', (
     WidgetTester tester,
   ) async {

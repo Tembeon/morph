@@ -902,8 +902,10 @@ class _SheetViewState extends State<_SheetView>
         ? natural
         : _route.zoom.scrubFrame(natural, scrub);
     final k = size.width <= 0 ? 1.0 : drawn.width / size.width;
+    final stretched = motion.stretch(t) != 1;
+    final ky = scrub == null && stretched && h > 0 ? drawn.height / h : k;
     final transform = Matrix4.translationValues(drawn.left, drawn.top, 0);
-    transform.multiply(Matrix4.diagonal3Values(k, k, 1));
+    transform.multiply(Matrix4.diagonal3Values(k, ky, 1));
     final frame = _SheetFrame(
       height: h,
       scale: s,
@@ -921,7 +923,7 @@ class _SheetViewState extends State<_SheetView>
         bottomLeft: Radius.circular(bottomRadius),
         bottomRight: Radius.circular(bottomRadius),
       ),
-      gateOpen: !_zooming && scrub == null && s == 1,
+      gateOpen: !_zooming && scrub == null && s == 1 && !stretched,
       docked: dock >= 1,
       docking: dock > 0,
     );

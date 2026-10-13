@@ -52,6 +52,7 @@ class _Capture {
               bottom: d('y') + d('h') / 2,
               w: d('w'),
               bh: d('bh'),
+              ratio: (d('h') / d('bh')) / (d('w') / d('bw')),
             ));
           }
       }
@@ -59,7 +60,9 @@ class _Capture {
   }
 
   final List<(double, int, double)> touches = [];
-  final List<({double t, double top, double bottom, double w, double bh})>
+  final List<
+    ({double t, double top, double bottom, double w, double bh, double ratio})
+  >
   sheet = [];
   bool dismissed = false;
 }
@@ -67,8 +70,9 @@ class _Capture {
 /// Replays the last touch of a capture into a [MorphSheetMotion] resting
 /// where the sheet rested before it, and compares the visible top and
 /// bottom edges from the touch on. Returns the rms and max error, the
-/// detent the model settles on (-1 for dismissed) and the recorded one.
-({double rms, double max, int model, int recorded}) _replay(
+/// detent the model settles on (-1 for dismissed), the recorded one and
+/// the rms error of the ratio of the vertical to the horizontal scale.
+({double rms, double max, int model, int recorded, double stretch}) _replay(
   String name, {
   String dir = _dir,
   double frame = _frame,
@@ -96,6 +100,7 @@ class _Capture {
   var dragging = false;
   var next = 0;
   final errors = <double>[];
+  final stretchErrors = <double>[];
   void feed(double until) {
     while (next < touches.length && touches[next].$1 <= until) {
       final (t, phase, y) = touches[next];
@@ -135,6 +140,7 @@ class _Capture {
     motion.advance(row.t);
     final r = motion.visibleRect(row.t, _h);
     final e = [r.top - row.top, r.bottom - row.bottom];
+    stretchErrors.add(motion.stretch(row.t) - row.ratio);
     if (e.any((double v) => v.abs() > 60) && row.top <= 0.5) continue;
     if (row.top >= _h - 1 && r.top >= _h - 1) continue;
     errors.addAll(e);
@@ -143,17 +149,21 @@ class _Capture {
   final model = motion.isDismissing ? -1 : motion.index;
   final last = cap.sheet.last;
   final recorded = cap.dismissed ? -1 : (last.bh > 800 && !largeOnly ? 1 : 0);
+  double rms(List<double> e) =>
+      math.sqrt(e.fold(0.0, (a, b) => a + b * b) / e.length);
   return (
-    rms: math.sqrt(errors.fold(0.0, (a, b) => a + b * b) / errors.length),
+    rms: rms(errors),
     max: errors.fold(0.0, (a, b) => math.max(a, b.abs())),
     model: model,
     recorded: recorded,
+    stretch: rms(stretchErrors),
   );
 }
 
-// Tolerances are the honest spread of what the model leaves out: a sheet
-// pulled below its smallest detent stretches about 2 percent taller and
-// half a percent narrower in UIKit (drag-down-far), the start of a flick
+// Tolerances are the honest spread of what the model leaves out: a long
+// drag down slides UIKit's sheet up to 17 points further than the finger's
+// travel past the slop (drag-down-far; the stretch, replayed below, puts
+// the top edge as far off as the bottom one), the start of a flick
 // dismissal varies by up to 0.09 s from flick to flick (fd-1000,
 // l-flick-down; the visible part of the slide), and a grabber tap starts
 // within 0.045 - 0.065 s of the lift. lfd-800 is left out: its flick sits
@@ -168,7 +178,7 @@ void main() {
     ('large-drag-down', 6),
     ('large-drag-down-mid', 6),
     ('drag-down-small', 6),
-    ('drag-down-far', 10),
+    ('drag-down-far', 11),
     ('flick-up', 8),
     ('flick-down', 8),
     ('fu-800', 8),
@@ -228,6 +238,26 @@ void main() {
         final r = _replay(name, dir: _deviceDir, frame: _deviceFrame);
         expect(r.model, r.recorded, reason: 'settled detent');
         expect(r.rms, lessThan(tolerance));
+      });
+    }
+  });
+
+  // The ratio of the vertical to the horizontal scale, 1 for a sheet that
+  // keeps its shape: a drag of a floating sheet stretches it (1.027 at 320
+  // points held, 1.043 in a 1300 pt/s flick), a sheet docked when the
+  // drag began keeps 1. What is left is the ringing after the finger
+  // starts and stops and UIKit's two to three frames of lag in a flick;
+  // drag-up-slow carries a dropped probe frame.
+  group('sheet stretch replayed', () {
+    for (final (name, _) in cases) {
+      test('simulator $name', () {
+        expect(_replay(name).stretch, lessThan(0.0075));
+      });
+    }
+    for (final (name, _) in deviceCases) {
+      test('iPhone 16 Pro $name', () {
+        final r = _replay(name, dir: _deviceDir, frame: _deviceFrame);
+        expect(r.stretch, lessThan(0.007));
       });
     }
   });

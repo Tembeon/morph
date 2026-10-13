@@ -140,6 +140,35 @@ abstract final class MorphSheetTuning {
   /// Seconds between a touch and the start of the swell.
   static const double pressDelay = 0.028;
 
+  /// How much a drag stretches a sheet that floated when the drag began,
+  /// per point the finger travelled since: the ratio of the sheet's
+  /// vertical to its horizontal scale is `1 + stretchPerPoint * travel`
+  /// plus [stretchLagGain] of the lag, up or down alike. The height grows
+  /// and the width shrinks by the square root of that ratio each, so the
+  /// area holds, about the sheet's bottom edge. Fitted to three device
+  /// drags held still (100 and 320 points down, 140 up: 8.80 - 9.00e-5
+  /// per point). A sheet docked when the drag began does not stretch.
+  static const double stretchPerPoint = 8.9e-5;
+
+  /// The spring of the lag: a point that follows the finger's travel and
+  /// its velocity, so it falls behind only while the finger speeds up and
+  /// runs ahead while the finger slows down. A drag that starts or speeds
+  /// up stretches the sheet further for a moment, one that stops lets it
+  /// dip.
+  static const stretchLagSpring = MorphSpring(0.8, 0.5);
+
+  /// How much the lag, in points, adds to the stretch ratio. With
+  /// [stretchLagSpring] and [stretchPerPoint] it replays the 18 device
+  /// drags and flicks of a floating sheet to 0.0011 - 0.0066 rms in the
+  /// ratio (0.0016 - 0.0123 without the lag; a 1300 pt/s flick reaches
+  /// 1.043 at 168 points of travel, three times the held stretch).
+  static const double stretchLagGain = 2.4e-4;
+
+  /// The spring the stretch returns on when the drag ends: it holds from
+  /// the lift and leaves with the settle (0.0005 - 0.0008 rms in the
+  /// ratio over three releases held still).
+  static const stretchSpring = MorphSpring(0.355, 0.62);
+
   /// Seconds between the lift of a tap on the grabber and the start of the
   /// detent change it causes (0.045 and 0.065 measured).
   static const double grabberTapDelay = 0.05;
@@ -177,7 +206,11 @@ abstract final class MorphSheetTuning {
 /// drag moves the sheet's top edge with the finger: between the smallest
 /// and the largest detent the height follows it point for point, above
 /// the largest it does not move, and below the smallest the whole sheet
-/// slides down. Releasing above the smallest detent settles on the
+/// slides down. A sheet that floats when the drag begins stretches along
+/// the drag with the finger's travel and its changes of speed
+/// ([MorphSheetTuning.stretchPerPoint]), keeping its area and its bottom
+/// edge, and springs back on release.
+/// Releasing above the smallest detent settles on the
 /// detent nearest to the height projected by
 /// [MorphSheetTuning.projection]; releasing below it dismisses when the
 /// projected slide passes half the sheet's visible height or the finger
@@ -234,6 +267,18 @@ class MorphSheetMotion {
     MorphSheetTuning.pressSpring,
     1,
   );
+  final MorphSpringState _stretch = MorphSpringState(
+    MorphSheetTuning.stretchSpring,
+    0,
+  );
+  final MorphSpringState _lag = MorphSpringState(
+    MorphSheetTuning.stretchLagSpring,
+    0,
+  );
+  bool _stretching = false;
+  double _travel = 0;
+  double _travelAt = 0;
+  double _travelVelocity = 0;
   int _index;
   bool _dismissing = false;
   double _now = 0;
@@ -294,7 +339,9 @@ class MorphSheetMotion {
       _timeline.isEmpty &&
       _pressAt == null &&
       !_released &&
-      _press.isAtRest(_now, 1e-4);
+      _press.isAtRest(_now, 1e-4) &&
+      !_stretching &&
+      _stretch.isAtRest(_now, 1e-5);
 
   /// The unscaled height at time [t].
   double height(double t) => _height.value(t);
@@ -337,6 +384,28 @@ class MorphSheetMotion {
   /// The uniform scale of the sheet at time [t], the swell of a touch
   /// included.
   double scale(double t) => _scaleFor(dock(t)) * pressScale(t);
+
+  /// The ratio of the sheet's vertical to its horizontal scale at time
+  /// [t]: 1 at rest, above 1 while a drag stretches the sheet. The drawn
+  /// height is the [scale]d height times its square root, the drawn width
+  /// the [scale]d width over it, about the bottom edge.
+  double stretch(double t) =>
+      1 +
+      (_stretching
+          ? MorphSheetTuning.stretchPerPoint * _travel +
+                MorphSheetTuning.stretchLagGain * _lag.value(t)
+          : _stretch.value(t));
+
+  void _holdStretch(double t) {
+    if (!_stretching) return;
+    _stretch.snap(t, stretch(t) - 1);
+    _stretching = false;
+  }
+
+  void _releaseStretch(double t) {
+    _holdStretch(t);
+    _stretch.retarget(t, 0);
+  }
 
   /// The vertical shift of the scaled sheet's center at time [t], on top
   /// of [offset]: what keeps a floating sheet [inset] off the bottom.
@@ -386,6 +455,7 @@ class MorphSheetMotion {
     advance(t);
     _dragFrom = null;
     _dismissing = true;
+    _releaseStretch(t);
     _offset.retarget(t, hiddenOffset, spring: MorphSheetTuning.spring);
   }
 
@@ -399,6 +469,7 @@ class MorphSheetMotion {
     final h = height(t);
     final d = _dockFor(h);
     _dragFrom = null;
+    _releaseStretch(t);
     final changed = index != _index;
     _index = index;
     _toDocked = index == dockedIndex;
@@ -449,6 +520,14 @@ class MorphSheetMotion {
   void dragStart(double t, double y) {
     advance(t);
     unpress(t);
+    _holdStretch(t);
+    if (dock(t) < 1) {
+      _stretching = true;
+      _travel = 0;
+      _travelAt = t;
+      _travelVelocity = 0;
+      _lag.snap(t, 0);
+    }
     _floating = _floatingBelowDocked;
     _dragFrom = y;
     _dragTop = _top;
@@ -461,6 +540,7 @@ class MorphSheetMotion {
     advance(t);
     final from = _dragFrom;
     if (from == null || _released) return;
+    if (_stretching) _track(t, (y - from).abs());
     final top = math.min(_dragTop - (y - from), _heights.last);
     final lowest = _heights.first;
     if (top >= lowest) {
@@ -476,11 +556,22 @@ class MorphSheetMotion {
     }
   }
 
+  void _track(double t, double travel) {
+    if (t > _travelAt) {
+      final v = (travel - _travel) / (t - _travelAt);
+      _lag.setState(t, _lag.value(t), _lag.velocity(t) + v - _travelVelocity);
+      _travelVelocity = v;
+      _travelAt = t;
+    }
+    _travel = travel;
+  }
+
   /// The finger let go, moving at [velocity] pixels per second (positive
   /// down).
   void dragEnd(double t, double velocity) {
     advance(t);
     if (_dragFrom == null || _released) return;
+    _holdStretch(t);
     _released = true;
     _timeline.at(t + MorphSheetTuning.releaseDelay, (double s) {
       _released = false;
@@ -492,6 +583,7 @@ class MorphSheetMotion {
 
   void _settle(double t, double velocity) {
     if (_dragFrom == null) return;
+    _releaseStretch(t);
     const gain = MorphSheetTuning.releaseVelocityGain;
     final below = _offset.value(t);
     if (below > 0) {
@@ -540,6 +632,7 @@ class MorphSheetMotion {
     advance(t);
     if (_dragFrom == null) return;
     _released = false;
+    _releaseStretch(t);
     _offset.retarget(t, 0, spring: MorphSheetTuning.spring);
     _transition(t, _index);
   }
@@ -557,6 +650,7 @@ class MorphSheetMotion {
     if (_dragFrom != null) return;
     if (_height.isAtRest(_now, 0.05)) _height.snap(_now, _height.target);
     if (_offset.isAtRest(_now, 0.05)) _offset.snap(_now, _offset.target);
+    if (_stretch.isAtRest(_now, 1e-5)) _stretch.snap(_now, _stretch.target);
   }
 
   /// The sheet's visible rect at time [t] in a container [containerHeight]
@@ -564,11 +658,14 @@ class MorphSheetMotion {
   Rect visibleRect(double t, double containerHeight) {
     final h = height(t);
     final s = scale(t);
-    final cy = containerHeight - h / 2 + shift(t) + offset(t);
-    return Rect.fromCenter(
-      center: Offset(width / 2, cy),
-      width: width * s,
-      height: h * s,
+    final bottom = containerHeight + (s - 1) * h / 2 + shift(t) + offset(t);
+    final k = math.sqrt(math.max(stretch(t), 0.5));
+    final w = width * s / k;
+    return Rect.fromLTRB(
+      (width - w) / 2,
+      bottom - h * s * k,
+      (width + w) / 2,
+      bottom,
     );
   }
 }
