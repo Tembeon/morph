@@ -1,0 +1,26 @@
+{
+ "sdk": "stable",
+ "sha": "e4facef-dirty",
+ "source": "/Users/tembeon/IdeaProjects/morph/.claude/worktrees/nifty-swanson-e3b33c",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-13 23:07:42.269701",
+ "launches": {
+  "nav": {
+   "args": {
+    "NAV_MODES": "liquid",
+    "NAV_MOTIONS": "nested-push,enter",
+    "NAV_RUNS": "3",
+    "MORPH_FIRST_FRAME_START": "true"
+   },
+   "thermal_before": [
+    0,
+    28.573452
+   ],
+   "thermal_after": [
+    0,
+    29.541752
+   ]
+  }
+ }
+}

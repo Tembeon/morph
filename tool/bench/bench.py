@@ -338,7 +338,7 @@ def launch(name, suite, args, out_dir, trace_dir, done_timeout, cpu=False):
             line = watcher.stdout.readline()
             if not line:
                 break
-            if 'MORPH_GLASS_LAYER' in line:
+            if 'MORPH_GLASS_LAYER' in line or 'NAVSTEP' in line:
                 notes.append(line.strip())
             if cpu and sampler is None and 'VM service' in line and 'http://' in line:
                 sampler = DartSampler(re.search(r'(http://\S+)', line).group(1))

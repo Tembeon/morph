@@ -1147,12 +1147,27 @@ class MorphFirstFrameStart extends Simulation {
     final first = _first;
     if (first == null) {
       _first = t;
-      return 0;
+      return debugEnabled ? 0 : t;
+    }
+    if (!debugEnabled) {
+      if (t > first) debugObserver?.call(t, t);
+      return t;
     }
     if (t <= first) return 0;
     final offset = _offset ??= (t - first - period).clamp(0.0, double.infinity);
+    debugObserver?.call(t, t - offset);
     return t - offset;
   }
+
+  /// Whether pushes start after their first frame; false counts them from
+  /// the push, the reference this is measured against.
+  @visibleForTesting
+  static bool debugEnabled = true;
+
+  /// Receives each frame's time since the push and the time the motion
+  /// is sampled at, for a bench report.
+  @visibleForTesting
+  static void Function(double raw, double motion)? debugObserver;
 
   @override
   double x(double time) => inner.x(_time(time));

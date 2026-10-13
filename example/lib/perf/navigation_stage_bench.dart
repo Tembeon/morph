@@ -16,6 +16,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
+import 'package:morph/src/widgets/navigation_stack.dart'
+    show MorphFirstFrameStart;
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -93,6 +95,23 @@ const _offsetSelection = String.fromEnvironment(
 void main() async {
   BenchArgs.load(_out);
   _BenchBinding();
+  MorphFirstFrameStart.debugEnabled = BenchArgs.flag(
+    'MORPH_FIRST_FRAME_START',
+    fallback: true,
+  );
+  var steps = 0;
+  var last = -1.0;
+  MorphFirstFrameStart.debugObserver = (double raw, double motion) {
+    // A new push restarts its own clock.
+    if (raw <= last) steps = 0;
+    last = raw;
+    if (steps++ < 4) {
+      debugPrint(
+        'NAVSTEP ${(raw * 1000).toStringAsFixed(1)} '
+        '${(motion * 1000).toStringAsFixed(1)}',
+      );
+    }
+  };
   if (BenchArgs.flag('AUDIT_PROFILE_WIDGETS', fallback: false)) {
     // Every build, layout and paint as a timeline event named by its type,
     // for the bench's UI time by owner (diagnostic pass only).
