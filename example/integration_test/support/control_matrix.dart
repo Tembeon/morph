@@ -193,6 +193,14 @@ List<Offset> _line(Offset a, Offset b, int n) => [
   for (var i = 1; i <= n; i++) Offset.lerp(a, b, i / n)!,
 ];
 
+const List<Color> _stripes = [
+  Color(0xFF1E5AA8),
+  Color(0xFFE0A030),
+  Color(0xFF2E8B57),
+  Color(0xFFC03A4A),
+  Color(0xFF6A4FB0),
+];
+
 Offset _textCenter(MatrixDriver d, Type type, String text) =>
     d.tester.getCenter(
       find.descendant(of: find.byType(type), matching: find.text(text)).first,
@@ -520,6 +528,82 @@ final List<MatrixControl> matrixControls = [
     {
       'open-close': (d) async {
         await d.tap(d.tester.getCenter(find.byType(MorphDatePicker)));
+        await d.settle(900);
+        await d.tap(const Offset(20, 120));
+        await d.settle(900);
+      },
+    },
+  ),
+  MatrixControl(
+    'context-menu',
+    () => MorphContextMenuRegion(
+      above: MorphSatellite(
+        builder: (BuildContext context, MorphFlight flight) => Align(
+          alignment: Alignment.centerLeft,
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              color: Color(0xFFFFFFFF),
+              borderRadius: BorderRadius.all(Radius.circular(22)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < 5; i++)
+                    Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: ColoredBox(
+                        color: _stripes[i],
+                        child: const SizedBox.square(dimension: 24),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      below: MorphSatellite(
+        builder: (BuildContext context, MorphFlight flight) => DecoratedBox(
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFFFFF),
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final title in const ['Reply', 'Copy', 'Delete'])
+                SizedBox(
+                  height: 44,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Text(title),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+      child: const DecoratedBox(
+        decoration: BoxDecoration(
+          color: Color(0xFF0A84FF),
+          borderRadius: BorderRadius.all(Radius.circular(18)),
+        ),
+        child: SizedBox(
+          width: 180,
+          height: 56,
+          child: Center(child: Text('A message')),
+        ),
+      ),
+    ),
+    {
+      'hold-close': (d) async {
+        final hero = d.tester.getCenter(find.text('A message'));
+        await d.finger(hero, [for (var i = 0; i < 120; i++) hero]);
         await d.settle(900);
         await d.tap(const Offset(20, 120));
         await d.settle(900);

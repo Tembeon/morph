@@ -87,6 +87,17 @@
     "traces": 0.5,
     "idle": 0
   },
+  "context-menu/flat": {
+    "frames": 224,
+    "builds": 12.6,
+    "paints": 59.1,
+    "pictures": 3.4,
+    "captures": 0.0,
+    "offscreen": 0.1,
+    "snapshotImages": 0.0,
+    "traces": 0.0,
+    "idle": 0
+  },
   "nav-scroll/flat": {
     "frames": 94,
     "builds": 0.7,
@@ -318,6 +329,17 @@
     "traces": 0.5,
     "idle": 0
   },
+  "context-menu/fake": {
+    "frames": 224,
+    "builds": 12.6,
+    "paints": 59.1,
+    "pictures": 3.4,
+    "captures": 0.0,
+    "offscreen": 0.1,
+    "snapshotImages": 0.0,
+    "traces": 0.0,
+    "idle": 0
+  },
   "nav-scroll/fake": {
     "frames": 94,
     "builds": 0.7,
@@ -547,6 +569,17 @@
     "offscreen": 2.3,
     "snapshotImages": 0.0,
     "traces": 0.5,
+    "idle": 0
+  },
+  "context-menu/liquid": {
+    "frames": 224,
+    "builds": 12.6,
+    "paints": 59.1,
+    "pictures": 3.4,
+    "captures": 0.0,
+    "offscreen": 0.1,
+    "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "nav-scroll/liquid": {

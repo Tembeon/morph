@@ -161,6 +161,79 @@ MorphBarButton _barIcon(String id) => MorphBarButton(
   onPressed: () {},
 );
 
+/// A message bubble with a content-sized reactions capsule above and a
+/// column of actions below, as an app builds a context menu.
+class _ContextMenuHero extends StatelessWidget {
+  const _ContextMenuHero();
+
+  static Widget _capsule(BuildContext context, MorphFlight flight) => Align(
+    alignment: Alignment.centerLeft,
+    child: DecoratedBox(
+      decoration: const BoxDecoration(
+        color: Color(0xFFFFFFFF),
+        borderRadius: BorderRadius.all(Radius.circular(22)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < 5; i++)
+              Padding(
+                padding: const EdgeInsets.all(4),
+                child: ColoredBox(
+                  color: Color(0xFF000000 | (i * 0x3A5F1B + 0x404040)),
+                  child: const SizedBox.square(dimension: 24),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  static Widget _actions(BuildContext context, MorphFlight flight) =>
+      DecoratedBox(
+        decoration: const BoxDecoration(
+          color: Color(0xFFFFFFFF),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final title in const ['Reply', 'Copy', 'Delete'])
+              SizedBox(
+                height: 44,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Text(title),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) => const MorphContextMenuRegion(
+    above: MorphSatellite(builder: _capsule),
+    below: MorphSatellite(builder: _actions),
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: Color(0xFF0A84FF),
+        borderRadius: BorderRadius.all(Radius.circular(18)),
+      ),
+      child: SizedBox(
+        width: 180,
+        height: 56,
+        child: Center(child: Text('A message')),
+      ),
+    ),
+  );
+}
+
 /// The density page: [count] standalone glass buttons on one plane over a
 /// list of coloured rows (example/integration_test/glass_density_test.dart).
 Widget _density(int count) => Scaffold(
@@ -370,6 +443,25 @@ final glassScenes = <GlassScene>[
         await tester.pump(const Duration(milliseconds: 8));
       }
       await gesture.up();
+      for (var i = 0; i < 120; i++) {
+        await tester.pump(const Duration(milliseconds: 8));
+      }
+    },
+  ),
+  GlassScene(
+    'context-menu',
+    () => MorphScope(child: _page(const _ContextMenuHero())),
+    (tester) async {
+      final hero = tester.getCenter(find.byType(_ContextMenuHero));
+      final gesture = await tester.startGesture(hero);
+      for (var i = 0; i < 160; i++) {
+        await tester.pump(const Duration(milliseconds: 8));
+      }
+      await gesture.up();
+      for (var i = 0; i < 60; i++) {
+        await tester.pump(const Duration(milliseconds: 8));
+      }
+      await tester.tapAt(const Offset(20, 840));
       for (var i = 0; i < 120; i++) {
         await tester.pump(const Duration(milliseconds: 8));
       }
