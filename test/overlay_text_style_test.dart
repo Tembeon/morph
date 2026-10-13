@@ -85,8 +85,8 @@ void main() {
       tester,
       const Center(
         child: MorphMenuButton(
-          items: [
-            MorphMenuItem(title: 'Copy', icon: Icons.copy),
+          menu: [
+            MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),
             MorphMenuItem(title: 'Delete', destructive: true),
           ],
         ),
@@ -240,7 +240,7 @@ void main() {
     await present(
       tester,
       (BuildContext page, BuildContext anchor) => unawaited(
-        presentMorphSheet<void>(
+        showMorphSheet<void>(
           page,
           grabberVisible: true,
           detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],

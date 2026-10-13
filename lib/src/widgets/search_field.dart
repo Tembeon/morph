@@ -613,11 +613,15 @@ class MorphSearchToolbar extends StatefulWidget {
   /// The text shown while the field is empty.
   final String placeholder;
 
-  /// The toolbar buttons before the field, shown at rest.
-  final List<MorphBarButton> leading;
+  /// The toolbar buttons before the field, shown at rest, one
+  /// [MorphBarButtonGroup] per glass circle (UIKit
+  /// `UIBarButtonItemGroup`). Each group holds exactly one button.
+  final List<MorphBarButtonGroup> leading;
 
-  /// The toolbar buttons after the field, shown at rest.
-  final List<MorphBarButton> trailing;
+  /// The toolbar buttons after the field, shown at rest, one
+  /// [MorphBarButtonGroup] per glass circle. Each group holds exactly one
+  /// button.
+  final List<MorphBarButtonGroup> trailing;
 
   /// Called whenever the text changes.
   final ValueChanged<String>? onChanged;
@@ -779,22 +783,24 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
         appearance: widget.appearance,
       );
       _leadItems = [
-        for (final b in widget.leading)
-          _GlassItem(button: b, style: widget.buttonAppearance),
+        for (final g in widget.leading)
+          _GlassItem(button: g.buttons.single, style: widget.buttonAppearance),
       ];
       _trailItems = [
-        for (final b in widget.trailing)
-          _GlassItem(button: b, style: widget.buttonAppearance),
+        for (final g in widget.trailing)
+          _GlassItem(button: g.buttons.single, style: widget.buttonAppearance),
       ];
     }
     final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.25);
     if (_widthsFor != (scaler, direction)) {
       _widthsFor = (scaler, direction);
       _leadWidths = [
-        for (final b in widget.leading) _buttonWidth(b, scaler, direction),
+        for (final g in widget.leading)
+          _buttonWidth(g.buttons.single, scaler, direction),
       ];
       _trailWidths = [
-        for (final b in widget.trailing) _buttonWidth(b, scaler, direction),
+        for (final g in widget.trailing)
+          _buttonWidth(g.buttons.single, scaler, direction),
       ];
     }
     final glyph = MorphSearchFieldAppearance.resolve(

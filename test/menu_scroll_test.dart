@@ -45,7 +45,7 @@ Future<void> _open(WidgetTester tester, {bool liquid = false}) async {
     home: Scaffold(
       body: Align(
         alignment: const Alignment(0, -0.9),
-        child: MorphMenuButton(items: _entries),
+        child: MorphMenuButton(menu: _entries),
       ),
     ),
   );
@@ -216,7 +216,7 @@ void main() {
           body: Align(
             alignment: const Alignment(0, -0.9),
             child: MorphMenuButton(
-              items: [
+              menu: [
                 for (var i = 0; i < 40; i++)
                   MorphMenuItem(
                     title: 'Row $i',

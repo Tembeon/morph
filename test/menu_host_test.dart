@@ -44,11 +44,7 @@ Widget _source({
           ]),
         ],
       )
-    : MorphMenuButton(
-        items: entries,
-        enabled: enabled,
-        semanticLabel: 'Opcije',
-      );
+    : MorphMenuButton(menu: entries, enabled: enabled, semanticLabel: 'Opcije');
 
 Future<void> _open(WidgetTester tester, {required bool bar}) async {
   if (bar) {
@@ -184,7 +180,7 @@ void main() {
             rebuild = setState;
             return MorphMenuButton(
               enabled: enabled,
-              items: const [MorphMenuItem(title: 'Copy')],
+              menu: const [MorphMenuItem(title: 'Copy')],
               onOpen: (_) => launches++,
             );
           },

@@ -41,7 +41,7 @@ void main() {
               snapshotGhost: true,
               child: Builder(
                 builder: (BuildContext context) => TextButton(
-                  onPressed: () => showMorphDialog(
+                  onPressed: () => showMorphDialogFlight(
                     context,
                     from: 'ghost',
                     builder: (BuildContext context, MorphFlight flight) =>
@@ -114,7 +114,7 @@ void main() {
               id: 'latch',
               child: Builder(
                 builder: (BuildContext context) => TextButton(
-                  onPressed: () => showMorphDialog(
+                  onPressed: () => showMorphDialogFlight(
                     context,
                     from: 'latch',
                     builder: (BuildContext context, MorphFlight flight) =>
@@ -186,7 +186,7 @@ void main() {
           id: id,
           child: Builder(
             builder: (BuildContext context) => TextButton(
-              onPressed: () => showMorphDialog(
+              onPressed: () => showMorphDialogFlight(
                 context,
                 from: id,
                 width: 300,
@@ -226,7 +226,7 @@ void main() {
     // scope API instead of the pointer.
     final MorphFlight flightA = scope.flightOf('a')!;
     await settle(tester);
-    showMorphDialog(
+    showMorphDialogFlight(
       tester.element(find.text('go-b')),
       from: 'b',
       width: 300,
@@ -284,7 +284,7 @@ void main() {
                   child: Builder(
                     builder: (BuildContext context) => TextButton(
                       // No from: - the enclosing tag IS the source.
-                      onPressed: () => showMorphDialog(
+                      onPressed: () => showMorphDialogFlight(
                         context,
                         builder: (BuildContext context, MorphFlight flight) =>
                             const Text('content'),
@@ -312,7 +312,7 @@ void main() {
 
     // Outside any tag the omission is a programmer error.
     expect(
-      () => showMorphDialog(
+      () => showMorphDialogFlight(
         outsideContext,
         builder: (BuildContext context, MorphFlight flight) =>
             const Text('content'),

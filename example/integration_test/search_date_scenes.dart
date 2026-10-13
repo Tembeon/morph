@@ -147,20 +147,24 @@ class _SearchPage extends StatelessWidget {
           const Positioned.fill(
             child: MorphSearchToolbar(
               leading: [
-                MorphBarButton(
-                  id: 'filter',
-                  icon: Icon(Icons.filter_list),
-                  semanticLabel: 'Filter',
-                  onPressed: _nothing,
-                ),
+                MorphBarButtonGroup([
+                  MorphBarButton(
+                    id: 'filter',
+                    icon: Icon(Icons.filter_list),
+                    semanticLabel: 'Filter',
+                    onPressed: _nothing,
+                  ),
+                ]),
               ],
               trailing: [
-                MorphBarButton(
-                  id: 'compose',
-                  icon: Icon(Icons.edit_outlined),
-                  semanticLabel: 'Compose',
-                  onPressed: _nothing,
-                ),
+                MorphBarButtonGroup([
+                  MorphBarButton(
+                    id: 'compose',
+                    icon: Icon(Icons.edit_outlined),
+                    semanticLabel: 'Compose',
+                    onPressed: _nothing,
+                  ),
+                ]),
               ],
             ),
           ),
@@ -258,8 +262,8 @@ class _TabPageState extends State<_TabPage> {
               ],
               selected: _tab,
               onChanged: (int i) => setState(() => _tab = i),
-              searching: _searching,
-              onSearchingChanged: (bool on) => setState(() => _searching = on),
+              active: _searching,
+              onActiveChanged: (bool on) => setState(() => _searching = on),
             ),
           ),
         ],

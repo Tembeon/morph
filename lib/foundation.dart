@@ -11,7 +11,7 @@
 ///    [MorphPhase]; the system invariant - every
 ///    visual property is a pure symmetric function of a single spring
 ///    value, which yields interruption continuity by construction;
-///  - the shuttle: [showMorph], [showMorphSheet], [showMorphDialog],
+///  - the shuttle: [showMorph], [showMorphSheetFlight], [showMorphDialogFlight],
 ///    declarative [MorphAnchor]; [showMorphRoute] - the destination as
 ///    a real Navigator route with the flight as its transition (the
 ///    second latch reparents live content into the page at settle);
@@ -61,8 +61,8 @@
 /// {@canonicalFor shared.MorphSharedElement}
 /// {@canonicalFor shared.MorphSharedFade}
 /// {@canonicalFor show.showMorph}
-/// {@canonicalFor show.showMorphDialog}
-/// {@canonicalFor show.showMorphSheet}
+/// {@canonicalFor show.showMorphDialogFlight}
+/// {@canonicalFor show.showMorphSheetFlight}
 /// {@canonicalFor skin.MorphLink}
 /// {@canonicalFor skin.MorphPiece}
 /// {@canonicalFor skin.MorphPieceChannel}

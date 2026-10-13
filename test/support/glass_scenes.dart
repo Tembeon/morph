@@ -421,7 +421,7 @@ final glassScenes = <GlassScene>[
   }),
   GlassScene(
     'menu-card',
-    () => _page(const MorphMenuButton(items: _menuEntries)),
+    () => _page(const MorphMenuButton(menu: _menuEntries)),
     (tester) async {
       await tester.tap(find.byType(MorphMenuButton));
       for (var i = 0; i < 90; i++) {
@@ -439,7 +439,7 @@ final glassScenes = <GlassScene>[
   ),
   GlassScene(
     'menu-held',
-    () => _page(const MorphMenuButton(items: _menuEntries)),
+    () => _page(const MorphMenuButton(menu: _menuEntries)),
     (tester) async {
       await tester.tap(find.byType(MorphMenuButton));
       for (var i = 0; i < 90; i++) {
@@ -484,7 +484,7 @@ final glassScenes = <GlassScene>[
     () => MorphNavigationStack(
       home: MorphNavigationScaffold(
         title: 'Inbox',
-        largeTitle: true,
+        largeTitleDisplayMode: .always,
         trailing: [
           MorphBarButtonGroup([_barIcon('add'), _barIcon('more')]),
         ],
@@ -531,7 +531,7 @@ final glassScenes = <GlassScene>[
           key: const ValueKey<String>('source'),
           behavior: HitTestBehavior.opaque,
           onTap: () => unawaited(
-            presentMorphSheet<void>(
+            showMorphSheet<void>(
               context,
               detents: const [MorphSheetDetent.medium],
               builder: (BuildContext context) =>

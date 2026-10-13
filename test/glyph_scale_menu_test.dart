@@ -17,7 +17,7 @@ void main() {
   ) async {
     Widget app() => glyphApp(
       const MorphMenuButton(
-        items: [
+        menu: [
           MorphMenuItem(title: 'Copy'),
           MorphMenuItem(title: 'Share'),
           MorphMenuItem(title: 'Rename'),

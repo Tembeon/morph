@@ -129,9 +129,9 @@ class _Swipe {
 /// Whether a swipe released with the page [out] of the width out at
 /// [velocity] widths per second pops, as MorphNavigationRoute decides.
 bool _pops(double out, double velocity) {
-  const flick = MorphNavigationTransition.popVelocity;
+  const flick = MorphNavigationTuning.popVelocity;
   return velocity > flick ||
-      (velocity > -flick && out > MorphNavigationTransition.popDistance);
+      (velocity > -flick && out > MorphNavigationTuning.popDistance);
 }
 
 void main() {
@@ -186,10 +186,10 @@ void main() {
         final from = _d(page.first, 'x');
         final to = _d(page.last, 'x');
         final sim = SpringSimulation(
-          MorphNavigationTransition.pushSpring.description,
+          MorphNavigationTuning.pushSpring.description,
           0,
           1,
-          MorphNavigationTransition.pushVelocity,
+          MorphNavigationTuning.pushVelocity,
         );
         for (final r in page) {
           final p = sim.x(_d(r, 't') - start);
@@ -233,7 +233,7 @@ void main() {
         final from = _d(series[k], 'x');
         final to = _d(series.last, 'x');
         final sim = SpringSimulation(
-          MorphNavigationTransition.interactiveSpring.description,
+          MorphNavigationTuning.interactiveSpring.description,
           0,
           1,
           0,
@@ -321,11 +321,11 @@ void main() {
         final v = swipe.popped
             ? 0.0
             : swipe.velocity *
-                  MorphNavigationTransition.cancelVelocityScale *
+                  MorphNavigationTuning.cancelVelocityScale *
                   swipe.width;
         List<double> errorsWith(double lag) {
           final sim = SpringSimulation(
-            MorphNavigationTransition.interactiveSpring.description,
+            MorphNavigationTuning.interactiveSpring.description,
             swipe.offset,
             to,
             v,
@@ -404,7 +404,7 @@ void main() {
             _ => null,
           };
           if (id == null) continue;
-          motion.setDrift(list, MorphNavigationTransition.barDrift * p);
+          motion.setDrift(list, MorphNavigationTuning.barDrift * p);
           final frame = motion.capsuleFrame(id)!.rect;
           own.add(frame.width - w);
           own.add(frame.center.dx - x);

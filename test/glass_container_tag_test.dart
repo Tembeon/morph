@@ -104,7 +104,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(milliseconds: 100));
     expect(layers(), findsOneWidget);
-    showMorphDialog(
+    showMorphDialogFlight(
       source!,
       from: 'tag',
       builder: (BuildContext context, MorphFlight flight) =>
@@ -141,7 +141,7 @@ void main() {
                         top: 200,
                         child: MorphMenuButton(
                           key: ValueKey<int>(i),
-                          items: items,
+                          menu: items,
                         ),
                       ),
                   ],
@@ -176,7 +176,7 @@ void main() {
             Positioned(
               left: 20 + i * 80.0,
               top: 200,
-              child: MorphMenuButton(items: items),
+              child: MorphMenuButton(menu: items),
             ),
         ],
       );

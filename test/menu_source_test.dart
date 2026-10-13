@@ -87,7 +87,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuSource(
-          items: _items(log),
+          menu: _items(log),
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
@@ -122,7 +122,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuSource(
-          items: _items(log),
+          menu: _items(log),
           trigger: MorphMenuTrigger.hold,
           onTap: () => taps++,
           child: const SizedBox(width: 80, height: 44),
@@ -235,9 +235,9 @@ void main() {
     WidgetTester tester,
   ) async {
     final sources = <String, Widget>{
-      'menu button': MorphMenuButton(items: _items(<String>[])),
+      'menu button': MorphMenuButton(menu: _items(<String>[])),
       'source': MorphMenuSource(
-        items: _items(<String>[]),
+        menu: _items(<String>[]),
         child: const SizedBox(width: 120, height: 40),
       ),
       'glass button': MorphGlassButton(

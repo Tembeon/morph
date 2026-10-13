@@ -348,7 +348,7 @@ void main() {
           child: Padding(
             padding: const EdgeInsets.only(bottom: 54),
             child: MorphMenuButton(
-              items: [
+              menu: [
                 for (var i = 0; i < 10; i++) MorphMenuItem(title: 'Row $i'),
               ],
             ),

@@ -29,7 +29,7 @@ final _items = [
     'Archive',
     'Print',
   ])
-    MorphMenuItem(title: title, icon: Icons.copy, onSelected: () {}),
+    MorphMenuItem(title: title, icon: const Icon(Icons.copy), onSelected: () {}),
   MorphMenuItem(title: 'Delete', destructive: true, onSelected: () {}),
 ];
 
@@ -56,9 +56,9 @@ const _rich = <MorphMenuEntry>[
   MorphMenuSection(
     elementSize: MorphMenuElementSize.small,
     children: [
-      MorphMenuItem(title: 'Cut', icon: Icons.content_cut),
-      MorphMenuItem(title: 'Copy', icon: Icons.copy),
-      MorphMenuItem(title: 'Paste', icon: Icons.content_paste),
+      MorphMenuItem(title: 'Cut', icon: Icon(Icons.content_cut)),
+      MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),
+      MorphMenuItem(title: 'Paste', icon: Icon(Icons.content_paste)),
     ],
   ),
   MorphMenuSection(
@@ -70,7 +70,7 @@ const _rich = <MorphMenuEntry>[
   ),
   MorphSubmenu(
     title: 'More',
-    icon: Icons.folder_outlined,
+    icon: Icon(Icons.folder_outlined),
     children: [
       MorphMenuItem(title: 'Rename'),
       MorphMenuItem(title: 'Duplicate'),
@@ -115,7 +115,7 @@ Future<List<String>> _record(WidgetTester tester, MorphGlassTier tier) async {
               ),
             const Align(
               alignment: Alignment(0, -0.4),
-              child: MorphMenuButton(items: _rich),
+              child: MorphMenuButton(menu: _rich),
             ),
           ],
         ),
@@ -187,7 +187,7 @@ void main() {
 
   testWidgets('a press builds the rows out of sight and the opening moves '
       'them into the menu', (WidgetTester tester) async {
-    await tester.pumpWidget(_app(MorphMenuButton(items: _items)));
+    await tester.pumpWidget(_app(MorphMenuButton(menu: _items)));
     expect(find.text('Copy', skipOffstage: false), findsNothing);
     final gesture = await tester.startGesture(
       tester.getCenter(find.byType(MorphMenuButton)),
@@ -224,7 +224,7 @@ void main() {
   testWidgets('a press that slides away drops the rows built for it', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(_app(MorphMenuButton(items: _items)));
+    await tester.pumpWidget(_app(MorphMenuButton(menu: _items)));
     final center = tester.getCenter(find.byType(MorphMenuButton));
     final gesture = await tester.startGesture(center);
     await _frames(tester, 80);
@@ -238,7 +238,7 @@ void main() {
   testWidgets('a press on the button right after a landing opens again', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(_app(MorphMenuButton(items: _items)));
+    await tester.pumpWidget(_app(MorphMenuButton(menu: _items)));
     final button = find.byType(MorphMenuButton);
     for (var i = 0; i < 3; i++) {
       await tester.tap(button);

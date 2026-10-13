@@ -290,7 +290,7 @@ class _DetailState extends State<_Detail> {
             label: 'Done',
             onPressed: () => Navigator.of(context).maybePop(),
           ),
-        ], prominent: true),
+        ], style: .prominent),
       ],
       toolbarLeading: [
         MorphBarButtonGroup([

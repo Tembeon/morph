@@ -125,7 +125,7 @@ class MorphNavigationTitleMotion {
 /// The springs and geometry of a navigation stack's page transitions on
 /// iOS 27, read from `_UIFluidNavigationTransitionsSpec` and the
 /// recordings.
-abstract final class MorphNavigationTransition {
+abstract final class MorphNavigationTuning {
   /// The spring a page settles on after an interactive edge swipe, and a
   /// cancelled swipe returns on: the spec's `interactiveSpring`
   /// (response 0.3, damping 0.85; the recorded completion overshoots by

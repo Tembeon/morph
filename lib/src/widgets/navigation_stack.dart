@@ -30,7 +30,7 @@ class MorphNavigationConfig {
   /// Creates a configuration.
   const MorphNavigationConfig({
     this.title,
-    this.leading,
+    this.leading = const [],
     this.trailing = const [],
     this.toolbarLeading = const [],
     this.toolbarTrailing = const [],
@@ -38,15 +38,17 @@ class MorphNavigationConfig {
     this.scrolledUnder = false,
     this.animate = true,
     this.edgeEffect = MorphScrollEdgeEffectStyle.hard,
-    this.backTitle,
+    this.backButtonTitle,
   });
 
   /// The screen's title.
   final String? title;
 
-  /// The group at the leading edge of the navigation bar; null shows a
-  /// back button when the screen is not the first.
-  final MorphBarButtonGroup? leading;
+  /// The groups at the leading edge of the navigation bar (UIKit
+  /// `leftBarButtonItems`); they replace the back button, as UIKit's do
+  /// while `leftItemsSupplementBackButton` is off. Empty shows a back
+  /// button when the screen is not the first.
+  final List<MorphBarButtonGroup> leading;
 
   /// The groups at the trailing edge of the navigation bar.
   final List<MorphBarButtonGroup> trailing;
@@ -71,7 +73,7 @@ class MorphNavigationConfig {
 
   /// The label of the back button on the next screen; defaults to
   /// [title].
-  final String? backTitle;
+  final String? backButtonTitle;
 
   /// Whether the screen shows a toolbar.
   bool get hasToolbar =>
@@ -84,7 +86,7 @@ class MorphNavigationConfig {
   bool operator ==(Object other) =>
       other is MorphNavigationConfig &&
       other.title == title &&
-      other.leading == leading &&
+      listEquals(other.leading, leading) &&
       listEquals(other.trailing, trailing) &&
       listEquals(other.toolbarLeading, toolbarLeading) &&
       listEquals(other.toolbarTrailing, toolbarTrailing) &&
@@ -92,12 +94,12 @@ class MorphNavigationConfig {
       other.scrolledUnder == scrolledUnder &&
       other.animate == animate &&
       other.edgeEffect == edgeEffect &&
-      other.backTitle == backTitle;
+      other.backButtonTitle == backButtonTitle;
 
   @override
   int get hashCode => Object.hash(
     title,
-    leading,
+    Object.hashAll(leading),
     Object.hashAll(trailing),
     Object.hashAll(toolbarLeading),
     Object.hashAll(toolbarTrailing),
@@ -105,7 +107,7 @@ class MorphNavigationConfig {
     scrolledUnder,
     animate,
     edgeEffect,
-    backTitle,
+    backButtonTitle,
   );
 }
 
@@ -136,7 +138,7 @@ class MorphNavigationStack extends StatefulWidget {
     this.menuAppearance,
     this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
-    this.backLabel = 'Back',
+    this.backButtonSemanticLabel = 'Back',
     this.navigatorKey,
     this.observers = const [],
     super.key,
@@ -162,7 +164,7 @@ class MorphNavigationStack extends StatefulWidget {
   final OverlayState? menuOverlay;
 
   /// The label screen readers announce for the back button.
-  final String backLabel;
+  final String backButtonSemanticLabel;
 
   /// The key of the stack's navigator.
   final GlobalKey<NavigatorState>? navigatorKey;
@@ -193,7 +195,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
     ),
   );
   bool _scheduled = false;
-  double _titleExit = -MorphNavigationTransition.parallax;
+  double _titleExit = -MorphNavigationTuning.parallax;
   Route<Object?>? _swiped;
   Animation<double>? _swipeProgress;
 
@@ -247,7 +249,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
   void _pushed(Route<Object?> route) {
     _routes.add(route);
     _await(route);
-    _titleExit = -MorphNavigationTransition.parallax;
+    _titleExit = -MorphNavigationTuning.parallax;
     _refresh();
   }
 
@@ -298,15 +300,18 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
   Widget _bars(Widget bar) =>
       MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar);
 
-  MorphBarButtonGroup? _leadingOf(List<PageRoute<Object?>> pages, int index) {
+  List<MorphBarButtonGroup> _leadingOf(
+    List<PageRoute<Object?>> pages,
+    int index,
+  ) {
     final config = _configs[pages[index]];
-    final leading = config?.leading;
-    if (leading != null || index == 0) return leading;
+    final leading = config?.leading ?? const [];
+    if (leading.isNotEmpty || index == 0) return leading;
     final below = _configs[pages[index - 1]];
-    return MorphBarButtonGroup([
+    final back = MorphBarButtonGroup([
       MorphBarButton.back(
-        label: below?.backTitle ?? below?.title,
-        semanticLabel: widget.backLabel,
+        label: below?.backButtonTitle ?? below?.title,
+        semanticLabel: widget.backButtonSemanticLabel,
         onPressed: () => _navigator.currentState?.maybePop(),
         menu: [
           for (var i = index - 1; i >= 0; i--)
@@ -322,6 +327,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
         ],
       ),
     ]);
+    return [back];
   }
 
   @override
@@ -340,7 +346,9 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
     final index = pages.length - 1;
     final top = pages.isEmpty ? null : pages.last;
     final config = top == null ? null : _configs[top];
-    final leading = top == null ? null : _leadingOf(pages, index);
+    final leading = top == null
+        ? const <MorphBarButtonGroup>[]
+        : _leadingOf(pages, index);
     MorphNavigationBarDrift? drift;
     final progress = _swipeProgress;
     if (top != null && top == _swiped && progress != null && index >= 1) {
@@ -429,17 +437,17 @@ class _Observer extends NavigatorObserver {
 ///
 /// A push slides the page in from the trailing edge while the page below
 /// slides 30 percent of the width the other way; both ride
-/// [MorphNavigationTransition.pushSpring], starting at full speed. A swipe
-/// that starts within [MorphNavigationTransition.edgeWidth] of the leading
+/// [MorphNavigationTuning.pushSpring], starting at full speed. A swipe
+/// that starts within [MorphNavigationTuning.edgeWidth] of the leading
 /// edge moves the page with the finger; on release it pops when the page
-/// is more than [MorphNavigationTransition.popDistance] of the width out
+/// is more than [MorphNavigationTuning.popDistance] of the width out
 /// or the finger flicks out, and settles on
-/// [MorphNavigationTransition.interactiveSpring]: a popping page from
+/// [MorphNavigationTuning.interactiveSpring]: a popping page from
 /// rest, a returning one carrying the release speed scaled by
-/// [MorphNavigationTransition.cancelVelocityScale]. Right-to-left text
+/// [MorphNavigationTuning.cancelVelocityScale]. Right-to-left text
 /// mirrors everything.
 ///
-/// With a [zoomSource] the page instead zooms out of that tag, as a UIKit
+/// With a [from] the page instead zooms out of that tag, as a UIKit
 /// page pushed with `preferredTransition = .zoom`: the source hides, a
 /// container grows from its frame to the screen while the source's look
 /// crossfades into the page, the page underneath dims and stays put. A
@@ -453,7 +461,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   /// Creates a route for the page [builder] builds.
   MorphNavigationRoute({
     required this.builder,
-    this.zoomSource,
+    this.from,
     this.zoom = MorphPushZoomTuning.standard,
     super.settings,
   });
@@ -464,12 +472,12 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   /// The source tag's id, or null for a page that slides in.
   ///
   /// An absent or unlaid-out tag shows the page in place.
-  final Object? zoomSource;
+  final Object? from;
 
   MorphZoomSource? _zoomSource;
   late final _NavigationZoomHost<T> _zoomHost = _NavigationZoomHost<T>(this);
 
-  /// The measured zoom used when there is a [zoomSource].
+  /// The measured zoom used when there is a [from].
   final MorphPushZoomTuning zoom;
 
   bool _interactivePop = false;
@@ -496,7 +504,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     return _slide = Listenable.merge([animation, secondaryAnimation]);
   }
 
-  bool get _zooms => zoomSource != null;
+  bool get _zooms => from != null;
 
   AnimationController? get _gestureController => controller;
 
@@ -553,10 +561,10 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     return c.animateWith(
       MorphFirstFrameStart(
         SpringSimulation(
-          MorphNavigationTransition.pushSpring.description,
+          MorphNavigationTuning.pushSpring.description,
           c.value,
           1,
-          _reduced ? 0 : MorphNavigationTransition.pushVelocity,
+          _reduced ? 0 : MorphNavigationTuning.pushVelocity,
         ),
         period: _framePeriod,
       ),
@@ -587,11 +595,11 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     c.animateBackWith(
       SpringSimulation(
         interactive
-            ? MorphNavigationTransition.interactiveSpring.description
-            : MorphNavigationTransition.pushSpring.description,
+            ? MorphNavigationTuning.interactiveSpring.description
+            : MorphNavigationTuning.pushSpring.description,
         c.value,
         0,
-        interactive || _reduced ? 0 : -MorphNavigationTransition.pushVelocity,
+        interactive || _reduced ? 0 : -MorphNavigationTuning.pushVelocity,
       ),
     );
     return popped;
@@ -616,7 +624,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     Widget child,
   ) {
     if (_zooms) {
-      _zoomSource ??= MorphZoomSource.resolve(context, zoomSource);
+      _zoomSource ??= MorphZoomSource.resolve(context, from);
       return MorphPushZoomPage(host: _zoomHost, child: child);
     }
     if (morphReducedMotionOf(context)) {
@@ -642,7 +650,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
         final x =
             size.width *
             ((1 - animation.value) -
-                MorphNavigationTransition.parallax * secondaryAnimation.value);
+                MorphNavigationTuning.parallax * secondaryAnimation.value);
         into.setTranslationRaw(rtl ? -x : x, 0, 0);
       },
       child: slid,
@@ -653,7 +661,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
 /// Pushes the page [builder] builds onto the navigator around [context],
 /// zoomed out of the [MorphTag] with id [from] under the [MorphScope]
 /// around [context], as UIKit pushes a view controller whose
-/// `preferredTransition` is `.zoom`; see [MorphNavigationRoute.zoomSource].
+/// `preferredTransition` is `.zoom`; see [MorphNavigationRoute.from].
 ///
 /// An absent or unlaid-out source shows the page in place. If the source
 /// disappears while the page is open, its content stays usable and its
@@ -667,7 +675,7 @@ Future<T?> pushMorphZoom<T>(
 }) {
   final route = MorphNavigationRoute<T>(
     builder: builder,
-    zoomSource: from,
+    from: from,
     zoom: zoom,
     settings: settings,
   );
@@ -751,7 +759,7 @@ class _EdgePopState extends State<_EdgePop> {
     final edge = _rtl
         ? _width - event.localPosition.dx
         : event.localPosition.dx;
-    if (edge > MorphNavigationTransition.edgeWidth) return;
+    if (edge > MorphNavigationTuning.edgeWidth) return;
     final drag = _drag ??= HorizontalDragGestureRecognizer(debugOwner: this);
     drag.onStart = _start;
     drag.onUpdate = _update;
@@ -787,10 +795,10 @@ class _EdgePopState extends State<_EdgePop> {
     if (!_active || c == null) return;
     _active = false;
     final v = (details.primaryVelocity ?? 0) / _width * (_rtl ? -1 : 1);
-    const flick = MorphNavigationTransition.popVelocity;
+    const flick = MorphNavigationTuning.popVelocity;
     final commit =
         v > flick ||
-        (v > -flick && c.value < 1 - MorphNavigationTransition.popDistance);
+        (v > -flick && c.value < 1 - MorphNavigationTuning.popDistance);
     if (commit) {
       final navigator = route.navigator;
       if (route.isCurrent) {
@@ -802,10 +810,10 @@ class _EdgePopState extends State<_EdgePop> {
     } else {
       c.animateWith(
         SpringSimulation(
-          MorphNavigationTransition.interactiveSpring.description,
+          MorphNavigationTuning.interactiveSpring.description,
           c.value,
           1,
-          -v * MorphNavigationTransition.cancelVelocityScale,
+          -v * MorphNavigationTuning.cancelVelocityScale,
         ),
       );
     }
@@ -818,7 +826,7 @@ class _EdgePopState extends State<_EdgePop> {
     _active = false;
     c.animateWith(
       SpringSimulation(
-        MorphNavigationTransition.interactiveSpring.description,
+        MorphNavigationTuning.interactiveSpring.description,
         c.value,
         1,
         0,
@@ -861,13 +869,25 @@ class _EdgePopState extends State<_EdgePop> {
   );
 }
 
+/// When a [MorphNavigationScaffold] shows its title large, after UIKit's
+/// `UINavigationItem.LargeTitleDisplayMode`.
+enum MorphLargeTitleDisplayMode {
+  /// The title shows large above the content until it scrolls under the
+  /// bar.
+  always,
+
+  /// The title shows only inline, in the bar.
+  never,
+}
+
 /// One screen of an iOS 27 app: a scroll view under a navigation bar
 /// with an optional large title, the scroll edge effect, and an optional
 /// toolbar.
 ///
 /// Inside a [MorphNavigationStack] the scaffold hands its title, buttons
 /// and scroll state to the stack's shared bars; on its own it draws its
-/// bars itself. With [largeTitle] the title first shows large at the top
+/// bars itself. With [largeTitleDisplayMode] `always` the title first
+/// shows large at the top
 /// of the content; once it has scrolled fully under the bar, the bar's
 /// inline title rises in, and a drag released halfway settles it to
 /// either side ([MorphLargeTitleScrollPhysics]). The edge effect shows
@@ -881,15 +901,15 @@ class MorphNavigationScaffold extends StatefulWidget {
   const MorphNavigationScaffold({
     required this.title,
     required this.slivers,
-    this.largeTitle = false,
-    this.leading,
+    this.largeTitleDisplayMode = MorphLargeTitleDisplayMode.never,
+    this.leading = const [],
     this.trailing = const [],
     this.toolbarLeading = const [],
     this.toolbarTrailing = const [],
     this.edgeEffect = MorphScrollEdgeEffectStyle.hard,
     this.backgroundColor,
-    this.backTitle,
-    this.backLabel = 'Back',
+    this.backButtonTitle,
+    this.backButtonSemanticLabel = 'Back',
     this.controller,
     this.appearance,
     super.key,
@@ -902,12 +922,16 @@ class MorphNavigationScaffold extends StatefulWidget {
   final List<Widget> slivers;
 
   /// Whether the title shows large above the content until it scrolls
-  /// under the bar.
-  final bool largeTitle;
+  /// under the bar (UIKit `largeTitleDisplayMode`).
+  final MorphLargeTitleDisplayMode largeTitleDisplayMode;
 
-  /// The group at the leading edge of the navigation bar; null shows a
+  bool get _largeTitle =>
+      largeTitleDisplayMode == MorphLargeTitleDisplayMode.always;
+
+  /// The groups at the leading edge of the navigation bar (UIKit
+  /// `leftBarButtonItems`); they replace the back button. Empty shows a
   /// back button when the screen is not the first of its stack.
-  final MorphBarButtonGroup? leading;
+  final List<MorphBarButtonGroup> leading;
 
   /// The groups at the trailing edge of the navigation bar.
   final List<MorphBarButtonGroup> trailing;
@@ -927,11 +951,11 @@ class MorphNavigationScaffold extends StatefulWidget {
   final Color? backgroundColor;
 
   /// The label of the next screen's back button; defaults to [title].
-  final String? backTitle;
+  final String? backButtonTitle;
 
   /// The label screen readers announce for the back button the scaffold
   /// draws itself, outside a [MorphNavigationStack].
-  final String backLabel;
+  final String backButtonSemanticLabel;
 
   /// The controller of the scroll view.
   final ScrollController? controller;
@@ -960,7 +984,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
   @override
   void initState() {
     super.initState();
-    _titleVisible = !widget.largeTitle;
+    _titleVisible = !widget._largeTitle;
     _controller.addListener(_scrolled);
   }
 
@@ -971,7 +995,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
       (oldWidget.controller ?? _own)?.removeListener(_scrolled);
       _controller.addListener(_scrolled);
     }
-    if (oldWidget.largeTitle != widget.largeTitle) _scrolled();
+    if (oldWidget._largeTitle != widget._largeTitle) _scrolled();
   }
 
   @override
@@ -985,12 +1009,12 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
     if (!_controller.hasClients) return;
     final position = _controller.position;
     final offset = position.pixels - position.minScrollExtent;
-    final threshold = widget.largeTitle
+    final threshold = widget._largeTitle
         ? MorphNavigationBarMetrics.largeTitleHeight
         : 0.0;
     final under =
-        offset > threshold + 0.5 || (!widget.largeTitle && offset > 0.5);
-    final title = !widget.largeTitle || offset >= threshold - 0.5;
+        offset > threshold + 0.5 || (!widget._largeTitle && offset > 0.5);
+    final title = !widget._largeTitle || offset >= threshold - 0.5;
     if (under == _scrolledUnder && title == _titleVisible) return;
     final animate = position.isScrollingNotifier.value;
     setState(() {
@@ -1010,7 +1034,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
     scrolledUnder: _scrolledUnder,
     animate: _animate,
     edgeEffect: widget.edgeEffect,
-    backTitle: widget.backTitle,
+    backButtonTitle: widget.backButtonTitle,
   );
 
   @override
@@ -1028,7 +1052,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
     final background =
         widget.backgroundColor ??
         MorphScrollEdgeEffectAppearance.resolve(context, null).backgroundColor;
-    final physics = widget.largeTitle
+    final physics = widget._largeTitle
         ? const MorphLargeTitleScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
@@ -1049,7 +1073,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
           SliverPadding(
             padding: EdgeInsets.only(top: MorphNavigationBar.heightFor(top)),
           ),
-          if (widget.largeTitle)
+          if (widget._largeTitle)
             SliverToBoxAdapter(
               child: MorphLargeTitle(
                 widget.title,
@@ -1077,13 +1101,15 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
     );
     if (shared) return body;
     var leading = widget.leading;
-    if (leading == null && (route?.canPop ?? false)) {
-      leading = MorphBarButtonGroup([
-        MorphBarButton.back(
-          semanticLabel: widget.backLabel,
-          onPressed: () => Navigator.maybePop(context),
-        ),
-      ]);
+    if (leading.isEmpty && (route?.canPop ?? false)) {
+      leading = [
+        MorphBarButtonGroup([
+          MorphBarButton.back(
+            semanticLabel: widget.backButtonSemanticLabel,
+            onPressed: () => Navigator.maybePop(context),
+          ),
+        ]),
+      ];
     }
     return Stack(
       children: [

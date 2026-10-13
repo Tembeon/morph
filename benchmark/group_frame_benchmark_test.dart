@@ -41,7 +41,7 @@ void main() {
                 rect: const .fromLTWH(300, 510, 110, 50),
                 child: Builder(
                   builder: (BuildContext context) => TextButton(
-                    onPressed: () => showMorphDialog(
+                    onPressed: () => showMorphDialogFlight(
                       context,
                       from: 'hero',
                       width: 420,

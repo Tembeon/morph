@@ -425,7 +425,7 @@ Widget _app(Widget body, {Alignment alignment = .center}) => WidgetsApp(
 );
 
 MorphMenuButton _button(List<String> log, {int count = 3}) => MorphMenuButton(
-  items: [
+  menu: [
     for (final title in _items.take(count))
       MorphMenuItem(
         title: title,
@@ -1293,7 +1293,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuButton(
-          items: [
+          menu: [
             MorphMenuItem(title: 'Copy', onSelected: () => log.add('Copy')),
             MorphSubmenu(
               title: 'More',
@@ -1376,7 +1376,7 @@ void main() {
         StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             rebuild = setState;
-            return MorphMenuButton(items: items);
+            return MorphMenuButton(menu: items);
           },
         ),
       ),
@@ -1401,7 +1401,7 @@ void main() {
           builder: (BuildContext context, StateSetter setState) {
             rebuild = setState;
             return MorphMenuButton(
-              items: [
+              menu: [
                 const MorphMenuItem(title: 'Copy'),
                 MorphMenuDeferred(() {
                   loads++;
@@ -1450,7 +1450,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         const MorphMenuButton(
-          items: [
+          menu: [
             MorphMenuItem(title: 'Copy'),
             MorphSubmenu(
               title: 'More',
@@ -1522,7 +1522,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuButton(
-          items: const [MorphMenuItem(title: 'Copy')],
+          menu: const [MorphMenuItem(title: 'Copy')],
           onOpen: (MorphFlight flight) {
             flights.add(flight);
             flight.events.listen(events.add);
@@ -1687,7 +1687,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuButton(
-          items: const [MorphMenuItem(title: 'Copy')],
+          menu: const [MorphMenuItem(title: 'Copy')],
           onOpen: flights.add,
           child: const SizedBox(key: glyph, width: 10, height: 10),
         ),
@@ -1748,7 +1748,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuButton(
-          items: const [MorphMenuItem(title: 'Copy')],
+          menu: const [MorphMenuItem(title: 'Copy')],
           onOpen: flights.add,
         ),
       ),

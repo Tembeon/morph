@@ -368,7 +368,7 @@ final List<MatrixControl> matrixControls = [
   MatrixControl(
     'menu',
     () => MorphMenuButton(
-      items: [
+      menu: [
         for (final title in const ['Copy', 'Share', 'Rename', 'Delete'])
           MorphMenuItem(title: title, onSelected: () {}),
       ],
@@ -435,7 +435,7 @@ final List<MatrixControl> matrixControls = [
       child: MorphNavigationStack(
         home: MorphNavigationScaffold(
           title: 'Inbox',
-          largeTitle: true,
+          largeTitleDisplayMode: .always,
           trailing: [
             MorphBarButtonGroup([_barIcon('add'), _barIcon('more')]),
           ],
@@ -472,7 +472,7 @@ final List<MatrixControl> matrixControls = [
   ),
   MatrixControl('sheet', null, {
     'open-close': (d) async {
-      presentMorphSheet<void>(
+      showMorphSheet<void>(
         MatrixStage.context!,
         detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
         grabberVisible: true,
@@ -483,7 +483,7 @@ final List<MatrixControl> matrixControls = [
       await d.settle(900);
     },
     'drag': (d) async {
-      presentMorphSheet<void>(
+      showMorphSheet<void>(
         MatrixStage.context!,
         detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
         grabberVisible: true,

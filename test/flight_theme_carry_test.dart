@@ -59,7 +59,7 @@ void main() {
     final source = await pumpPage(tester, painter: painter, ghost: ghost);
     expect(glass.outsideRoutes, 0);
     ghost.clear();
-    showMorphDialog(
+    showMorphDialogFlight(
       source,
       from: 'button',
       builder: (BuildContext context, MorphFlight flight) =>
@@ -80,7 +80,7 @@ void main() {
     addTearDown(painter.dispose);
     final seen = <MorphGlassPainter?>[];
     final source = await pumpPage(tester, painter: painter);
-    showMorphDialog(
+    showMorphDialogFlight(
       source,
       from: 'button',
       builder: (BuildContext context, MorphFlight flight) => _Probe(seen),
@@ -98,7 +98,7 @@ void main() {
     addTearDown(painter.dispose);
     final seen = <MorphGlassPainter?>[];
     final source = await pumpPage(tester, painter: painter);
-    showMorphDialog(
+    showMorphDialogFlight(
       source,
       from: 'button',
       builder: (BuildContext context, MorphFlight flight) => _Probe(seen),
@@ -119,7 +119,7 @@ void main() {
     addTearDown(painter.dispose);
     final seen = <MorphGlassPainter?>[];
     final source = await pumpPage(tester, painter: painter);
-    final flight = showMorphDialog(
+    final flight = showMorphDialogFlight(
       source,
       from: 'button',
       builder: (BuildContext context, MorphFlight flight) => _Probe(seen),
@@ -200,7 +200,7 @@ void main() {
         ),
       ),
     );
-    showMorphDialog(
+    showMorphDialogFlight(
       source!,
       from: 'button',
       builder: (BuildContext context, MorphFlight flight) => Builder(

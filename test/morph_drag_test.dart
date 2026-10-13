@@ -14,7 +14,7 @@ Widget host() {
           id: 'sheet',
           child: Builder(
             builder: (BuildContext context) => TextButton(
-              onPressed: () => showMorphDialog(
+              onPressed: () => showMorphDialogFlight(
                 context,
                 from: 'sheet',
                 semanticLabel: 'Player',

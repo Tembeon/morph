@@ -35,7 +35,7 @@ void main() {
                 height: 280,
                 child: Builder(
                   builder: (BuildContext context) => TextButton(
-                    onPressed: () => showMorphSheet(
+                    onPressed: () => showMorphSheetFlight(
                       context,
                       from: 'pill',
                       motion: .glacial,
@@ -112,7 +112,7 @@ void main() {
                 elevation: 4,
               ),
               child: _SpecSurface(
-                onTap: (BuildContext context) => showMorphDialog(
+                onTap: (BuildContext context) => showMorphDialogFlight(
                   context,
                   from: 'fab',
                   width: 420,

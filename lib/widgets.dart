@@ -45,7 +45,7 @@ export 'src/widgets/alert_motion.dart'
     show
         MorphAlertMotion,
         MorphAlertTuning,
-        MorphPopoverArrowEdge,
+        MorphPopoverArrowDirection,
         MorphPopoverMotion,
         MorphPopoverPlacement,
         MorphPopoverTuning,
@@ -54,6 +54,7 @@ export 'src/widgets/bar_items.dart'
     show
         MorphBarButton,
         MorphBarButtonGroup,
+        MorphBarButtonStyle,
         MorphBarMenuTuning,
         MorphBarMetrics,
         MorphBarAppearance;
@@ -149,9 +150,10 @@ export 'src/widgets/navigation_bar.dart'
         MorphNavigationBar,
         MorphNavigationBarMetrics;
 export 'src/widgets/navigation_motion.dart'
-    show MorphNavigationTitleMotion, MorphNavigationTransition;
+    show MorphNavigationTitleMotion, MorphNavigationTuning;
 export 'src/widgets/navigation_stack.dart'
     show
+        MorphLargeTitleDisplayMode,
         MorphNavigationConfig,
         MorphNavigationRoute,
         MorphNavigationScaffold,
@@ -185,7 +187,7 @@ export 'src/widgets/search_tab_bar.dart' show MorphSearchTabBar;
 export 'src/widgets/segmented_control.dart'
     show MorphSegment, MorphSegmentedControl, MorphSegmentedControlAppearance;
 export 'src/widgets/sheet.dart'
-    show MorphSheet, MorphSheetRoute, MorphSheetAppearance, presentMorphSheet;
+    show MorphSheet, MorphSheetRoute, MorphSheetAppearance, showMorphSheet;
 export 'src/widgets/sheet_motion.dart'
     show MorphSheetDetent, MorphSheetMotion, MorphSheetTuning;
 export 'src/widgets/slider.dart' show MorphSlider, MorphSliderAppearance;

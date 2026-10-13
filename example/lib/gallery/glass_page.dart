@@ -106,9 +106,9 @@ class _GlassPageState extends State<GlassPage> {
             children: [
               MorphMenuButton(
                 enabled: enabled,
-                items: const [
-                  MorphMenuItem(title: 'Copy', icon: Icons.copy),
-                  MorphMenuItem(title: 'Share', icon: Icons.ios_share),
+                menu: const [
+                  MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),
+                  MorphMenuItem(title: 'Share', icon: Icon(Icons.ios_share)),
                 ],
               ),
               const SizedBox(width: 24),

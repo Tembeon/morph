@@ -77,7 +77,7 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     await play(
       find.byWidgetPredicate(
-        (Widget w) => w is MorphMenuButton && w.items.length == 10,
+        (Widget w) => w is MorphMenuButton && w.menu.length == 10,
       ),
     );
     await tester.pump(const Duration(seconds: 2));
@@ -119,11 +119,11 @@ class _Page extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final button = MorphMenuButton(
-      items: [
+      menu: [
         for (final title in _titles.take(items))
           MorphMenuItem(
             title: title,
-            icon: Icons.circle_outlined,
+            icon: const Icon(Icons.circle_outlined),
             destructive: title == 'Delete',
           ),
       ],

@@ -39,9 +39,13 @@ const _scene = String.fromEnvironment('TRACE_SCENE', defaultValue: 'center');
 const _run = String.fromEnvironment('TRACE_RUN', defaultValue: '0');
 
 const _items = [
-  MorphMenuItem(title: 'Copy', icon: Icons.copy),
-  MorphMenuItem(title: 'Share', icon: Icons.ios_share),
-  MorphMenuItem(title: 'Delete', icon: Icons.delete_outline, destructive: true),
+  MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),
+  MorphMenuItem(title: 'Share', icon: Icon(Icons.ios_share)),
+  MorphMenuItem(
+    title: 'Delete',
+    icon: Icon(Icons.delete_outline),
+    destructive: true,
+  ),
 ];
 
 class _TraceApp extends StatelessWidget {
@@ -59,7 +63,7 @@ class _TraceApp extends StatelessWidget {
         body: Stack(
           children: [
             Positioned.fill(
-              child: Center(child: MorphMenuButton(items: _items)),
+              child: Center(child: MorphMenuButton(menu: _items)),
             ),
           ],
         ),

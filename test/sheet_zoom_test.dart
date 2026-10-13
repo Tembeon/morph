@@ -152,7 +152,7 @@ void main() {
     _phone(tester);
     await tester.pumpWidget(
       _app(
-        (BuildContext context) => presentMorphSheet<void>(
+        (BuildContext context) => showMorphSheet<void>(
           context,
           from: 'source',
           detents: const [MorphSheetDetent.medium],
@@ -199,7 +199,7 @@ void main() {
     _phone(tester);
     await tester.pumpWidget(
       _app(
-        (BuildContext context) => presentMorphSheet<void>(
+        (BuildContext context) => showMorphSheet<void>(
           context,
           from: 'source',
           detents: const [MorphSheetDetent.medium],

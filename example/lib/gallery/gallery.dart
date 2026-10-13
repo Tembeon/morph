@@ -182,7 +182,7 @@ class GalleryPage extends StatefulWidget {
     required this.title,
     required this.slivers,
     this.largeTitle = false,
-    this.leading,
+    this.leading = const [],
     this.trailing = const [],
     this.toolbarLeading = const [],
     this.toolbarTrailing = const [],
@@ -200,8 +200,8 @@ class GalleryPage extends StatefulWidget {
   /// Whether the title shows large above the content.
   final bool largeTitle;
 
-  /// The group at the leading edge of the navigation bar.
-  final MorphBarButtonGroup? leading;
+  /// The groups at the leading edge of the navigation bar.
+  final List<MorphBarButtonGroup> leading;
 
   /// The page's own bar button groups, before the slow-motion button.
   final List<MorphBarButtonGroup> trailing;
@@ -247,11 +247,11 @@ class _GalleryPageState extends State<GalleryPage> {
         ),
       ],
       id: 'slowmo',
-      prominent: factor != 1,
+      style: factor != 1 ? .prominent : .plain,
     );
     return MorphNavigationScaffold(
       title: widget.title,
-      largeTitle: widget.largeTitle,
+      largeTitleDisplayMode: widget.largeTitle ? .always : .never,
       leading: widget.leading,
       trailing: [...widget.trailing, slowMotion],
       toolbarLeading: widget.toolbarLeading,

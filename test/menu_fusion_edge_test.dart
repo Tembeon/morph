@@ -192,7 +192,7 @@ void main() {
             child: const Scaffold(
               body: Center(
                 child: MorphMenuButton(
-                  items: [
+                  menu: [
                     MorphMenuItem(title: 'One'),
                     MorphMenuItem(title: 'Two'),
                     MorphMenuItem(title: 'Three'),

@@ -58,7 +58,7 @@ class MorphBarButton {
   ///
   /// Screen readers announce [semanticLabel], else [label]; a back button
   /// without either has no spoken name, so pass a localized
-  /// [semanticLabel] (the navigation stack passes its `backLabel`).
+  /// [semanticLabel] (the navigation stack passes its `backButtonSemanticLabel`).
   const MorphBarButton.back({
     this.label,
     this.onPressed,
@@ -112,7 +112,7 @@ class MorphBarButton {
   /// capsule when it lifts after that fires the button and closes the
   /// menu (UIKit pops one screen); one moved off leaves the menu open,
   /// and a tap on a row selects it. Any [MorphMenuEntry] works here, as
-  /// in [MorphMenuButton.items].
+  /// in [MorphMenuButton.menu].
   final List<MorphMenuEntry>? menu;
 
   /// Whether the button may be used, as `UIBarButtonItem.isEnabled`;
@@ -208,16 +208,31 @@ class MorphBarMenuTuning {
   int get hashCode => Object.hash(recognition, open, menu);
 }
 
+/// The look of a [MorphBarButtonGroup]'s capsule, after UIKit's
+/// `UIBarButtonItem.Style`.
+enum MorphBarButtonStyle {
+  /// Plain glass.
+  plain,
+
+  /// Glass tinted with the bar appearance's prominent color, its labels
+  /// bold.
+  prominent,
+}
+
 /// Buttons that share one glass capsule.
 ///
 /// UIKit groups adjacent bar items into one piece of glass; separate
 /// groups (a fixed space between items) get capsules of their own, 12
-/// points apart. A [prominent] group is tinted, like
-/// `UIBarButtonItem.Style.prominent`.
+/// points apart. A group of [style] [MorphBarButtonStyle.prominent] is
+/// tinted.
 @immutable
 class MorphBarButtonGroup {
   /// Creates a group of [buttons].
-  const MorphBarButtonGroup(this.buttons, {this.id, this.prominent = false});
+  const MorphBarButtonGroup(
+    this.buttons, {
+    this.id,
+    this.style = MorphBarButtonStyle.plain,
+  });
 
   /// The buttons, in reading order.
   final List<MorphBarButton> buttons;
@@ -228,18 +243,21 @@ class MorphBarButtonGroup {
   /// one).
   final Object? id;
 
-  /// Whether the capsule is tinted with the appearance's prominent color.
-  final bool prominent;
+  /// Whether the capsule is plain glass or tinted with the appearance's
+  /// prominent color (UIKit `UIBarButtonItem.style`).
+  final MorphBarButtonStyle style;
+
+  bool get _prominent => style == MorphBarButtonStyle.prominent;
 
   @override
   bool operator ==(Object other) =>
       other is MorphBarButtonGroup &&
       other.id == id &&
-      other.prominent == prominent &&
+      other.style == style &&
       listEquals(other.buttons, buttons);
 
   @override
-  int get hashCode => Object.hash(id, prominent, Object.hashAll(buttons));
+  int get hashCode => Object.hash(id, style, Object.hashAll(buttons));
 }
 
 /// The measured geometry of the glass buttons of a bar.
@@ -611,7 +629,7 @@ List<MorphPlacedGroup> morphIdentifyBarItems(List<MorphPlacedGroup> groups) {
         MorphBarButtonGroup(
           [for (final b in g.group.buttons) identified(b)],
           id: g.group.id,
-          prominent: g.group.prominent,
+          style: g.group.style,
         ),
         g.side,
       ),
@@ -704,7 +722,7 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
   ) {
     final widths = [
       for (final b in group.buttons)
-        math.max(metrics.minButtonWidth, measure(b, bold: group.prominent)),
+        math.max(metrics.minButtonWidth, measure(b, bold: group._prominent)),
     ];
     final single = group.buttons.length == 1 && group.buttons.first.back;
     final inner =
@@ -1079,7 +1097,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       final y = b[k];
       if (x.side != y.side ||
           x.group.id != y.group.id ||
-          x.group.prominent != y.group.prominent ||
+          x.group._prominent != y.group._prominent ||
           x.group.buttons.length != y.group.buttons.length) {
         return false;
       }
@@ -1273,7 +1291,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     for (final c in layout) {
       _prominent[c.id] = groups.any(
         (g) =>
-            g.group.prominent &&
+            g.group._prominent &&
             c.items.any((i) => g.group.buttons.any((b) => b.id == i.id)),
       );
       _disabled[c.id] = c.items.every(

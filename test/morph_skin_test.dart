@@ -172,7 +172,7 @@ void main() {
                 child: Builder(
                   builder: (BuildContext context) => TextButton(
                     onPressed: () {
-                      flight = showMorphDialog(
+                      flight = showMorphDialogFlight(
                         context,
                         from: 'hero',
                         width: 400,
@@ -332,7 +332,7 @@ void main() {
               child: Builder(
                 builder: (BuildContext context) => TextButton(
                   onPressed: () {
-                    showMorphDialog(
+                    showMorphDialogFlight(
                       context,
                       from: 'hero',
                       width: 500,
@@ -475,7 +475,7 @@ void main() {
     );
     final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
     expect(skin.debugNeedsPaint, isFalse);
-    final MorphFlight flight = showMorphDialog(
+    final MorphFlight flight = showMorphDialogFlight(
       outside,
       builder: (BuildContext context, MorphFlight flight) =>
           const Text('dialog'),
@@ -524,7 +524,7 @@ void main() {
                       child: Builder(
                         builder: (BuildContext context) => TextButton(
                           onPressed: () {
-                            showMorphDialog(
+                            showMorphDialogFlight(
                               context,
                               from: 'hero',
                               builder:
@@ -665,7 +665,7 @@ void main() {
                 child: Builder(
                   builder: (BuildContext context) => TextButton(
                     onPressed: () {
-                      flight = showMorphDialog(
+                      flight = showMorphDialogFlight(
                         context,
                         from: 'hero',
                         width: 400,
@@ -864,7 +864,7 @@ void main() {
                         rect: heroRect,
                         child: Builder(
                           builder: (BuildContext context) => TextButton(
-                            onPressed: () => showMorphDialog(
+                            onPressed: () => showMorphDialogFlight(
                               context,
                               from: 'hero',
                               builder:
@@ -944,7 +944,7 @@ void main() {
                           rect: const Rect.fromLTWH(170, 310, 110, 50),
                           child: Builder(
                             builder: (BuildContext context) => TextButton(
-                              onPressed: () => showMorphDialog(
+                              onPressed: () => showMorphDialogFlight(
                                 context,
                                 from: 'hero',
                                 overlay: overlayKey.currentState,

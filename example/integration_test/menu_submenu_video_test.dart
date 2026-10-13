@@ -115,24 +115,24 @@ class _Page extends StatelessWidget {
               width: 48,
               height: 48,
               child: MorphMenuButton(
-                items: [
-                  MorphMenuItem(title: 'Copy', icon: Icons.copy),
-                  MorphMenuItem(title: 'Share', icon: Icons.ios_share),
+                menu: [
+                  MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),
+                  MorphMenuItem(title: 'Share', icon: Icon(Icons.ios_share)),
                   MorphSubmenu(
                     title: 'More',
-                    icon: Icons.folder_outlined,
+                    icon: Icon(Icons.folder_outlined),
                     children: [
                       MorphMenuItem(
                         title: 'Sub one',
-                        icon: Icons.looks_one_outlined,
+                        icon: Icon(Icons.looks_one_outlined),
                       ),
                       MorphMenuItem(
                         title: 'Sub two',
-                        icon: Icons.looks_two_outlined,
+                        icon: Icon(Icons.looks_two_outlined),
                       ),
                       MorphSubmenu(
                         title: 'Deeper',
-                        icon: Icons.more_horiz,
+                        icon: Icon(Icons.more_horiz),
                         children: [
                           MorphMenuItem(title: 'Deep one'),
                           MorphMenuItem(title: 'Deep two'),
@@ -142,7 +142,7 @@ class _Page extends StatelessWidget {
                   ),
                   MorphMenuItem(
                     title: 'Delete',
-                    icon: Icons.delete_outline,
+                    icon: Icon(Icons.delete_outline),
                     destructive: true,
                   ),
                   MorphMenuWidget(height: 62, builder: _nativeFooter),

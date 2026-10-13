@@ -54,7 +54,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
           grabberVisible: true,
@@ -88,7 +88,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
           grabberVisible: true,
@@ -128,7 +128,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         onPresent: (BuildContext context) async {
-          result = await presentMorphSheet<String>(
+          result = await showMorphSheet<String>(
             context,
             detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
             builder: _content,
@@ -158,7 +158,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         onPresent: (BuildContext context) async {
-          result = await presentMorphSheet<String>(
+          result = await showMorphSheet<String>(
             context,
             detents: const [MorphSheetDetent.medium],
             builder: _content,
@@ -187,7 +187,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         onPageTap: () => taps++,
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
           largestUndimmedDetent: MorphSheetDetent.medium,
@@ -207,7 +207,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
           largestUndimmedDetent: MorphSheetDetent.medium,
@@ -243,7 +243,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
           builder: _content,
@@ -306,7 +306,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
           builder: (BuildContext context) => GestureDetector(
@@ -347,7 +347,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium],
           dismissible: false,
@@ -374,7 +374,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
           builder: (BuildContext context) => Material(
@@ -409,7 +409,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
           builder: (BuildContext context) => Material(
@@ -446,7 +446,7 @@ void main() {
     final handle = tester.ensureSemantics();
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           semanticLabel: 'Options',
           builder: _content,
@@ -476,7 +476,7 @@ void main() {
         theme: ThemeData(brightness: Brightness.dark),
         direction: TextDirection.rtl,
         onPresent: (BuildContext context) =>
-            presentMorphSheet<void>(context, builder: _content),
+            showMorphSheet<void>(context, builder: _content),
       ),
     );
     await tester.tap(find.text('present'));
@@ -497,7 +497,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           detents: const [MorphSheetDetent.medium],
           builder: (BuildContext context) {
@@ -528,7 +528,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       _app(
-        onPresent: (BuildContext context) => presentMorphSheet<void>(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
           context,
           builder: (BuildContext context) {
             padding = MediaQuery.paddingOf(context);

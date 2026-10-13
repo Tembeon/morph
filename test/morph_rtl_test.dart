@@ -82,7 +82,7 @@ void main() {
               ),
               child: Builder(
                 builder: (BuildContext context) => TextButton(
-                  onPressed: () => showMorphDialog(
+                  onPressed: () => showMorphDialogFlight(
                     context,
                     from: 'rtl',
                     shape: RoundedRectangleBorder(

@@ -131,9 +131,11 @@ void main() {
           alignment: Alignment.topCenter,
           child: MorphNavigationBar(
             title: 'Inbox',
-            leading: const MorphBarButtonGroup([
-              MorphBarButton(id: 'edit', label: 'Edit'),
-            ]),
+            leading: [
+              const MorphBarButtonGroup([
+                MorphBarButton(id: 'edit', label: 'Edit'),
+              ]),
+            ],
             trailing: [
               MorphBarButtonGroup([_icon('add', onPressed: () => taps++)]),
             ],
@@ -187,9 +189,11 @@ void main() {
         Align(
           alignment: Alignment.topCenter,
           child: MorphNavigationBar(
-            leading: MorphBarButtonGroup([
-              MorphBarButton.back(label: 'Inbox', onPressed: () {}),
-            ]),
+            leading: [
+              MorphBarButtonGroup([
+                MorphBarButton.back(label: 'Inbox', onPressed: () {}),
+              ]),
+            ],
             trailing: [
               MorphBarButtonGroup([_icon('add')]),
             ],
@@ -266,9 +270,11 @@ void main() {
       const Align(
         alignment: Alignment.topCenter,
         child: MorphNavigationBar(
-          leading: MorphBarButtonGroup([
-            MorphBarButton(id: 'edit', label: 'Edit', onPressed: _noop),
-          ]),
+          leading: [
+            MorphBarButtonGroup([
+              MorphBarButton(id: 'edit', label: 'Edit', onPressed: _noop),
+            ]),
+          ],
         ),
       ),
     );
@@ -386,7 +392,7 @@ void main() {
               homeContext = context;
               return const MorphNavigationScaffold(
                 title: 'Inbox',
-                largeTitle: true,
+                largeTitleDisplayMode: .always,
                 slivers: [SliverToBoxAdapter(child: SizedBox(height: 2000))],
               );
             },
@@ -450,7 +456,7 @@ void main() {
       _app(
         MorphNavigationScaffold(
           title: 'Inbox',
-          largeTitle: true,
+          largeTitleDisplayMode: .always,
           controller: controller,
           slivers: const [SliverToBoxAdapter(child: SizedBox(height: 3000))],
         ),

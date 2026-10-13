@@ -75,7 +75,7 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
   /// The look of every [MorphMenuButton] without its own appearance.
   final MorphMenuAppearance? menu;
 
-  /// The look of every sheet presented with [presentMorphSheet] without
+  /// The look of every sheet presented with [showMorphSheet] without
   /// its own appearance.
   final MorphSheetAppearance? sheet;
 

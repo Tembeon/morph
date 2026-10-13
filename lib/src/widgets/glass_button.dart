@@ -443,7 +443,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
       final rim = tint == null ? style.rimColor : style.prominentRimColor;
       return RepaintBoundary(
         child: MorphMenuSource(
-          items: menu,
+          menu: menu,
           trigger: hold ? .hold : .tap,
           onTap: _press,
           enabled: enabled,

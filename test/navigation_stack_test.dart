@@ -25,10 +25,12 @@ Widget _inbox(void Function(BuildContext) onContext) => Builder(
     onContext(context);
     return MorphNavigationScaffold(
       title: 'Inbox',
-      largeTitle: true,
-      leading: MorphBarButtonGroup([
-        MorphBarButton(id: 'close', label: 'Close', onPressed: () {}),
-      ]),
+      largeTitleDisplayMode: .always,
+      leading: [
+        MorphBarButtonGroup([
+          MorphBarButton(id: 'close', label: 'Close', onPressed: () {}),
+        ]),
+      ],
       trailing: [
         MorphBarButtonGroup([_icon('add'), _icon('search'), _icon('more')]),
       ],
@@ -46,7 +48,7 @@ Widget _detail() => MorphNavigationScaffold(
     MorphBarButtonGroup([_icon('like'), _icon('share')]),
     MorphBarButtonGroup([
       MorphBarButton(id: 'done', label: 'Done', onPressed: () {}),
-    ], prominent: true),
+    ], style: .prominent),
   ],
   toolbarLeading: [
     MorphBarButtonGroup([_icon('up'), _icon('down')], id: 'tbL'),
@@ -283,7 +285,7 @@ void main() {
       final back = _item(tester, 'morph.back');
       final like = _item(tester, 'like');
       void expectLean() {
-        final lean = MorphNavigationTransition.barDrift * _pageOut(tester);
+        final lean = MorphNavigationTuning.barDrift * _pageOut(tester);
         expect(
           _item(tester, 'done').dx,
           closeTo(done.dx + lean * (outer.dx - done.dx), 0.01),
@@ -522,7 +524,8 @@ void main() {
       final bar = tester.widget<MorphNavigationBar>(
         find.byType(MorphNavigationBar),
       );
-      final row = bar.leading!.buttons.single.menu!.first as MorphMenuItem;
+      final row =
+          bar.leading.single.buttons.single.menu!.first as MorphMenuItem;
       expect(row.title, 'Inbox');
       navigator.removeRoute(inbox);
       await tester.pumpAndSettle(

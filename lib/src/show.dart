@@ -87,7 +87,7 @@ MorphFlight showMorph(
 ///
 /// With [fitContent] the sheet is as tall as its content, [height] (or
 /// [heightFactor]) being the ceiling - see [MorphTargetSpec.sheet].
-MorphFlight showMorphSheet(
+MorphFlight showMorphSheetFlight(
   BuildContext context, {
   Object? from,
   required MorphContentBuilder builder,
@@ -152,7 +152,7 @@ MorphFlight showMorphSheet(
 ///
 /// With [fitContent] the dialog is as tall as its content, [height]
 /// being the ceiling - see [MorphTargetSpec.dialog].
-MorphFlight showMorphDialog(
+MorphFlight showMorphDialogFlight(
   BuildContext context, {
   Object? from,
   required MorphContentBuilder builder,

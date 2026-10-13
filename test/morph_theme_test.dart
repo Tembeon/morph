@@ -173,7 +173,7 @@ void main() {
             child: Builder(
               builder: (BuildContext context) => TextButton(
                 onPressed: () {
-                  flight = showMorphDialog(
+                  flight = showMorphDialogFlight(
                     context,
                     from: 'pill',
                     builder: (BuildContext context, MorphFlight flight) =>
@@ -204,7 +204,7 @@ void main() {
             child: Builder(
               builder: (BuildContext context) => TextButton(
                 onPressed: () {
-                  flight = showMorphDialog(
+                  flight = showMorphDialogFlight(
                     context,
                     from: 'pill',
                     motion: .instant,
@@ -368,7 +368,7 @@ void main() {
             child: Builder(
               builder: (BuildContext context) => TextButton(
                 onPressed: () {
-                  flight = showMorphDialog(
+                  flight = showMorphDialogFlight(
                     context,
                     from: 'pill',
                     builder: (BuildContext context, MorphFlight flight) =>
@@ -423,7 +423,7 @@ void main() {
             child: Builder(
               builder: (BuildContext context) => TextButton(
                 onPressed: () {
-                  flight = showMorphDialog(
+                  flight = showMorphDialogFlight(
                     context,
                     from: 'pill',
                     scrimColor: explicitScrim,
@@ -456,7 +456,7 @@ void main() {
             child: Builder(
               builder: (BuildContext context) => TextButton(
                 onPressed: () {
-                  flight = showMorphDialog(
+                  flight = showMorphDialogFlight(
                     context,
                     from: 'pill',
                     builder: (BuildContext context, MorphFlight flight) =>

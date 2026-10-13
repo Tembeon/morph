@@ -208,6 +208,10 @@ class MorphAlertAppearance {
 /// (resampled, at most 9 percent magnified). At rest they are drawn
 /// exactly (IDENTICAL). A fading raster is drawn with the fade in its
 /// paint, without an offscreen pass: NEAR (at most 1 of 255 per channel).
+///
+/// The alert is pushed on the root navigator when [useRootNavigator] is
+/// null or true, as UIKit presents an alert above everything; false
+/// pushes it on the nearest one.
 Future<MorphAlertAction?> showMorphAlert(
   BuildContext context, {
   String? title,
@@ -215,7 +219,7 @@ Future<MorphAlertAction?> showMorphAlert(
   List<MorphAlertAction> actions = const [],
   List<MorphAlertTextField> textFields = const [],
   MorphAlertAppearance? appearance,
-  bool useRootNavigator = true,
+  bool? useRootNavigator,
 }) {
   final route = MorphAlertRoute(
     title: title,
@@ -224,7 +228,10 @@ Future<MorphAlertAction?> showMorphAlert(
     textFields: textFields,
     appearance: appearance,
   );
-  final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+  final navigator = Navigator.of(
+    context,
+    rootNavigator: useRootNavigator ?? true,
+  );
   route._themes = MorphThemeCarrier(context, to: navigator.context);
   return navigator.push(route);
 }
@@ -250,7 +257,7 @@ Future<MorphAlertAction?> showMorphActionSheet(
   BuildContext? anchor,
   Rect? anchorRect,
   MorphAlertAppearance? appearance,
-  bool useRootNavigator = true,
+  bool? useRootNavigator,
 }) {
   Rect? source = anchorRect;
   if (source == null && anchor != null) {
@@ -274,7 +281,10 @@ Future<MorphAlertAction?> showMorphActionSheet(
     actionSheet: true,
     source: source,
   );
-  final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+  final navigator = Navigator.of(
+    context,
+    rootNavigator: useRootNavigator ?? true,
+  );
   route._themes = MorphThemeCarrier(anchor ?? context, to: navigator.context);
   return navigator.push(route);
 }
@@ -952,16 +962,16 @@ class _PopoverFlow extends FlowDelegate {
     const w = MorphPopoverTuning.arrowWidth;
     final arrow = Matrix4.identity();
     final c = placement.arrowCenter;
-    switch (placement.edge) {
-      case MorphPopoverArrowEdge.bottom:
+    switch (placement.arrowDirection) {
+      case MorphPopoverArrowDirection.down:
         arrow.setFrom(around(Offset(c - w / 2, content.bottom)));
-      case MorphPopoverArrowEdge.top:
+      case MorphPopoverArrowDirection.up:
         arrow.setFrom(around(Offset(c + w / 2, content.top)));
         arrow.multiply(Matrix4.rotationZ(math.pi));
-      case MorphPopoverArrowEdge.left:
+      case MorphPopoverArrowDirection.left:
         arrow.setFrom(around(Offset(content.left, c - w / 2)));
         arrow.multiply(Matrix4.rotationZ(math.pi / 2));
-      case MorphPopoverArrowEdge.right:
+      case MorphPopoverArrowDirection.right:
         arrow.setFrom(around(Offset(content.right, c + w / 2)));
         arrow.multiply(Matrix4.rotationZ(-math.pi / 2));
     }

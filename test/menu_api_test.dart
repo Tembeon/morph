@@ -31,9 +31,13 @@ const _sort = MorphMenuSection(
   title: 'Sort by',
   singleSelection: true,
   children: [
-    MorphMenuItem(title: 'Name', icon: IconData(1), state: MorphMenuState.on),
-    MorphMenuItem(title: 'Date', icon: IconData(2)),
-    MorphMenuItem(title: 'Size', icon: IconData(3)),
+    MorphMenuItem(
+      title: 'Name',
+      icon: Icon(IconData(1)),
+      state: MorphMenuState.on,
+    ),
+    MorphMenuItem(title: 'Date', icon: Icon(IconData(2))),
+    MorphMenuItem(title: 'Size', icon: Icon(IconData(3))),
   ],
 );
 
@@ -43,12 +47,12 @@ const _rich1 = <MorphMenuEntry>[
     children: [
       MorphMenuItem(
         title: 'Show hidden',
-        icon: IconData(4),
+        icon: Icon(IconData(4)),
         state: MorphMenuState.on,
       ),
       MorphMenuItem(
         title: 'Mixed state',
-        icon: IconData(5),
+        icon: Icon(IconData(5)),
         state: MorphMenuState.mixed,
       ),
     ],
@@ -58,10 +62,18 @@ const _rich1 = <MorphMenuEntry>[
       MorphMenuItem(
         title: 'With subtitle',
         subtitle: 'A second line of detail',
-        icon: IconData(6),
+        icon: Icon(IconData(6)),
       ),
-      MorphMenuItem(title: 'Disabled row', icon: IconData(7), enabled: false),
-      MorphMenuItem(title: 'Delete', icon: IconData(8), destructive: true),
+      MorphMenuItem(
+        title: 'Disabled row',
+        icon: Icon(IconData(7)),
+        enabled: false,
+      ),
+      MorphMenuItem(
+        title: 'Delete',
+        icon: Icon(IconData(8)),
+        destructive: true,
+      ),
     ],
   ),
 ];
@@ -71,28 +83,28 @@ const _rich2 = <MorphMenuEntry>[
     title: 'Color',
     palette: true,
     children: [
-      MorphMenuItem(title: 'Red', icon: IconData(1)),
-      MorphMenuItem(title: 'Orange', icon: IconData(1)),
-      MorphMenuItem(title: 'Green', icon: IconData(1)),
-      MorphMenuItem(title: 'Blue', icon: IconData(1), state: .on),
-      MorphMenuItem(title: 'Purple', icon: IconData(1)),
+      MorphMenuItem(title: 'Red', icon: Icon(IconData(1))),
+      MorphMenuItem(title: 'Orange', icon: Icon(IconData(1))),
+      MorphMenuItem(title: 'Green', icon: Icon(IconData(1))),
+      MorphMenuItem(title: 'Blue', icon: Icon(IconData(1)), state: .on),
+      MorphMenuItem(title: 'Purple', icon: Icon(IconData(1))),
     ],
   ),
   MorphMenuSection(
     elementSize: .small,
     children: [
-      MorphMenuItem(title: 'Cut', icon: IconData(2)),
-      MorphMenuItem(title: 'Copy', icon: IconData(2)),
-      MorphMenuItem(title: 'Paste', icon: IconData(2)),
-      MorphMenuItem(title: 'Share', icon: IconData(2)),
+      MorphMenuItem(title: 'Cut', icon: Icon(IconData(2))),
+      MorphMenuItem(title: 'Copy', icon: Icon(IconData(2))),
+      MorphMenuItem(title: 'Paste', icon: Icon(IconData(2))),
+      MorphMenuItem(title: 'Share', icon: Icon(IconData(2))),
     ],
   ),
   MorphMenuSection(
     elementSize: .medium,
     children: [
-      MorphMenuItem(title: 'Bold', icon: IconData(3)),
-      MorphMenuItem(title: 'Italic', icon: IconData(3)),
-      MorphMenuItem(title: 'Underline', icon: IconData(3)),
+      MorphMenuItem(title: 'Bold', icon: Icon(IconData(3))),
+      MorphMenuItem(title: 'Italic', icon: Icon(IconData(3))),
+      MorphMenuItem(title: 'Underline', icon: Icon(IconData(3))),
     ],
   ),
   MorphMenuSection(
@@ -102,12 +114,12 @@ const _rich2 = <MorphMenuEntry>[
       MorphMenuItem(title: 'Inline two'),
     ],
   ),
-  MorphMenuItem(title: 'Plain row', icon: IconData(4)),
+  MorphMenuItem(title: 'Plain row', icon: Icon(IconData(4))),
 ];
 
 const _deeper = MorphSubmenu(
   title: 'Deeper',
-  icon: IconData(13),
+  icon: Icon(IconData(13)),
   children: [
     MorphMenuItem(title: 'Deep one'),
     MorphMenuItem(title: 'Deep two'),
@@ -117,26 +129,30 @@ const _deeper = MorphSubmenu(
 final _log = <String>[];
 
 final _sub = <MorphMenuEntry>[
-  const MorphMenuItem(title: 'Copy', icon: IconData(1)),
-  const MorphMenuItem(title: 'Share', icon: IconData(2)),
+  const MorphMenuItem(title: 'Copy', icon: Icon(IconData(1))),
+  const MorphMenuItem(title: 'Share', icon: Icon(IconData(2))),
   MorphSubmenu(
     title: 'More',
-    icon: const IconData(3),
+    icon: const Icon(IconData(3)),
     children: [
       MorphMenuItem(
         title: 'Sub one',
-        icon: const IconData(11),
+        icon: const Icon(IconData(11)),
         onSelected: () => _log.add('Sub one'),
       ),
       MorphMenuItem(
         title: 'Sub two',
-        icon: const IconData(12),
+        icon: const Icon(IconData(12)),
         onSelected: () => _log.add('Sub two'),
       ),
       _deeper,
     ],
   ),
-  const MorphMenuItem(title: 'Delete', icon: IconData(4), destructive: true),
+  const MorphMenuItem(
+    title: 'Delete',
+    icon: Icon(IconData(4)),
+    destructive: true,
+  ),
 ];
 
 Rect _element(MorphMenuLayout layout, String title) {
@@ -380,7 +396,7 @@ void main() {
 
     test('a loading deferred group is one 42 pt row', () {
       final layout = MorphMenuLayout.build([
-        const MorphMenuItem(title: 'Copy', icon: IconData(1)),
+        const MorphMenuItem(title: 'Copy', icon: Icon(IconData(1))),
         MorphMenuDeferred(() async => const []),
       ], resolve: (MorphMenuDeferred deferred) => null);
       expect(layout.loading, isTrue);

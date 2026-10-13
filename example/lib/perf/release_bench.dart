@@ -168,7 +168,7 @@ Future<void> _frameTimings(BuildContext context) async {
   void collect(List<FrameTiming> batch) => timings.addAll(batch);
   SchedulerBinding.instance.addTimingsCallback(collect);
 
-  final MorphFlight flight = showMorphDialog(
+  final MorphFlight flight = showMorphDialogFlight(
     context,
     from: _benchSourceId,
     width: 520,

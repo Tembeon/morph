@@ -188,7 +188,7 @@ Widget _inbox(void Function(BuildContext) onContext) => Builder(
     onContext(context);
     return MorphNavigationScaffold(
       title: 'Inbox',
-      largeTitle: true,
+      largeTitleDisplayMode: .always,
       trailing: [
         MorphBarButtonGroup([_icon('add'), _icon('more')]),
       ],
@@ -211,7 +211,7 @@ Widget _detail() => MorphNavigationScaffold(
     MorphBarButtonGroup([_icon('like'), _icon('share')]),
     MorphBarButtonGroup([
       MorphBarButton(id: 'done', label: 'Done', onPressed: () {}),
-    ], prominent: true),
+    ], style: .prominent),
   ],
   toolbarLeading: [
     MorphBarButtonGroup([_icon('up'), _icon('down')], id: 'tbL'),

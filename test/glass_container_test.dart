@@ -201,20 +201,24 @@ void main() {
             color: const Color(0xFF203040),
             child: MorphSearchToolbar(
               leading: [
-                MorphBarButton(
-                  id: 'a',
-                  icon: const SizedBox.square(dimension: 20),
-                  semanticLabel: 'A',
-                  onPressed: () {},
-                ),
+                MorphBarButtonGroup([
+                  MorphBarButton(
+                    id: 'a',
+                    icon: const SizedBox.square(dimension: 20),
+                    semanticLabel: 'A',
+                    onPressed: () {},
+                  ),
+                ]),
               ],
               trailing: [
-                MorphBarButton(
-                  id: 'b',
-                  icon: const SizedBox.square(dimension: 20),
-                  semanticLabel: 'B',
-                  onPressed: () {},
-                ),
+                MorphBarButtonGroup([
+                  MorphBarButton(
+                    id: 'b',
+                    icon: const SizedBox.square(dimension: 20),
+                    semanticLabel: 'B',
+                    onPressed: () {},
+                  ),
+                ]),
               ],
             ),
           ),
@@ -484,7 +488,7 @@ void main() {
           child: Builder(
             builder: (BuildContext context) => Center(
               child: TextButton(
-                onPressed: () => presentMorphSheet<void>(
+                onPressed: () => showMorphSheet<void>(
                   context,
                   detents: const [
                     MorphSheetDetent.medium,

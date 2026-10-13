@@ -40,18 +40,18 @@ void main() {
           result = nav.currentState!.push<void>(
             sheet
                 ? MorphSheetRoute<void>(
-                    source: id,
+                    from: id,
                     detents: const [MorphSheetDetent.medium],
                     builder: (_) => const Text('content'),
                   )
                 : MorphNavigationRoute<void>(
-                    zoomSource: id,
+                    from: id,
                     builder: (_) =>
                         const SizedBox.expand(child: Text('content')),
                   ),
           );
         } else if (sheet) {
-          result = presentMorphSheet<void>(
+          result = showMorphSheet<void>(
             context,
             from: id,
             detents: const [MorphSheetDetent.medium],

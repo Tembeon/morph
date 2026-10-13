@@ -125,7 +125,7 @@ void main() {
         );
         if (sheet) {
           unawaited(
-            presentMorphSheet<void>(
+            showMorphSheet<void>(
               context,
               from: 'source',
               detents: const [MorphSheetDetent.medium],
@@ -243,7 +243,7 @@ void main() {
         addTearDown(() => debugOnRebuildDirtyWidget = previous);
         if (sheet) {
           unawaited(
-            presentMorphSheet<void>(
+            showMorphSheet<void>(
               context,
               from: 'source',
               detents: const [MorphSheetDetent.medium],
@@ -307,7 +307,7 @@ void main() {
         );
         if (sheet) {
           unawaited(
-            presentMorphSheet<void>(
+            showMorphSheet<void>(
               context,
               from: 'source',
               detents: const [MorphSheetDetent.medium],

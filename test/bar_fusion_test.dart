@@ -156,7 +156,7 @@ void main() {
     await tester.pumpWidget(
       _toolbar([
         MorphBarButtonGroup([_icon('trash')]),
-        MorphBarButtonGroup([_icon('folder')], prominent: true),
+        MorphBarButtonGroup([_icon('folder')], style: .prominent),
       ]),
     );
     var fused = false;

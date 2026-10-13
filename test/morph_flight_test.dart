@@ -22,7 +22,7 @@ class _Host extends StatelessWidget {
             child: Builder(
               builder: (BuildContext context) => ElevatedButton(
                 onPressed: () => onFlight(
-                  showMorphSheet(
+                  showMorphSheetFlight(
                     context,
                     from: 'btn',
                     builder: (BuildContext context, MorphFlight flight) =>
@@ -167,7 +167,7 @@ void main() {
     );
 
     launches.add(
-      showMorphDialog(
+      showMorphDialogFlight(
         tagContext,
         from: 'btn',
         builder: (BuildContext context, MorphFlight f) =>
@@ -183,7 +183,7 @@ void main() {
     // motion profile is updated (content lives in the shuttle and
     // cannot be swapped).
     launches.add(
-      showMorphDialog(
+      showMorphDialogFlight(
         tagContext,
         from: 'btn',
         motion: .glacial,
@@ -267,7 +267,7 @@ void main() {
             id: 'btn',
             child: Builder(
               builder: (BuildContext context) => ElevatedButton(
-                onPressed: () => flight = showMorphDialog(
+                onPressed: () => flight = showMorphDialogFlight(
                   context,
                   from: 'btn',
                   surface: const MorphSurfaceSpec(

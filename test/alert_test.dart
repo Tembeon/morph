@@ -344,7 +344,7 @@ void main() {
           screen: size,
           padding: const EdgeInsets.only(top: 62, bottom: 34),
         );
-        expect(placement.edge, MorphPopoverArrowEdge.bottom);
+        expect(placement.arrowDirection, MorphPopoverArrowDirection.down);
         final motion = MorphPopoverMotion();
         motion.present(start);
         final yErrors = [

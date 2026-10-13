@@ -20,7 +20,7 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/zoom_motion.dart';
 import 'package:morph/src/widgets/zoom_source.dart';
 
-/// The look of a sheet presented with [presentMorphSheet].
+/// The look of a sheet presented with [showMorphSheet].
 @immutable
 class MorphSheetAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
@@ -115,7 +115,7 @@ class MorphSheetAppearance {
 /// covers the stack's bars, as a UIKit sheet covers the navigation bar of
 /// the controller that presents it. True pushes on the root navigator,
 /// false on the nearest one.
-Future<T?> presentMorphSheet<T>(
+Future<T?> showMorphSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
   Object? from,
@@ -132,7 +132,7 @@ Future<T?> presentMorphSheet<T>(
   assert(detents.isNotEmpty, 'A sheet needs at least one detent.');
   final route = MorphSheetRoute<T>(
     builder: builder,
-    source: from,
+    from: from,
     zoom: zoom,
     detents: detents,
     initialDetent: initialDetent,
@@ -151,7 +151,7 @@ Future<T?> presentMorphSheet<T>(
   return navigator.push<T>(route);
 }
 
-/// The route [presentMorphSheet] pushes: the sheet as a real navigator
+/// The route [showMorphSheet] pushes: the sheet as a real navigator
 /// route, so the back button, `Navigator.pop` and pop scopes work as on
 /// any route.
 class MorphSheetRoute<T> extends PopupRoute<T>
@@ -160,7 +160,7 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   MorphSheetRoute({
     required this.builder,
     required this.detents,
-    this.source,
+    this.from,
     this.zoom = MorphZoomTuning.standard,
     this.initialDetent,
     this.largestUndimmedDetent,
@@ -177,12 +177,12 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   /// The source tag's id, or null for a sheet that slides up from below.
   ///
   /// An absent or unlaid-out tag presents a sliding sheet.
-  final Object? source;
+  final Object? from;
 
   MorphZoomSource? _zoomSource;
   MorphThemeCarrier? _themes;
 
-  /// The measured zoom used when there is a [source].
+  /// The measured zoom used when there is a [from].
   final MorphZoomTuning zoom;
 
   /// The heights the sheet rests at.
@@ -233,7 +233,7 @@ class MorphSheetRoute<T> extends PopupRoute<T>
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    _zoomSource ??= MorphZoomSource.resolve(context, source);
+    _zoomSource ??= MorphZoomSource.resolve(context, from);
     final view = _SheetView(route: this);
     return _themes?.install(view) ?? view;
   }
@@ -247,7 +247,7 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   }
 }
 
-/// What the content of a sheet presented with [presentMorphSheet] can do
+/// What the content of a sheet presented with [showMorphSheet] can do
 /// with its sheet.
 abstract class MorphSheet {
   /// The detent the sheet rests at or is heading to.

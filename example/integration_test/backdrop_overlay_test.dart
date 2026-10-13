@@ -76,7 +76,7 @@ void main() {
               await gesture.up();
               await tester.pump(const Duration(milliseconds: 1200));
             case 'dialog':
-              final flight = showMorphDialog(
+              final flight = showMorphDialogFlight(
                 tester.element(target.first),
                 from: 'dialog',
                 width: 300,

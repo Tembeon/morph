@@ -12,8 +12,8 @@ void main() {
         screen: const Size(400, 400),
       );
       final vertical =
-          placement.edge == MorphPopoverArrowEdge.top ||
-          placement.edge == MorphPopoverArrowEdge.bottom;
+          placement.arrowDirection == MorphPopoverArrowDirection.up ||
+          placement.arrowDirection == MorphPopoverArrowDirection.down;
       final low = vertical ? placement.content.left : placement.content.top;
       final high = vertical
           ? placement.content.right

@@ -42,7 +42,7 @@ void main() {
           builder: (BuildContext context) => Scaffold(
             body: Center(
               child: TextButton(
-                onPressed: () => presentMorphSheet<void>(
+                onPressed: () => showMorphSheet<void>(
                   context,
                   detents: const [
                     MorphSheetDetent.medium,

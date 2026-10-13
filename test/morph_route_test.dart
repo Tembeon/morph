@@ -568,7 +568,7 @@ void main() {
                             id: 'pill',
                             child: Builder(
                               builder: (BuildContext context) => TextButton(
-                                onPressed: () => showMorphDialog(
+                                onPressed: () => showMorphDialogFlight(
                                   context,
                                   from: 'pill',
                                   width: 200,
@@ -644,7 +644,7 @@ void main() {
               id: 'card',
               child: Builder(
                 builder: (BuildContext context) => TextButton(
-                  onPressed: () => showMorphDialog(
+                  onPressed: () => showMorphDialogFlight(
                     context,
                     from: 'card',
                     builder: (BuildContext context, MorphFlight flight) =>

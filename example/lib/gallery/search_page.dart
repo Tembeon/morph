@@ -120,20 +120,24 @@ class _SearchPageState extends State<SearchPage> {
               onActiveChanged: (bool on) =>
                   setState(() => _last = on ? 'Searching' : 'Search ended'),
               leading: [
-                MorphBarButton(
-                  id: 'filter',
-                  icon: const Icon(Icons.filter_list),
-                  semanticLabel: 'Filter',
-                  onPressed: () => setState(() => _last = 'Filter'),
-                ),
+                MorphBarButtonGroup([
+                  MorphBarButton(
+                    id: 'filter',
+                    icon: const Icon(Icons.filter_list),
+                    semanticLabel: 'Filter',
+                    onPressed: () => setState(() => _last = 'Filter'),
+                  ),
+                ]),
               ],
               trailing: [
-                MorphBarButton(
-                  id: 'compose',
-                  icon: const Icon(Icons.edit_outlined),
-                  semanticLabel: 'Compose',
-                  onPressed: () => setState(() => _last = 'Compose'),
-                ),
+                MorphBarButtonGroup([
+                  MorphBarButton(
+                    id: 'compose',
+                    icon: const Icon(Icons.edit_outlined),
+                    semanticLabel: 'Compose',
+                    onPressed: () => setState(() => _last = 'Compose'),
+                  ),
+                ]),
               ],
             ),
           ),
@@ -146,8 +150,8 @@ class _SearchPageState extends State<SearchPage> {
               ],
               selected: _tab,
               onChanged: (int i) => setState(() => _tab = i),
-              searching: _searching,
-              onSearchingChanged: (bool on) => setState(() {
+              active: _searching,
+              onActiveChanged: (bool on) => setState(() {
                 _searching = on;
                 if (!on) _query = '';
               }),

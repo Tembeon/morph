@@ -64,7 +64,7 @@ void main() {
     final root = await _pump(
       tester,
       const Center(
-        child: MorphMenuButton(items: [MorphMenuItem(title: 'Copy')]),
+        child: MorphMenuButton(menu: [MorphMenuItem(title: 'Copy')]),
       ),
     );
     await tester.tap(find.byType(MorphMenuButton));
@@ -89,7 +89,7 @@ void main() {
         child: Builder(
           builder: (BuildContext context) => MorphMenuButton(
             overlay: Overlay.of(context),
-            items: const [MorphMenuItem(title: 'Copy')],
+            menu: const [MorphMenuItem(title: 'Copy')],
           ),
         ),
       ),
@@ -149,7 +149,7 @@ void main() {
     );
     late BuildContext sheet;
     unawaited(
-      presentMorphSheet<void>(
+      showMorphSheet<void>(
         page,
         builder: (BuildContext context) {
           sheet = context;
@@ -164,7 +164,7 @@ void main() {
     await _settle(tester);
 
     unawaited(
-      presentMorphSheet<void>(
+      showMorphSheet<void>(
         page,
         useRootNavigator: false,
         builder: (BuildContext context) {
@@ -200,7 +200,7 @@ void main() {
       morphAnchorRect(page),
       box.localToGlobal(Offset.zero, ancestor: overlayBox) & box.size,
     );
-    showMorphDialog(
+    showMorphDialogFlight(
       page,
       from: 'card',
       width: 200,

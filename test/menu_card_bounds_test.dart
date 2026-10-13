@@ -75,7 +75,7 @@ void main() {
         home: Scaffold(
           body: Align(
             alignment: Alignment(0, -0.6),
-            child: MorphMenuButton(items: _entries),
+            child: MorphMenuButton(menu: _entries),
           ),
         ),
       ),
@@ -128,7 +128,7 @@ void main() {
               Positioned(
                 left: 177,
                 top: 126,
-                child: MorphMenuButton(items: _entries),
+                child: MorphMenuButton(menu: _entries),
               ),
             ],
           ),
@@ -188,16 +188,16 @@ void main() {
               body: Align(
                 alignment: Alignment(0, -0.6),
                 child: MorphMenuButton(
-                  items: [
+                  menu: [
                     MorphMenuItem(title: 'Selected', state: MorphMenuState.on),
                     MorphSubmenu(
                       title: 'More',
-                      icon: Icons.folder,
+                      icon: Icon(Icons.folder),
                       children: [
                         MorphMenuItem(title: 'Child', state: MorphMenuState.on),
                         MorphSubmenu(
                           title: 'Deeper',
-                          icon: Icons.folder,
+                          icon: Icon(Icons.folder),
                           children: [MorphMenuItem(title: 'Last')],
                         ),
                       ],
@@ -263,7 +263,7 @@ void main() {
             backgroundColor: Color(0xFF000000),
             body: Align(
               alignment: Alignment(0, -0.6),
-              child: MorphMenuButton(items: _entries),
+              child: MorphMenuButton(menu: _entries),
             ),
           ),
         ),
@@ -303,7 +303,7 @@ void main() {
         home: Scaffold(
           body: Align(
             alignment: Alignment(0, -0.6),
-            child: MorphMenuButton(items: _entries),
+            child: MorphMenuButton(menu: _entries),
           ),
         ),
       ),

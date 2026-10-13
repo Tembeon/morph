@@ -189,20 +189,24 @@ class DensityPage extends StatelessWidget {
             Positioned.fill(
               child: MorphSearchToolbar(
                 leading: [
-                  MorphBarButton(
-                    id: 'filter',
-                    icon: const Icon(Icons.filter_list),
-                    semanticLabel: 'Filter',
-                    onPressed: () {},
-                  ),
+                  MorphBarButtonGroup([
+                    MorphBarButton(
+                      id: 'filter',
+                      icon: const Icon(Icons.filter_list),
+                      semanticLabel: 'Filter',
+                      onPressed: () {},
+                    ),
+                  ]),
                 ],
                 trailing: [
-                  MorphBarButton(
-                    id: 'add',
-                    icon: const Icon(Icons.add),
-                    semanticLabel: 'Add',
-                    onPressed: () {},
-                  ),
+                  MorphBarButtonGroup([
+                    MorphBarButton(
+                      id: 'add',
+                      icon: const Icon(Icons.add),
+                      semanticLabel: 'Add',
+                      onPressed: () {},
+                    ),
+                  ]),
                 ],
               ),
             )

@@ -79,7 +79,7 @@ void main() {
     await tester.pumpWidget(
       _Host(
         onOpen: (BuildContext context) {
-          flight = showMorphSheet(
+          flight = showMorphSheetFlight(
             context,
             from: 'btn',
             height: 200,
@@ -108,7 +108,7 @@ void main() {
       await tester.pumpWidget(
         _Host(
           onOpen: (BuildContext context) {
-            flight = showMorphDialog(
+            flight = showMorphDialogFlight(
               context,
               from: 'btn',
               width: 200,
@@ -167,7 +167,7 @@ void main() {
                             id: 'nested-button',
                             child: Builder(
                               builder: (BuildContext context) => TextButton(
-                                onPressed: () => flight = showMorphDialog(
+                                onPressed: () => flight = showMorphDialogFlight(
                                   context,
                                   from: 'nested-button',
                                   width: 200,
@@ -239,7 +239,7 @@ void main() {
     await tester.pumpWidget(
       _Host(
         onOpen: (BuildContext context) {
-          flight = showMorphSheet(
+          flight = showMorphSheetFlight(
             context,
             from: 'btn',
             height: 200,

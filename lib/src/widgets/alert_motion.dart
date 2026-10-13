@@ -183,12 +183,12 @@ class MorphAlertMotion {
 }
 
 /// The edge of a popover that points at its source.
-enum MorphPopoverArrowEdge {
+enum MorphPopoverArrowDirection {
   /// The popover sits above its source; the arrow points down.
-  bottom,
+  down,
 
   /// The popover sits below its source; the arrow points up.
-  top,
+  up,
 
   /// The popover sits to the right of its source; the arrow points left.
   left,
@@ -204,7 +204,7 @@ class MorphPopoverPlacement {
   /// Creates a placement.
   const MorphPopoverPlacement({
     required this.content,
-    required this.edge,
+    required this.arrowDirection,
     required this.arrowCenter,
   });
 
@@ -212,28 +212,28 @@ class MorphPopoverPlacement {
   final Rect content;
 
   /// The content edge the arrow sits on.
-  final MorphPopoverArrowEdge edge;
+  final MorphPopoverArrowDirection arrowDirection;
 
-  /// The arrow's center along [edge], in the same coordinates as
+  /// The arrow's center along [arrowDirection], in the same coordinates as
   /// [content].
   final double arrowCenter;
 
   /// The tip of the arrow: the point the popover grows out of and shrinks
   /// back into.
-  Offset get anchor => switch (edge) {
-    MorphPopoverArrowEdge.bottom => Offset(
+  Offset get anchor => switch (arrowDirection) {
+    MorphPopoverArrowDirection.down => Offset(
       arrowCenter,
       content.bottom + MorphPopoverTuning.arrowLength,
     ),
-    MorphPopoverArrowEdge.top => Offset(
+    MorphPopoverArrowDirection.up => Offset(
       arrowCenter,
       content.top - MorphPopoverTuning.arrowLength,
     ),
-    MorphPopoverArrowEdge.left => Offset(
+    MorphPopoverArrowDirection.left => Offset(
       content.left - MorphPopoverTuning.arrowLength,
       arrowCenter,
     ),
-    MorphPopoverArrowEdge.right => Offset(
+    MorphPopoverArrowDirection.right => Offset(
       content.right + MorphPopoverTuning.arrowLength,
       arrowCenter,
     ),
@@ -248,15 +248,15 @@ class MorphPopoverPlacement {
   bool operator ==(Object other) =>
       other is MorphPopoverPlacement &&
       other.content == content &&
-      other.edge == edge &&
+      other.arrowDirection == arrowDirection &&
       other.arrowCenter == arrowCenter;
 
   @override
-  int get hashCode => Object.hash(content, edge, arrowCenter);
+  int get hashCode => Object.hash(content, arrowDirection, arrowCenter);
 
   @override
   String toString() =>
-      'MorphPopoverPlacement($content, ${edge.name}, $arrowCenter)';
+      'MorphPopoverPlacement($content, ${arrowDirection.name}, $arrowCenter)';
 }
 
 /// The measured tuning of an iOS 27 popover: an action sheet presented
@@ -393,23 +393,23 @@ MorphPopoverPlacement morphPlacePopover({
   final bottom = screen.height - padding.bottom;
   final candidates = textDirection == TextDirection.ltr
       ? const [
-          MorphPopoverArrowEdge.bottom,
-          MorphPopoverArrowEdge.top,
-          MorphPopoverArrowEdge.left,
-          MorphPopoverArrowEdge.right,
+          MorphPopoverArrowDirection.down,
+          MorphPopoverArrowDirection.up,
+          MorphPopoverArrowDirection.left,
+          MorphPopoverArrowDirection.right,
         ]
       : const [
-          MorphPopoverArrowEdge.bottom,
-          MorphPopoverArrowEdge.top,
-          MorphPopoverArrowEdge.right,
-          MorphPopoverArrowEdge.left,
+          MorphPopoverArrowDirection.down,
+          MorphPopoverArrowDirection.up,
+          MorphPopoverArrowDirection.right,
+          MorphPopoverArrowDirection.left,
         ];
   MorphPopoverPlacement? best;
   var bestShift = double.infinity;
   for (final edge in candidates) {
     final vertical =
-        edge == MorphPopoverArrowEdge.bottom ||
-        edge == MorphPopoverArrowEdge.top;
+        edge == MorphPopoverArrowDirection.down ||
+        edge == MorphPopoverArrowDirection.up;
     final double ideal;
     final double low;
     final double high;
@@ -419,7 +419,7 @@ MorphPopoverPlacement morphPlacePopover({
     final double length;
     final double crossLength;
     if (vertical) {
-      ideal = edge == MorphPopoverArrowEdge.bottom
+      ideal = edge == MorphPopoverArrowDirection.down
           ? source.top - arrow - size.height
           : source.bottom + arrow;
       low = top;
@@ -430,7 +430,7 @@ MorphPopoverPlacement morphPlacePopover({
       center = source.center.dx;
       crossLength = size.width;
     } else {
-      ideal = edge == MorphPopoverArrowEdge.right
+      ideal = edge == MorphPopoverArrowDirection.right
           ? source.left - arrow - size.width
           : source.right + arrow;
       low = left;
@@ -461,12 +461,12 @@ MorphPopoverPlacement morphPlacePopover({
   final above = source.top - top;
   final below = bottom - source.bottom;
   final edge = above >= below
-      ? MorphPopoverArrowEdge.bottom
-      : MorphPopoverArrowEdge.top;
+      ? MorphPopoverArrowDirection.down
+      : MorphPopoverArrowDirection.up;
   final x = (source.center.dx - size.width / 2)
       .clamp(left, math.max(left, right - size.width))
       .toDouble();
-  final y = edge == MorphPopoverArrowEdge.bottom
+  final y = edge == MorphPopoverArrowDirection.down
       ? math.max(top, source.top - arrow - size.height)
       : math.min(bottom - size.height, source.bottom + arrow);
   final inset = math.min(clearance, size.width / 2);
@@ -481,20 +481,21 @@ MorphPopoverPlacement morphPlacePopover({
 }
 
 MorphPopoverPlacement _placement(
-  MorphPopoverArrowEdge edge,
+  MorphPopoverArrowDirection edge,
   Size size,
   double along,
   double placed,
   double center,
 ) {
   final vertical =
-      edge == MorphPopoverArrowEdge.bottom || edge == MorphPopoverArrowEdge.top;
+      edge == MorphPopoverArrowDirection.down ||
+      edge == MorphPopoverArrowDirection.up;
   final content = vertical
       ? Rect.fromLTWH(placed, along, size.width, size.height)
       : Rect.fromLTWH(along, placed, size.width, size.height);
   return MorphPopoverPlacement(
     content: content,
-    edge: edge,
+    arrowDirection: edge,
     arrowCenter: center,
   );
 }

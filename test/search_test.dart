@@ -793,7 +793,9 @@ void main() {
               children: [
                 Positioned.fill(
                   child: MorphSearchToolbar(
-                    leading: leading,
+                    leading: [
+                      for (final b in leading) MorphBarButtonGroup([b]),
+                    ],
                     onActiveChanged: onActive,
                   ),
                 ),
@@ -981,7 +983,11 @@ void main() {
                   children: [
                     Positioned.fill(
                       child: MorphSearchToolbar(
-                        leading: [MorphBarButton(id: 'edit', label: 'Edit')],
+                        leading: [
+                          MorphBarButtonGroup([
+                            MorphBarButton(id: 'edit', label: 'Edit'),
+                          ]),
+                        ],
                       ),
                     ),
                   ],
@@ -1118,8 +1124,8 @@ void main() {
                     ],
                     selected: 0,
                     onChanged: (_) {},
-                    searching: searching,
-                    onSearchingChanged: (bool v) {
+                    active: searching,
+                    onActiveChanged: (bool v) {
                       asked.add(v);
                       setState(() => searching = v);
                     },
@@ -1198,8 +1204,8 @@ void main() {
                     ],
                     selected: 0,
                     onChanged: (_) {},
-                    searching: searching,
-                    onSearchingChanged: (bool v) {
+                    active: searching,
+                    onActiveChanged: (bool v) {
                       asked.add(v);
                       setState(() => searching = v);
                     },
@@ -1309,8 +1315,8 @@ void main() {
               ],
               selected: 0,
               onChanged: (_) {},
-              searching: true,
-              onSearchingChanged: (_) {},
+              active: true,
+              onActiveChanged: (_) {},
             ),
           ),
         ],
@@ -1379,8 +1385,8 @@ void main() {
                       controller: controller,
                       focusNode: focus,
                       onQueryChanged: queries.add,
-                      searching: searching,
-                      onSearchingChanged: (bool v) =>
+                      active: searching,
+                      onActiveChanged: (bool v) =>
                           setState(() => searching = v),
                     ),
                   ),
@@ -1443,9 +1449,8 @@ void main() {
                     selected: 0,
                     onChanged: (_) {},
                     focusNode: focus,
-                    searching: searching,
-                    onSearchingChanged: (bool v) =>
-                        setState(() => searching = v),
+                    active: searching,
+                    onActiveChanged: (bool v) => setState(() => searching = v),
                   ),
                 ),
               ],

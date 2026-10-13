@@ -91,12 +91,13 @@ class MorphMenuItem extends MorphMenuEntry {
   /// 60 pt tall with one.
   final String? subtitle;
 
-  /// The leading glyph, if any.
-  final IconData? icon;
+  /// The leading glyph, usually an [Icon], if any; drawn at the menu's
+  /// icon size in the row's text color unless it sets its own.
+  final Widget? icon;
 
   /// The glyph shown instead of [icon] while [state] is not
   /// [MorphMenuState.off].
-  final IconData? selectedIcon;
+  final Widget? selectedIcon;
 
   /// The color of the glyph, for glyphs that carry their own color (a
   /// palette of colors); the row's text color when null.
@@ -194,8 +195,9 @@ class MorphSubmenu extends MorphMenuEntry {
   /// A second line under the title.
   final String? subtitle;
 
-  /// The leading glyph, if any.
-  final IconData? icon;
+  /// The leading glyph, usually an [Icon], if any; drawn at the menu's
+  /// icon size in the row's text color unless it sets its own.
+  final Widget? icon;
 
   /// Whether the row is drawn in the destructive color.
   final bool destructive;

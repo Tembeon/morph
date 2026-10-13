@@ -435,7 +435,7 @@ void main() {
           _scene(
             MorphMenuButton(
               enabled: false,
-              items: const [MorphMenuItem(title: 'Copy')],
+              menu: const [MorphMenuItem(title: 'Copy')],
               child: Builder(
                 builder: (BuildContext context) {
                   glyph = IconTheme.of(context).color;
@@ -536,9 +536,11 @@ void main() {
               alignment: Alignment.topCenter,
               child: MorphNavigationBar(
                 title: 'Inbox',
-                leading: const MorphBarButtonGroup([
-                  MorphBarButton(id: 'edit', label: 'Edit'),
-                ]),
+                leading: [
+                  const MorphBarButtonGroup([
+                    MorphBarButton(id: 'edit', label: 'Edit'),
+                  ]),
+                ],
                 trailing: [
                   MorphBarButtonGroup([
                     MorphBarButton(
@@ -554,7 +556,7 @@ void main() {
                   ]),
                   const MorphBarButtonGroup([
                     MorphBarButton(id: 'done', label: 'Done'),
-                  ], prominent: true),
+                  ], style: .prominent),
                 ],
               ),
             ),

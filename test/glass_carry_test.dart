@@ -79,7 +79,7 @@ void main() {
       tester,
       source(
         (BuildContext context) => unawaited(
-          presentMorphSheet<void>(
+          showMorphSheet<void>(
             context,
             detents: const [MorphSheetDetent.medium],
             useRootNavigator: true,

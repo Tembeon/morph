@@ -412,7 +412,7 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
         onChanged: enabled ? (next) => changed(next.toDouble()) : null,
       ),
       'menu' => MorphMenuButton(
-        items: [
+        menu: [
           ..._items(spec['items']! as List<Object?>, emit),
           if (spec['systemFooter'] == 'askSiri') ...[
             MorphMenuWidget(

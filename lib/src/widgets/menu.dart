@@ -33,7 +33,6 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 class MorphMenuAppearance {
   /// Creates an appearance; the defaults are the iOS 27 light appearance.
   const MorphMenuAppearance({
-    this.buttonSize = MorphMenuTuning.buttonDiameter,
     this.glassColor = const Color(0xF2F9F9FF),
     this.shadowColor = const Color(0x33000000),
     this.shadowElevation = 12,
@@ -53,9 +52,6 @@ class MorphMenuAppearance {
     this.submenuShadowColor = const Color(0x1E000000),
     this.paletteSelectionColor = const Color(0x10000000),
   });
-
-  /// The diameter of the button.
-  final double buttonSize;
 
   /// The fallback fill of the button and menu without a glass painter.
   /// The installed renderer uses [glassTint].
@@ -170,7 +166,6 @@ class MorphMenuAppearance {
 
   /// A copy of this appearance with the given fields replaced.
   MorphMenuAppearance copyWith({
-    double? buttonSize,
     Color? glassColor,
     Color? shadowColor,
     double? shadowElevation,
@@ -190,7 +185,6 @@ class MorphMenuAppearance {
     Color? submenuShadowColor,
     Color? paletteSelectionColor,
   }) => MorphMenuAppearance(
-    buttonSize: buttonSize ?? this.buttonSize,
     glassColor: glassColor ?? this.glassColor,
     shadowColor: shadowColor ?? this.shadowColor,
     shadowElevation: shadowElevation ?? this.shadowElevation,
@@ -234,7 +228,7 @@ enum MorphMenuTrigger {
 /// The configuration shared by [MorphMenuSource] and [MorphMenuButton].
 abstract class _MorphMenuSourceWidget extends StatefulWidget {
   const _MorphMenuSourceWidget({
-    required this.items,
+    required this.menu,
     required this.appearance,
     required this.tuning,
     required this.overlay,
@@ -253,7 +247,7 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
   final bool enabled;
 
   /// The entries of the menu, top to bottom when it opens downward.
-  final List<MorphMenuEntry> items;
+  final List<MorphMenuEntry> menu;
 
   /// The look of the menu; null resolves it through
   /// [MorphMenuAppearance.resolve].
@@ -289,6 +283,9 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
   /// The source drawn at rest, or null for the round glass button of
   /// [MorphMenuButton].
   Widget? get _source;
+
+  /// The diameter of the round glass button of [MorphMenuButton].
+  double get _size => MorphMenuTuning.buttonDiameter;
 
   /// What the menu carries inside the shrinking source shape; for the
   /// glass button its glyph, null for the ellipsis.
@@ -341,9 +338,9 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 /// the source brings its own, and a source removed while its menu is up
 /// takes the menu with it at once.
 class MorphMenuSource extends _MorphMenuSourceWidget {
-  /// Creates a source that opens [items] from [child].
+  /// Creates a source that opens [menu] from [child].
   const MorphMenuSource({
-    required super.items,
+    required super.menu,
     required this.child,
     this.look,
     this.shape = const StadiumBorder(),
@@ -454,7 +451,7 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
 /// reversed (unless [order] is [MorphMenuOrder.fixed]), otherwise; the
 /// keyboard counts as an obstructed edge.
 ///
-/// The [items] are [MorphMenuEntry] values: rows, sections (with headers,
+/// The [menu] are [MorphMenuEntry] values: rows, sections (with headers,
 /// single selection, palettes and small or medium cells), submenus that
 /// open as cards stacked over the menu, dividers, deferred groups and
 /// free-form [MorphMenuWidget] rows. The open menu follows the widget: a
@@ -483,8 +480,9 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
 class MorphMenuButton extends _MorphMenuSourceWidget {
   /// Creates a menu button.
   const MorphMenuButton({
-    required super.items,
+    required super.menu,
     this.child,
+    this.size = MorphMenuTuning.buttonDiameter,
     super.appearance,
     super.tuning = MorphMenuTuning.standard,
     super.overlay,
@@ -498,6 +496,12 @@ class MorphMenuButton extends _MorphMenuSourceWidget {
 
   /// The button's glyph; an ellipsis when null.
   final Widget? child;
+
+  /// The diameter of the button.
+  final double size;
+
+  @override
+  double get _size => size;
 
   @override
   Widget? get _source => null;
@@ -746,7 +750,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   @override
   void initState() {
     super.initState();
-    _content.entries = widget.items;
+    _content.entries = widget.menu;
     _content.order = widget.order;
     _ticks.follow(frames);
   }
@@ -755,7 +759,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   void didUpdateWidget(_MorphMenuSourceWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     _host.updateEntries(
-      widget.items,
+      widget.menu,
       order: widget.order,
       dismissOnSelect: widget.dismissOnSelect,
     );
@@ -886,7 +890,13 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         (!motion.isPresented && !_landing && motion.isSettled);
   }
 
-  ({MorphMenuAppearance style, Widget glyph, bool still, Widget face})?
+  ({
+    MorphMenuAppearance style,
+    double size,
+    Widget glyph,
+    bool still,
+    Widget face,
+  })?
   _resting;
 
   Widget _face(
@@ -914,11 +924,12 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
       final still = structure.still;
       if (resting != null &&
           identical(resting.style, style) &&
+          resting.size == widget._size &&
           identical(resting.glyph, glyph) &&
           resting.still == still) {
         return resting.face;
       }
-      final box = Offset.zero & Size.square(style.buttonSize);
+      final box = Offset.zero & Size.square(widget._size);
       final _Shapes shapes = (
         menu: null,
         source: RRect.fromRectAndRadius(box, Radius.circular(box.width / 2)),
@@ -934,7 +945,13 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         shapes: () => shapes,
         still: still,
       );
-      _resting = (style: style, glyph: glyph, still: still, face: face);
+      _resting = (
+        style: style,
+        size: widget._size,
+        glyph: glyph,
+        still: still,
+        face: face,
+      );
       return face;
     }
     return _landingFace(context, style, glyph, motion);
@@ -1051,7 +1068,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
             ? _tapped
             : _activate,
         child: widget._source == null
-            ? SizedBox.square(dimension: style.buttonSize, child: face)
+            ? SizedBox.square(dimension: widget._size, child: face)
             : face,
       ),
     );
@@ -2466,7 +2483,10 @@ class _CardHeader extends StatelessWidget {
                   child: morphLiveSlot,
                 ),
                 child: Center(
-                  child: Icon(icon, size: style.iconSize, color: _title),
+                  child: IconTheme.merge(
+                    data: IconThemeData(size: style.iconSize, color: _title),
+                    child: icon,
+                  ),
                 ),
               ),
             MorphLivePositionedTemplate(
@@ -2836,7 +2856,7 @@ class _MenuElement extends StatelessWidget {
     final entry = element.entry;
     final String title;
     final String? subtitle;
-    final IconData? icon;
+    final Widget? icon;
     final bool enabled;
     final bool destructive;
     var state = MorphMenuState.off;
@@ -2905,7 +2925,13 @@ class _MenuElement extends StatelessWidget {
             _at(
               image,
               MorphMenuTuning.imageSlot,
-              Icon(icon, size: style.iconSize, color: iconColor ?? color),
+              IconTheme.merge(
+                data: IconThemeData(
+                  size: style.iconSize,
+                  color: iconColor ?? color,
+                ),
+                child: icon,
+              ),
             ),
           PositionedDirectional(
             start: element.titleStart,
@@ -2975,7 +3001,7 @@ class _MenuElement extends StatelessWidget {
   Widget _cell() {
     final entry = element.entry;
     final String title;
-    final IconData? icon;
+    final Widget? icon;
     final bool enabled;
     final bool destructive;
     var selected = false;
@@ -3017,7 +3043,13 @@ class _MenuElement extends StatelessWidget {
             child: Center(
               child: icon == null
                   ? null
-                  : Icon(icon, size: style.iconSize, color: iconColor ?? color),
+                  : IconTheme.merge(
+                      data: IconThemeData(
+                        size: style.iconSize,
+                        color: iconColor ?? color,
+                      ),
+                      child: icon,
+                    ),
             ),
           ),
           Positioned(
@@ -3049,10 +3081,12 @@ class _MenuElement extends StatelessWidget {
               ),
             ),
           if (icon != null)
-            Icon(
-              icon,
-              size: palette ? metrics.paletteImageSize : style.iconSize,
-              color: iconColor ?? color,
+            IconTheme.merge(
+              data: IconThemeData(
+                size: palette ? metrics.paletteImageSize : style.iconSize,
+                color: iconColor ?? color,
+              ),
+              child: icon,
             ),
         ],
       );

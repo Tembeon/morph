@@ -42,7 +42,7 @@ List<MorphMenuEntry> _entries(List<String> log, {String sort = 'Name'}) => [
       for (final name in const ['Name', 'Date'])
         MorphMenuItem(
           title: name,
-          icon: Icons.sort,
+          icon: const Icon(Icons.sort),
           state: name == sort ? MorphMenuState.on : MorphMenuState.off,
           keepsMenuOpen: true,
           onSelected: () => log.add('sort $name'),
@@ -51,7 +51,7 @@ List<MorphMenuEntry> _entries(List<String> log, {String sort = 'Name'}) => [
   ),
   MorphSubmenu(
     title: 'More',
-    icon: Icons.folder,
+    icon: const Icon(Icons.folder),
     children: [
       MorphMenuItem(title: 'Sub one', onSelected: () => log.add('Sub one')),
       MorphSubmenu(
@@ -90,7 +90,7 @@ class _SorterState extends State<_Sorter> {
 
   @override
   Widget build(BuildContext context) => MorphMenuButton(
-    items: _entries(widget.log, sort: sort).map((MorphMenuEntry entry) {
+    menu: _entries(widget.log, sort: sort).map((MorphMenuEntry entry) {
       if (entry is! MorphMenuSection) return entry;
       return MorphMenuSection(
         title: entry.title,
@@ -115,7 +115,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final log = <String>[];
-    await tester.pumpWidget(_app(MorphMenuButton(items: _entries(log))));
+    await tester.pumpWidget(_app(MorphMenuButton(menu: _entries(log))));
     await _open(tester);
     expect(find.text('Sort by'), findsOneWidget);
     expect(find.text('Cannot be undone'), findsOneWidget);
@@ -134,7 +134,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final log = <String>[];
-    await tester.pumpWidget(_app(MorphMenuButton(items: _entries(log))));
+    await tester.pumpWidget(_app(MorphMenuButton(menu: _entries(log))));
     await _open(tester);
     await _tapRow(tester, 'Date');
     await tester.pumpAndSettle(
@@ -159,7 +159,7 @@ void main() {
   ) async {
     final log = <String>[];
     await tester.pumpWidget(
-      _app(MorphMenuButton(items: _entries(log), dismissOnSelect: false)),
+      _app(MorphMenuButton(menu: _entries(log), dismissOnSelect: false)),
     );
     await _open(tester);
     await _tapRow(tester, 'Delete');
@@ -195,7 +195,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final log = <String>[];
-    await tester.pumpWidget(_app(MorphMenuButton(items: _entries(log))));
+    await tester.pumpWidget(_app(MorphMenuButton(menu: _entries(log))));
     await _open(tester);
     expect(find.text('Sub one'), findsNothing);
     await _tapRow(tester, 'More');
@@ -227,7 +227,7 @@ void main() {
   testWidgets('the card header goes back, Escape too, then Escape closes', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(_app(MorphMenuButton(items: _entries([]))));
+    await tester.pumpWidget(_app(MorphMenuButton(menu: _entries([]))));
     await _open(tester);
     await _tapRow(tester, 'More');
     await tester.pumpAndSettle(
@@ -270,7 +270,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final log = <String>[];
-    await tester.pumpWidget(_app(MorphMenuButton(items: _entries(log))));
+    await tester.pumpWidget(_app(MorphMenuButton(menu: _entries(log))));
     await _open(tester);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
@@ -298,7 +298,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final log = <String>[];
-    await tester.pumpWidget(_app(MorphMenuButton(items: _entries(log))));
+    await tester.pumpWidget(_app(MorphMenuButton(menu: _entries(log))));
     final gesture = await tester.startGesture(
       tester.getCenter(find.byType(MorphMenuButton)),
     );
@@ -324,7 +324,7 @@ void main() {
     'rows are buttons, a submenu row collapsed, its header expanded',
     (WidgetTester tester) async {
       final semantics = tester.ensureSemantics();
-      await tester.pumpWidget(_app(MorphMenuButton(items: _entries([]))));
+      await tester.pumpWidget(_app(MorphMenuButton(menu: _entries([]))));
       await _open(tester);
       expect(
         tester.getSemantics(find.text('Delete').last),
@@ -384,7 +384,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      _app(MorphMenuButton(items: _entries([])), rtl: true),
+      _app(MorphMenuButton(menu: _entries([])), rtl: true),
     );
     await _open(tester);
     final icon = tester.getRect(find.byIcon(Icons.folder).last);
@@ -405,8 +405,8 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuButton(
-          items: [
-            const MorphMenuItem(title: 'Copy', icon: Icons.copy),
+          menu: [
+            const MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),
             MorphMenuDeferred(load, id: 'recent'),
           ],
         ),
@@ -418,7 +418,7 @@ void main() {
     expect(find.text('Loading...'), findsOneWidget);
     final before = tester.getRect(find.text('Copy').last);
     answer.complete(const [
-      MorphMenuItem(title: 'Recent', icon: Icons.history),
+      MorphMenuItem(title: 'Recent', icon: Icon(Icons.history)),
     ]);
     await tester.pump();
     await tester.pumpAndSettle(
@@ -447,7 +447,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuButton(
-          items: [
+          menu: [
             const MorphMenuItem(title: 'Copy'),
             MorphMenuWidget(
               id: 'volume',
@@ -492,14 +492,14 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuButton(
-          items: [
+          menu: [
             MorphMenuSection(
               palette: true,
               children: [
                 for (final color in const ['Red', 'Blue'])
                   MorphMenuItem(
                     title: color,
-                    icon: Icons.circle,
+                    icon: const Icon(Icons.circle),
                     keepsMenuOpen: true,
                     onSelected: () => log.add(color),
                   ),
@@ -510,7 +510,7 @@ void main() {
               children: [
                 MorphMenuItem(
                   title: 'Bold',
-                  icon: Icons.format_bold,
+                  icon: const Icon(Icons.format_bold),
                   onSelected: () => log.add('Bold'),
                 ),
               ],
@@ -544,7 +544,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         MorphMenuButton(
-          items: [
+          menu: [
             for (var i = 0; i < 30; i++)
               MorphMenuItem(title: 'Row $i', onSelected: () => log.add('$i')),
           ],

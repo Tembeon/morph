@@ -26,7 +26,7 @@ class _SheetPageState extends State<SheetPage> {
     bool list = false,
     Object? from,
   }) async {
-    final result = await presentMorphSheet<String>(
+    final result = await showMorphSheet<String>(
       context,
       from: from,
       detents: detents,

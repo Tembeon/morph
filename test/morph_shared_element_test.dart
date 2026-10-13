@@ -22,7 +22,7 @@ void main() {
               surfaceColor: const Color(0xFF222222),
               child: Builder(
                 builder: (BuildContext context) => TextButton(
-                  onPressed: () => showMorphDialog(
+                  onPressed: () => showMorphDialogFlight(
                     context,
                     from: 'player',
                     width: 400,
@@ -142,7 +142,7 @@ void main() {
               id: 'solo',
               child: Builder(
                 builder: (BuildContext context) => TextButton(
-                  onPressed: () => showMorphDialog(
+                  onPressed: () => showMorphDialogFlight(
                     context,
                     from: 'solo',
                     width: 400,
@@ -274,7 +274,7 @@ void main() {
               id: 'solo',
               child: Builder(
                 builder: (BuildContext context) => TextButton(
-                  onPressed: () => showMorphDialog(
+                  onPressed: () => showMorphDialogFlight(
                     context,
                     from: 'solo',
                     builder: (BuildContext context, MorphFlight flight) =>

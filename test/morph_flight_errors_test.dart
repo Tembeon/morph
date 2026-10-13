@@ -25,7 +25,7 @@ void main() {
         ),
       ),
     );
-    final MorphFlight overlay = showMorphDialog(
+    final MorphFlight overlay = showMorphDialogFlight(
       sourceContext,
       builder: (BuildContext context, MorphFlight flight) =>
           const Text('overlay'),
@@ -102,7 +102,7 @@ void main() {
             ),
           ),
         );
-        final MorphFlight flight = showMorphDialog(
+        final MorphFlight flight = showMorphDialogFlight(
           sourceContext,
           builder: (BuildContext context, MorphFlight flight) =>
               const Text('overlay'),

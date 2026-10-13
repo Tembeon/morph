@@ -35,8 +35,11 @@ class _MenuPageState extends State<MenuPage> {
   static Future<List<MorphMenuEntry>> _recent() async {
     await Future<void>.delayed(const Duration(seconds: 1));
     return const [
-      MorphMenuItem(title: 'Notes.txt', icon: Icons.description_outlined),
-      MorphMenuItem(title: 'Budget.numbers', icon: Icons.table_chart_outlined),
+      MorphMenuItem(title: 'Notes.txt', icon: Icon(Icons.description_outlined)),
+      MorphMenuItem(
+        title: 'Budget.numbers',
+        icon: Icon(Icons.table_chart_outlined),
+      ),
     ];
   }
 
@@ -50,7 +53,7 @@ class _MenuPageState extends State<MenuPage> {
         for (var i = 0; i < _colors.length; i++)
           MorphMenuItem(
             title: _colors[i].$1,
-            icon: Icons.circle,
+            icon: const Icon(Icons.circle),
             iconColor: _colors[i].$2,
             state: i == _color ? MorphMenuState.on : MorphMenuState.off,
             keepsMenuOpen: true,
@@ -69,7 +72,7 @@ class _MenuPageState extends State<MenuPage> {
         ])
           MorphMenuItem(
             title: title,
-            icon: icon,
+            icon: Icon(icon),
             onSelected: () => _pick(title),
           ),
       ],
@@ -84,7 +87,7 @@ class _MenuPageState extends State<MenuPage> {
         ])
           MorphMenuItem(
             title: title,
-            icon: icon,
+            icon: Icon(icon),
             state: _styles.contains(title)
                 ? MorphMenuState.on
                 : MorphMenuState.off,
@@ -106,7 +109,7 @@ class _MenuPageState extends State<MenuPage> {
         ])
           MorphMenuItem(
             title: title,
-            icon: icon,
+            icon: Icon(icon),
             state: _sort == title ? MorphMenuState.on : MorphMenuState.off,
             keepsMenuOpen: true,
             onSelected: () => setState(() => _sort = title),
@@ -117,7 +120,7 @@ class _MenuPageState extends State<MenuPage> {
       children: [
         MorphMenuItem(
           title: 'Show hidden',
-          icon: Icons.visibility_outlined,
+          icon: const Icon(Icons.visibility_outlined),
           state: _hidden ? MorphMenuState.on : MorphMenuState.off,
           keepsMenuOpen: true,
           onSelected: () => setState(() => _hidden = !_hidden),
@@ -126,33 +129,33 @@ class _MenuPageState extends State<MenuPage> {
           MorphMenuItem(
             title: 'Hidden files',
             subtitle: '12 items',
-            icon: Icons.folder_open_outlined,
+            icon: const Icon(Icons.folder_open_outlined),
             onSelected: () => _pick('Hidden files'),
           ),
         const MorphMenuItem(
           title: 'Disabled row',
-          icon: Icons.block,
+          icon: Icon(Icons.block),
           enabled: false,
         ),
       ],
     ),
     MorphSubmenu(
       title: 'More',
-      icon: Icons.folder_outlined,
+      icon: const Icon(Icons.folder_outlined),
       children: [
         MorphMenuItem(
           title: 'Rename',
-          icon: Icons.edit,
+          icon: const Icon(Icons.edit),
           onSelected: () => _pick('Rename'),
         ),
         MorphMenuItem(
           title: 'Duplicate',
-          icon: Icons.control_point_duplicate,
+          icon: const Icon(Icons.control_point_duplicate),
           onSelected: () => _pick('Duplicate'),
         ),
         MorphSubmenu(
           title: 'Move to',
-          icon: Icons.drive_file_move_outline,
+          icon: const Icon(Icons.drive_file_move_outline),
           children: [
             for (final place in const ['Desktop', 'Documents', 'Downloads'])
               MorphMenuItem(title: place, onSelected: () => _pick(place)),
@@ -185,7 +188,7 @@ class _MenuPageState extends State<MenuPage> {
     ),
     MorphMenuItem(
       title: 'Delete',
-      icon: Icons.delete_outline,
+      icon: const Icon(Icons.delete_outline),
       destructive: true,
       onSelected: () => _pick('Delete'),
     ),
@@ -207,12 +210,12 @@ class _MenuPageState extends State<MenuPage> {
     for (final (title, icon) in _titles.take(count - 1))
       MorphMenuItem(
         title: title,
-        icon: icon,
+        icon: Icon(icon),
         onSelected: () => setState(() => _last = title),
       ),
     MorphMenuItem(
       title: 'Delete',
-      icon: Icons.delete_outline,
+      icon: const Icon(Icons.delete_outline),
       destructive: true,
       onSelected: () => setState(() => _last = 'Delete'),
     ),
@@ -222,7 +225,7 @@ class _MenuPageState extends State<MenuPage> {
   Widget build(BuildContext context) {
     MorphMenuButton button(List<MorphMenuEntry> items, {Widget? child}) =>
         MorphMenuButton(
-          items: items,
+          menu: items,
           semanticLabel: child == null ? null : 'Options',
           child: child,
         );

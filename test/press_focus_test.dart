@@ -54,10 +54,10 @@ void main() {
     ),
     'glass button': MorphGlassButton(onPressed: () {}, child: const Text('Go')),
     'menu button': MorphMenuButton(
-      items: [MorphMenuItem(title: 'Copy', onSelected: () {})],
+      menu: [MorphMenuItem(title: 'Copy', onSelected: () {})],
     ),
     'menu source': MorphMenuSource(
-      items: [MorphMenuItem(title: 'Copy', onSelected: () {})],
+      menu: [MorphMenuItem(title: 'Copy', onSelected: () {})],
       child: const SizedBox(width: 80, height: 44),
     ),
   };
@@ -119,7 +119,7 @@ void main() {
       home: Center(
         child: MorphMenuSource(
           focusable: focusable,
-          items: [MorphMenuItem(title: 'Copy', onSelected: () {})],
+          menu: [MorphMenuItem(title: 'Copy', onSelected: () {})],
           child: Builder(
             builder: (BuildContext context) => Focus(
               focusNode: child,

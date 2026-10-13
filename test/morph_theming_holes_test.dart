@@ -56,34 +56,35 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('showMorphSheet and showMorphDialog take modal and scrimMotion', (
-    WidgetTester tester,
-  ) async {
-    late BuildContext captured;
-    await tester.pumpWidget(
-      _app(child: _tag((BuildContext c) => captured = c)),
-    );
-    final MorphFlight sheet = showMorphSheet(
-      captured,
-      modal: false,
-      scrimMotion: _scrim,
-      builder: _content,
-    );
-    expect(sheet.modal, isFalse);
-    expect(sheet.scrimMotion, _scrim);
-    sheet.abort();
-    await tester.pump();
-    final MorphFlight dialog = showMorphDialog(
-      captured,
-      modal: false,
-      scrimMotion: _scrim,
-      builder: _content,
-    );
-    expect(dialog.modal, isFalse);
-    expect(dialog.scrimMotion, _scrim);
-    dialog.abort();
-    await tester.pump();
-  });
+  testWidgets(
+    'showMorphSheetFlight and showMorphDialogFlight take modal and scrimMotion',
+    (WidgetTester tester) async {
+      late BuildContext captured;
+      await tester.pumpWidget(
+        _app(child: _tag((BuildContext c) => captured = c)),
+      );
+      final MorphFlight sheet = showMorphSheetFlight(
+        captured,
+        modal: false,
+        scrimMotion: _scrim,
+        builder: _content,
+      );
+      expect(sheet.modal, isFalse);
+      expect(sheet.scrimMotion, _scrim);
+      sheet.abort();
+      await tester.pump();
+      final MorphFlight dialog = showMorphDialogFlight(
+        captured,
+        modal: false,
+        scrimMotion: _scrim,
+        builder: _content,
+      );
+      expect(dialog.modal, isFalse);
+      expect(dialog.scrimMotion, _scrim);
+      dialog.abort();
+      await tester.pump();
+    },
+  );
 
   testWidgets('MorphAnchor passes modal and scrimMotion, and a motion change '
       'while open reaches the live flight', (WidgetTester tester) async {

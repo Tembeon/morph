@@ -70,7 +70,7 @@ List<Widget> _controls(_State s, StateSetter setState) => [
   const SizedBox(height: 40),
   Center(
     child: MorphMenuButton(
-      items: [
+      menu: [
         for (final title in const ['Copy', 'Share', 'Rename'])
           MorphMenuItem(title: title, onSelected: () => s.picked.add(title)),
       ],

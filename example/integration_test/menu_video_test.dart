@@ -76,12 +76,12 @@ class _Page extends StatelessWidget {
       backgroundColor: galleryBackgroundColor(Theme.of(context).brightness),
       body: const Center(
         child: MorphMenuButton(
-          items: [
-            MorphMenuItem(title: 'Copy', icon: Icons.copy),
-            MorphMenuItem(title: 'Share', icon: Icons.ios_share),
+          menu: [
+            MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),
+            MorphMenuItem(title: 'Share', icon: Icon(Icons.ios_share)),
             MorphMenuItem(
               title: 'Delete',
-              icon: Icons.delete_outline,
+              icon: Icon(Icons.delete_outline),
               destructive: true,
             ),
           ],

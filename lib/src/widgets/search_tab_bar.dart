@@ -24,7 +24,7 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// At rest the tab bar floats 21 points from the leading side and the
 /// bottom, and the search tab is a separate glass circle at the trailing
 /// side. Tapping the circle asks to start searching through
-/// [onSearchingChanged]; with [searching] true, on
+/// [onActiveChanged]; with [active] true, on
 /// [MorphSearchTuning.tabSpring], the tab bar shrinks into a circle that
 /// keeps the selected tab's glyph while the other tabs fade, and the search
 /// circle stretches into a search field whose placeholder fades in; the
@@ -60,8 +60,8 @@ class MorphSearchTabBar extends StatefulWidget {
     required this.items,
     required this.selected,
     required this.onChanged,
-    required this.searching,
-    required this.onSearchingChanged,
+    required this.active,
+    required this.onActiveChanged,
     this.controller,
     this.focusNode,
     this.placeholder = 'Search',
@@ -85,10 +85,10 @@ class MorphSearchTabBar extends StatefulWidget {
 
   /// Whether the search tab is active: the field shows instead of the
   /// tabs.
-  final bool searching;
+  final bool active;
 
   /// Called when the user asks to start (true) or stop (false) searching.
-  final ValueChanged<bool> onSearchingChanged;
+  final ValueChanged<bool> onActiveChanged;
 
   /// The controller of the query; null keeps one inside.
   final TextEditingController? controller;
@@ -163,7 +163,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     final activate = _activateAt;
     if (activate != null && t >= activate) {
       _activateAt = null;
-      if (widget.searching && !_focus.hasFocus) _focus.requestFocus();
+      if (widget.active && !_focus.hasFocus) _focus.requestFocus();
     }
   }
 
@@ -179,7 +179,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
   @override
   void initState() {
     super.initState();
-    if (widget.searching) _morph.snap(0, 1);
+    if (widget.active) _morph.snap(0, 1);
     _listen();
     _ticks.follow(frames);
   }
@@ -188,12 +188,12 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
   void didUpdateWidget(MorphSearchTabBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     _listen();
-    if (oldWidget.searching != widget.searching) {
-      _morph.retarget(clock, widget.searching ? 1 : 0, spring: _spring);
-      _activateAt = widget.searching
+    if (oldWidget.active != widget.active) {
+      _morph.retarget(clock, widget.active ? 1 : 0, spring: _spring);
+      _activateAt = widget.active
           ? clock + MorphSearchTuning.tabActivationDelay
           : null;
-      if (!widget.searching) {
+      if (!widget.active) {
         _focus.unfocus();
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted || _controller.text.isEmpty) return;
@@ -263,7 +263,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     final q = _morph.value(_now);
     final p = _focusMotion.progress(_now);
     final focused = _focusMotion.isFocused;
-    final settled = (q - 1).abs() < 0.001 && widget.searching;
+    final settled = (q - 1).abs() < 0.001 && widget.active;
     final fieldRect = Rect.lerp(geometry.field, geometry.focusedField, p)!;
     _frame = _TabFrame(
       q: q,
@@ -284,9 +284,9 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     );
     final shown = q.clamp(0.0, 1.0);
     return (
-      resting: q.abs() < 0.001 && !widget.searching,
+      resting: q.abs() < 0.001 && !widget.active,
       settled: settled,
-      tabIgnoring: !widget.searching || p >= 0.5,
+      tabIgnoring: !widget.active || p >= 0.5,
       tabLabel: (1 - shown * 2).clamp(0.0, 1.0) > 0.01,
       placeholder: shown > 0.01,
       closeShown: settled && (p > 0.001 || focused),
@@ -414,7 +414,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                       brightness: brightness,
                       rtl: rtl,
                       label: widget.items[selected].label,
-                      onTap: () => widget.onSearchingChanged(false),
+                      onTap: () => widget.onActiveChanged(false),
                       enabled: !structure.tabIgnoring,
                     ),
                   ),
@@ -446,14 +446,14 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                     glass: glass,
                     brightness: brightness,
                     rtl: rtl,
-                    onTap: () => widget.onSearchingChanged(true),
+                    onTap: () => widget.onActiveChanged(true),
                     enabled: structure.resting,
                   ),
                 ),
               ),
             );
           }
-          if (widget.searching || settled) {
+          if (widget.active || settled) {
             children.add(
               MorphLivePositionedTemplate(
                 key: const ValueKey<String>('field'),

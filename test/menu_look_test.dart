@@ -3,8 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
 const _items = [
-  MorphMenuItem(title: 'Copy', icon: Icons.copy),
-  MorphMenuItem(title: 'Delete', icon: Icons.delete, destructive: true),
+  MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),
+  MorphMenuItem(title: 'Delete', icon: Icon(Icons.delete), destructive: true),
 ];
 
 Widget _app({Brightness brightness = Brightness.light, bool rtl = false}) =>
@@ -15,7 +15,7 @@ Widget _app({Brightness brightness = Brightness.light, bool rtl = false}) =>
         child: child!,
       ),
       home: const Scaffold(
-        body: Center(child: MorphMenuButton(items: _items)),
+        body: Center(child: MorphMenuButton(menu: _items)),
       ),
     );
 
@@ -90,7 +90,7 @@ void main() {
           ],
         ),
         home: const Scaffold(
-          body: Center(child: MorphMenuButton(items: _items)),
+          body: Center(child: MorphMenuButton(menu: _items)),
         ),
       ),
     );

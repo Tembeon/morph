@@ -6,10 +6,10 @@ import 'package:morph/src/widgets/navigation_stack.dart';
 void main() {
   const period = 1 / 60;
   SpringSimulation spring() => SpringSimulation(
-    MorphNavigationTransition.pushSpring.description,
+    MorphNavigationTuning.pushSpring.description,
     0,
     1,
-    MorphNavigationTransition.pushVelocity,
+    MorphNavigationTuning.pushVelocity,
   );
 
   test('a push without a slow first frame moves as its spring', () {

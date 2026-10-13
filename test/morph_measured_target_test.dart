@@ -98,7 +98,7 @@ void main() {
     await tester.pumpWidget(
       _Host(
         onOpen: (BuildContext context) {
-          flight = showMorphDialog(
+          flight = showMorphDialogFlight(
             context,
             from: 'btn',
             width: _dialogWidth,
@@ -147,7 +147,7 @@ void main() {
     await tester.pumpWidget(
       _Host(
         onOpen: (BuildContext context) {
-          flight = showMorphDialog(
+          flight = showMorphDialogFlight(
             context,
             from: 'btn',
             width: _dialogWidth,
@@ -206,7 +206,7 @@ void main() {
       _Host(
         reducedMotion: true,
         onOpen: (BuildContext context) {
-          flight = showMorphDialog(
+          flight = showMorphDialogFlight(
             context,
             from: 'btn',
             width: _dialogWidth,

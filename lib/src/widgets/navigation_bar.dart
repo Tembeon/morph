@@ -70,21 +70,22 @@ TextStyle morphInlineTitleStyle(Color color) => MorphTypography.resolve(
 /// capsules part of the way toward the places they take on the screen
 /// below: each capsule that the destination bar also has (the same group
 /// id, or the same place on its side) travels and resizes
-/// [MorphNavigationTransition.barDrift] times the page's [progress] of the
+/// [MorphNavigationTuning.barDrift] times the page's [progress] of the
 /// way, a pure function of the page's position. A cancelled pop drifts
 /// back with the returning page; a committed one hands the drifted
 /// capsules to the bar's item transition.
 @immutable
+@internal
 class MorphNavigationBarDrift {
   /// Creates a drift toward [leading] and [trailing].
   const MorphNavigationBarDrift({
     required this.progress,
-    this.leading,
+    this.leading = const [],
     this.trailing = const [],
   });
 
-  /// The group at the leading edge of the destination bar.
-  final MorphBarButtonGroup? leading;
+  /// The groups at the leading edge of the destination bar.
+  final List<MorphBarButtonGroup> leading;
 
   /// The groups at the trailing edge of the destination bar.
   final List<MorphBarButtonGroup> trailing;
@@ -115,14 +116,14 @@ class MorphNavigationBar extends StatefulWidget {
   /// Creates a navigation bar.
   const MorphNavigationBar({
     this.title,
-    this.leading,
+    this.leading = const [],
     this.trailing = const [],
     this.titleVisible = true,
     this.scrolledUnder = false,
     this.animate = true,
     this.edgeEffect = MorphScrollEdgeEffectStyle.hard,
     this.edgeEffectAppearance,
-    this.titleExitShift = -MorphNavigationTransition.parallax,
+    this.titleExitShift = -MorphNavigationTuning.parallax,
     this.drift,
     this.appearance,
     this.menuAppearance,
@@ -135,8 +136,9 @@ class MorphNavigationBar extends StatefulWidget {
   /// The inline title.
   final String? title;
 
-  /// The group at the leading edge, such as a back button.
-  final MorphBarButtonGroup? leading;
+  /// The groups at the leading edge, in reading order, such as a back
+  /// button (UIKit `leftBarButtonItems`).
+  final List<MorphBarButtonGroup> leading;
 
   /// The groups at the trailing edge, in reading order.
   final List<MorphBarButtonGroup> trailing;
@@ -167,11 +169,13 @@ class MorphNavigationBar extends StatefulWidget {
   /// How far a replaced title travels while it fades out, as a share of
   /// the bar's width: on a push the old title rides the page underneath
   /// (-0.3), on a pop the page that leaves (1). The new title fades in
-  /// where it stands. Both ride [MorphNavigationTransition.pushSpring].
+  /// where it stands. Both ride [MorphNavigationTuning.pushSpring].
+  @internal
   final double titleExitShift;
 
   /// The bar the capsules lean toward during an interactive pop; null
   /// keeps them in place.
+  @internal
   final MorphNavigationBarDrift? drift;
 
   /// The look; null resolves it from the theme.
@@ -209,7 +213,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
   );
   List<double> _capsuleEdges = const [];
   final MorphSpringState _swap = MorphSpringState(
-    MorphNavigationTransition.pushSpring,
+    MorphNavigationTuning.pushSpring,
     1,
   );
   String? _outgoing;
@@ -262,7 +266,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
         !morphReducedMotionOf(context)) {
       _outgoing = oldWidget.titleVisible ? oldWidget.title : null;
       _exitShift = widget.titleExitShift;
-      _swap.setState(clock, 0, MorphNavigationTransition.pushVelocity);
+      _swap.setState(clock, 0, MorphNavigationTuning.pushVelocity);
       _swap.retarget(clock, 1);
       wake();
     }
@@ -336,7 +340,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                           ? null
                           : _placed(drift.leading, drift.trailing),
                       driftProgress: drift?.progress,
-                      driftFactor: MorphNavigationTransition.barDrift,
+                      driftFactor: MorphNavigationTuning.barDrift,
                       transition: MorphBarTransitionSpec.navigation,
                     ),
                   ),
@@ -407,10 +411,10 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
 }
 
 List<MorphPlacedGroup> _placed(
-  MorphBarButtonGroup? leading,
+  List<MorphBarButtonGroup> leading,
   List<MorphBarButtonGroup> trailing,
 ) => [
-  if (leading != null) MorphPlacedGroup(leading, MorphBarSide.leading),
+  for (final g in leading) MorphPlacedGroup(g, MorphBarSide.leading),
   for (final g in trailing) MorphPlacedGroup(g, MorphBarSide.trailing),
 ];
 

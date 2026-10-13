@@ -754,7 +754,7 @@ class _Audit implements MatrixDriver {
     await open('Menu');
     await shot('menu-resting');
     final tall = find.byWidgetPredicate(
-      (Widget w) => w is MorphMenuButton && w.items.length == 10,
+      (Widget w) => w is MorphMenuButton && w.menu.length == 10,
     );
     await tap(tester.getCenter(tall));
     await settle(900);

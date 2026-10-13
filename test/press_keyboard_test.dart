@@ -46,7 +46,7 @@ void main() {
       MaterialApp(
         home: Center(
           child: MorphMenuButton(
-            items: [
+            menu: [
               MorphMenuItem(title: 'Copy', onSelected: () => chosen.add('c')),
             ],
           ),
@@ -76,7 +76,7 @@ void main() {
         home: Center(
           child: MorphMenuButton(
             enabled: false,
-            items: [MorphMenuItem(title: 'Copy', onSelected: () {})],
+            menu: [MorphMenuItem(title: 'Copy', onSelected: () {})],
           ),
         ),
       ),
@@ -159,8 +159,8 @@ void main() {
                   ],
                   selected: 0,
                   onChanged: (_) {},
-                  searching: searching,
-                  onSearchingChanged: (bool v) {
+                  active: searching,
+                  onActiveChanged: (bool v) {
                     asked.add(v);
                     setState(() => searching = v);
                   },

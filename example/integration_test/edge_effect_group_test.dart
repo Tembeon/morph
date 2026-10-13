@@ -99,7 +99,7 @@ class _App extends StatelessWidget {
             home: MorphNavigationStack(
               home: MorphNavigationScaffold(
                 title: 'Edge',
-                largeTitle: true,
+                largeTitleDisplayMode: .always,
                 controller: controller,
                 trailing: [
                   MorphBarButtonGroup([_button('add'), _button('more')]),

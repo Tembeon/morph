@@ -112,8 +112,8 @@ class _Page extends StatelessWidget {
     return switch (page) {
       0 => MorphNavigationScaffold(
         title: 'Root',
-        largeTitle: true,
-        backTitle: '',
+        largeTitleDisplayMode: .always,
+        backButtonTitle: '',
         trailing: [
           MorphBarButtonGroup([_icon('plus', Icons.add)]),
         ],
@@ -121,7 +121,7 @@ class _Page extends StatelessWidget {
       ),
       1 => MorphNavigationScaffold(
         title: 'Alpha',
-        backTitle: '',
+        backButtonTitle: '',
         trailing: [
           MorphBarButtonGroup([_icon('share', Icons.ios_share)]),
         ],
@@ -129,14 +129,16 @@ class _Page extends StatelessWidget {
       ),
       2 => MorphNavigationScaffold(
         title: '',
-        backTitle: '',
-        leading: MorphBarButtonGroup([
-          MorphBarButton(
-            id: 'cancel',
-            label: 'Cancel',
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-        ]),
+        backButtonTitle: '',
+        leading: [
+          MorphBarButtonGroup([
+            MorphBarButton(
+              id: 'cancel',
+              label: 'Cancel',
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+          ]),
+        ],
         trailing: [
           MorphBarButtonGroup([
             _icon('share2', Icons.ios_share),
@@ -147,17 +149,17 @@ class _Page extends StatelessWidget {
       ),
       3 => MorphNavigationScaffold(
         title: 'Gamma',
-        backTitle: '',
+        backButtonTitle: '',
         slivers: slivers,
       ),
       _ => MorphNavigationScaffold(
         title: 'Delta',
-        largeTitle: true,
+        largeTitleDisplayMode: .always,
         trailing: [
           MorphBarButtonGroup([_icon('heart4', Icons.favorite_border)]),
           MorphBarButtonGroup([
             MorphBarButton(id: 'done', label: 'Done', onPressed: () {}),
-          ], prominent: true),
+          ], style: .prominent),
         ],
         slivers: slivers,
       ),
@@ -171,8 +173,8 @@ class _Page extends StatelessWidget {
     return switch (page) {
       0 => MorphNavigationScaffold(
         title: 'One',
-        largeTitle: true,
-        backTitle: '',
+        largeTitleDisplayMode: .always,
+        backButtonTitle: '',
         trailing: [
           MorphBarButtonGroup([text('x0', '1x')]),
         ],
@@ -180,7 +182,7 @@ class _Page extends StatelessWidget {
       ),
       1 => MorphNavigationScaffold(
         title: 'Two',
-        backTitle: '',
+        backButtonTitle: '',
         trailing: [
           MorphBarButtonGroup([
             _icon('plus', Icons.add),
@@ -192,13 +194,13 @@ class _Page extends StatelessWidget {
       ),
       2 => MorphNavigationScaffold(
         title: 'Three',
-        backTitle: '',
+        backButtonTitle: '',
         trailing: [prefs],
         slivers: slivers,
       ),
       3 => MorphNavigationScaffold(
         title: 'Four',
-        backTitle: '',
+        backButtonTitle: '',
         trailing: [
           MorphBarButtonGroup([_icon('heart3', Icons.favorite_border)]),
           prefs,

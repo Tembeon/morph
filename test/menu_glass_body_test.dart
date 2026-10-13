@@ -208,7 +208,7 @@ void main() {
           child: Scaffold(
             body: Center(
               child: MorphMenuButton(
-                items: [
+                menu: [
                   MorphSubmenu(
                     title: 'More',
                     children: [MorphMenuItem(title: 'Last')],
@@ -255,7 +255,7 @@ void main() {
               home: Scaffold(
                 body: Center(
                   child: MorphMenuButton(
-                    items: [
+                    menu: [
                       MorphSubmenu(
                         title: 'More',
                         children: [
