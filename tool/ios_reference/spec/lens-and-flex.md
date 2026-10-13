@@ -19,14 +19,20 @@ buttons, bar capsules, alert platter) uses this. Read before any of those.
 Springs are UIKit's vocabulary: `MorphSpring(response, dampingRatio)`,
 k = (2 pi / response)^2, c = 4 pi zeta / response, mass 1 [tuning].
 
-MorphFlexSpec.forSize (= dynamicWithSize) [tuning]:
-- lift 16 -> 4 px as height goes 44 -> 160 (absolute px).
+MorphFlexSpec.forSize (= dynamicWithSize) [tuning; selection read from
+UIKit, notes private]:
+- selection is by the SHORT and LONG sides, not width/height: long < 120
+  -> ultraSmall (small with threshold 2000, little glow 1); otherwise
+  s = clamp((short - 44) / 116) and l = clamp((long - 44) / 116).
+- lift 16 -> 4 px, stretch threshold 6000 -> 24000, glows by s (absolute
+  px). Portrait 80 x 200: lift 12.275862, threshold 11586.206897.
 - scale spring 0.4/0.375 -> 0.36/0.6 and tracking spring 0.262/0.625 ->
-  0.314/0.625 by width from 120.
+  0.314/0.625 by l.
 - press = tracking spring, release = scale spring [device-confirmed].
 - glow opacities: bigGlowOpacity / littleGlowOpacity (274 x 62 bar: 0.845 /
   0.2845).
-`loupeForSize` = liquidLensWithSize.
+`loupeForSize` = liquidLensWithSize: t = clamp((short - 37) / 33), lift
+and threshold 0.
 
 Lens PTSettings [tuning]: small lift 0.27/0.625, unlift 0.5/0.7, small
 optics; large 0.25/1 both ways; hang 0.22 s.

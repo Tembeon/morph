@@ -70,7 +70,7 @@ class MorphFlexSpec {
   /// The opacity of the large touch glow.
   final double bigGlowOpacity;
 
-  /// The class for surfaces narrower than [compactWidthLimit].
+  /// The class for surfaces whose long side is under [compactLongSideLimit].
   static const ultraSmall = MorphFlexSpec(
     liftScalePoints: 16,
     scaleDistanceThreshold: 2000,
@@ -152,8 +152,8 @@ class MorphFlexSpec {
     trackingSpring: MorphSpring(0.444, 0.56),
   );
 
-  /// Surfaces narrower than this use [ultraSmall] whatever their height.
-  static const double compactWidthLimit = 120;
+  /// Surfaces whose longer side is under this use [ultraSmall].
+  static const double compactLongSideLimit = 120;
 
   /// The dimension [small] is anchored at.
   static const double smallDimension = 44;
@@ -169,51 +169,57 @@ class MorphFlexSpec {
 
   /// The spec UIKit derives for a touch-responsive surface of [size].
   ///
-  /// Below [compactWidthLimit] the surface uses [ultraSmall]. From there
-  /// on the spec blends [small] into [large] along two independent
-  /// axes: the springs follow the width and the sizes (lift, stretch
-  /// threshold, glow) follow the height, both over the 44 to 160 range.
-  /// The movement scale stays at the small value.
+  /// UIKit picks by the short and long sides, not by width and height, so
+  /// a portrait surface gets the same spec as its landscape twin. When the
+  /// long side is under [compactLongSideLimit] the surface uses
+  /// [ultraSmall]. From there on the spec blends [small] into [large] over
+  /// the 44 to 160 range along two independent axes: the sizes (lift,
+  /// stretch threshold, glow) follow the short side and the springs follow
+  /// the long side. The movement scale stays at the small value. Read from
+  /// UIKit, notes private; the endpoints agree with the device reads.
   static MorphFlexSpec forSize(Size size) {
-    if (size.width < compactWidthLimit) return ultraSmall;
-    final tw = _unit(size.width, smallDimension, largeDimension);
-    final th = _unit(size.height, smallDimension, largeDimension);
+    final short = size.shortestSide;
+    final long = size.longestSide;
+    if (long < compactLongSideLimit) return ultraSmall;
+    final ts = _unit(short, smallDimension, largeDimension);
+    final tl = _unit(long, smallDimension, largeDimension);
     return MorphFlexSpec(
-      liftScalePoints: _lerp(small.liftScalePoints, large.liftScalePoints, th),
+      liftScalePoints: _lerp(small.liftScalePoints, large.liftScalePoints, ts),
       scaleDistanceThreshold: _lerp(
         small.scaleDistanceThreshold,
         large.scaleDistanceThreshold,
-        th,
+        ts,
       ),
       movementNormalizationFactor: _lerp(
         small.movementNormalizationFactor,
         large.movementNormalizationFactor,
-        th,
+        ts,
       ),
       movementScalePoints: small.movementScalePoints,
       movementMinScale: small.movementMinScale,
       movementMaxScale: small.movementMaxScale,
-      scaleSpring: MorphSpring.lerp(small.scaleSpring, large.scaleSpring, tw),
+      scaleSpring: MorphSpring.lerp(small.scaleSpring, large.scaleSpring, tl),
       trackingSpring: MorphSpring.lerp(
         small.trackingSpring,
         large.trackingSpring,
-        tw,
+        tl,
       ),
       littleGlowOpacity: _lerp(
         small.littleGlowOpacity,
         large.littleGlowOpacity,
-        th,
+        ts,
       ),
-      bigGlowOpacity: _lerp(small.bigGlowOpacity, large.bigGlowOpacity, th),
+      bigGlowOpacity: _lerp(small.bigGlowOpacity, large.bigGlowOpacity, ts),
     );
   }
 
   /// The spec UIKit derives for a magnifying loupe of [size].
   ///
-  /// Every value blends [smallLoupe] into [loupe] by the height over the
-  /// 37 to 70 range.
+  /// Every value blends [smallLoupe] into [loupe] by the short side over
+  /// the 37 to 70 range. The lift and the stretch threshold stay at zero.
+  /// Read from UIKit, notes private.
   static MorphFlexSpec loupeForSize(Size size) {
-    final t = _unit(size.height, smallLoupeDimension, loupeDimension);
+    final t = _unit(size.shortestSide, smallLoupeDimension, loupeDimension);
     const a = smallLoupe;
     const b = loupe;
     return MorphFlexSpec(
