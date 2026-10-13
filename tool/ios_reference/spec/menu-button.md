@@ -167,6 +167,19 @@ menu_video_test, menu_anchor_video_test.
 menu_fusion.dart); flies on the engine as a vessel flight. Shared host
 for bar menus: MorphMenuHost / MorphMenuLayer / MorphMenuFlightProgress.
 
+`MorphMenuSource` (menu.dart) turns any widget into this menu; the
+button is its glass ellipsis configuration, `MorphGlassButton(menu:)`
+wraps its capsule in it. Declared approximations, not measured:
+- a source that is not a capsule keeps its own corner radius in the
+  shrinking source shape (`MorphMenuMotion` `sourceRadius`, capped at the
+  capsule); every other number is the round button's;
+- `MorphMenuTrigger.hold` (a button with a primary action and a menu)
+  opens on the round button's `holdDuration` (0.22 s) and its tap fires
+  the action; the long press of such a `UIButton` was not recorded;
+- a glass button with a menu lifts by the menu's press (pressDelay,
+  flex lift over the height) instead of its own uniform lift, with no
+  touch glow or lean.
+
 ## Not reproduced (deliberate)
 
 - The second deterministic kick variant (two curves per height,
@@ -185,7 +198,9 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   `preferredElementSize` small/medium.
 - Checkmark state / `singleSelection`, subtitles, disabled / hidden items,
   `keepsMenuPresented`, deferred elements.
-- Menu on a non-round glass button or a text button (`showsMenuAsPrimaryAction`).
+- Menu on a non-round glass button or a text button
+  (`showsMenuAsPrimaryAction`): served by `MorphMenuSource` with the round
+  button's numbers (see morph above); a recording would replace them.
 
 ## Implementation notes (morph side, moved from CLAUDE.md)
 

@@ -8,6 +8,8 @@ import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
+import 'package:morph/src/widgets/menu.dart';
+import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -362,6 +364,10 @@ class MorphGlassButtonStyle {
 /// [MorphGlassButtonStyle.disabledForegroundColor]; a prominent one swaps
 /// its tint for [MorphGlassButtonStyle.disabledTintColor]. It ignores
 /// touches: no lift, no glow, no lean. The change shows in one frame.
+///
+/// With a [menu] the button is a [MorphMenuSource]: it turns into its
+/// menu with the measured motion of [MorphMenuButton], as a glass
+/// `UIButton` with a menu.
 class MorphGlassButton extends StatefulWidget {
   /// Creates a glass button.
   const MorphGlassButton({
@@ -371,14 +377,29 @@ class MorphGlassButton extends StatefulWidget {
     this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
     this.minSize = const Size(44, 44),
     this.style,
+    this.menu,
     super.key,
   });
 
   /// The label of the button.
   final Widget child;
 
-  /// Called when the button is tapped; null disables the button.
+  /// Called when the button is tapped; null disables a button without a
+  /// [menu].
   final VoidCallback? onPressed;
+
+  /// The entries of the button's menu (`UIButton.menu`), or null for a
+  /// button without one.
+  ///
+  /// Without [onPressed] the menu is the button's primary action
+  /// (`showsMenuAsPrimaryAction`): a tap opens it on release, a held
+  /// finger opens it after [MorphMenuTuning.holdDuration] and may slide
+  /// onto a row and choose it on release ([MorphMenuTrigger.tap]). With
+  /// [onPressed] a tap presses the button and only a hold opens the menu
+  /// ([MorphMenuTrigger.hold]). The button then lifts by the menu's
+  /// measured press instead of its own, without the touch glow or the
+  /// lean, and takes no keyboard focus.
+  final List<MorphMenuEntry>? menu;
 
   /// The fill of a prominent glass button; null for the clear glass.
   final Color? tint;
@@ -407,7 +428,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
   @override
   bool get motionSettled => _motion.isSettled;
 
-  bool get _enabled => widget.onPressed != null;
+  bool get _enabled => widget.onPressed != null || widget.menu != null;
 
   @override
   bool get controlEnabled => _enabled;
@@ -450,7 +471,8 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
       oldWidget.tint == widget.tint &&
       oldWidget.padding == widget.padding &&
       oldWidget.minSize == widget.minSize &&
-      oldWidget.style == widget.style;
+      oldWidget.style == widget.style &&
+      identical(oldWidget.menu, widget.menu);
 
   void _press() => widget.onPressed?.call();
 
@@ -493,6 +515,27 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
         ),
       ),
     );
+    final menu = widget.menu;
+    if (menu != null) {
+      return RepaintBoundary(
+        child: MorphMenuSource(
+          items: menu,
+          trigger: widget.onPressed == null ? .tap : .hold,
+          onTap: _press,
+          look: content,
+          child: MorphControlCapsule(
+            painter: glass,
+            frames: frames,
+            color: tint ?? style.fillColor,
+            rim: tint == null ? style.rimColor : style.tintedRimColor,
+            shadow: style.shadowColor,
+            brightness: brightness,
+            enabled: enabled,
+            child: content,
+          ),
+        ),
+      );
+    }
     return RepaintBoundary(
       child: MorphControlFocus(
         enabled: _enabled,

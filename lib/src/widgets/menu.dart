@@ -211,8 +211,181 @@ class MorphMenuStyle {
   );
 }
 
+/// What makes a [MorphMenuSource] open its menu.
+enum MorphMenuTrigger {
+  /// The menu is the source's primary action, as a `UIButton` whose
+  /// `showsMenuAsPrimaryAction` is on or a `UIBarButtonItem(menu:)`
+  /// without a primary action: a tap opens it on release after
+  /// [MorphMenuTuning.tapOpenDelay], a held finger opens it after
+  /// [MorphMenuTuning.holdDuration] and may slide onto a row and choose
+  /// it on release.
+  tap,
+
+  /// The menu opens only by holding, after
+  /// [MorphMenuTuning.holdDuration], as a `UIButton` with a primary
+  /// action and a menu; a tap released on the source calls
+  /// [MorphMenuSource.onTap] instead.
+  hold,
+}
+
+/// The configuration shared by [MorphMenuSource] and [MorphMenuButton].
+abstract class _MorphMenuSourceWidget extends StatefulWidget {
+  const _MorphMenuSourceWidget({
+    required this.items,
+    required this.style,
+    required this.tuning,
+    required this.overlay,
+    required this.semanticLabel,
+    required this.onOpen,
+    required this.enabled,
+    required this.order,
+    required this.dismissOnSelect,
+    super.key,
+  });
+
+  /// Whether the source opens its menu.
+  ///
+  /// A disabled source ignores touches, and an open menu closes when the
+  /// source turns disabled.
+  final bool enabled;
+
+  /// The entries of the menu, top to bottom when it opens downward.
+  final List<MorphMenuEntry> items;
+
+  /// The look of the menu; null resolves it through
+  /// [MorphMenuStyle.resolve].
+  final MorphMenuStyle? style;
+
+  /// The measured motion.
+  final MorphMenuTuning tuning;
+
+  /// The overlay the menu shows in, or null for
+  /// [morphPresentationOverlayOf]: above the bars of a navigation stack
+  /// the source sits in, as UIKit shows its menus.
+  ///
+  /// It must be an ancestor of the source.
+  final OverlayState? overlay;
+
+  /// The localized accessibility label supplied by the caller; null leaves
+  /// the label to the source's child.
+  final String? semanticLabel;
+
+  /// Called with the flight of the menu each time a new one launches;
+  /// its [MorphFlight.events] are the seam for haptics.
+  final ValueChanged<MorphFlight>? onOpen;
+
+  /// The order of the entries relative to the source.
+  final MorphMenuOrder order;
+
+  /// Whether choosing a row closes the menu: null leaves it to each
+  /// row's [MorphMenuItem.keepsMenuOpen], true closes after every row,
+  /// false keeps the menu open after every row (SwiftUI's
+  /// `menuActionDismissBehavior`).
+  final bool? dismissOnSelect;
+
+  /// The source drawn at rest, or null for the round glass button of
+  /// [MorphMenuButton].
+  Widget? get _source;
+
+  /// What the menu carries inside the shrinking source shape; for the
+  /// glass button its glyph, null for the ellipsis.
+  Widget? get _look;
+
+  ShapeBorder get _shape;
+
+  MorphMenuTrigger get _trigger;
+
+  VoidCallback? get _onTap;
+
+  @override
+  State<_MorphMenuSourceWidget> createState() => _MorphMenuSourceState();
+}
+
+/// Turns [child] into its own morphing menu, as iOS 27 does for any
+/// `UIButton` with a menu, a `UIBarButtonItem.menu` or a control's
+/// context menu interaction.
+///
+/// The [child] is drawn as it is. A touch on it lifts it by the measured
+/// press of [MorphMenuMotion] and, on the [trigger], the child's box
+/// grows into the menu of [MorphMenuButton]: the same motion, content,
+/// glass and flight, with the child's box and [shape] as the source the
+/// menu grows out of and shrinks back into. While the menu is up the
+/// [look] (the [child] when null) shrinks inside the source shape on the
+/// menu's glass, so a child that draws its own surface, such as a glass
+/// button, passes its content without that surface as the [look]. After
+/// the close hands the source back, the source shape and the menu draw
+/// the rest of the close over the child's box until the kicks ring out,
+/// and the child shows again.
+///
+/// The [child] should not handle the touches itself: this widget takes
+/// them, lifts the child and opens the menu; with [MorphMenuTrigger.hold]
+/// it calls [onTap] for a tap.
+///
+/// The [shape] is the outline of the child at rest: [StadiumBorder] and
+/// [CircleBorder] are capsules, a [RoundedRectangleBorder],
+/// [RoundedSuperellipseBorder] or [ContinuousRectangleBorder] gives its
+/// top-left corner radius to the source shape.
+///
+/// A [MorphScope] above the source is used when there is one; otherwise
+/// the source brings its own, and a source removed while its menu is up
+/// takes the menu with it at once.
+class MorphMenuSource extends _MorphMenuSourceWidget {
+  /// Creates a source that opens [items] from [child].
+  const MorphMenuSource({
+    required super.items,
+    required this.child,
+    this.look,
+    this.shape = const StadiumBorder(),
+    this.trigger = MorphMenuTrigger.tap,
+    this.onTap,
+    super.style,
+    super.tuning = MorphMenuTuning.standard,
+    super.overlay,
+    super.semanticLabel,
+    super.onOpen,
+    super.enabled = true,
+    super.order = MorphMenuOrder.automatic,
+    super.dismissOnSelect,
+    super.key,
+  });
+
+  /// The source at rest; its box is where the menu grows from.
+  final Widget child;
+
+  /// What the menu carries inside the shrinking source shape, centered in
+  /// the source's box; null carries [child], so a [child] holding a
+  /// [GlobalKey] needs a look of its own.
+  final Widget? look;
+
+  /// The outline of [child] at rest.
+  final ShapeBorder shape;
+
+  /// What opens the menu.
+  final MorphMenuTrigger trigger;
+
+  /// Called for a tap released on the source when [trigger] is
+  /// [MorphMenuTrigger.hold].
+  final VoidCallback? onTap;
+
+  @override
+  Widget? get _source => child;
+
+  @override
+  Widget? get _look => look ?? child;
+
+  @override
+  ShapeBorder get _shape => shape;
+
+  @override
+  MorphMenuTrigger get _trigger => trigger;
+
+  @override
+  VoidCallback? get _onTap => onTap;
+}
+
 /// A round glass button that turns into its menu exactly like an iOS 27
-/// `UIButton` whose menu is its primary action.
+/// `UIButton` whose menu is its primary action: the glass ellipsis
+/// configuration of [MorphMenuSource].
 ///
 /// A tap opens the menu on release; holding opens it after
 /// [MorphMenuTuning.holdDuration] and lets the finger slide onto a
@@ -245,68 +418,42 @@ class MorphMenuStyle {
 /// brings its own, and a button removed while its menu is up takes the
 /// menu with it at once - put a [MorphScope] above it for the menu to
 /// dissolve instead.
-class MorphMenuButton extends StatefulWidget {
+///
+/// A disabled menu button keeps its glass and draws its glyph in
+/// [MorphMenuStyle.disabledIconColor], as UIKit's does.
+class MorphMenuButton extends _MorphMenuSourceWidget {
   /// Creates a menu button.
   const MorphMenuButton({
-    required this.items,
+    required super.items,
     this.child,
-    this.style,
-    this.tuning = MorphMenuTuning.standard,
-    this.overlay,
-    this.semanticLabel,
-    this.onOpen,
-    this.enabled = true,
-    this.order = MorphMenuOrder.automatic,
-    this.dismissOnSelect,
+    super.style,
+    super.tuning = MorphMenuTuning.standard,
+    super.overlay,
+    super.semanticLabel,
+    super.onOpen,
+    super.enabled = true,
+    super.order = MorphMenuOrder.automatic,
+    super.dismissOnSelect,
     super.key,
   });
-
-  /// Whether the button opens its menu.
-  ///
-  /// A disabled menu button keeps its glass and draws its glyph in
-  /// [MorphMenuStyle.disabledIconColor], as UIKit's does; it ignores
-  /// touches, and an open menu closes when the button turns disabled.
-  final bool enabled;
-
-  /// The entries of the menu, top to bottom when it opens downward.
-  final List<MorphMenuEntry> items;
 
   /// The button's glyph; an ellipsis when null.
   final Widget? child;
 
-  /// The look of the button and the menu; null resolves it through
-  /// [MorphMenuStyle.resolve].
-  final MorphMenuStyle? style;
-
-  /// The measured motion.
-  final MorphMenuTuning tuning;
-
-  /// The overlay the menu shows in, or null for
-  /// [morphPresentationOverlayOf]: above the bars of a navigation stack
-  /// the button sits in, as UIKit shows its menus.
-  ///
-  /// It must be an ancestor of this button.
-  final OverlayState? overlay;
-
-  /// The localized accessibility label supplied by the caller; null leaves
-  /// the label to the button's child.
-  final String? semanticLabel;
-
-  /// Called with the flight of the menu each time a new one launches;
-  /// its [MorphFlight.events] are the seam for haptics.
-  final ValueChanged<MorphFlight>? onOpen;
-
-  /// The order of the entries relative to the button.
-  final MorphMenuOrder order;
-
-  /// Whether choosing a row closes the menu: null leaves it to each
-  /// row's [MorphMenuItem.keepsMenuOpen], true closes after every row,
-  /// false keeps the menu open after every row (SwiftUI's
-  /// `menuActionDismissBehavior`).
-  final bool? dismissOnSelect;
+  @override
+  Widget? get _source => null;
 
   @override
-  State<MorphMenuButton> createState() => _MorphMenuButtonState();
+  Widget? get _look => child;
+
+  @override
+  ShapeBorder get _shape => const CircleBorder();
+
+  @override
+  MorphMenuTrigger get _trigger => MorphMenuTrigger.tap;
+
+  @override
+  VoidCallback? get _onTap => null;
 }
 
 /// The progress of a menu that flies on the engine: the measured spring
@@ -443,10 +590,10 @@ abstract interface class MorphMenuHost {
   void menuPointerCancel(PointerCancelEvent event);
 }
 
-class _MorphMenuButtonState extends State<MorphMenuButton>
+class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     with
-        SingleTickerProviderStateMixin<MorphMenuButton>,
-        MorphClock<MorphMenuButton> {
+        SingleTickerProviderStateMixin<_MorphMenuSourceWidget>,
+        MorphClock<_MorphMenuSourceWidget> {
   final Object _tagId = Object();
   BuildContext? _scopeContext;
   MorphMenuStyle _style = MorphMenuStyle.light;
@@ -458,6 +605,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     wake: wake,
     style: () => _style,
     glyph: () => _glyphFor(_style, true),
+    glyphKey: () => widget._source == null ? null : widget._look,
     semanticLabel: () => _semanticLabel,
     onOpen: (MorphFlight flight) => widget.onOpen?.call(flight),
   );
@@ -536,7 +684,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   }
 
   @override
-  void didUpdateWidget(MorphMenuButton oldWidget) {
+  void didUpdateWidget(_MorphMenuSourceWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     _host.updateEntries(
       widget.items,
@@ -589,14 +737,32 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     _content.textScaler =
         MediaQuery.maybeTextScalerOf(context) ?? TextScaler.noScaling;
     _content.beginSession();
-    return _host.prepare(
+    final motion = _host.prepare(
       button: button,
       bounds: overlayBox.size,
       padding: padding,
+      sourceRadius: _sourceRadius(Directionality.maybeOf(context)),
       tuning: widget.tuning,
       overlay: overlay,
       dismissOnSelect: widget.dismissOnSelect,
     );
+    motion.opensOnTap = widget._trigger == MorphMenuTrigger.tap;
+    motion.onTap = _tapped;
+    return motion;
+  }
+
+  void _tapped() {
+    if (widget.enabled) widget._onTap?.call();
+  }
+
+  double? _sourceRadius(TextDirection? direction) {
+    final BorderRadiusGeometry? radius = switch (widget._shape) {
+      RoundedRectangleBorder(:final borderRadius) => borderRadius,
+      RoundedSuperellipseBorder(:final borderRadius) => borderRadius,
+      ContinuousRectangleBorder(:final borderRadius) => borderRadius,
+      _ => null,
+    };
+    return radius?.resolve(direction).topLeft.x;
   }
 
   @override
@@ -641,6 +807,19 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     _ButtonStructure structure,
   ) {
     final motion = _motion;
+    final source = widget._source;
+    if (source != null) {
+      final landing = motion != null && structure.landing;
+      return Stack(
+        fit: .passthrough,
+        clipBehavior: .none,
+        children: [
+          Visibility.maintain(visible: !landing, child: source),
+          if (landing)
+            Positioned.fill(child: _landingFace(context, style, glyph, motion)),
+        ],
+      );
+    }
     if (motion == null || !structure.landing) {
       final resting = _resting;
       final still = structure.still;
@@ -669,6 +848,15 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
       _resting = (style: style, glyph: glyph, still: still, face: face);
       return face;
     }
+    return _landingFace(context, style, glyph, motion);
+  }
+
+  Widget _landingFace(
+    BuildContext context,
+    MorphMenuStyle style,
+    Widget glyph,
+    MorphMenuMotion motion,
+  ) {
     final withField = morphGlassShadesOutlines(MorphGlass.maybeOf(context));
     if (withField != _faceWithField || _landingShapes == null) {
       _faceWithField = withField;
@@ -688,7 +876,8 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   // The same glyph instance across parent rebuilds keeps the resting face
   // cached in _face.
   Widget _glyphFor(MorphMenuStyle style, bool enabled) {
-    final custom = widget.child;
+    final custom = widget._look;
+    if (widget._source != null) return custom!;
     final color = enabled ? style.iconColor : style.disabledIconColor;
     final last = _glyph;
     if (last != null &&
@@ -722,6 +911,30 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     _structure.value = _ticks.read();
     final enabled = widget.enabled;
     final glyph = _glyphFor(style, enabled);
+    final hold = widget._trigger == MorphMenuTrigger.hold;
+    final Widget face = MorphLiveTemplate(
+      live: _ticks,
+      template: () => Transform.scale(scale: _pressScale),
+      child: Builder(
+        builder: (BuildContext context) {
+          _scopeContext = context;
+          return MorphTag(
+            id: _tagId,
+            shape: widget._shape,
+            surfaceColor: style.glassColor,
+            child: ValueListenableBuilder<_ButtonStructure>(
+              valueListenable: _structure,
+              builder:
+                  (
+                    BuildContext context,
+                    _ButtonStructure structure,
+                    Widget? _,
+                  ) => _face(context, style, glyph, structure),
+            ),
+          );
+        },
+      ),
+    );
     final Widget button = ValueListenableBuilder<bool>(
       valueListenable: _expanded,
       builder: (BuildContext context, bool expanded, Widget? child) =>
@@ -730,7 +943,12 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
             enabled: enabled,
             expanded: expanded,
             label: _semanticLabel,
-            onTap: enabled ? _openFromSemantics : null,
+            onTap: !enabled
+                ? null
+                : hold
+                ? _tapped
+                : _openFromSemantics,
+            onLongPress: enabled && hold ? _openFromSemantics : null,
             child: child,
           ),
       child: MorphTouchListener(
@@ -740,32 +958,9 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
         onPointerMove: _host.menuPointerMove,
         onPointerUp: _host.menuPointerUp,
         onPointerCancel: _host.menuPointerCancel,
-        child: SizedBox.square(
-          dimension: style.buttonSize,
-          child: MorphLiveTemplate(
-            live: _ticks,
-            template: () => Transform.scale(scale: _pressScale),
-            child: Builder(
-              builder: (BuildContext context) {
-                _scopeContext = context;
-                return MorphTag(
-                  id: _tagId,
-                  shape: const CircleBorder(),
-                  surfaceColor: style.glassColor,
-                  child: ValueListenableBuilder<_ButtonStructure>(
-                    valueListenable: _structure,
-                    builder:
-                        (
-                          BuildContext context,
-                          _ButtonStructure structure,
-                          Widget? _,
-                        ) => _face(context, style, glyph, structure),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
+        child: widget._source == null
+            ? SizedBox.square(dimension: style.buttonSize, child: face)
+            : face,
       ),
     );
     if (MorphScope.maybeOf(context) != null) return button;

@@ -937,8 +937,9 @@ class MorphMenuMotion {
   /// when the menu opens upward. [sourceHeight] is the height of the view
   /// the menu shape starts from; it defaults to the button's height and
   /// differs for bar buttons, whose glass platter is larger than the
-  /// button. [progress] defaults to [MorphMenuProgress.spring] of
-  /// [tuning].
+  /// button. [sourceRadius] is the corner radius of the source at rest;
+  /// null keeps it a capsule. [progress] defaults to
+  /// [MorphMenuProgress.spring] of [tuning].
   MorphMenuMotion({
     required Rect button,
     this._itemCount = 0,
@@ -946,6 +947,7 @@ class MorphMenuMotion {
     MorphMenuLayout Function({required bool reversed})? layout,
     this._padding = EdgeInsets.zero,
     double? sourceHeight,
+    this._sourceRadius,
     this.tuning = MorphMenuTuning.standard,
     MorphMenuProgress? progress,
   }) : _button = button,
@@ -974,6 +976,7 @@ class MorphMenuMotion {
   Size _bounds;
   EdgeInsets _padding;
   double _sourceHeight;
+  double? _sourceRadius;
   MorphFlexSpec _flex;
 
   late final MorphSpringState _radius;
@@ -1038,6 +1041,15 @@ class MorphMenuMotion {
   /// Called with the target index when a target of the root list runs its
   /// action, which is before the menu starts closing.
   void Function(int index)? onSelected;
+
+  /// Whether a tap on the button opens the menu, as a menu that is the
+  /// button's primary action; false opens it only by holding, and a tap
+  /// released on the button calls [onTap] instead.
+  bool opensOnTap = true;
+
+  /// Called when a tap released on the button does not open the menu
+  /// because [opensOnTap] is false.
+  void Function()? onTap;
 
   /// Called with the target whenever an action runs, on any card.
   void Function(MorphMenuTarget target)? onActivate;
@@ -1132,8 +1144,10 @@ class MorphMenuMotion {
     EdgeInsets padding = EdgeInsets.zero,
     int? itemCount,
     double? sourceHeight,
+    double? sourceRadius,
   }) {
     if (_phase != _Phase.idle) return;
+    _sourceRadius = sourceRadius;
     _button = button;
     _bounds = bounds;
     _padding = padding;
@@ -1767,7 +1781,10 @@ class MorphMenuMotion {
         width: size.width,
         height: size.height,
       ),
-      radius: math.min(size.width, size.height) / 2,
+      radius: math.min(
+        math.min(size.width, size.height) / 2,
+        (_sourceRadius ?? double.infinity) * scale,
+      ),
       scale: scale,
       localSize: _button.size,
     );
@@ -2036,6 +2053,12 @@ class MorphMenuMotion {
     if (pointer.fromButton) {
       _release(t);
       if (!pointer.openedByHold) {
+        if (!opensOnTap) {
+          if (_phase != _Phase.opening && _button.contains(position)) {
+            onTap?.call();
+          }
+          return;
+        }
         if (_phase != _Phase.opening) {
           _openPending = true;
           _timeline.at(t + tuning.tapOpenDelay, _open);

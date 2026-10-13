@@ -150,6 +150,11 @@ One passport each: `MorphSegmentedControl`, `MorphTabBar`,
 `MorphSearchField` / `MorphSearchToolbar`, `MorphDatePicker`,
 `MorphPageControl`, `MorphProgressView`, `MorphActivityIndicator`, the
 inset grouped list (`MorphListSection` / `MorphListRow`).
+`MorphMenuSource` is the one way a widget becomes its own menu: it owns a
+`MorphMenuController` and draws `MorphMenuLayer`, on a tap
+(`MorphMenuTrigger.tap`, primary action) or a hold. `MorphMenuButton` is
+its glass ellipsis configuration and `MorphGlassButton(menu:)` wraps its
+capsule in it; bar items drive the controller themselves.
 `MorphNavigationScaffold` and sheets give their content the body text
 style. `MorphSpring` is the engine's (`spring.dart`); `MorphFlexSpec`
 ports `_UIFlexInteractionSpec` (lens-and-flex.md).

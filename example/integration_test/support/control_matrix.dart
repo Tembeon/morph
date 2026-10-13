@@ -383,6 +383,25 @@ final List<MatrixControl> matrixControls = [
     },
   ),
   MatrixControl(
+    'glass-button-menu',
+    () => MorphGlassButton(
+      onPressed: null,
+      menu: [
+        for (final title in const ['Copy', 'Share', 'Rename', 'Delete'])
+          MorphMenuItem(title: title, onSelected: () {}),
+      ],
+      child: const Text('Sort'),
+    ),
+    {
+      'open-close': (d) async {
+        await d.tap(d.tester.getCenter(find.byType(MorphGlassButton)));
+        await d.settle(900);
+        await d.tap(const Offset(20, 120));
+        await d.settle(900);
+      },
+    },
+  ),
+  MatrixControl(
     'search',
     () => const SizedBox(width: 360, child: MorphSearchField()),
     {

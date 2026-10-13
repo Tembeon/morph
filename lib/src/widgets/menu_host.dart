@@ -192,7 +192,8 @@ class MorphMenuController implements MorphMenuHost {
   bool get isLanding =>
       (_motion?.isPresented ?? false) && !(_flight?.isAirborne ?? false);
 
-  /// Prepares the measured motion in [overlay]'s coordinates.
+  /// Prepares the measured motion in [overlay]'s coordinates; a source
+  /// whose corners are not a capsule passes their [sourceRadius].
   MorphMenuMotion prepare({
     required Rect button,
     required Size bounds,
@@ -200,6 +201,7 @@ class MorphMenuController implements MorphMenuHost {
     required MorphMenuTuning tuning,
     required OverlayState overlay,
     double? sourceHeight,
+    double? sourceRadius,
     bool? dismissOnSelect,
   }) {
     _overlay = overlay;
@@ -207,7 +209,12 @@ class MorphMenuController implements MorphMenuHost {
     _lastGlyph = glyph();
     final current = _motion;
     if (current != null && identical(current.tuning, tuning)) {
-      current.relayout(button: button, bounds: bounds, padding: padding);
+      current.relayout(
+        button: button,
+        bounds: bounds,
+        padding: padding,
+        sourceRadius: sourceRadius,
+      );
       current.dismissOnSelect = dismissOnSelect;
       return current;
     }
@@ -217,6 +224,7 @@ class MorphMenuController implements MorphMenuHost {
       bounds: bounds,
       padding: padding,
       sourceHeight: sourceHeight,
+      sourceRadius: sourceRadius,
       tuning: tuning,
       progress: MorphMenuFlightProgress(
         tuning,

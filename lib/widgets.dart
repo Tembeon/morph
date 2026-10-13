@@ -7,7 +7,8 @@
 /// control is checked against those recordings: the selection lens of
 /// [MorphSegmentedControl] and [MorphTabBar], [MorphSwitch],
 /// [MorphSlider], [MorphStepper], the press of [MorphGlassButton] and
-/// the button that becomes its own menu, [MorphMenuButton]. The motion
+/// the button that becomes its own menu, [MorphMenuButton], and any
+/// widget that does, [MorphMenuSource]. The motion
 /// objects behind them ([MorphLensMotion], [MorphGlassButtonMotion],
 /// [MorphMenuMotion] and their kin) are pure functions of explicit time,
 /// usable without the widgets.
@@ -93,7 +94,8 @@ export 'src/widgets/glass_button.dart'
     show MorphGlassButton, MorphGlassButtonMotion, MorphGlassButtonStyle;
 export 'src/widgets/lens_motion.dart'
     show MorphLensMotion, MorphLensSlot, MorphLensTuning;
-export 'src/widgets/menu.dart' show MorphMenuButton, MorphMenuStyle;
+export 'src/widgets/menu.dart'
+    show MorphMenuButton, MorphMenuSource, MorphMenuStyle, MorphMenuTrigger;
 export 'src/widgets/menu_entries.dart'
     show
         MorphMenuDeferred,
