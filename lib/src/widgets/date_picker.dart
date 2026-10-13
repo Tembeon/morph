@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
@@ -1768,39 +1769,38 @@ class _Calendar extends StatelessWidget {
               child: Row(
                 children: [
                   for (var d = 0; d < 7; d++)
-                    SizedBox(
-                      width: _CalendarMetrics.cell,
-                      child: () {
-                        final day = w * 7 + d - lead + 1;
-                        if (day < 1 || day > days) return const SizedBox();
-                        final date = DateTime(month.year, month.month, day);
-                        return _Day(
-                          date: date,
-                          semanticLabel:
-                              dayFormatter?.call(date) ??
-                              '${_number(date.day)} ${_text(_months[date.month - 1])} ${_number(date.year)}',
-                          text: _number(date.day),
-                          disc: math.min(_CalendarMetrics.cell, row),
-                          selected: _sameDay(date, value),
-                          today: _sameDay(date, today),
-                          enabled:
-                              !(firstDate != null &&
-                                  date.isBefore(_dateOnly(firstDate!))) &&
-                              !(lastDate != null &&
-                                  date.isAfter(_dateOnly(lastDate!))),
-                          style: style,
-                          onTap: () => onPick(
-                            DateTime(
-                              date.year,
-                              date.month,
-                              date.day,
-                              value.hour,
-                              value.minute,
-                            ),
+                    () {
+                      final day = w * 7 + d - lead + 1;
+                      if (day < 1 || day > days) {
+                        return const SizedBox(width: _CalendarMetrics.cell);
+                      }
+                      final date = DateTime(month.year, month.month, day);
+                      return _day(
+                        date: date,
+                        semanticLabel:
+                            dayFormatter?.call(date) ??
+                            '${_number(date.day)} ${_text(_months[date.month - 1])} ${_number(date.year)}',
+                        text: _number(date.day),
+                        disc: math.min(_CalendarMetrics.cell, row),
+                        selected: _sameDay(date, value),
+                        today: _sameDay(date, today),
+                        enabled:
+                            !(firstDate != null &&
+                                date.isBefore(_dateOnly(firstDate!))) &&
+                            !(lastDate != null &&
+                                date.isAfter(_dateOnly(lastDate!))),
+                        style: style,
+                        onTap: () => onPick(
+                          DateTime(
+                            date.year,
+                            date.month,
+                            date.day,
+                            value.hour,
+                            value.minute,
                           ),
-                        );
-                      }(),
-                    ),
+                        ),
+                      );
+                    }(),
                 ],
               ),
             ),
@@ -1810,78 +1810,215 @@ class _Calendar extends StatelessWidget {
   }
 }
 
-class _Day extends StatelessWidget {
-  const _Day({
-    required this.date,
-    required this.semanticLabel,
-    required this.text,
+// A day is a handful of elements: the open frame builds every day of the
+// month at once, and on a slow phone each element of it counts.
+Widget _day({
+  required DateTime date,
+  required String semanticLabel,
+  required String text,
+  required double disc,
+  required bool selected,
+  required bool today,
+  required bool enabled,
+  required MorphDatePickerStyle style,
+  required VoidCallback onTap,
+}) {
+  final color = switch ((selected, today)) {
+    (true, true) => style.selectedDayColor,
+    (true, false) => style.selectedDayTextColor,
+    (false, true) => style.accentColor,
+    (false, false) => style.dayColor,
+  };
+  final fill = switch ((selected, today)) {
+    (true, true) => style.accentColor,
+    (true, false) => style.selectedDayFillColor,
+    (false, true) => style.todayFillColor,
+    (false, false) => null,
+  };
+  final cell = _DayCell(
+    width: _CalendarMetrics.cell,
+    disc: disc,
+    fill: fill,
+    onTap: enabled ? onTap : null,
+    child: Text(
+      text,
+      textScaler: TextScaler.noScaling,
+      style: MorphTypography.resolve(
+        (selected
+                ? MorphTypography.datePickerDaySelected
+                : MorphTypography.datePickerDay)
+            .copyWith(height: 1.2, color: color),
+      ),
+    ),
+  );
+  return Semantics(
+    button: true,
+    selected: selected,
+    enabled: enabled,
+    label: semanticLabel,
+    onTap: enabled ? onTap : null,
+    excludeSemantics: true,
+    child: enabled
+        ? cell
+        : Opacity(opacity: style.unavailableDayOpacity, child: cell),
+  );
+}
+
+/// One day of the grid: [width] wide and as tall as its row, a [disc]
+/// across filled with [fill] at its center and the number centered on
+/// the disc, taking every touch in its box. It lays out and paints as the
+/// Center, Container and Align it stands for, offset for offset, and
+/// recognizes a tap as a GestureDetector would.
+class _DayCell extends SingleChildRenderObjectWidget {
+  const _DayCell({
+    required this.width,
     required this.disc,
-    required this.selected,
-    required this.today,
-    required this.enabled,
-    required this.style,
+    required this.fill,
     required this.onTap,
+    required super.child,
   });
 
-  final DateTime date;
-  final String semanticLabel;
-  final String text;
+  final double width;
   final double disc;
-  final bool selected;
-  final bool today;
-  final bool enabled;
-  final MorphDatePickerStyle style;
-  final VoidCallback onTap;
+  final Color? fill;
+  final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final color = switch ((selected, today)) {
-      (true, true) => style.selectedDayColor,
-      (true, false) => style.selectedDayTextColor,
-      (false, true) => style.accentColor,
-      (false, false) => style.dayColor,
-    };
-    final fill = switch ((selected, today)) {
-      (true, true) => style.accentColor,
-      (true, false) => style.selectedDayFillColor,
-      (false, true) => style.todayFillColor,
-      (false, false) => null,
-    };
-    return Semantics(
-      button: true,
-      selected: selected,
-      enabled: enabled,
-      label: semanticLabel,
-      onTap: enabled ? onTap : null,
-      excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: enabled ? onTap : null,
-        child: Opacity(
-          opacity: enabled ? 1 : style.unavailableDayOpacity,
-          child: Center(
-            child: Container(
-              width: disc,
-              height: disc,
-              alignment: Alignment.center,
-              decoration: fill == null
-                  ? null
-                  : BoxDecoration(color: fill, shape: BoxShape.circle),
-              child: Text(
-                text,
-                textScaler: TextScaler.noScaling,
-                style: MorphTypography.resolve(
-                  (selected
-                          ? MorphTypography.datePickerDaySelected
-                          : MorphTypography.datePickerDay)
-                      .copyWith(height: 1.2, color: color),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+  _RenderDayCell createRenderObject(BuildContext context) => _RenderDayCell(
+    width: width,
+    disc: disc,
+    fill: fill,
+    onTap: onTap,
+    gestureSettings: MediaQuery.maybeGestureSettingsOf(context),
+  );
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderDayCell renderObject) {
+    if (renderObject.width != width || renderObject.disc != disc) {
+      renderObject.width = width;
+      renderObject.disc = disc;
+      renderObject.markNeedsLayout();
+    }
+    if (renderObject.fill != fill) {
+      renderObject.fill = fill;
+      renderObject.markNeedsPaint();
+    }
+    renderObject.onTap = onTap;
+    renderObject.gestureSettings = MediaQuery.maybeGestureSettingsOf(context);
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('disc', disc));
+    properties.add(ColorProperty('fill', fill, defaultValue: null));
+  }
+}
+
+class _RenderDayCell extends RenderProxyBox {
+  _RenderDayCell({
+    required this.width,
+    required this.disc,
+    required this.fill,
+    required VoidCallback? onTap,
+    required DeviceGestureSettings? gestureSettings,
+  }) {
+    _tap.onTap = onTap;
+    _tap.gestureSettings = gestureSettings;
+  }
+
+  final TapGestureRecognizer _tap = TapGestureRecognizer();
+
+  double width;
+  double disc;
+
+  Color? fill;
+
+  VoidCallback? get onTap => _tap.onTap;
+  set onTap(VoidCallback? value) => _tap.onTap = value;
+
+  DeviceGestureSettings? get gestureSettings => _tap.gestureSettings;
+  set gestureSettings(DeviceGestureSettings? value) =>
+      _tap.gestureSettings = value;
+
+  Offset _discOffset = Offset.zero;
+  Offset _childOffset = Offset.zero;
+
+  @override
+  void performLayout() {
+    size = BoxConstraints.tightFor(
+      width: width,
+    ).enforce(constraints).constrain(Size.infinite);
+    final discBox = BoxConstraints.tight(
+      Size(disc, disc),
+    ).enforce(BoxConstraints.loose(size));
+    final discSize = discBox.constrain(Size.infinite);
+    _discSize = discSize;
+    _discOffset = Alignment.center.alongOffset(size - discSize as Offset);
+    final child = this.child;
+    if (child == null) return;
+    child.layout(discBox.loosen(), parentUsesSize: true);
+    _childOffset = Alignment.center.alongOffset(
+      discSize - child.size as Offset,
     );
+  }
+
+  Size _discSize = Size.zero;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) => BoxConstraints.tightFor(
+    width: width,
+  ).enforce(constraints).constrain(Size.infinite);
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final origin = offset + _discOffset;
+    final fill = this.fill;
+    if (fill != null) {
+      final rect = origin & _discSize;
+      final paint = Paint();
+      paint.color = fill;
+      context.canvas.drawCircle(rect.center, rect.shortestSide / 2.0, paint);
+    }
+    final child = this.child;
+    if (child != null) context.paintChild(child, origin + _childOffset);
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.translateByDouble(_discOffset.dx, _discOffset.dy, 0, 1);
+    transform.translateByDouble(_childOffset.dx, _childOffset.dy, 0, 1);
+  }
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+    if (!size.contains(position)) return false;
+    hitTestChildren(result, position: position);
+    result.add(BoxHitTestEntry(this, position));
+    return true;
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final child = this.child;
+    if (child == null) return false;
+    return result.addWithPaintOffset(
+      offset: _discOffset + _childOffset,
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset transformed) =>
+          child.hitTest(result, position: transformed),
+    );
+  }
+
+  @override
+  void handleEvent(PointerEvent event, BoxHitTestEntry entry) {
+    if (event is PointerDownEvent && _tap.onTap != null) _tap.addPointer(event);
+  }
+
+  @override
+  void dispose() {
+    _tap.dispose();
+    super.dispose();
   }
 }
 

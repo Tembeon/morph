@@ -50,6 +50,25 @@ Rect _box(List<Object?> v) {
   );
 }
 
+/// A property of the day cell drawing [day]'s disc and number.
+Object? _dayCell(WidgetTester tester, String day, String name) {
+  final cell = tester.widget(
+    find
+        .ancestor(
+          of: find.text(day),
+          matching: find.byWidgetPredicate(
+            (Widget w) => w.runtimeType.toString() == '_DayCell',
+          ),
+        )
+        .first,
+  );
+  return cell
+      .toDiagnosticsNode()
+      .getProperties()
+      .firstWhere((DiagnosticsNode p) => p.name == name)
+      .value;
+}
+
 void main() {
   group('compact date picker replays the simulator', () {
     test('the overlay opens and closes about its anchor', () {
@@ -752,23 +771,14 @@ void main() {
         EnginePhase.sendSemanticsUpdate,
         const Duration(seconds: 10),
       );
-      BoxDecoration? disc(String day) =>
-          tester
-                  .widget<Container>(
-                    find
-                        .ancestor(
-                          of: find.text(day),
-                          matching: find.byType(Container),
-                        )
-                        .first,
-                  )
-                  .decoration
-              as BoxDecoration?;
       expect(
-        disc('15')?.color,
+        _dayCell(tester, '15', 'fill'),
         MorphDatePickerStyle.light.selectedDayFillColor,
       );
-      expect(disc('3')?.color, MorphDatePickerStyle.light.todayFillColor);
+      expect(
+        _dayCell(tester, '3', 'fill'),
+        MorphDatePickerStyle.light.todayFillColor,
+      );
       final text = tester.widget<Text>(find.text('15'));
       expect(
         text.style?.color,
@@ -1402,12 +1412,7 @@ void main() {
       final one = tester.getCenter(find.text('1'));
       final eight = tester.getCenter(find.text('8'));
       expect(eight.dy - one.dy, closeTo(38, 0.01));
-      final disc = tester.getSize(
-        find
-            .ancestor(of: find.text('15'), matching: find.byType(Container))
-            .first,
-      );
-      expect(disc, const Size(38, 38));
+      expect(_dayCell(tester, '15', 'disc'), 38);
       final top = tester.getRect(find.text('August 2026')).center.dy - 34.84;
       expect(tester.getCenter(find.text('1')).dy, closeTo(top + 105.34, 0.6));
       expect(tester.getCenter(find.text('31')).dy, closeTo(top + 295.34, 0.6));

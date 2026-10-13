@@ -175,6 +175,15 @@ budget, raster p95 21.8 ms, Canvas::saveLayer 10.4 ms in frames over
 budget, OpacityLayer 0.3 passes a frame (bench-matrix-night, before the
 glyph raster above).
 
+Open frame (2026-10-13): a day of the grid is a Semantics, one render
+object that lays out, paints and takes taps as the Center, Container,
+Align and GestureDetector it replaces, offset for offset, and its Text -
+IDENTICAL (control goldens unchanged). The open frame mounts 299
+elements instead of 615. Pixel matrix before: m/date-picker/open-close
+one ~30 ms UI frame per open, 'bad ui: layout 31.2' on flat, 27.2 on
+liquid (bench-r5-d3dbebd; the overlay builds inside a LayoutBuilder, so
+its build counts as layout).
+
 ## Not reproduced / open
 
 - Perspective of the month/year wheel rows (above).
