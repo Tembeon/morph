@@ -18,15 +18,23 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
 
 ## Spec
 
-- ONE degree of freedom: uniform scale (L + lift) / L, L the long side
-  (read from UIKit, notes private; 1 + lift / width on a wide button); lift
-  from `MorphFlexSpec.forSize` (16 px at short side 44 -> 4 px at 160)
-  [tuning].
+- It is the flex interaction (lens-and-flex.md "Flex interaction") with
+  the dynamic spec of the button's size, lift and stretch on.
+- A still finger: ONE degree of freedom, uniform scale (L + lift) / L, L
+  the long side (read from UIKit, notes private; 1 + lift / width on a
+  wide button); lift from `MorphFlexSpec.forSize` (16 px at short side
+  44 -> 4 px at 160) [tuning].
 - Press on the tracking spring, release on the scale spring (small buttons
   ring below 1, wide ones barely).
 - Stays lifted for the whole touch, even far outside.
-- Drag-off LEAN tx = d |d| / 10000 px plus a stretch along the drag;
-  `onPressed` fires when the finger lifts within 70 px.
+- A dragging finger stretches the button along the drag and narrows it
+  across by k = |it| / (4 T) + (|t| - |it|) / T per axis (t the travel,
+  it the travel clamped into the button, T the spec's stretch threshold)
+  and shifts it by W k toward the finger, shown at the button's scale
+  (tx = sx W k) [read from UIKit, notes private; replay of
+  drag-off-back: tx 0.028 pt rms simulator, 0.065 device, sx - sy 0.0015
+  / 0.0016; the former fit d |d| / 10000 left 0.17 / 0.155 and 0.0029 /
+  0.0035]. `onPressed` fires when the finger lifts within 70 px.
 - Release outside [device, 2026-10-13, 120 x 44, press at the center,
   slide straight off, release]: activates 70 pt above the top edge, not
   80; 60 pt beside the right edge, not 70 (30 and 50 activate too). One
@@ -44,8 +52,9 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
   0.5/1.0.
 - `.glass()` and `.prominentGlass()` move identically.
 - Text: title 17 regular.
-- Reused by: bar capsules (recorded 1 + 16/w), search field (0.05 s after
-  contact), alert platter (pull 0.25, stretch 0.6).
+- Reused by: bar capsules (recorded 1 + 16/w), search field (lift only,
+  0.05 s after contact), alert platter (its own size: lift 4, threshold
+  24000; 0.4 pt lean for a 120 pt drag with no fitted constant).
 
 ## Disabled [device, light + dark, 2026-10-03]
 
@@ -82,9 +91,11 @@ Scenes `gb<W>x<H>`, `gbp<W>x<H>` (prominent); `PROBE_TINT`. Device plan
 ## morph
 
 `MorphGlassButton` (`tint`, `padding`, `minSize`), `MorphGlassButtonStyle`,
-`MorphGlassButtonMotion` (`pull`, `stretch`, `reducedMotion`)
-(glass_button.dart). Tests: controls_test, release_bounds_test (replays
-release-outside.jsonl through the widget).
+`MorphGlassButtonMotion` (`reducedMotion`) (glass_button.dart) on
+`MorphFlexInteraction` (flex_interaction.dart, `glows: true`). Tests:
+controls_test (hold and drag-off replays, simulator and device),
+flex_interaction_test, release_bounds_test (replays release-outside.jsonl
+through the widget).
 
 ## Not reproduced / open
 

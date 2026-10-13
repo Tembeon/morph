@@ -207,7 +207,7 @@ void main() {
       }
     });
 
-    test('a dragging finger pulls the platter a quarter as far', () {
+    test('a dragging finger pulls the platter by its own flex', () {
       for (final file in ['alert-lean.jsonl', 'alert-slide.jsonl']) {
         final rows = _rows(file, dir: _deviceDir);
         final touches = [
@@ -224,8 +224,6 @@ void main() {
         Offset local(Map<String, Object?> r) =>
             Offset(_d(r, 'x'), _d(r, 'y')) - center + const Offset(160, 132);
         final motion = MorphGlassButtonMotion(size: const Size(320, 264));
-        motion.pull = MorphAlertTuning.platterPull;
-        motion.stretch = MorphAlertTuning.platterStretch;
         final lean = <double>[];
         final size = <double>[];
         var next = 0;
@@ -252,7 +250,7 @@ void main() {
           size.add((motion.scaleY - _d(r, 'h') / 264) * 264);
         }
         expect(lean.length, greaterThan(200));
-        expect(_rms(lean), lessThan(0.15), reason: '$file lean');
+        expect(_rms(lean), lessThan(0.06), reason: '$file lean');
         expect(_rms(size), lessThan(0.35), reason: '$file size');
       }
     });

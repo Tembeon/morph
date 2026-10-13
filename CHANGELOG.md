@@ -14,6 +14,14 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Glass buttons, bar capsules and the alert platter stretch and shift
+  under a dragging finger by UIKit's flex interaction at their own size
+  instead of a fitted lean: the drag-off replay of a 120 x 44 button
+  drops from 0.17 to 0.03 pt rms (0.155 to 0.065 on the device), the
+  alert platter's from 0.06 to 0.02 - 0.04. BREAKING:
+  `MorphGlassButtonMotion.pull`, `.stretch`, `.leanDivisor`,
+  `.leanStretch` and `MorphAlertTuning.platterPull` / `.platterStretch`
+  are gone; the surface's size sets the response.
 - `MorphMenuSource` takes keyboard focus itself, draws the focus ring
   around its child and answers Enter or Space as a tap. An app whose
   child takes the focus itself and calls `MorphMenuSource.open`, as the

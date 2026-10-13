@@ -37,6 +37,39 @@ and threshold 0.
 Lens PTSettings [tuning]: small lift 0.27/0.625, unlift 0.5/0.7, small
 optics; large 0.25/1 both ways; hang 0.22 s.
 
+Flex interaction (`_UIFlexInteraction`, one machine for every flexible
+glass surface) [read from UIKit, notes private; device-confirmed where
+noted]:
+- Four channels scaleX, scaleY, driftX, driftY, at rest (1, 1, 0, 0).
+  While a finger is down they chase the targets on the spec's tracking
+  spring, after the lift they return on its scale spring.
+- Touch source, t = the finger's travel since the touch-down, it = the
+  same with the finger clamped into the bounds, T = scaleDistanceThreshold:
+  lift s = (L + liftScalePoints) / L on both scales (L the long side);
+  per axis k = |it| / (4 T) + (|t| - |it|) / T (0 without travel),
+  sx += kx - ky, sy += ky - kx, driftX = sign(t.x) kx W, driftY likewise
+  with H.
+- Movement source (a moving surface), m = a / movementNormalizationFactor
+  with a the filtered rate of change of speed per axis: bounds per axis
+  lo = max(minScale, (e - movementScalePts) / e), hi = min(maxScale,
+  (e + movementScalePts) / e); along the motion L = soft(1 + m (hi - 1)),
+  across soft(1 + m (lo - 1)), drift += (1 - L) e / 2 sign(v). soft eases
+  a value beyond a bound toward a third of the range further out,
+  entering at slope 0.55.
+- Menu variant (open menu): its own targets and pulse, menu-button.md.
+- What shows: Scale(sx, sy) . Translate(dx, dy), the drift times the scale
+  [device: glass button drag-off-back, tx = sx dx replays to 0.065 pt
+  rms, tx = dx to 0.18].
+- Sources per control: glass button, bar capsule and alert platter lift
+  and stretch [device]; search field and menu button press lift (a drag
+  on them is not measured, morph does not stretch them).
+- The lens laws below are this movement law with `loupeForSize` of the
+  lens: the segmented resting gain 2.5e-5 per px of min(W, 100) is
+  0.5 x 0.1 / 2000 (smallLoupe; the cap is where (W + 10) / W reaches
+  1.1), the lifted gain 2.626e-5 is the loupe of a 44 pt tall lens. The
+  lens keeps its fitted knees until a device check.
+- morph: `MorphFlexInteraction` (flex_interaction.dart).
+
 Flex loop (`_UIVelocityIntegrator`) [tuning + device fit]:
 - three one-pole filters (position, velocity, rate of change of SPEED
   |v|), alpha 0.3 PER RENDERED FRAME whatever the interval; dt = frame
