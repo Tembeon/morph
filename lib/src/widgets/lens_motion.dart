@@ -495,7 +495,10 @@ class MorphLensMotion {
     pointer.cancelled = true;
     _chromeTo(t + tuning.chromeLag, 0);
     if (!pointer.pressedSelected) return;
-    _travel.retarget(t, _slots[_selected].center, spring: tuning.travelSpring);
+    final slot = _slots[_selected];
+    _travel.retarget(t, slot.center, spring: tuning.travelSpring);
+    _width.retarget(t, slot.width);
+    _restWidth = slot.width;
     _flag = false;
     _lift.retarget(t, 0);
   }

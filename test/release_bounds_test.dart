@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/widgets.dart';
 
 const _fixture = 'test/fixtures/ios27-device/tracking/release-outside.jsonl';
@@ -197,5 +198,51 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     await tester.pump(const Duration(seconds: 1));
     expect(picked, isEmpty);
+  });
+
+  testWidgets('a release beyond the bound restores the selected lens width', (
+    WidgetTester tester,
+  ) async {
+    final picked = <int>[];
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 300,
+            child: MorphSegmentedControl(
+              sizeByContent: true,
+              segments: const ['A', 'Long label', 'B'],
+              selected: 0,
+              onChanged: picked.add,
+            ),
+          ),
+        ),
+      ),
+    );
+    final motion =
+        (tester.state(find.byType(MorphSegmentedControl))
+                as MorphLensDriver<MorphSegmentedControl>)
+            .motion;
+    final selected = motion.slots[0];
+    final wide = motion.slots[1];
+    expect(wide.width - selected.width, greaterThan(20));
+    final gesture = await tester.startGesture(Offset(selected.center, 16));
+    await tester.pump(const Duration(milliseconds: 200));
+    await gesture.moveTo(Offset(wide.center, 16));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(motion.slotAt(motion.travelCenter), 1);
+    await gesture.moveTo(
+      Offset(wide.center, 32 + MorphSegmentedControl.releaseSlop + 10),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(picked, isEmpty);
+    expect(motion.isSettled, isTrue);
+    expect(motion.selected, 0);
+    expect(motion.center, closeTo(selected.center, 0.01));
+    expect(motion.size.width, closeTo(selected.width, 0.01));
   });
 }
