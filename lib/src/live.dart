@@ -1279,9 +1279,15 @@ class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
     );
   }
 
+  // The clip applies in the child's coordinates, inside the transform;
+  // callers read it in this box's own, where glass bounds its backdrop
+  // samples by it.
   @override
-  Rect? describeApproximatePaintClip(RenderObject child) =>
-      _clipOf?.call().outerRect;
+  Rect? describeApproximatePaintClip(RenderObject child) {
+    final clip = _clipOf?.call();
+    if (clip == null) return null;
+    return MatrixUtils.transformRect(_childTransform(), clip.outerRect);
+  }
 }
 
 /// Paints its child shifted by [offsetOf], read again on every
