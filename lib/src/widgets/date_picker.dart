@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
@@ -261,7 +262,9 @@ String _defaultTime(DateTime d, {required bool twentyFour}) {
 /// drawn with the fade in its paint, without an offscreen pass over the
 /// card: NEAR (at most 1 of 255 per channel). Each month grid is a layer
 /// of its own, so a page turn moves recorded grids instead of painting
-/// every day again (IDENTICAL).
+/// every day again (IDENTICAL). The day grid (the time wheels) mounts on
+/// the frame after the overlay's, while the overlay is still transparent,
+/// so the open's layout spreads over two frames (IDENTICAL).
 class MorphDatePicker extends StatefulWidget {
   /// Creates a picker.
   const MorphDatePicker({
@@ -732,6 +735,12 @@ class _OverlayViewState extends State<_OverlayView>
   final ValueNotifier<int> _boxFrames = ValueNotifier(0);
   (double, double)? _boxState;
 
+  // The day grid (the time wheels) mounts on the frame after the
+  // overlay's: the overlay stays transparent for at least the reopen
+  // delay after the lift, so the two halves of the open's work land on
+  // two frames unseen.
+  final ValueNotifier<bool> _contentReady = ValueNotifier(false);
+
   void _syncStructure() {
     final t = _motion.time;
     _pageTurning.value = _motion.page(t) < 1;
@@ -760,10 +769,14 @@ class _OverlayViewState extends State<_OverlayView>
     );
     _syncStructure();
     wake();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _contentReady.value = true;
+    });
   }
 
   @override
   void dispose() {
+    _contentReady.dispose();
     _pageTurning.dispose();
     _yearsVisible.dispose();
     _boxFrames.dispose();
@@ -986,6 +999,7 @@ class _OverlayViewState extends State<_OverlayView>
             motion: _motion,
             frames: frames,
             pageTurning: _pageTurning,
+            gridReady: _contentReady,
             yearsVisible: _yearsVisible,
             firstDayOfWeek: _picker.firstDayOfWeek,
             localize: _picker.localize,
@@ -1034,7 +1048,15 @@ class _OverlayViewState extends State<_OverlayView>
             to: SizedBox.fromSize(
               key: ValueKey<_Part>(_part),
               size: size,
-              child: contentFor(_part),
+              child: _part == _Part.time
+                  ? ValueListenableBuilder<bool>(
+                      valueListenable: _contentReady,
+                      child: contentFor(_part),
+                      builder:
+                          (BuildContext context, bool ready, Widget? child) =>
+                              ready ? child! : const SizedBox.shrink(),
+                    )
+                  : contentFor(_part),
             ),
           ),
         ),
@@ -1398,6 +1420,7 @@ class _Calendar extends StatelessWidget {
     required this.motion,
     required this.frames,
     required this.pageTurning,
+    required this.gridReady,
     required this.yearsVisible,
     required this.firstDayOfWeek,
     required this.firstDate,
@@ -1422,6 +1445,9 @@ class _Calendar extends StatelessWidget {
 
   /// Whether a page turn runs: the old month is on screen.
   final ValueListenable<bool> pageTurning;
+
+  /// Whether the day grid has mounted.
+  final ValueListenable<bool> gridReady;
 
   /// Whether the month and year wheels show at all.
   final ValueListenable<bool> yearsVisible;
@@ -1638,16 +1664,23 @@ class _Calendar extends StatelessWidget {
                           ),
                           child: ClipRect(
                             // A page turn repaints the moving grids' offsets
-                            // only, not the weekday row above.
-                            child: RepaintBoundary(
-                              child: ValueListenableBuilder<bool>(
-                                valueListenable: pageTurning,
-                                builder:
-                                    (
-                                      BuildContext context,
-                                      bool turning,
-                                      Widget? _,
-                                    ) {
+                            // only, not the weekday row above; mounting or
+                            // swapping a grid lays out only this area.
+                            child: _ScopedRepaintBoundary(
+                              builder:
+                                  (
+                                    BuildContext context,
+                                    BoxConstraints _,
+                                  ) => ListenableBuilder(
+                                    listenable: Listenable.merge([
+                                      pageTurning,
+                                      gridReady,
+                                    ]),
+                                    builder: (BuildContext context, Widget? _) {
+                                      if (!gridReady.value) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      final turning = pageTurning.value;
                                       double p() => motion.page(motion.time);
                                       double dir() =>
                                           motion.pageDirection *
@@ -1694,7 +1727,7 @@ class _Calendar extends StatelessWidget {
                                         ],
                                       );
                                     },
-                              ),
+                                  ),
                             ),
                           ),
                         ),
@@ -1807,6 +1840,69 @@ class _Calendar extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// A repaint boundary that is also a build scope of its own, as a
+/// [LayoutBuilder] is: a rebuild of its subtree lays out and repaints
+/// from here down, where the overlay's [LayoutBuilder] above would lay
+/// itself out and repaint the overlay's box around it.
+class _ScopedRepaintBoundary extends ConstrainedLayoutBuilder<BoxConstraints> {
+  const _ScopedRepaintBoundary({required super.builder});
+
+  @override
+  RenderAbstractLayoutBuilderMixin<BoxConstraints, RenderBox>
+  createRenderObject(BuildContext context) => _RenderScopedRepaintBoundary();
+}
+
+class _RenderScopedRepaintBoundary extends RenderBox
+    with
+        RenderObjectWithChildMixin<RenderBox>,
+        RenderObjectWithLayoutCallbackMixin,
+        RenderAbstractLayoutBuilderMixin<BoxConstraints, RenderBox> {
+  @override
+  bool get isRepaintBoundary => true;
+
+  // A layout marks its render object for paint; this one paints nothing
+  // but its child at its origin, so a layout that keeps its size and its
+  // child leaves the paint to whatever below it changed (a change below
+  // marks this boundary on its own).
+  bool _keepsPaint = false;
+
+  @override
+  void markNeedsPaint() {
+    if (_keepsPaint) {
+      _keepsPaint = false;
+      return;
+    }
+    super.markNeedsPaint();
+  }
+
+  @override
+  void performLayout() {
+    final constraints = this.constraints;
+    final before = hasSize ? size : null;
+    final childBefore = this.child;
+    runLayoutCallback();
+    final child = this.child;
+    if (child != null) {
+      child.layout(constraints, parentUsesSize: true);
+      size = constraints.constrain(child.size);
+    } else {
+      size = constraints.biggest;
+    }
+    _keepsPaint = size == before && identical(child, childBefore);
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
+      child?.hitTest(result, position: position) ?? false;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    _keepsPaint = false;
+    final child = this.child;
+    if (child != null) context.paintChild(child, offset);
   }
 }
 

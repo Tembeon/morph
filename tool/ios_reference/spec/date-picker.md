@@ -184,6 +184,14 @@ one ~30 ms UI frame per open, 'bad ui: layout 31.2' on flat, 27.2 on
 liquid (bench-r5-d3dbebd; the overlay builds inside a LayoutBuilder, so
 its build counts as layout).
 
+Open frame, spread (2026-10-13, declared in `MorphDatePicker`): the day
+grid (the time wheels) mounts on the frame after the overlay's, inside a
+repaint boundary that is its own build scope, so neither frame lays out
+or repaints the overlay's box for it - IDENTICAL (the overlay is
+transparent for the open delay, 0.072 s at the least; control goldens
+unchanged). Host layouts: open frame 397 -> 94, next frame 0 -> 112;
+date_picker_test pins 100 / 120.
+
 ## Not reproduced / open
 
 - Perspective of the month/year wheel rows (above).

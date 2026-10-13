@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -531,6 +532,50 @@ void main() {
       final before = tester.widget(day);
       await tester.pump(const Duration(milliseconds: 16));
       expect(identical(tester.widget(day), before), isTrue);
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+    });
+
+    testWidgets('the open lays out the overlay and its days on two frames', (
+      tester,
+    ) async {
+      await pump(tester, onChanged: (_) {});
+      final press = await tester.startGesture(
+        tester.getCenter(find.text('Oct 3, 2026')),
+      );
+      await tester.pump(const Duration(milliseconds: 16));
+      Future<int> layoutsOf(Future<void> Function() frame) async {
+        debugProfileLayoutsEnabled = true;
+        FlutterTimeline.debugCollectionEnabled = true;
+        FlutterTimeline.debugReset();
+        try {
+          await frame();
+          return FlutterTimeline.debugCollect().timedBlocks
+              .where((TimedBlock b) => b.name.contains('Render'))
+              .length;
+        } finally {
+          FlutterTimeline.debugCollectionEnabled = false;
+          debugProfileLayoutsEnabled = false;
+        }
+      }
+
+      // The overlay and every day of the month mounted on one frame lay
+      // out about 400 render objects there.
+      final open = await layoutsOf(() async {
+        await press.up();
+        await tester.pump(const Duration(milliseconds: 16));
+      });
+      expect(find.text('October 2026'), findsOneWidget);
+      expect(find.text('15'), findsNothing);
+      final days = await layoutsOf(
+        () => tester.pump(const Duration(milliseconds: 16)),
+      );
+      expect(find.text('15'), findsOneWidget);
+      expect(open, lessThanOrEqualTo(100));
+      expect(days, lessThanOrEqualTo(120));
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),
         EnginePhase.sendSemanticsUpdate,
