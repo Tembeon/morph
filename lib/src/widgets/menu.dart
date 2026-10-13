@@ -302,6 +302,8 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 
   ({Color color, Color? rim})? get _surface;
 
+  bool get _focusable => true;
+
   @override
   State<_MorphMenuSourceWidget> createState() => _MorphMenuSourceState();
 }
@@ -326,7 +328,9 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 /// them, lifts the child and opens the menu; with [MorphMenuTrigger.hold]
 /// it calls [onTap] for a tap. The source also takes keyboard focus, draws
 /// the focus ring around the child's box, and Enter or Space do what a
-/// tap does.
+/// tap does. A [child] that takes keyboard focus itself, such as its own
+/// [FocusableActionDetector], sets [focusable] to false so that the
+/// keyboard stops on it once, and calls [open] on Enter or Space.
 ///
 /// The [shape] is the outline of the child at rest: [StadiumBorder] and
 /// [CircleBorder] are capsules, a [RoundedRectangleBorder],
@@ -347,6 +351,7 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
     this.onTap,
     this.color,
     this.rimColor,
+    this.focusable = true,
     super.style,
     super.tuning = MorphMenuTuning.standard,
     super.overlay,
@@ -392,13 +397,18 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
   /// the source shape at the [color]'s share; null draws none.
   final Color? rimColor;
 
+  /// Whether the source takes keyboard focus and draws the focus ring;
+  /// false leaves both to a [child] that takes the focus itself.
+  final bool focusable;
+
   /// Opens the menu of the [MorphMenuSource] or [MorphMenuButton] above
   /// [context], as a tap on it does; nothing happens when there is none,
   /// it is disabled or its menu is already open.
   ///
   /// The source takes keyboard focus itself, draws the focus ring around
   /// its box and answers Enter or Space as a tap; this opens the menu from
-  /// anywhere else below it.
+  /// anywhere else below it, such as a focusable [child] of a source
+  /// whose [focusable] is false.
   static void open(BuildContext context) {
     final state = context.findAncestorStateOfType<_MorphMenuSourceState>();
     if (state == null || !state.widget.enabled) return;
@@ -426,6 +436,9 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
 
   @override
   VoidCallback? get _onTap => onTap;
+
+  @override
+  bool get _focusable => focusable;
 }
 
 /// A round glass button that turns into its menu exactly like an iOS 27
@@ -1028,6 +1041,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
       child: MorphPress(
         target: this,
         enabled: enabled,
+        focusable: widget._focusable,
         behavior: .opaque,
         focusRing: true,
         onActivate: !enabled

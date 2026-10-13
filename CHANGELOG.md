@@ -14,6 +14,11 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- `MorphMenuSource` takes keyboard focus itself, draws the focus ring
+  around its child and answers Enter or Space as a tap. An app whose
+  child takes the focus itself and calls `MorphMenuSource.open`, as the
+  source asked before, sets `focusable: false` on the source, or the
+  keyboard stops twice on one button.
 - `MorphAdaptiveGlass` draws the cheap tier (flat) on Skia, a native
   runtime without Impeller (Android before API 29, or Impeller turned
   off), new device class `MorphGlassDeviceClass.skia`. It drew fake glass

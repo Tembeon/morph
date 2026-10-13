@@ -51,8 +51,12 @@ directly, not through a `Focus` widget, so a menu or sheet opening over
 a page rebuilds none of its controls, and the ring (`focusRing: true`,
 for controls that do not draw it themselves) is inserted only while it
 shows: focusability costs no build and no paint on a surface that
-repaints every frame. A descendant finds the control's node through
-`node.context`, not `Focus.of`.
+repaints every frame. The node depends on the enclosing `Focus` scope
+and follows it to a swapped node, but its element applies a changed
+dependency (parent node, navigation mode) without marking itself dirty,
+so focus moving under that scope builds nothing; `MorphPress.build`
+therefore reads no other inherited widget. A descendant finds the
+control's node through `node.context`, not `Focus.of`.
 
 ## Internal machinery (all `@internal`)
 
@@ -170,8 +174,9 @@ inset grouped list (`MorphListSection` / `MorphListRow`).
 `MorphMenuController` and draws `MorphMenuLayer`, on a tap
 (`MorphMenuTrigger.tap`, primary action) or a hold. `MorphMenuButton` is
 its glass ellipsis configuration and `MorphGlassButton(menu:)` wraps its
-focusable capsule in it, passing its fill or tint as the source `color`
-and opening through `MorphMenuSource.open` on Enter; bar items drive the
+capsule in it, passing its fill or tint as the source `color`. The source
+takes the keyboard focus itself; `focusable: false` leaves it to a child
+that takes it and calls `MorphMenuSource.open`. Bar items drive the
 controller themselves.
 `MorphNavigationScaffold` and sheets give their content the body text
 style. `MorphSpring` is the engine's (`spring.dart`); `MorphFlexSpec`

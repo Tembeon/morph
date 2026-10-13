@@ -169,7 +169,7 @@ abstract interface class MorphPressTarget {
 /// The one input path of a pressable control: keyboard focus and
 /// activation, semantics and touches in the gesture arena.
 ///
-/// The control takes keyboard focus while [enabled]: Space and Enter call
+/// The control takes keyboard focus while [enabled] and [focusable]: Space and Enter call
 /// [onActivate], what a tap does; the left and right arrows, and the up
 /// and down arrows when [verticalSteps], call [onStep] with the visual
 /// direction (-1 for left or down). [onHighlight] reports whether the
@@ -180,9 +180,13 @@ abstract interface class MorphPressTarget {
 /// [dragAxis], [delaysInScrollable] and [behavior], and reaches the
 /// target, which tracks its press with a [MorphPressTracker].
 ///
+/// The focus node sits under the nearest enclosing [Focus] or
+/// [FocusScope] and follows it when that widget changes its node.
+///
 /// It adds no render object besides the [semantics], the focus
-/// annotation (unless [focusSemantics] is false) and the touch listener,
-/// and builds again only when the ring it draws turns on or off: the ring
+/// annotation (unless [focusSemantics] or [focusable] is false) and the
+/// touch listener, and builds again only when the ring it draws turns on
+/// or off: the ring
 /// is inserted only while it shows, with [child] kept across the
 /// insertion, so a surface that repaints every frame pays nothing for
 /// being focusable.
@@ -193,6 +197,7 @@ class MorphPress extends StatefulWidget {
     required this.child,
     this.target,
     this.enabled = true,
+    this.focusable = true,
     this.touchEnabled,
     this.onActivate,
     this.onStep,
@@ -215,6 +220,10 @@ class MorphPress extends StatefulWidget {
   /// Whether the control takes focus, and touches unless [touchEnabled]
   /// says otherwise.
   final bool enabled;
+
+  /// Whether the control takes keyboard focus at all; false leaves the
+  /// focus to a [child] that takes it itself.
+  final bool focusable;
 
   /// Whether touches enter the gesture arena; null follows [enabled].
   final bool? touchEnabled;
@@ -262,7 +271,25 @@ class MorphPress extends StatefulWidget {
   final Widget child;
 
   @override
+  StatefulElement createElement() => _MorphPressElement(this);
+
+  @override
   State<MorphPress> createState() => _MorphPressState();
+}
+
+// The enclosing focus scope notifies its dependents on every focus change
+// under it, such as a menu or sheet opening over the control. What the
+// state reads from inherited widgets (the parent focus node and the
+// navigation mode) needs no build, so a changed dependency is applied
+// here instead of marking the element dirty, which is all the skipped
+// super does. The state's build reads no other inherited widget.
+class _MorphPressElement extends StatefulElement {
+  _MorphPressElement(MorphPress super.widget);
+
+  @override
+  // ignore: must_call_super
+  void didChangeDependencies() =>
+      (state as _MorphPressState)._dependenciesChanged();
 }
 
 const List<SingleActivator> _activators = [
@@ -302,6 +329,10 @@ class _MorphPressState extends State<MorphPress> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _dependenciesChanged();
+  }
+
+  void _dependenciesChanged() {
     _reparent();
     _node.canRequestFocus = _canRequestFocus;
   }
@@ -309,7 +340,8 @@ class _MorphPressState extends State<MorphPress> {
   @override
   void didUpdateWidget(MorphPress oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.enabled != widget.enabled) {
+    if (oldWidget.enabled != widget.enabled ||
+        oldWidget.focusable != widget.focusable) {
       _node.canRequestFocus = _canRequestFocus;
       WidgetsBinding.instance.addPostFrameCallback((Duration _) {
         if (mounted) _update();
@@ -332,9 +364,8 @@ class _MorphPressState extends State<MorphPress> {
     super.dispose();
   }
 
-  void _reparent() => _attachment.reparent(
-    parent: Focus.maybeOf(context, scopeOk: true, createDependency: false),
-  );
+  void _reparent() =>
+      _attachment.reparent(parent: Focus.maybeOf(context, scopeOk: true));
 
   void _modeChanged(FocusHighlightMode mode) => _update();
 
@@ -380,6 +411,7 @@ class _MorphPressState extends State<MorphPress> {
   }
 
   bool get _canRequestFocus =>
+      widget.focusable &&
       switch (MediaQuery.maybeNavigationModeOf(context)) {
         NavigationMode.directional => true,
         NavigationMode.traditional || null => widget.enabled,
@@ -427,7 +459,7 @@ class _MorphPressState extends State<MorphPress> {
         child: child,
       );
     }
-    if (!widget.focusSemantics) return child;
+    if (!widget.focusSemantics || !widget.focusable) return child;
     return MorphLiveSemantics(
       live: _node,
       propertiesOf: _focusSemantics,
