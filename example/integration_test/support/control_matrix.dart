@@ -81,7 +81,10 @@ class _MatrixStageState extends State<MatrixStage>
     if (MatrixStage.ticking.value) {
       _floor.repeat();
     } else {
-      _floor.stop();
+      // A floor stopped mid-fade would keep a fractional opacity over its
+      // pixel in every later cell: Impeller draws that as one saveLayer a
+      // frame that no control owns.
+      _floor.reset();
     }
   }
 

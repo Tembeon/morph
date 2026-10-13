@@ -120,7 +120,10 @@ supported.
   read per frame saves only 0.2 - 0.5 ms (tool/audit/2026-10-12-glass-composition.md).
 - Every layer-tree saveLayer appears twice as `Canvas::saveLayer` in a
   trace (flow records it, Impeller executes it); count the ones inside
-  SurfaceFrame::Encode.
+  SurfaceFrame::Encode. An encode saveLayer without a flow twin is an
+  OpacityLayer whose children took the opacity (Impeller still calls
+  saveLayer for the picture) or a saveLayer inside a picture: compare
+  with m/empty/frames before blaming a control.
 - A blur whose kernel-grown clip leaves the pass makes Impeller blur the
   WHOLE pass, and below 5.66 device px of sigma at full resolution.
   Keep blur clips inside the pass.

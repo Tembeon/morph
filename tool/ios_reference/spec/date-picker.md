@@ -206,6 +206,30 @@ also loses the text's top anti-aliased row, which the color fade draws.
 Pixel matrix before: m/date-picker/open-close 'opacity unknown
 OpacityLayer 0.2' passes a frame on flat and liquid (bench-r5-d3dbebd).
 
+saveLayers per frame (2026-10-13), m/date-picker/open-close in
+bench-r5-d3dbebd, Impeller's Canvas::saveLayer inside SurfaceFrame::Encode
+split by whether flow traced the same saveLayer from the layer tree: flat
+1.10 = 0.10 layer tree (the label's dim, removed above) + 1.00 not in the
+layer tree; liquid 1.78 = 0.78 layer tree + 1.00 not in it. m/empty/frames
+draws the same 0.99 with no control on the stage: it is the matrix stage's
+floor ticker, a 1x1 FadeTransition that the empty cell stopped mid-fade,
+so every later cell composited a fractional OpacityLayer whose one
+rectangle takes the opacity (flow skips the saveLayer, Impeller's
+drawDisplayList with an opacity still calls one, folded into the draw
+when the picture takes group opacity: dl_dispatcher.cc, canvas.cc). The
+stage now resets the floor to 0 when it stops (control_matrix.dart): the
+1.00 leaves every matrix cell after m/empty, harness only. What stays is
+the overlay's glass: on liquid one BackdropFilterLayer
+(RenderLiquidGlassLayer) while the overlay is shown, 0.68 a frame, and
+nothing else (host layer walk with Impeller, --enable-impeller, plus a
+recording of every picture: no saveLayer inside a picture on flat or
+liquid); on flat none. The glass filter is the look of the overlay and
+stays; its cost (Canvas::saveLayer 14.85 ms inclusive per liquid frame
+over budget: the frost and shader inside the filter) is the renderer's,
+docs/performance.md section 4. control_matrix_test pins the walk: flat
+draws no offscreen layer in the open-close, the glass tier only the one
+backdrop.
+
 ## Not reproduced / open
 
 - Perspective of the month/year wheel rows (above).
