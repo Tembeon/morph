@@ -144,6 +144,22 @@ its pulse channel `MorphFlexPulse`. A surface shows its drift times its
 scale (`translation`). Options per control: `stretches`, `glows`,
 `activationDelay`, a shared `MorphTimeline`. Passport: lens-and-flex.md.
 
+Who runs on it:
+- the interaction itself: glass buttons, bar capsules and the alert
+  platter (lift, stretch, glow), the search field and the menu button's
+  press (lift after a measured delay, no stretch);
+- `withMovement` with `MorphFlexSpec.loupeForSize`: the selection lens
+  (`MorphLensMotion`) and the knob / thumb lens (`MorphSmallLens`), each
+  stepping its own `MorphFlexIntegrator` on a `MorphSubClock`;
+- `menuTargets` and `MorphFlexPulse`: the open menu (`MorphMenuMotion`),
+  which shows its targets directly while the finger is down and returns
+  on the menu spec's scale spring.
+
+Measured per control and kept apart: the tab bar's touch glow
+(`MorphTouchGlowMotion`, its own rise lag and drag growth), the context
+menu preview's hold growth, the menu's center drift (not multiplied by
+its scale: the menu replays cannot tell the two apart).
+
 `glyph_scale.dart` - text under an animated transform. Wrap a label (or
 any child holding text) whose scale, blur or fade animates in
 `MorphGlyphs` (`morphVeiledGlyphs` when the control blurs and fades it);
