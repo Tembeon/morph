@@ -175,6 +175,27 @@ split (the nearer group keeps its element, the other is born inside its
 box at 0.2 - the birth law) fuses while closer.
 `MorphBarMetrics.containerSpacing` 12.
 
+## Spec - object lifecycle [device, 2026-10-13, lab captures; notes private]
+
+A push, a pop, setRightBarButtonItems and setToolbarItems create every
+view and layer of the change in the transition's first frame (the whole
+incoming page with its bar, 51-65 inits) and remove the leaving ones once
+at its end. With the same set of buttons the main thread is idle in
+between but for 4-5 timed blips; when the set changes (capsules split or
+join) the existing SDF layers are laid out every frame (12-48 layouts, no
+inits). Items match across pages by semantic id (explicit identifier,
+then system item, image, title, object identity) plus an index for
+duplicates; one glass per capsule, capsules matched by id, disappearing
+capsules kept until their animation ends.
+morph: `MorphBarItems` builds its row only when the set of items, their
+buttons, capsules or prominence, or the menu changes, and once after the
+motion settles (items the motion dropped stay, drawing nothing, until
+then); its glass hosts take slotted frames through a change
+(`MorphGlassFrame.slotted`), so fusing and parting capsules fill slots
+instead of building. `MorphBarButton.id` is the explicit identifier;
+repeated ids are told apart by order (`MorphBarItemId`).
+test/bar_lifecycle_test.dart pins it on every tier.
+
 ## Spec - edge-swipe drift [device fit, 4 swipes]
 
 While a page is dragged, each capsule the destination bar also has (same

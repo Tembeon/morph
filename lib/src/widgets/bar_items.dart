@@ -31,10 +31,14 @@ import 'package:morph/src/widgets/typography.dart';
 
 /// One button of a glass bar: a label or an icon.
 ///
-/// Its [id] keeps its identity when the bar's items change: an item with
-/// the same id travels to its new place, a new id grows in, a missing one
-/// leaves. A usable button takes keyboard focus, shows the focus ring
-/// around its slot, and Space or Enter do what a tap does.
+/// Its [id] keeps its identity when the bar's items change, also across
+/// the screens of a navigation stack that share one bar: an item with the
+/// same id travels to its new place and keeps its views, a new id grows
+/// in, a missing one leaves. Buttons of one bar that repeat an id are told
+/// apart by their order, the n-th continuing the n-th, as UIKit pairs a
+/// bar item's semantic id with an index. A usable button takes keyboard
+/// focus, shows the focus ring around its slot, and Space or Enter do
+/// what a tap does.
 @immutable
 class MorphBarButton {
   /// Creates a button showing [label] or [icon].
@@ -65,7 +69,9 @@ class MorphBarButton {
   }) : icon = null,
        back = true;
 
-  /// The identity of the button across item changes.
+  /// The identity of the button across item changes: UIKit's explicit
+  /// identifier, which it matches before a system item, an image or a
+  /// title.
   final Object id;
 
   /// The text of the button.
@@ -530,6 +536,85 @@ class MorphPlacedGroup {
   final MorphBarSide side;
 }
 
+/// The identity of a button whose [id] another button of the same bar
+/// took before it: the [index]-th repeat of [id] in reading order (from
+/// 1), as UIKit's unique semantic id pairs a semantic id with an index for
+/// duplicates.
+@internal
+@immutable
+class MorphBarItemId {
+  /// Identifies the [index]-th repeat of [id].
+  const MorphBarItemId(this.id, this.index);
+
+  /// The id the button carries.
+  final Object id;
+
+  /// How many buttons of the bar carry [id] before this one.
+  final int index;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphBarItemId && other.id == id && other.index == index;
+
+  @override
+  int get hashCode => Object.hash(id, index);
+
+  @override
+  String toString() => 'MorphBarItemId($id, $index)';
+}
+
+/// [groups] with every button that repeats an id of the bar told apart by
+/// its place ([MorphBarItemId]), so the n-th button with an id continues
+/// the n-th button with that id when the bar changes; the first keeps its
+/// id. Returns [groups] itself when no id repeats.
+@internal
+List<MorphPlacedGroup> morphIdentifyBarItems(List<MorphPlacedGroup> groups) {
+  final seen = <Object>{};
+  var repeats = false;
+  for (final g in groups) {
+    for (final b in g.group.buttons) {
+      if (!seen.add(b.id)) repeats = true;
+    }
+  }
+  if (!repeats) return groups;
+  final counts = <Object, int>{};
+  MorphBarButton identified(MorphBarButton b) {
+    final n = counts[b.id] = (counts[b.id] ?? -1) + 1;
+    if (n == 0) return b;
+    final id = MorphBarItemId(b.id, n);
+    return b.back
+        ? MorphBarButton.back(
+            label: b.label,
+            onPressed: b.onPressed,
+            semanticLabel: b.semanticLabel,
+            menu: b.menu,
+            enabled: b.enabled,
+            id: id,
+          )
+        : MorphBarButton(
+            id: id,
+            label: b.label,
+            icon: b.icon,
+            onPressed: b.onPressed,
+            semanticLabel: b.semanticLabel,
+            menu: b.menu,
+            enabled: b.enabled,
+          );
+  }
+
+  return [
+    for (final g in groups)
+      MorphPlacedGroup(
+        MorphBarButtonGroup(
+          [for (final b in g.group.buttons) identified(b)],
+          id: g.group.id,
+          prominent: g.group.prominent,
+        ),
+        g.side,
+      ),
+  ];
+}
+
 /// The label style of bar buttons: [MorphTypography.barButton], or
 /// [MorphTypography.barButtonProminent] when [bold], at the metrics' size.
 @internal
@@ -838,6 +923,18 @@ class _MorphBarItemsState extends State<MorphBarItems>
   MorphBarStyle? _rowStyle;
   Brightness? _rowBrightness;
   _RowFrame _row = _RowFrame.empty;
+  List<MorphPlacedGroup>? _rawGroups;
+  List<MorphPlacedGroup> _identifiedGroups = const [];
+
+  /// The widget's groups, every button with an identity of its own.
+  List<MorphPlacedGroup> get _groups {
+    final raw = widget.groups;
+    if (!identical(raw, _rawGroups)) {
+      _rawGroups = raw;
+      _identifiedGroups = morphIdentifyBarItems(raw);
+    }
+    return _identifiedGroups;
+  }
 
   @override
   void initState() {
@@ -939,7 +1036,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     }
     // The kept tree reads buttons through [_buttons] at event time, so the
     // new callbacks take over without a rebuild.
-    for (final g in widget.groups) {
+    for (final g in _groups) {
       for (final b in g.group.buttons) {
         _buttons[b.id] = b;
       }
@@ -1157,12 +1254,13 @@ class _MorphBarItemsState extends State<MorphBarItems>
           contentWidth: (MorphBarButton b, {required bool bold}) =>
               _contentWidth(b, scaler, direction, bold: bold),
         );
-    final layout = lay(widget.groups);
+    final groups = _groups;
+    final layout = lay(groups);
     final driftGroups = widget.driftGroups;
     _driftLayout = driftGroups == null || widget.driftProgress == null
         ? null
-        : lay(driftGroups);
-    for (final g in widget.groups) {
+        : lay(morphIdentifyBarItems(driftGroups));
+    for (final g in groups) {
       for (final b in g.group.buttons) {
         _buttons[b.id] = b;
       }
@@ -1170,7 +1268,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final prominentBefore = Map.of(_prominent);
     final disabledBefore = Map.of(_disabled);
     for (final c in layout) {
-      _prominent[c.id] = widget.groups.any(
+      _prominent[c.id] = groups.any(
         (g) =>
             g.group.prominent &&
             c.items.any((i) => g.group.buttons.any((b) => b.id == i.id)),

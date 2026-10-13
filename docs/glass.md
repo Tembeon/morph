@@ -50,6 +50,14 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
   once when it does: a renderer asking for liquid draws fake before that
   and compares equal across the change. `keep` hands back the same glass widgets when only the
   content changed.
+- A `slotted` frame (`morphGlassLayerSlots`: glass body surfaces of a
+  container that neither float, glow nor frost) builds a slot for every
+  surface as a separate shape and as a member of every fused body the
+  surfaces can form; each frame fills the slots, an empty one absent from
+  its layer (`LiquidGlassShapeFrame.present`) and taking no hits. Its
+  structure is only the surface count, so a bar's capsules fuse and part
+  through an item change without a build; the owner pads the surfaces
+  with invisible ones to hold the count.
 - Other painters are asked every frame.
 - MorphGlassRenderer's buildLayer / buildSurface / buildBody build the
   same trees from a fixed source: one implementation.

@@ -3,6 +3,7 @@ import 'dart:ui' show SemanticsAction;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/widgets/bar_items.dart' show MorphBarItemId;
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
 
@@ -56,6 +57,42 @@ MorphBarCapsuleLayout _capsule(Object id, double cx, List<Object> items) =>
     );
 
 void main() {
+  testWidgets('buttons that repeat an id are told apart by their order, '
+      'and the n-th continues the n-th', (WidgetTester tester) async {
+    MorphBarButton star(String label) =>
+        MorphBarButton(id: 'star', label: label, onPressed: () {});
+    var extra = false;
+    final set = await _toolbar(
+      tester,
+      () => [
+        MorphBarButtonGroup([
+          if (extra) _icon('extra'),
+          star('One'),
+          star('Two'),
+        ]),
+      ],
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.text('One'), findsOneWidget);
+    expect(find.text('Two'), findsOneWidget);
+    final second = find.byKey(
+      const ValueKey<Object>(MorphBarItemId('star', 1)),
+    );
+    final before = tester.element(second);
+    set(() => extra = true);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(tester.element(second), same(before));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(tester.element(second), same(before));
+    expect(
+      find.descendant(of: second, matching: find.text('Two')),
+      findsOneWidget,
+    );
+    expect(find.text('One'), findsOneWidget);
+  });
+
   group('an id that comes back while it still fades out', () {
     test('revives the leaving capsule and item instead of a twin', () {
       final motion = MorphBarMotion();
