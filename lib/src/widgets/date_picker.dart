@@ -12,6 +12,7 @@ import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/date_picker_motion.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
@@ -249,6 +250,13 @@ String _defaultTime(DateTime d, {required bool twentyFour}) {
 /// localize them). The label is a focusable button; Space and Enter open
 /// it. A disabled picker draws its labels as text without their capsules
 /// and does not open.
+///
+/// While the overlay's scale moves its content is drawn from one raster
+/// of it, mipmapped, so the glyph atlas is not filled again at every
+/// scale of the sweep: NEAR (resampled, at most 9 percent magnified). At
+/// rest it is drawn exactly (IDENTICAL). The content fades inside the
+/// overlay's clip: NEAR (the clip's anti-aliased edge row differs by up
+/// to 23 of 255 in the first frames of the opening).
 class MorphDatePicker extends StatefulWidget {
   /// Creates a picker.
   const MorphDatePicker({
@@ -1158,20 +1166,23 @@ class _OverlayViewState extends State<_OverlayView>
                       style: style,
                     ),
                   ),
-                FadeTransition(
-                  opacity: _FrameValue(frames, () => frame().opacity),
-                  child: ClipRRect(
-                    clipper: _OverlayClipper(_boxFrames, () => frame().shape),
-                    child: OverflowBox(
-                      alignment: below
-                          ? AlignmentDirectional.topStart
-                          : AlignmentDirectional.bottomStart,
-                      minWidth: 0,
-                      maxWidth: double.infinity,
-                      minHeight: 0,
-                      maxHeight: double.infinity,
-                      // The content keeps its size while the scale, clip
-                      // and opacity above it change every frame.
+                ClipRRect(
+                  clipper: _OverlayClipper(_boxFrames, () => frame().shape),
+                  child: OverflowBox(
+                    alignment: below
+                        ? AlignmentDirectional.topStart
+                        : AlignmentDirectional.bottomStart,
+                    minWidth: 0,
+                    maxWidth: double.infinity,
+                    minHeight: 0,
+                    maxHeight: double.infinity,
+                    // The content keeps its size while the scale, clip and
+                    // opacity above it change every frame; its text is
+                    // drawn through the glyph policy, below the clip so a
+                    // reclip keeps the raster.
+                    child: MorphGlyphs.faded(
+                      live: frames,
+                      opacityOf: () => frame().opacity,
                       child: RepaintBoundary(child: child),
                     ),
                   ),

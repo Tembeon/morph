@@ -13,6 +13,7 @@ import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -200,6 +201,12 @@ class MorphAlertStyle {
 /// [MorphAlertAction.onPressed] runs once it is gone. A tap outside does
 /// nothing, as in UIKit; Escape chooses the cancel action and Return the
 /// preferred one.
+///
+/// While the alert's scale moves (presenting, under a touch) its text and
+/// buttons are drawn from one raster of them, mipmapped, so the glyph
+/// atlas is not filled again at every scale of the sweep: NEAR
+/// (resampled, at most 9 percent magnified). At rest they are drawn
+/// exactly (IDENTICAL).
 Future<MorphAlertAction?> showMorphAlert(
   BuildContext context, {
   String? title,
@@ -1183,7 +1190,9 @@ class _AlertCard extends StatelessWidget {
       physics: const ClampingScrollPhysics(),
       children: [content],
     );
-    final clipped = MorphLiveOpacity(
+    // The text scales and fades with the card: drawn through the glyph
+    // policy, it strikes no new glyphs on every frame of the sweep.
+    final clipped = MorphGlyphs.faded(
       live: frames,
       opacityOf: opacity,
       child: ClipRRect(

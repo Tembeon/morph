@@ -68,7 +68,7 @@
   "menu-card/flat": {
     "frames": 277,
     "builds": 1.4,
-    "paints": 27.8,
+    "paints": 27.3,
     "pictures": 2.2,
     "captures": 0.0,
     "offscreen": 0.8,
@@ -310,7 +310,7 @@
   "menu-card/fake": {
     "frames": 277,
     "builds": 2.1,
-    "paints": 38.4,
+    "paints": 37.9,
     "pictures": 5.2,
     "captures": 2.9,
     "offscreen": 3.6,
@@ -552,7 +552,7 @@
   "menu-card/liquid": {
     "frames": 277,
     "builds": 2.1,
-    "paints": 38.4,
+    "paints": 37.9,
     "pictures": 5.2,
     "captures": 2.9,
     "offscreen": 3.6,

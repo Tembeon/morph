@@ -90,6 +90,18 @@ void main() {
       expect(decide(0, previous: MorphGlyphMode.raster), MorphGlyphMode.live);
     });
 
+    test('a card never snaps: it rasters at any motion, down to a drift', () {
+      MorphGlyphMode card(double? steps, {bool stable = true}) =>
+          MorphGlyphPolicy.decide(steps: steps, stable: stable, snaps: false);
+      expect(card(null), MorphGlyphMode.live);
+      expect(card(0), MorphGlyphMode.live);
+      expect(card(0.001), MorphGlyphMode.raster);
+      expect(card(0.2), MorphGlyphMode.raster);
+      expect(card(3), MorphGlyphMode.raster);
+      // Content that repaints on consecutive frames is drawn live.
+      expect(card(0.2, stable: false), MorphGlyphMode.live);
+    });
+
     test('a slow scale snaps, a fast one rasters', () {
       expect(decide(0.2), MorphGlyphMode.snapped);
       expect(decide(0.5), MorphGlyphMode.raster);

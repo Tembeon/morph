@@ -300,4 +300,119 @@ void main() {
     expect(rastered, greaterThan(10));
     expect(worst.over, lessThan(0.2));
   });
+
+  testWidgets('an alert scales in from one raster and rests exact', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    late BuildContext context;
+    Widget app() => _app(
+      Builder(
+        builder: (BuildContext c) {
+          context = c;
+          return const SizedBox(width: 10, height: 10);
+        },
+      ),
+    );
+    final frames = await _twice(
+      tester,
+      app,
+      (frame) async {
+        showMorphAlert(
+          context,
+          title: 'Title',
+          message: 'A message in the alert.',
+          actions: const [
+            MorphAlertAction(
+              title: 'Cancel',
+              style: MorphAlertActionStyle.cancel,
+            ),
+            MorphAlertAction(title: 'OK'),
+          ],
+        ).ignore();
+        for (var i = 0; i < 70; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          await frame();
+        }
+        await tester.tap(find.text('OK'));
+        for (var i = 0; i < 40; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          await frame();
+        }
+      },
+      () => tester
+          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
+          .any((g) => g.debugMode != MorphGlyphMode.live),
+    );
+    var moving = 0;
+    var worst = (max: 0, mean: 0.0, over: 0.0);
+    for (final (exact, grid, active) in frames) {
+      final d = _diff(exact, grid);
+      if (active) {
+        moving++;
+        if (d.mean > worst.mean) worst = d;
+      } else {
+        expect(d.max, 0);
+      }
+    }
+    debugPrint(
+      'alert: ${frames.length} frames, $moving off live, worst '
+      'max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
+      'over15 ${worst.over.toStringAsFixed(3)}%',
+    );
+    expect(moving, greaterThan(10));
+    expect(worst.over, lessThan(0.5));
+  });
+
+  testWidgets('a date picker overlay scales in from one raster', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    Widget app() => _app(
+      MorphDatePicker(
+        value: DateTime(2026, 10, 12),
+        today: DateTime(2026, 10, 12),
+        onChanged: (_) {},
+      ),
+    );
+    final frames = await _twice(
+      tester,
+      app,
+      (frame) async {
+        await tester.tap(find.byType(MorphDatePicker));
+        for (var i = 0; i < 70; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          await frame();
+        }
+        await tester.tapAt(const Offset(20, 20));
+        for (var i = 0; i < 50; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          await frame();
+        }
+      },
+      () => tester
+          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
+          .any((g) => g.debugMode != MorphGlyphMode.live),
+    );
+    var moving = 0;
+    var worst = (max: 0, mean: 0.0, over: 0.0);
+    for (final (exact, grid, active) in frames) {
+      final d = _diff(exact, grid);
+      if (active) {
+        moving++;
+        if (d.mean > worst.mean) worst = d;
+      } else {
+        expect(d.max, 0);
+      }
+    }
+    debugPrint(
+      'date picker: ${frames.length} frames, $moving off live, worst '
+      'max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
+      'over15 ${worst.over.toStringAsFixed(3)}%',
+    );
+    expect(moving, greaterThan(10));
+    expect(worst.over, lessThan(0.5));
+  });
 }

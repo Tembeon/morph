@@ -143,6 +143,23 @@ dateAndTime, `MorphDatePickerStyle`; `use24HourFormat`, `firstDayOfWeek`,
 (`MorphDatePickerMotion`, `MorphDatePickerTuning`, `morphPlaceDatePicker`).
 Calendar drawn by morph; wheels are ListWheelScrollViews.
 
+Performance trade (2026-10-13, declared in `MorphDatePicker`): the
+overlay's content is a `MorphGlyphs.faded` card inside the clip. While
+the scale moves (0.2 -> 1 and back) it is drawn from one raster,
+mipmapped - NEAR (resampled, at most 9 percent magnified); at rest exact
+- IDENTICAL. The fade moved inside the clip so a reclip keeps the raster
+- NEAR: the clip's anti-aliased bottom row differs by up to 23 of 255 in
+frames 5 - 6 of the opening, 1 - 3 elsewhere (exact-mode frame dumps of
+m/date-picker/open-close). Host, exact vs policy every frame
+(glyph_scale_test): 120 frames, 64 off live, worst mean 0.21 per
+channel, 0.35 percent of pixels over 15 (a snapped card measured 0.59 /
+0.46: a snap about the center moves the far text up to 0.75 pt, so cards
+never snap). Glyph strike frames over three bench runs
+(glyph_strikes_test, Impeller's atlas keys replayed): 124 -> 2; two
+rasters a run. Pixel matrix before: m/date-picker/open-close 26 - 28
+percent strike frames, 4.4 - 7.7 ms UpdateAtlasBitmap in frames over
+budget (bench-matrix-night).
+
 ## Not reproduced / open
 
 - Perspective of the month/year wheel rows (above).

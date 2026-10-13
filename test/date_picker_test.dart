@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
 
 const _dir = 'test/fixtures/ios27/date_picker';
@@ -780,25 +781,19 @@ void main() {
       await tester.tap(find.text('Oct 3, 2026'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 120));
-      final opacity = tester.widget<FadeTransition>(
-        find
-            .ancestor(
-              of: find.text('October 2026'),
-              matching: find.byType(FadeTransition),
-            )
-            .first,
-      );
-      expect(opacity.opacity.value, 0);
+      double opacity() => tester
+          .renderObject<RenderMorphGlyphs>(
+            find
+                .ancestor(
+                  of: find.text('October 2026'),
+                  matching: find.byType(MorphGlyphs),
+                )
+                .first,
+          )
+          .opacity;
+      expect(opacity(), 0);
       await tester.pump(const Duration(milliseconds: 100));
-      final later = tester.widget<FadeTransition>(
-        find
-            .ancestor(
-              of: find.text('October 2026'),
-              matching: find.byType(FadeTransition),
-            )
-            .first,
-      );
-      expect(later.opacity.value, greaterThan(0.1));
+      expect(opacity(), greaterThan(0.1));
     });
 
     testWidgets('the other label turns the open overlay into its picker', (

@@ -23,6 +23,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
+import 'package:morph/src/live.dart';
 
 /// The screen scales text moving through a scale animation is drawn at.
 @internal
@@ -138,6 +139,13 @@ enum MorphGlyphMode {
 /// A drawing that blurs or fades its child itself draws it through the
 /// pyramid shader where it is available ([MorphGlyphMode.shaded]), at
 /// any scale.
+///
+/// A drawing that does not snap (a card: a snap about its center would
+/// move its far text against the card's edges) draws from its raster
+/// whenever its scale moves at all, down to the slowest drift of a
+/// spring's tail (each scale a tail crosses would strike the card's
+/// glyphs again), and live when the scale holds still or its content
+/// will not hold a raster.
 @internal
 abstract final class MorphGlyphPolicy {
   /// The finest-grid steps per frame under which the scale is at rest.
@@ -173,19 +181,22 @@ abstract final class MorphGlyphPolicy {
   /// reduction shader has loaded and the content is not recorded again
   /// every frame); [stable] whether the content held still between the
   /// last two frames; [cover] the blur, in logical pixels, drawn over the
-  /// text by something above it.
+  /// text by something above it; [snaps] whether the drawing may snap.
   static MorphGlyphMode decide({
     required double? steps,
     MorphGlyphMode previous = MorphGlyphMode.live,
     bool canRaster = true,
     bool stable = true,
     double cover = 0,
+    bool snaps = true,
   }) {
     final rasters = canRaster && stable;
     final hidden = cover >= coverBlur;
     if (steps == null) {
       return rasters && hidden ? MorphGlyphMode.raster : MorphGlyphMode.live;
     }
+    if (steps == 0) return MorphGlyphMode.live;
+    if (!snaps) return rasters ? MorphGlyphMode.raster : MorphGlyphMode.live;
     if (steps < restSteps) return MorphGlyphMode.live;
     if (rasters &&
         (hidden ||
@@ -254,6 +265,7 @@ class MorphGlyphTracker {
     bool canRaster = true,
     bool stable = true,
     double cover = 0,
+    bool snaps = true,
     bool settle = true,
   }) {
     final steps = _stepsTo(screen);
@@ -267,6 +279,7 @@ class MorphGlyphTracker {
             canRaster: canRaster,
             stable: stable,
             cover: cover,
+            snaps: snaps,
           );
     if (_mode != MorphGlyphMode.live && settle) _settle();
     return _mode;
@@ -278,6 +291,7 @@ class MorphGlyphTracker {
     bool canRaster = true,
     bool stable = true,
     double cover = 0,
+    bool snaps = true,
   }) => MorphGlyphScale.debugExact
       ? MorphGlyphMode.live
       : MorphGlyphPolicy.decide(
@@ -286,7 +300,14 @@ class MorphGlyphTracker {
           canRaster: canRaster,
           stable: stable,
           cover: cover,
+          snaps: snaps,
         );
+
+  /// Asks for one more paint at the start of the next frame, as [observe]
+  /// does for a frame that is not live unless told not to: a drawing that
+  /// observes with `settle: false` calls this when the frame it drew is
+  /// not the exact one.
+  void settleNext() => _settle();
 
   void _settle() {
     if (_callback != null) return;
@@ -398,12 +419,16 @@ class _RenderScreenScalePaint extends RenderBox {
 /// The drawing observes its own screen scale when it paints, so it must
 /// be painted whenever the transform above it changes: no repaint
 /// boundary between it and the animating transform (a boundary BELOW it,
-/// inside the child, is fine: its repaints are seen by its layer). Once it
-/// leaves the live mode it paints itself every frame until its scale
-/// rests. Hit testing, semantics and layout always use the child's own
-/// layout. A drawing at rest adds no layer and no picture of its own.
+/// inside the child, is fine: its repaints are seen by its layer). A fade
+/// that runs with the transform belongs to the drawing itself
+/// ([MorphGlyphs.faded]): an [Opacity] above it is such a boundary while
+/// it fades. Once it leaves the live mode it paints itself every frame
+/// until its scale rests. Hit testing, semantics and layout always use
+/// the child's own layout. A drawing at rest adds no layer and no picture
+/// of its own.
 ///
-/// A raster is taken again when the child repaints. Rasters of every
+/// A raster is taken again when the child or a repaint boundary inside it
+/// repaints, or when such a boundary changes its opacity. Rasters of every
 /// drawing that needs one in a frame are taken together in one pass (a
 /// second draws the pyramids veiled drawings read).
 /// [morphVeiledGlyphs] blurs and fades as well.
@@ -414,13 +439,38 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
   /// card), which hides a raster's resampling.
   const MorphGlyphs({required super.child, this.cover, super.key})
     : coverBlur = 0,
-      opacity = 1;
+      opacity = 1,
+      live = null,
+      opacityOf = null,
+      snaps = true;
+
+  /// Draws [child], a card whose screen scale may animate, faded to the
+  /// opacity [opacityOf] reads, again on every notification of [live].
+  ///
+  /// A card never snaps (a snap about its center would move its far text
+  /// against its edges): it draws from one raster while it moves, down to
+  /// the slowest drift of its spring's tail (NEAR: resampled), and live at
+  /// rest or while its content repaints on consecutive frames
+  /// (IDENTICAL). The fade is this drawing's own opacity layer, as an
+  /// [Opacity]'s would be (IDENTICAL).
+  const MorphGlyphs.faded({
+    required Listenable this.live,
+    required double Function() this.opacityOf,
+    required super.child,
+    super.key,
+  }) : cover = null,
+       coverBlur = 0,
+       opacity = 1,
+       snaps = false;
 
   const MorphGlyphs._veiled({
     required super.child,
     required this.coverBlur,
     required this.opacity,
-  }) : cover = null;
+  }) : cover = null,
+       live = null,
+       opacityOf = null,
+       snaps = true;
 
   /// The blur drawn over the child from above, in logical pixels.
   final ValueListenable<double>? cover;
@@ -428,8 +478,19 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
   /// A fixed blur drawn over the child from above, in logical pixels.
   final double coverBlur;
 
-  /// The opacity the child is drawn with, from 0 to 1.
+  /// The opacity the child is drawn with, from 0 to 1, unless
+  /// [opacityOf] gives it.
   final double opacity;
+
+  /// The source of [opacityOf], which notifies when the opacity may have
+  /// changed.
+  final Listenable? live;
+
+  /// The opacity now, from 0 to 1, read on every notification of [live].
+  final double Function()? opacityOf;
+
+  /// Whether a moving child may be drawn snapped to the grid of scales.
+  final bool snaps;
 
   /// The largest blur, in logical pixels, drawn sharp.
   static const double minBlur = 0.05;
@@ -470,8 +531,17 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
     final glyphs = RenderMorphGlyphs(MediaQuery.devicePixelRatioOf(context));
     glyphs.cover = cover;
     glyphs.coverBlur = coverBlur;
-    glyphs.opacity = opacity;
+    glyphs.snaps = snaps;
+    _bind(glyphs);
     return glyphs;
+  }
+
+  void _bind(RenderMorphGlyphs glyphs) {
+    final opacityOf = this.opacityOf;
+    glyphs.bindLive(
+      live,
+      () => glyphs.opacity = opacityOf == null ? opacity : opacityOf(),
+    );
   }
 
   @override
@@ -482,7 +552,8 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
     renderObject.devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     renderObject.cover = cover;
     renderObject.coverBlur = coverBlur;
-    renderObject.opacity = opacity;
+    renderObject.snaps = snaps;
+    _bind(renderObject);
   }
 }
 
@@ -568,7 +639,7 @@ class MorphVeiledGlyphs extends SingleChildRenderObjectWidget {
 /// The render object of [MorphGlyphs]: draws its child live, snapped or
 /// from a raster as [MorphGlyphPolicy] decides each paint.
 @internal
-class RenderMorphGlyphs extends RenderProxyBox {
+class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   /// Draws through the grid and rasters anchored at [devicePixelRatio].
   RenderMorphGlyphs(this._devicePixelRatio) {
     _tracker = MorphGlyphTracker(_repaint);
@@ -618,6 +689,17 @@ class RenderMorphGlyphs extends RenderProxyBox {
   }
 
   double get _coverNow => math.max(_coverBlur, _cover?.value ?? 0);
+
+  bool _snaps = true;
+
+  /// Whether a moving child may be drawn snapped to the grid of scales.
+  bool get snaps => _snaps;
+
+  set snaps(bool value) {
+    if (value == _snaps) return;
+    _snaps = value;
+    _repaint();
+  }
 
   int _alpha = 255;
 
@@ -712,25 +794,56 @@ class RenderMorphGlyphs extends RenderProxyBox {
   bool _changed = false;
   bool _changedBefore = false;
 
-  /// The first layer a child that is a repaint boundary held when the
-  /// raster was taken: the boundary repaints without marking this box, and
-  /// a repaint replaces its layer's children.
-  Layer? _childContent;
+  /// Every repaint boundary in the child's subtree (the child included)
+  /// when the raster was taken, with the first layer it held and its
+  /// opacity: a boundary repaints without marking this box, a repaint
+  /// replaces its layer's children, and a fading boundary only changes its
+  /// layer's alpha.
+  List<(RenderObject, Layer?, int?)> _boundaries = const [];
 
-  /// Notes a repaint of a child that is a repaint boundary since the
+  static (Layer?, int?) _contentOf(RenderObject boundary) {
+    // ignore: invalid_use_of_protected_member
+    final layer = boundary.layer;
+    return (layer?.firstChild, layer is OpacityLayer ? layer.alpha : null);
+  }
+
+  /// Records the repaint boundaries the raster just drew.
+  void _recordBoundaries() {
+    final found = <(RenderObject, Layer?, int?)>[];
+    void visit(RenderObject object) {
+      if (object.isRepaintBoundary) {
+        final (first, alpha) = _contentOf(object);
+        found.add((object, first, alpha));
+      }
+      object.visitChildren(visit);
+    }
+
+    final child = this.child;
+    if (child != null && child.needsCompositing) visit(child);
+    _boundaries = found;
+  }
+
+  /// Notes a repaint of a repaint boundary inside the child since the
   /// raster was taken.
   void _checkChildContent() {
-    final child = this.child;
-    if (child == null || !child.isRepaintBoundary || _atlas == null) return;
-    // ignore: invalid_use_of_protected_member
-    if (identical(child.layer?.firstChild, _childContent)) return;
-    _changed = true;
-    _drop();
+    if (_atlas == null) return;
+    for (final (boundary, first, alpha) in _boundaries) {
+      final (nowFirst, nowAlpha) = _contentOf(boundary);
+      if (boundary.attached &&
+          identical(nowFirst, first) &&
+          nowAlpha == alpha) {
+        continue;
+      }
+      _changed = true;
+      _drop();
+      return;
+    }
   }
 
   void _drop() {
     _atlas?.dispose();
     _atlas = null;
+    _boundaries = const [];
   }
 
   /// Paints again, keeping the raster: the child has not changed.
@@ -813,6 +926,7 @@ class RenderMorphGlyphs extends RenderProxyBox {
         canRaster: _canRaster,
         stable: _stable,
         cover: _coverNow,
+        snaps: _snaps,
       ) ==
       MorphGlyphMode.raster;
 
@@ -946,11 +1060,7 @@ class RenderMorphGlyphs extends RenderProxyBox {
       job._levelOrigins = levels ?? [origins[i]];
       job._pyramidSize = job.size;
       job._pyramidRatio = job._wantRatio;
-      final child = job.child!;
-      // ignore: invalid_use_of_protected_member
-      job._childContent = child.isRepaintBoundary
-          ? child.layer?.firstChild
-          : null;
+      job._recordBoundaries();
     }
     raster.dispose();
     atlas?.dispose();
@@ -1003,9 +1113,12 @@ class RenderMorphGlyphs extends RenderProxyBox {
       canRaster: _canRaster,
       stable: stable,
       cover: _coverNow,
+      snaps: _snaps,
+      settle: false,
     );
     if (_alpha == 0) {
       _opacityLayer.layer = null;
+      if (mode != MorphGlyphMode.live) _tracker.settleNext();
       return;
     }
     if (_alpha == 255) {
@@ -1034,6 +1147,7 @@ class RenderMorphGlyphs extends RenderProxyBox {
     if (mode != MorphGlyphMode.raster && !_keepsPyramid) _drop();
     switch (mode) {
       case MorphGlyphMode.raster:
+        _tracker.settleNext();
         _transformLayer.layer = null;
         final ratio = MorphGlyphScale.rasterRatio(screen, _devicePixelRatio);
         if (!_hasPyramid(ratio)) _rasterizeAt(ratio);
@@ -1063,10 +1177,12 @@ class RenderMorphGlyphs extends RenderProxyBox {
             ) /
             screen;
         if (!factor.isFinite || (factor - 1).abs() < _exactTolerance) {
+          // Drawn exactly: no paint is needed to return to live.
           _transformLayer.layer = null;
           context.paintChild(child, offset);
           return;
         }
+        _tracker.settleNext();
         debugFactor = factor;
         final center = size.center(offset);
         _transform.setIdentity();
@@ -1237,6 +1353,7 @@ class _RenderShadedGlyphs extends RenderMorphGlyphs {
         screen,
         canRaster: _canRaster,
         stable: stable,
+        settle: false,
       );
       _paintSharp(context, offset, screen, mode);
       return;

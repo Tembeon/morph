@@ -94,6 +94,20 @@ alert.dart (`showMorphAlert`, `showMorphActionSheet(anchor:/anchorRect:)`,
 (`MorphAlertMotion`, `MorphAlertTuning`, `MorphPopoverMotion`,
 `MorphPopoverTuning`, `morphPlacePopover`).
 
+Performance trade (2026-10-13, declared in `showMorphAlert`): the card's
+content (text, buttons, fields) is a `MorphGlyphs.faded` card. While its
+scale moves (present 1.199 -> 1, the lift, a popover's 0.01 -> 1) it is
+drawn from one raster, mipmapped - NEAR (resampled, at most 9 percent
+magnified); at rest exact - IDENTICAL; the fade is the drawing's own
+opacity layer - IDENTICAL (exact-mode frame hashes of every matrix cell
+unchanged). Host, exact vs policy every frame (glyph_scale_test): 110
+frames, 55 off live, worst mean 0.07 per channel, 0.07 percent of pixels
+over 15. Glyph strike frames over three bench runs (glyph_strikes_test,
+Impeller's atlas keys replayed): 67 -> 3; three rasters a run (two
+scales and the highlighted button). Pixel matrix before:
+m/alert/open-close 18.9 percent strike frames, 6.8 - 7.1 ms
+UpdateAtlasBitmap in frames over budget (bench-matrix-night).
+
 ## Not reproduced / open
 
 - The source button's tint dimming while the popover is up.

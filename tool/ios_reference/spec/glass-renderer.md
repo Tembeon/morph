@@ -3254,3 +3254,46 @@ residency), flat -1.6, navigation -1.8. Perf counts: +3.6 paints per
 frame in the menu scenes (one paint per drawing, each a transform walk),
 +0.1 - 0.5 pictures.
 
+## Cards through the glyph policy (2026-10-13)
+
+The Pixel matrix (perf/2026-10-13-bench-matrix-night) spent 6 - 9 ms of
+raster time per frame over budget in UpdateAtlasBitmap / CreateGlyphAtlas
+in m/tab-bar/tap, m/alert/open-close and m/date-picker/open-close.
+Impeller's atlas (engine a804b26, typographer_context_skia.cc
+CollectNewGlyphs, text_frame.cc) keys a glyph by font, the largest basis
+of its full transform rounded to 1/200, and its x position in quarters of
+a device pixel; color is not in the key (only a dark / light tone for A8
+atlases); the atlas keeps every glyph until the texture reaches the
+largest size, then starts over with the frame's glyphs. Every new key is
+drawn by Skia and uploaded as its own blit (UpdateAtlasBitmap), and a full
+atlas grows by allocating and uploading the whole texture.
+
+The alert's card (scale 1.199 -> 1) and the date picker's overlay
+(0.2 -> 1) were drawn live under their scale: every frame of the sweep
+was a new scale for every glyph. Both are `MorphGlyphs.faded` cards now:
+the drawing applies the card's fade itself (an `Opacity` above it is a
+repaint boundary while it fades, which hides the scale's repaints from
+the drawing), never snaps (a snap about the center moved the date
+picker's far text up to 0.75 pt: worst mean 0.59, 0.46 percent of pixels
+over 15, against 0.21 / 0.35 rastering), draws from its raster whenever
+its scale moves at all, and is live and exact when the scale holds
+still. A raster is taken again when any repaint boundary inside the
+child repaints or changes its layer's opacity (the alert's content sits
+in a scroll view, a boundary). A drawing outside the live mode now asks
+for a settling paint only when its frame was not drawn exactly (a snap
+whose factor is 1 does not): menu-card paints per frame 27.8 -> 27.3
+flat, 38.4 -> 37.9 fake / liquid; nothing else moved.
+
+Host replay of the atlas (glyph_strikes_test: every painted paragraph's
+glyphs keyed as above, three bench runs with jittered frame times),
+strike frames: tab bar 16 -> 16, alert 67 -> 3, date picker 124 -> 2.
+
+Measured and not admitted: snapping the drift of a spring's tail (under
+0.02 steps a frame, drawn live) to the finest grid, which lands on the
+rest scale's grid point. Tab bar strike frames 16 -> 10 (runs 2 and 3
+strike nothing), but perf counts rose: menu-held paints 20.8 -> 21.3 per
+frame (the drift's settling paints of drawings under a transform that
+does not repaint them), search-press pictures 4.6 -> 4.9 (transform
+layers), menu-card +1 - 2 frames. The tab bar's remaining strikes are
+that drift and the first visits of grid scales at new x quarters while
+the bar swells (cached after the first run).
