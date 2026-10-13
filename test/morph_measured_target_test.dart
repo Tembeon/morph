@@ -114,12 +114,12 @@ void main() {
     await tester.pump();
     expect(flight!.target.isMeasured, isTrue);
     expect(tagHidden(tester), isFalse);
-    final Iterable<Opacity> veils = tester
-        .widgetList<Opacity>(
-          find.ancestor(of: find.text('row-0'), matching: find.byType(Opacity)),
-        )
-        .where((Opacity o) => o.opacity == 0);
-    expect(veils, isNotEmpty, reason: 'the staged shuttle is invisible');
+    expect(
+      tester.renderObject(find.text('row-0')).debugNeedsPaint,
+      isTrue,
+      reason: 'the staged shuttle is laid out but never painted',
+    );
+    expect(find.text('row-0').hitTestable(), findsNothing);
     // The measurement landed after that frame and seeded the size.
     expect(flight!.contentSize, const Size(_dialogWidth, 3 * _rowHeight));
     // Frame 1: the source hides and the shuttle flies to the measured

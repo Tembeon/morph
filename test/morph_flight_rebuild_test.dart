@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 
+import 'support/shuttle.dart';
+
 class _SubscriptionCounter extends ChangeNotifier {
   int subscriptions = 0;
 
@@ -149,6 +151,75 @@ void main() {
         reason:
             'a vessel draws the motion itself; a tick that changes no '
             'pointer gate, dissolve or scrim leaves its chain alone',
+      );
+      flight.close();
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'a shuttle tick moves the surface without rebuilding the frame chain',
+    (WidgetTester tester) async {
+      late BuildContext sourceContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (BuildContext context, Widget? child) =>
+              MorphScope(child: child!),
+          home: Scaffold(
+            body: Center(
+              child: MorphTag(
+                id: 'source',
+                child: Builder(
+                  builder: (BuildContext context) {
+                    sourceContext = context;
+                    return const SizedBox(width: 80, height: 40);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      final MorphFlight flight = showMorph(
+        sourceContext,
+        motion: .glacial,
+        target: MorphTargetSpec(
+          rectFor: (Size size, EdgeInsets padding) =>
+              const Rect.fromLTWH(100, 100, 300, 200),
+        ),
+        builder: (BuildContext context, MorphFlight flight) =>
+            const Text('shuttle content'),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+      final Element content = tester.element(find.text('shuttle content'));
+      final List<Element> rebuiltAbove = <Element>[];
+      debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
+        bool above = false;
+        content.visitAncestorElements((Element ancestor) {
+          above = identical(ancestor, element);
+          return !above;
+        });
+        if (above) {
+          rebuiltAbove.add(element);
+        }
+      };
+      addTearDown(() => debugOnRebuildDirtyWidget = null);
+      final List<Rect> rects = <Rect>[];
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        rects.add(tester.getRect(shuttleMaterial));
+      }
+      debugOnRebuildDirtyWidget = null;
+      expect(flight.controller.isAnimating, isTrue);
+      expect(flight.controller.value, lessThan(0.85));
+      expect(rects.toSet(), hasLength(5), reason: 'the surface moves');
+      expect(
+        rebuiltAbove,
+        isEmpty,
+        reason:
+            'the springs reach the render objects live; a tick that '
+            'changes no staging, pointer gate or shared pair builds nothing',
       );
       flight.close();
       await tester.pumpAndSettle();

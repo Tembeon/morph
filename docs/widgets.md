@@ -107,11 +107,12 @@ not advance itself follows it without building every frame. It follows a
 source (`frames`, a flight's ticks, a drift), reads a structure record
 once per frame in the mid-frame microtasks (after every ticker ran,
 before anything builds; a ticker's notification queues one microtask,
-one already in that phase reads at once), hands a changed record to
+one already in that phase reads at once, and one between frames also
+asks for a frame, as a setState does), hands a changed record to
 `rebuild` and otherwise notifies the `MorphLive*` render objects and
 glass hosts that follow it. The build reads its record through `read`.
 Menu button and layer, bar row, search toolbar and tab bar, sheet and its
-zoom crossfade, push zoom use it; `test/frame_sync_test.dart` pins its
+zoom crossfade, push zoom and the engine's flight shuttle use it; `test/frame_sync_test.dart` pins its
 timing and that of a glass host following it.
 
 Two other shapes stay correct without it. `MorphChanges` filters a

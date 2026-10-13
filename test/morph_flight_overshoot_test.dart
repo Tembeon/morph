@@ -5,6 +5,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/foundation.dart';
 import 'package:morph/src/skin.dart';
 
+import 'support/shuttle.dart';
+
 void main() {
   testWidgets(
     'shuttle, skin and shared element overshoot before route settle',
@@ -76,14 +78,10 @@ void main() {
       expect(flight.controller.value, greaterThan(1));
       expect(flight.routeOwnsContent.value, isFalse);
       final Rect expected = Rect.lerp(source, target, flight.controller.value)!;
-      final Finder material = find.byWidgetPredicate(
-        (Widget widget) =>
-            widget is Material && widget.animationDuration == .zero,
-      );
-      expect(material, findsOneWidget);
-      expect(tester.getRect(material), rectMoreOrLessEquals(expected));
+      expect(shuttleMaterial, findsOneWidget);
+      expect(tester.getRect(shuttleMaterial), rectMoreOrLessEquals(expected));
       final RoundedRectangleBorder shape =
-          tester.widget<Material>(material).shape! as RoundedRectangleBorder;
+          shuttleShape(tester) as RoundedRectangleBorder;
       expect(
         shape.borderRadius.resolve(.ltr).topLeft.x,
         closeTo(20 + 12 * flight.controller.value, 1e-9),
@@ -100,7 +98,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(flight.routeOwnsContent.value, isTrue);
-      expect(tester.getRect(material), rectMoreOrLessEquals(target));
+      expect(tester.getRect(shuttleMaterial), rectMoreOrLessEquals(target));
       navigator.pop();
       await tester.pump();
       for (int i = 0; i < 100 && !flight.controller.hasHandedOff; i++) {

@@ -179,6 +179,25 @@ void main() {
       stop();
     });
 
+    testWidgets('a notification between frames asks for the frame that '
+        'shows it', (tester) async {
+      final source = ValueNotifier<int>(0);
+      addTearDown(source.dispose);
+      final sync = MorphFrameSync<int>(
+        structure: () => source.value,
+        rebuild: (int _) {},
+      );
+      addTearDown(sync.dispose);
+      sync.read();
+      sync.follow(source);
+      await frame(tester);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+      source.value++;
+      expect(tester.binding.hasScheduledFrame, isTrue);
+      await tester.pump();
+      expect(sync.read(), 1);
+    });
+
     testWidgets('a disposed sync no longer follows its source', (tester) async {
       final source = ValueNotifier<int>(0);
       addTearDown(source.dispose);

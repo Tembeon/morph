@@ -61,9 +61,10 @@ mixin MorphLiveBinding on RenderObject {
 /// motion and nothing has built yet: a notification from a ticker, a
 /// gesture or a build queues the read as one microtask, a notification
 /// during the mid-frame microtasks (another sync, a flight handing back
-/// its source) reads at once. A structure that differs from the built one
-/// goes to [rebuild]; otherwise this notifies its listeners, the live
-/// render objects that follow the motion without a build. With
+/// its source) reads at once. A notification between frames also asks
+/// for a frame, as a setState does. A structure that differs from the
+/// built one goes to [rebuild]; otherwise this notifies its listeners,
+/// the live render objects that follow the motion without a build. With
 /// [notifiesOnRebuild] it notifies them on a rebuilding frame too, for
 /// listeners that sit outside the subtree the rebuild builds.
 ///
@@ -117,6 +118,10 @@ class MorphFrameSync<S> extends ChangeNotifier {
       return;
     }
     _queued = true;
+    // Outside a frame the read asks for the frame that shows it right
+    // away, as a setState would, so that frame is already due when the
+    // read runs.
+    SchedulerBinding.instance.ensureVisualUpdate();
     scheduleMicrotask(() {
       _queued = false;
       if (!_disposed) _sync();

@@ -88,10 +88,10 @@
     "idle": 0
   },
   "context-menu/flat": {
-    "frames": 224,
-    "builds": 11.7,
-    "paints": 46.7,
-    "pictures": 3.1,
+    "frames": 202,
+    "builds": 1.5,
+    "paints": 45.5,
+    "pictures": 3.2,
     "captures": 0.0,
     "offscreen": 0.1,
     "snapshotImages": 0.0,
@@ -330,10 +330,10 @@
     "idle": 0
   },
   "context-menu/fake": {
-    "frames": 224,
-    "builds": 11.7,
-    "paints": 46.7,
-    "pictures": 3.1,
+    "frames": 202,
+    "builds": 1.5,
+    "paints": 45.5,
+    "pictures": 3.2,
     "captures": 0.0,
     "offscreen": 0.1,
     "snapshotImages": 0.0,
@@ -572,10 +572,10 @@
     "idle": 0
   },
   "context-menu/liquid": {
-    "frames": 224,
-    "builds": 11.7,
-    "paints": 46.7,
-    "pictures": 3.1,
+    "frames": 202,
+    "builds": 1.5,
+    "paints": 45.5,
+    "pictures": 3.2,
     "captures": 0.0,
     "offscreen": 0.1,
     "snapshotImages": 0.0,

@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/frame.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/scope.dart';
 
 /// Shared elements inside a flight: a piece of content (an album cover,
@@ -133,30 +135,34 @@ class MorphSharedElementState extends State<MorphSharedElement> {
     // forms during the shuttle's first build, but the flying layer
     // cannot measure until that frame's layout has run, so a marker
     // hiding on registration alone leaves the element visible NOWHERE
-    // for one frame - a blink on every launch.
-    return ListenableBuilder(
-      listenable: side.flight.controller,
+    // for one frame - a blink on every launch. The registry notifies
+    // as the shuttle measures the frame, after every ticker ran, so the
+    // hide follows without a build.
+    final MorphFlight flight = side.flight;
+    return MorphLiveOpacity(
+      live: flight.sharedElements,
+      opacityOf: () =>
+          flight.sharedElements.canFly(widget.id) &&
+              (flight.controller.isAnimating || flight.controller.isScrubbing)
+          ? 0
+          : 1,
       child: widget.child,
-      builder: (BuildContext context, Widget? child) {
-        final bool flying =
-            side.flight.sharedElements.canFly(widget.id) &&
-            (side.flight.controller.isAnimating ||
-                side.flight.controller.isScrubbing);
-        return Opacity(opacity: flying ? 0 : 1, child: child);
-      },
     );
   }
 }
 
 /// The per-flight registry of marked elements on both sides. Owned by
-/// [MorphFlight]; sides register through [SharedSideScope].
-class SharedElementRegistry {
+/// [MorphFlight]; sides register through [SharedSideScope]. It notifies
+/// whenever a frame's measurement changes which pairs fly.
+class SharedElementRegistry extends ChangeNotifier {
   final Map<Object, MorphSharedElementState> _source =
       <Object, MorphSharedElementState>{};
   final Map<Object, MorphSharedElementState> _target =
       <Object, MorphSharedElementState>{};
 
   final Set<Object> _measured = <Object>{};
+
+  void _changed() => notifyListeners();
 
   /// Whether [id] rendered as a flying layer in the last shuttle
   /// build - the marker-hide predicate. Recorded by
@@ -260,27 +266,94 @@ class SharedSideScope extends InheritedWidget {
       flight != oldWidget.flight || isTarget != oldWidget.isTarget;
 }
 
-/// The flying layers for one shuttle frame: one crossfading box per
-/// paired id, its rect a lerp of the endpoint rects in overlay
-/// coordinates by the RAW spring value (matching the container
-/// geometry), positioned in the container's local space so the morphing
-/// shape clips it like native content.
-List<Widget> buildSharedFlightLayers({
+/// One shared pair as a shuttle frame measured it: its markers, their
+/// endpoint sizes and the flying rect in the container's local space.
+@internal
+class SharedFlightLayer {
+  /// Records the pair [id] for one frame.
+  const SharedFlightLayer({
+    required this.id,
+    required this.source,
+    required this.target,
+    required this.sourceSize,
+    required this.targetSize,
+    required this.rect,
+  });
+
+  /// The pair's identity.
+  final Object id;
+
+  /// The source-side marker.
+  final MorphSharedElement source;
+
+  /// The target-side marker.
+  final MorphSharedElement target;
+
+  /// The source element's size in its side's layout space.
+  final Size sourceSize;
+
+  /// The target element's size in its side's layout space.
+  final Size targetSize;
+
+  /// Where the element flies this frame, in the container's local space.
+  final Rect rect;
+
+  /// Whether the pair renders the target side alone: either side
+  /// declaring no-fade applies it to the pair, since the declaration
+  /// means "this content is the same on both sides" and one side knowing
+  /// that is enough.
+  bool get solo =>
+      source.fade == MorphSharedFade.none ||
+      target.fade == MorphSharedFade.none;
+}
+
+/// Measures the shared pairs for one shuttle frame: each pair's rect is
+/// a lerp of the endpoint rects in overlay coordinates by the RAW spring
+/// value (matching the container geometry), expressed in the
+/// container's local space so the morphing shape clips it like native
+/// content.
+///
+/// The measured set it records mirrors the result exactly: an id is in
+/// it iff a layer for it is returned, and the markers hide by that set
+/// ([SharedElementRegistry.canFly]), so the element is always visible in
+/// exactly one place.
+@internal
+List<SharedFlightLayer> measureSharedFlightLayers({
   required MorphFlight flight,
   required MorphFrame frame,
   required GlobalKey sourceAnchorKey,
   required GlobalKey targetAnchorKey,
   required Rect sourceRect,
   required Rect targetRect,
-  required MorphSurfaceSpec targetSpec,
 }) {
-  // The measured set mirrors THIS build exactly: an id is in it iff a
-  // flying layer for it is in the returned list - the markers hide by
-  // that set ([SharedElementRegistry.canFly]), so the element is
-  // always visible in exactly one place.
+  final SharedElementRegistry registry = flight.sharedElements;
+  final List<Object> before = registry._measured.toList();
+  final List<SharedFlightLayer> layers = _measureLayers(
+    flight: flight,
+    frame: frame,
+    sourceAnchorKey: sourceAnchorKey,
+    targetAnchorKey: targetAnchorKey,
+    sourceRect: sourceRect,
+    targetRect: targetRect,
+  );
+  if (before.length != registry._measured.length ||
+      !before.every(registry._measured.contains)) {
+    registry._changed();
+  }
+  return layers;
+}
+
+List<SharedFlightLayer> _measureLayers({
+  required MorphFlight flight,
+  required MorphFrame frame,
+  required GlobalKey sourceAnchorKey,
+  required GlobalKey targetAnchorKey,
+  required Rect sourceRect,
+  required Rect targetRect,
+}) {
   flight.sharedElements._measured.clear();
   if (!(flight.controller.isAnimating || flight.controller.isScrubbing)) {
-    return const <Widget>[];
+    return const <SharedFlightLayer>[];
   }
   final RenderObject? sourceAnchor = sourceAnchorKey.currentContext
       ?.findRenderObject();
@@ -290,9 +363,9 @@ List<Widget> buildSharedFlightLayers({
       targetAnchor is! RenderBox ||
       !sourceAnchor.hasSize ||
       !targetAnchor.hasSize) {
-    return const <Widget>[];
+    return const <SharedFlightLayer>[];
   }
-  final List<Widget> layers = <Widget>[];
+  final List<SharedFlightLayer> layers = <SharedFlightLayer>[];
   for (final Object id in flight.sharedElements.pairedIds) {
     final MorphSharedElementState? source = flight.sharedElements.sourceOf(id);
     final MorphSharedElementState? target = flight.sharedElements.targetOf(id);
@@ -307,64 +380,90 @@ List<Widget> buildSharedFlightLayers({
     flight.sharedElements._measured.add(id);
     final Rect sourceOverlay = sourceLocal.shift(sourceRect.topLeft);
     final Rect targetOverlay = targetLocal.shift(targetRect.topLeft);
-    final Rect flying = Rect.lerp(
-      sourceOverlay,
-      targetOverlay,
-      flight.controller.value,
-    )!.shift(-frame.rect.topLeft);
-    // Either side declaring no-fade applies it to the pair: the
-    // declaration means "this content is the same on both sides", and
-    // one side knowing that is enough.
-    final bool solo =
-        source.widget.fade == MorphSharedFade.none ||
-        target.widget.fade == MorphSharedFade.none;
     layers.add(
-      Positioned.fromRect(
-        key: ValueKey<Object>(id),
-        rect: flying,
-        child: IgnorePointer(
-          child: Stack(
-            fit: .expand,
-            children: <Widget>[
-              // Fade-through swaps DIFFERING sides without ever showing
-              // the unreadable midstate; identical sides opt out via
-              // MorphSharedFade.none instead - both faders dip together
-              // mid-flight, so a fade-through of the same content reads
-              // as a blink.
-              if (!solo && frame.sourceOpacity > 0)
-                Opacity(
-                  opacity: frame.sourceOpacity,
-                  child: FittedBox(
-                    fit: .fill,
-                    child: SizedBox.fromSize(
-                      size: sourceLocal.size,
-                      child: MorphSurfaceSpecScope(
-                        spec: flight.tag.surfaceSpec,
-                        child: source.widget.child,
-                      ),
-                    ),
-                  ),
-                ),
-              // The target side is the one that lands (the Hero
-              // precedent); solo mode renders it alone at full opacity.
-              Opacity(
-                opacity: solo ? 1 : frame.targetOpacity,
-                child: FittedBox(
-                  fit: .fill,
-                  child: SizedBox.fromSize(
-                    size: targetLocal.size,
-                    child: MorphSurfaceSpecScope(
-                      spec: targetSpec,
-                      child: target.widget.child,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+      SharedFlightLayer(
+        id: id,
+        source: source.widget,
+        target: target.widget,
+        sourceSize: sourceLocal.size,
+        targetSize: targetLocal.size,
+        rect: Rect.lerp(
+          sourceOverlay,
+          targetOverlay,
+          flight.controller.value,
+        )!.shift(-frame.rect.topLeft),
       ),
     );
   }
   return layers;
 }
+
+/// The flying layer of [layer]'s pair, for a [Stack] in the container's
+/// local space. Its rect, its endpoint sizes and both sides' opacities
+/// follow [live] through [now], [sourceOpacity] and [targetOpacity]; the
+/// markers and [showsSource] are fixed for the build.
+@internal
+Widget buildSharedFlightLayer({
+  required MorphFlight flight,
+  required SharedFlightLayer layer,
+  required bool showsSource,
+  required Listenable live,
+  required SharedFlightLayer Function() now,
+  required double Function() sourceOpacity,
+  required double Function() targetOpacity,
+  required MorphSurfaceSpec targetSpec,
+}) {
+  final bool solo = layer.solo;
+  return MorphLivePositionedTemplate(
+    key: ValueKey<Object>(layer.id),
+    live: live,
+    template: () => Positioned.fromRect(rect: now().rect, child: morphLiveSlot),
+    child: IgnorePointer(
+      child: Stack(
+        fit: .expand,
+        children: <Widget>[
+          // Fade-through swaps DIFFERING sides without ever showing
+          // the unreadable midstate; identical sides opt out via
+          // MorphSharedFade.none instead - both faders dip together
+          // mid-flight, so a fade-through of the same content reads
+          // as a blink.
+          if (showsSource)
+            MorphLiveOpacity(
+              live: live,
+              opacityOf: sourceOpacity,
+              child: FittedBox(
+                fit: .fill,
+                child: MorphLiveTemplate(
+                  live: live,
+                  template: () => SizedBox.fromSize(size: now().sourceSize),
+                  child: MorphSurfaceSpecScope(
+                    spec: flight.tag.surfaceSpec,
+                    child: layer.source.child,
+                  ),
+                ),
+              ),
+            ),
+          // The target side is the one that lands (the Hero
+          // precedent); solo mode renders it alone at full opacity.
+          MorphLiveOpacity(
+            live: live,
+            opacityOf: solo ? _opaque : targetOpacity,
+            child: FittedBox(
+              fit: .fill,
+              child: MorphLiveTemplate(
+                live: live,
+                template: () => SizedBox.fromSize(size: now().targetSize),
+                child: MorphSurfaceSpecScope(
+                  spec: targetSpec,
+                  child: layer.target.child,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+double _opaque() => 1;

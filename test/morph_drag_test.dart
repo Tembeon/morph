@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 
+import 'support/shuttle.dart';
+
 Widget host() {
   return MaterialApp(
     builder: (BuildContext context, Widget? child) => MorphScope(child: child!),
@@ -158,15 +160,14 @@ void main() {
       addTearDown(tester.view.reset);
 
       final MorphFlight flight = await openFlight(tester);
-      final Finder shuttle = find.byWidgetPredicate(
-        (Widget w) => w is Material && w.animationDuration == .zero,
-      );
+      final Finder shuttle = shuttleMaterial;
       final Finder scrim = find.descendant(
         of: find.byType(BlockSemantics),
-        matching: find.byType(ColoredBox),
+        matching: anyColoredBox,
       );
+      double alphaOf(Finder scrim) => paintedBoxColors(tester, scrim).single.a;
       final Rect rest = tester.getRect(shuttle);
-      final double restAlpha = tester.widget<ColoredBox>(scrim).color.a;
+      final double restAlpha = alphaOf(scrim);
 
       // Below the commit distance only the recede plays.
       flight
@@ -188,7 +189,7 @@ void main() {
           epsilon: 0.1,
         ),
       );
-      final double alphaFree = tester.widget<ColoredBox>(scrim).color.a;
+      final double alphaFree = alphaOf(scrim);
       expect(
         alphaFree,
         moreOrLessEquals(
@@ -215,7 +216,7 @@ void main() {
           epsilon: 0.1,
         ),
       );
-      final double alphaArmed = tester.widget<ColoredBox>(scrim).color.a;
+      final double alphaArmed = alphaOf(scrim);
       expect(
         alphaArmed,
         moreOrLessEquals(

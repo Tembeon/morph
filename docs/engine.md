@@ -89,6 +89,22 @@ What is where:
   crossfade and mount the content over the whole overlay.
 - `buildMorphTargetContent` is the only place the target wrapper chain
   exists; the shuttle and the route page both mount it.
+- Frame chain: the shuttle follows `frameTicks` through `MorphFrameSync`,
+  so it reads each frame in the mid-frame microtasks, after every ticker
+  ran: it advances the source and target rects, computes the frame and
+  measures the shared pairs. The values reach live render objects (the
+  placement, the surface's PhysicalShape and outline, the opacities and
+  scales, the content measure, the ghost's box), and the chain builds
+  only when its structure changes: content ownership, the lingering
+  scrim, staging, the pointer gate, the semantic label, the keyboard the
+  content sees, the source widget or snapshot, and the shared pairs in
+  the air. Content ownership is also heard directly, so the route
+  reparent builds both owners in the same frame. A source tag that
+  rebuilds hands the ghost its new widget on the flight's next frame.
+- The surface is the one Material draws (PhysicalShape with Material's
+  elevation tint, the shape's border on the foreground), on live render
+  objects; the Material inside is transparent with a zero clock and only
+  hosts ink, the default text style and the hit absorption.
 
 ### Events
 - `MorphFlight.events` streams `MorphFlightEvent` (launched, settled,
@@ -170,8 +186,10 @@ What is where:
   which reads as a blink on identical content.
 - The registry lives on the flight; sides register via SharedSideScope
   (internal).
-- Markers hide by the registry's `canFly` - the set of ids the fly-layer
-  builder actually measured this shuttle build - not by `hasPair`. The
+- Markers hide by the registry's `canFly` - the set of ids the shuttle
+  actually measured this frame - not by `hasPair`. The registry notifies
+  when that set changes, and the marker's live opacity follows without a
+  build. The
   pair registers during the shuttle's first build but nothing is
   measurable until its layout runs, so hiding on hasPair leaves the
   element visible nowhere for one frame. Pinned by
@@ -304,8 +322,8 @@ What is where:
 - `resolveRect(overlay, padding, contentSize)` is the one rect
   resolution; the shuttle and the settled route page both call it.
 - Staged first frame: a measured target's shuttle is laid out but
-  invisible (Opacity 0 + IgnorePointer + ExcludeSemantics, wrappers
-  present on every frame so the tree never remounts) and the tag stays
+  invisible (one stage render object that skips paint, hit testing and
+  semantics, present on every frame so the tree never remounts) and the tag stays
   visible until the first measurement lands (`_hideTagWhenStaged`, one
   door shared with the snapshot-ghost path). The hide runs after
   `controller.open()` because hasHandedOff reads true while the

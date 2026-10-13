@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart' show clampDouble;
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:motor/motor.dart';
@@ -11,6 +12,7 @@ import 'package:meta/meta.dart';
 import 'package:morph/src/controller.dart';
 import 'package:morph/src/frame.dart';
 import 'package:morph/src/gesture.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/measure.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/scrim.dart';
@@ -1072,12 +1074,18 @@ class MorphFlight {
 
 /// The modal barrier of a flight: the dimming layer, its dismiss tap
 /// and the screen-reader dismiss affordance. Opacity is computed by the
-/// frame (scrim curve x displacement recede x arm cue).
+/// frame (scrim curve x displacement recede x arm cue) and read again on
+/// every notification of [live].
 class _ShuttleScrim extends StatelessWidget {
-  const _ShuttleScrim({required this.flight, required this.opacity});
+  const _ShuttleScrim({
+    required this.flight,
+    required this.live,
+    required this.opacityOf,
+  });
 
   final MorphFlight flight;
-  final double opacity;
+  final Listenable? live;
+  final double Function() opacityOf;
 
   @override
   Widget build(BuildContext context) {
@@ -1098,9 +1106,10 @@ class _ShuttleScrim extends StatelessWidget {
         child: GestureDetector(
           behavior: .opaque,
           onTap: flight.barrierDismissible ? flight.requestDismiss : null,
-          child: ColoredBox(
-            color: flight.scrimColor.withValues(
-              alpha: flight.scrimColor.a * opacity,
+          child: MorphLiveColoredBox(
+            live: live,
+            colorOf: () => flight.scrimColor.withValues(
+              alpha: flight.scrimColor.a * opacityOf(),
             ),
           ),
         ),
@@ -1109,11 +1118,6 @@ class _ShuttleScrim extends StatelessWidget {
   }
 }
 
-/// The source ghost inside the shuttle: the button as it looked at
-/// takeoff (a pixel snapshot when opted in, the live replica
-/// otherwise). Stays MOUNTED for the whole flight, not only while
-/// visible - shared-element markers inside it must keep reporting
-/// endpoint rects.
 /// [shape] with any border side taken off - the outline belongs to the
 /// flying container, not to a copy riding inside it.
 ShapeBorder _unstroked(ShapeBorder shape) {
@@ -1123,16 +1127,24 @@ ShapeBorder _unstroked(ShapeBorder shape) {
   return shape;
 }
 
+/// The source ghost inside the shuttle: the button as it looked at
+/// takeoff (a pixel snapshot when opted in, the live replica
+/// otherwise). Stays MOUNTED for the whole flight, not only while
+/// visible - shared-element markers inside it must keep reporting
+/// endpoint rects. Its opacity, its scale and its box follow [live].
 class _SourceGhost extends StatelessWidget {
   const _SourceGhost({
     required this.flight,
-    required this.opacity,
-    required this.scale,
+    required this.live,
+    required this.opacityOf,
+    required this.scaleOf,
+    required this.sizeOf,
     required this.anchorKey,
   });
 
   final MorphFlight flight;
-  final double opacity;
+  final Listenable live;
+  final double Function() opacityOf;
 
   /// The container's growth since launch (width ratio). The replica
   /// RIDES the geometry: a button-sized copy floating at natural size
@@ -1140,19 +1152,30 @@ class _SourceGhost extends StatelessWidget {
   /// card, at any opacity. Scaled, the replica and the container are
   /// one body; at the home end the scale is exactly 1, so the latch
   /// swap is pixel-identical.
-  final double scale;
+  final double Function() scaleOf;
+
+  /// The source's size, the box the replica lays out in.
+  final Size Function() sizeOf;
   final GlobalKey anchorKey;
 
   @override
   Widget build(BuildContext context) {
+    final ui.Image? snapshot = flight.sourceSnapshot;
     return Center(
-      child: Transform.scale(
-        scale: scale,
-        child: OverflowBox(
-          minWidth: flight.sourceRect.width,
-          maxWidth: flight.sourceRect.width,
-          minHeight: flight.sourceRect.height,
-          maxHeight: flight.sourceRect.height,
+      child: MorphLiveTemplate(
+        live: live,
+        template: () => Transform.scale(scale: scaleOf()),
+        child: MorphLiveTemplate(
+          live: live,
+          template: () {
+            final Size size = sizeOf();
+            return OverflowBox(
+              minWidth: size.width,
+              maxWidth: size.width,
+              minHeight: size.height,
+              maxHeight: size.height,
+            );
+          },
           child: KeyedSubtree(
             key: anchorKey,
             // The ghost is a pixels-only copy: pointer is ignored and
@@ -1165,15 +1188,13 @@ class _SourceGhost extends StatelessWidget {
             // requestFocus pull focus into the shuttle).
             child: IgnorePointer(
               child: ExcludeFocus(
-                child: Opacity(
-                  opacity: opacity,
-                  child: flight.sourceSnapshot != null
-                      ? RawImage(
-                          image: flight.sourceSnapshot,
-                          width: flight.sourceRect.width,
-                          height: flight.sourceRect.height,
-                          fit: .fill,
-                        )
+                child: MorphLiveOpacity(
+                  live: live,
+                  opacityOf: opacityOf,
+                  // The box above is tight at the source's size, so the
+                  // snapshot fills exactly that box.
+                  child: snapshot != null
+                      ? RawImage(image: snapshot, fit: .fill)
                       : MorphSurfaceSpecScope(
                           // One mass - one outline, one shadow: the
                           // container draws both, so the spec the replica
@@ -1628,7 +1649,8 @@ class _MorphShuttleState extends State<_MorphShuttle> {
               ignoring: flight.controller.target < 1,
               child: _ShuttleScrim(
                 flight: flight,
-                opacity: flight.scrimOpacity,
+                live: null,
+                opacityOf: () => flight.scrimOpacity,
               ),
             ),
           ),
@@ -1722,223 +1744,586 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                   content: content,
                 );
               }
-              return ListenableBuilder(
-                listenable: _frameTicks,
-                child: content,
-                builder: (BuildContext context, Widget? content) {
-                  if (flight.routeOwnsContent.value) {
-                    // The route page owns the content (and draws the
-                    // settled scrim and surface itself): the shuttle
-                    // steps aside entirely, unmounting the keyed subtree
-                    // so the route can adopt it this same frame.
-                    return const SizedBox.shrink();
-                  }
-                  if (flight._scrimOnly) {
-                    return _lingeringScrim();
-                  }
-                  flight.refreshSourceRect();
-                  final Rect targetRect = target.resolveRect(
-                    overlaySize,
-                    padding,
-                    flight.contentSize,
-                  );
-                  flight.updateTargetRect(targetRect);
-                  // A measured target lays its content out under the
-                  // content constraints and measures it; a fixed one
-                  // lays it out tight at the rect. Either way the box
-                  // aligns inside the growing container.
-                  final BoxConstraints contentConstraints =
-                      target.constraintsFor?.call(overlaySize, padding) ??
-                      BoxConstraints.tight(targetRect.size);
-                  // A measured target before its first measurement is
-                  // laid out but not shown, and the source stays
-                  // visible: a launch never shows a guessed box.
-                  final bool staged = flight._staged;
-                  final Color targetColor =
-                      flight.target.surfaceColor ?? scheme.surfaceContainerHigh;
-                  final MorphFrame frame = computeMorphFrame(
-                    value: flight.controller.value,
-                    sourceRect: flight.sourceRect,
-                    targetRect: targetRect,
-                    sourceShape: flight.tag.shape,
-                    targetShape: flight.target.shape,
-                    sourceColor: flight.tag.surfaceColor ?? targetColor,
-                    targetColor: targetColor,
-                    maxScrimOpacity: flight.maxScrimOpacity,
-                    sourceElevation: flight.tag.elevation,
-                    targetElevation: flight.target.elevation,
-                  );
-                  // Content comes alive on approach without waiting for the
-                  // spring to fully settle: waiting for settle would serve
-                  // dead clicks on a visually ready overlay.
-                  final bool interactive =
-                      flight.controller.target >= 1 &&
-                      flight.controller.value >= 0.85;
-                  // The displacement channel moves the whole container as
-                  // one rigid body; the scrim dims and the card recedes
-                  // slightly with distance, and past the commit threshold
-                  // the arm cue deepens both - all pure functions of the
-                  // displacement.
-                  final Offset drag = flight.appliedDragOffset;
-                  final double recede = morphDragRecede(drag.distance);
-                  final double arm = morphDragArm(flight.dragOffset.distance);
-                  final Alignment contentAlignment = target.contentAlignment;
-                  // The wrapper chain is the same on every frame (a
-                  // staged frame differs only in values): a changed
-                  // tree shape would remount the content.
-                  return IgnorePointer(
-                    ignoring: staged,
-                    child: ExcludeSemantics(
-                      excluding: staged,
-                      child: Opacity(
-                        opacity: staged ? 0 : 1,
-                        child: Stack(
-                          children: <Widget>[
-                            // A non-modal flight mounts no scrim at all:
-                            // the Stack's empty area does not hit-test,
-                            // so the page underneath stays live while the
-                            // surface hovers.
-                            if (flight.modal)
-                              Positioned.fill(
-                                child: _ShuttleScrim(
-                                  flight: flight,
-                                  opacity:
-                                      flight.scrimOpacity *
-                                      morphDragScrimFactor(recede, arm),
-                                ),
-                              ),
-                            Positioned.fromRect(
-                              rect: frame.rect.shift(drag),
-                              child: IgnorePointer(
-                                ignoring: !interactive,
-                                // The dissolve of a flight whose source
-                                // is gone; 1 on every ordinary frame, and
-                                // an Opacity at 1 paints straight through.
-                                child: Opacity(
-                                  opacity: flight.dissolveOpacity,
-                                  child: Transform.scale(
-                                    scale: morphDragScale(recede, arm),
-                                    child: Semantics(
-                                      // The overlay is a semantic route:
-                                      // focus and reading scope in, and a
-                                      // label announces the opening.
-                                      scopesRoute: true,
-                                      namesRoute: flight.semanticLabel != null,
-                                      label: flight.semanticLabel,
-                                      explicitChildNodes: true,
-                                      child: Material(
-                                        color: frame.surfaceColor,
-                                        shape: frame.shape,
-                                        // Material animates shape/color/
-                                        // elevation changes on its own
-                                        // 200 ms clock (kThemeChangeDuration);
-                                        // with per-tick shape updates that
-                                        // tween lags the frame. The spring is
-                                        // the only clock here.
-                                        animationDuration: .zero,
-                                        clipBehavior: target.clipBehavior,
-                                        elevation: frame.elevation,
-                                        shadowColor: flight.shadowColor,
-                                        child: Stack(
-                                          fit: .expand,
-                                          // The Material already clips to
-                                          // its shape, inside this rect
-                                          // for every built-in border.
-                                          // The rect clip only bites for
-                                          // a custom shape reaching past
-                                          // the rect, and on hard-edge
-                                          // edge pixels of overflowing
-                                          // shared layers on a renderer
-                                          // that honours Clip.hardEdge.
-                                          // A target that asked for no
-                                          // clip gets none at either
-                                          // level.
-                                          clipBehavior:
-                                              target.clipBehavior == Clip.none
-                                              ? Clip.none
-                                              : Clip.hardEdge,
-                                          children: <Widget>[
-                                            // No conditional mounting: the
-                                            // target content lives in the
-                                            // shuttle for the whole flight,
-                                            // otherwise a close -> open
-                                            // interruption would lose its
-                                            // state.
-                                            Align(
-                                              alignment: contentAlignment,
-                                              child: MorphContentMeasure(
-                                                childConstraints:
-                                                    contentConstraints,
-                                                alignment: contentAlignment,
-                                                onSize: target.isMeasured
-                                                    ? flight.reportContentSize
-                                                    : null,
-                                                child: Opacity(
-                                                  opacity: frame.targetOpacity,
-                                                  child: Transform.scale(
-                                                    scale: frame.targetScale,
-                                                    // The anchor sits below
-                                                    // the reveal scale: shared
-                                                    // elements measure their
-                                                    // target rect in layout
-                                                    // space, the endpoint
-                                                    // they fly to.
-                                                    child: KeyedSubtree(
-                                                      key: _targetAnchorKey,
-                                                      child:
-                                                          _MorphContentMediaQuery(
-                                                            overlayViewInsets:
-                                                                overlayViewInsets,
-                                                            targetRect:
-                                                                targetRect,
-                                                            overlaySize:
-                                                                overlaySize,
-                                                            child: content!,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            _SourceGhost(
-                                              flight: flight,
-                                              opacity: frame.sourceOpacity,
-                                              scale:
-                                                  flight.sourceRect.width <= 0
-                                                  ? 1
-                                                  : frame.rect.width /
-                                                        flight.sourceRect.width,
-                                              anchorKey: _sourceAnchorKey,
-                                            ),
-                                            ...buildSharedFlightLayers(
-                                              flight: flight,
-                                              frame: frame,
-                                              sourceAnchorKey: _sourceAnchorKey,
-                                              targetAnchorKey: _targetAnchorKey,
-                                              sourceRect: flight.sourceRect,
-                                              targetRect: targetRect,
-                                              targetSpec: targetSpec,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+              return _ShuttleFrame(
+                flight: flight,
+                overlaySize: overlaySize,
+                padding: padding,
+                overlayViewInsets: overlayViewInsets,
+                targetColor:
+                    flight.target.surfaceColor ?? scheme.surfaceContainerHigh,
+                targetSpec: targetSpec,
+                sourceAnchorKey: _sourceAnchorKey,
+                targetAnchorKey: _targetAnchorKey,
+                content: content,
               );
             },
           ),
         ),
       ),
     );
+  }
+}
+
+/// The form a shuttle frame takes.
+enum _ShuttleMode {
+  /// The route page owns the content, or the flight is over: the
+  /// shuttle steps aside.
+  away,
+
+  /// Past the handoff latch, finishing a scrim on its own springs.
+  scrim,
+
+  /// The surface is in the air.
+  flying,
+}
+
+/// What a shuttle frame shows, apart from the values that move with the
+/// springs: a frame whose shape equals the built one only advances the
+/// live render objects.
+@immutable
+class _ShuttleShape {
+  const _ShuttleShape(
+    this.mode, {
+    this.staged = false,
+    this.interactive = false,
+    this.label,
+    this.viewInsets = EdgeInsets.zero,
+    this.source,
+    this.snapshot,
+    this.layers = const <(Object, bool, Widget, Widget)>[],
+  });
+
+  static const _ShuttleShape away = _ShuttleShape(_ShuttleMode.away);
+  static const _ShuttleShape scrim = _ShuttleShape(_ShuttleMode.scrim);
+
+  final _ShuttleMode mode;
+  final bool staged;
+  final bool interactive;
+  final String? label;
+  final EdgeInsets viewInsets;
+
+  /// The source tag's widget, which the replica and its surface come
+  /// from: a tag that rebuilds hands the ghost its new widget on the
+  /// flight's next frame.
+  final Widget? source;
+  final ui.Image? snapshot;
+
+  /// Per shared pair: its id, whether the source side shows, and both
+  /// markers.
+  final List<(Object, bool, Widget, Widget)> layers;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _ShuttleShape ||
+        other.mode != mode ||
+        other.staged != staged ||
+        other.interactive != interactive ||
+        other.label != label ||
+        other.viewInsets != viewInsets ||
+        !identical(other.source, source) ||
+        !identical(other.snapshot, snapshot) ||
+        other.layers.length != layers.length) {
+      return false;
+    }
+    for (int i = 0; i < layers.length; i++) {
+      final (Object id, bool showsSource, Widget from, Widget to) = layers[i];
+      final (
+        Object otherId,
+        bool otherShows,
+        Widget otherFrom,
+        Widget otherTo,
+      ) = other.layers[i];
+      if (id != otherId ||
+          showsSource != otherShows ||
+          !identical(from, otherFrom) ||
+          !identical(to, otherTo)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    mode,
+    staged,
+    interactive,
+    label,
+    viewInsets,
+    source,
+    snapshot,
+    layers.length,
+  );
+}
+
+/// The frame chain of a flight whose container the engine draws: the
+/// scrim, the morphing surface, the target content, the source ghost and
+/// the shared layers.
+///
+/// Every frame, after every ticker ran, it advances the flight's rects
+/// and reads the frame; the springs' values reach the render objects
+/// live, and the chain builds only when what it shows changes: content
+/// ownership, the lingering scrim, the staging, the pointer gate, the
+/// semantic label, the keyboard the content sees, the source widget or
+/// snapshot, and the shared pairs in the air.
+class _ShuttleFrame extends StatefulWidget {
+  const _ShuttleFrame({
+    required this.flight,
+    required this.overlaySize,
+    required this.padding,
+    required this.overlayViewInsets,
+    required this.targetColor,
+    required this.targetSpec,
+    required this.sourceAnchorKey,
+    required this.targetAnchorKey,
+    required this.content,
+  });
+
+  final MorphFlight flight;
+  final Size overlaySize;
+  final EdgeInsets padding;
+  final EdgeInsets overlayViewInsets;
+  final Color targetColor;
+  final MorphSurfaceSpec targetSpec;
+  final GlobalKey sourceAnchorKey;
+  final GlobalKey targetAnchorKey;
+  final Widget content;
+
+  @override
+  State<_ShuttleFrame> createState() => _ShuttleFrameState();
+}
+
+class _ShuttleFrameState extends State<_ShuttleFrame> {
+  late final MorphFrameSync<_ShuttleShape> _sync =
+      MorphFrameSync<_ShuttleShape>(
+        structure: _advance,
+        rebuild: (_ShuttleShape _) {
+          if (mounted) setState(() {});
+        },
+      );
+
+  late MorphFrame _frame;
+  Rect _container = .zero;
+  BoxConstraints _contentConstraints = const BoxConstraints();
+  Alignment _contentAlignment = .topCenter;
+  double _scrim = 0;
+  double _dissolve = 1;
+  double _dragScale = 1;
+  double _ghostScale = 1;
+  Size _sourceSize = .zero;
+  Map<Object, SharedFlightLayer> _layers = const <Object, SharedFlightLayer>{};
+  ThemeData? _theme;
+  TextDirection? _textDirection;
+
+  @override
+  void initState() {
+    super.initState();
+    _sync.follow(widget.flight.frameTicks);
+    // The route-mode reparent needs both owners to build in the same
+    // frame, whenever ownership flips - also from a build.
+    widget.flight.routeOwnsContent.addListener(_onOwnership);
+  }
+
+  @override
+  void didUpdateWidget(_ShuttleFrame oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.flight, widget.flight)) {
+      oldWidget.flight.routeOwnsContent.removeListener(_onOwnership);
+      widget.flight.routeOwnsContent.addListener(_onOwnership);
+      _sync.follow(widget.flight.frameTicks);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.flight.routeOwnsContent.removeListener(_onOwnership);
+    _sync.dispose();
+    super.dispose();
+  }
+
+  void _onOwnership() {
+    if (mounted) setState(() {});
+  }
+
+  /// Advances the flight's rects, reads this frame's values and returns
+  /// the shape the chain is built from.
+  _ShuttleShape _advance() {
+    final MorphFlight flight = widget.flight;
+    if (!mounted || flight.isFinished || flight.routeOwnsContent.value) {
+      return _ShuttleShape.away;
+    }
+    if (flight._scrimOnly) {
+      _scrim = flight.scrimOpacity;
+      return _ShuttleShape.scrim;
+    }
+    final MorphTargetSpec target = flight.target;
+    flight.refreshSourceRect();
+    final Rect targetRect = target.resolveRect(
+      widget.overlaySize,
+      widget.padding,
+      flight.contentSize,
+    );
+    flight.updateTargetRect(targetRect);
+    // A measured target lays its content out under the content
+    // constraints and measures it; a fixed one lays it out tight at the
+    // rect. Either way the box aligns inside the growing container.
+    _contentConstraints =
+        target.constraintsFor?.call(widget.overlaySize, widget.padding) ??
+        BoxConstraints.tight(targetRect.size);
+    _contentAlignment = target.contentAlignment;
+    final Color targetColor = widget.targetColor;
+    final MorphFrame frame = computeMorphFrame(
+      value: flight.controller.value,
+      sourceRect: flight.sourceRect,
+      targetRect: targetRect,
+      sourceShape: flight.tag.shape,
+      targetShape: target.shape,
+      sourceColor: flight.tag.surfaceColor ?? targetColor,
+      targetColor: targetColor,
+      maxScrimOpacity: flight.maxScrimOpacity,
+      sourceElevation: flight.tag.elevation,
+      targetElevation: target.elevation,
+    );
+    _frame = frame;
+    // The displacement channel moves the whole container as one rigid
+    // body; the scrim dims and the card recedes slightly with distance,
+    // and past the commit threshold the arm cue deepens both - all pure
+    // functions of the displacement.
+    final Offset drag = flight.appliedDragOffset;
+    final double recede = morphDragRecede(drag.distance);
+    final double arm = morphDragArm(flight.dragOffset.distance);
+    _container = frame.rect.shift(drag);
+    _scrim = flight.scrimOpacity * morphDragScrimFactor(recede, arm);
+    _dissolve = flight.dissolveOpacity;
+    _dragScale = morphDragScale(recede, arm);
+    _sourceSize = flight.sourceRect.size;
+    _ghostScale = flight.sourceRect.width <= 0
+        ? 1
+        : frame.rect.width / flight.sourceRect.width;
+    final List<SharedFlightLayer> layers = measureSharedFlightLayers(
+      flight: flight,
+      frame: frame,
+      sourceAnchorKey: widget.sourceAnchorKey,
+      targetAnchorKey: widget.targetAnchorKey,
+      sourceRect: flight.sourceRect,
+      targetRect: targetRect,
+    );
+    _layers = <Object, SharedFlightLayer>{
+      for (final SharedFlightLayer layer in layers) layer.id: layer,
+    };
+    return _ShuttleShape(
+      .flying,
+      // A measured target before its first measurement is laid out but
+      // not shown, and the source stays visible: a launch never shows a
+      // guessed box.
+      staged: flight._staged,
+      // Content comes alive on approach without waiting for the spring
+      // to fully settle: waiting for settle would serve dead clicks on a
+      // visually ready overlay.
+      interactive:
+          flight.controller.target >= 1 && flight.controller.value >= 0.85,
+      label: flight.semanticLabel,
+      viewInsets: morphContentViewInsets(
+        widget.overlayViewInsets,
+        targetRect,
+        widget.overlaySize,
+      ),
+      source: flight.tag.widget,
+      snapshot: flight.sourceSnapshot,
+      layers: <(Object, bool, Widget, Widget)>[
+        for (final SharedFlightLayer layer in layers)
+          (
+            layer.id,
+            !layer.solo && frame.sourceOpacity > 0,
+            layer.source,
+            layer.target,
+          ),
+      ],
+    );
+  }
+
+  /// The surface color the container paints, the way [Material] tints
+  /// its color for its elevation.
+  Color _surfaceColor() {
+    final ThemeData theme = _theme!;
+    final Color color = _frame.surfaceColor;
+    final double elevation = _frame.elevation;
+    if (!theme.useMaterial3 &&
+        elevation > 0 &&
+        theme.applyElevationOverlayColor &&
+        theme.brightness == Brightness.dark &&
+        color.withValues(alpha: 1) ==
+            theme.colorScheme.surface.withValues(alpha: 1)) {
+      return ElevationOverlay.colorWithOverlay(
+        color,
+        theme.colorScheme.onSurface,
+        elevation,
+      );
+    }
+    return color;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _theme = Theme.of(context);
+    _textDirection = Directionality.maybeOf(context);
+    final _ShuttleShape shape = _sync.read();
+    final MorphFlight flight = widget.flight;
+    switch (shape.mode) {
+      case .away:
+        // The route page owns the content (and draws the settled scrim
+        // and surface itself): the shuttle steps aside entirely,
+        // unmounting the keyed subtree so the route can adopt it this
+        // same frame.
+        return const SizedBox.shrink();
+      case .scrim:
+        if (!flight.modal) {
+          return const SizedBox.shrink();
+        }
+        // The scrim alone, past the handoff latch: the content is home,
+        // the page takes touches again, and the dimming finishes on its
+        // own springs.
+        return IgnorePointer(
+          child: ExcludeSemantics(
+            child: SizedBox.expand(
+              child: MorphLiveColoredBox(
+                live: _sync,
+                colorOf: () => flight.scrimColor.withValues(
+                  alpha: flight.scrimColor.a * _scrim,
+                ),
+              ),
+            ),
+          ),
+        );
+      case .flying:
+        break;
+    }
+    final MorphTargetSpec target = flight.target;
+    final Clip clip = target.clipBehavior;
+    // The wrapper chain is the same on every frame (a staged frame
+    // differs only in values): a changed tree shape would remount the
+    // content.
+    return _ShuttleStage(
+      staged: shape.staged,
+      child: Stack(
+        children: <Widget>[
+          // A non-modal flight mounts no scrim at all: the Stack's empty
+          // area does not hit-test, so the page underneath stays live
+          // while the surface hovers.
+          if (flight.modal)
+            Positioned.fill(
+              child: _ShuttleScrim(
+                flight: flight,
+                live: _sync,
+                opacityOf: () => _scrim,
+              ),
+            ),
+          MorphLivePositionedTemplate(
+            live: _sync,
+            template: () =>
+                Positioned.fromRect(rect: _container, child: morphLiveSlot),
+            child: IgnorePointer(
+              ignoring: !shape.interactive,
+              // The dissolve of a flight whose source is gone; 1 on every
+              // ordinary frame, and an Opacity at 1 paints straight
+              // through.
+              child: MorphLiveOpacity(
+                live: _sync,
+                opacityOf: () => _dissolve,
+                child: MorphLiveTemplate(
+                  live: _sync,
+                  template: () => Transform.scale(scale: _dragScale),
+                  child: Semantics(
+                    // The overlay is a semantic route: focus and reading
+                    // scope in, and a label announces the opening.
+                    scopesRoute: true,
+                    namesRoute: shape.label != null,
+                    label: shape.label,
+                    explicitChildNodes: true,
+                    // The surface Material draws, on live render objects:
+                    // the shape, color, elevation and outline move every
+                    // frame without a build. Material itself only hosts
+                    // the ink and the default text style, painting
+                    // nothing of its own.
+                    child: MorphLiveTemplate(
+                      live: _sync,
+                      template: () => PhysicalShape(
+                        clipper: ShapeBorderClipper(
+                          shape: _frame.shape,
+                          textDirection: _textDirection,
+                        ),
+                        clipBehavior: clip,
+                        elevation: _frame.elevation,
+                        color: _surfaceColor(),
+                        shadowColor: flight.shadowColor,
+                      ),
+                      child: MorphLiveTemplate(
+                        live: _sync,
+                        template: () => CustomPaint(
+                          foregroundPainter: _OutlinePainter(
+                            _frame.shape,
+                            _textDirection,
+                          ),
+                        ),
+                        child: Material(
+                          color: const Color(0x00000000),
+                          animationDuration: .zero,
+                          child: Stack(
+                            fit: .expand,
+                            // The surface already clips to its shape,
+                            // inside this rect for every built-in border.
+                            // The rect clip only bites for a custom shape
+                            // reaching past the rect, and on hard-edge
+                            // edge pixels of overflowing shared layers on
+                            // a renderer that honours Clip.hardEdge. A
+                            // target that asked for no clip gets none at
+                            // either level.
+                            clipBehavior: clip == Clip.none
+                                ? Clip.none
+                                : Clip.hardEdge,
+                            children: <Widget>[
+                              // No conditional mounting: the target
+                              // content lives in the shuttle for the
+                              // whole flight, otherwise a close -> open
+                              // interruption would lose its state.
+                              MorphLiveTemplate(
+                                live: _sync,
+                                template: () =>
+                                    Align(alignment: _contentAlignment),
+                                child: MorphLiveTemplate(
+                                  live: _sync,
+                                  template: () => MorphContentMeasure(
+                                    childConstraints: _contentConstraints,
+                                    alignment: _contentAlignment,
+                                    onSize: target.isMeasured
+                                        ? flight.reportContentSize
+                                        : null,
+                                  ),
+                                  child: MorphLiveOpacity(
+                                    live: _sync,
+                                    opacityOf: () => _frame.targetOpacity,
+                                    child: MorphLiveTemplate(
+                                      live: _sync,
+                                      template: () => Transform.scale(
+                                        scale: _frame.targetScale,
+                                      ),
+                                      // The anchor sits below the reveal
+                                      // scale: shared elements measure
+                                      // their target rect in layout
+                                      // space, the endpoint they fly to.
+                                      child: KeyedSubtree(
+                                        key: widget.targetAnchorKey,
+                                        child: _MorphContentMediaQuery(
+                                          viewInsets: shape.viewInsets,
+                                          child: widget.content,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              _SourceGhost(
+                                flight: flight,
+                                live: _sync,
+                                opacityOf: () => _frame.sourceOpacity,
+                                scaleOf: () => _ghostScale,
+                                sizeOf: () => _sourceSize,
+                                anchorKey: widget.sourceAnchorKey,
+                              ),
+                              for (final (
+                                    Object id,
+                                    bool showsSource,
+                                    Widget _,
+                                    Widget _,
+                                  )
+                                  in shape.layers)
+                                buildSharedFlightLayer(
+                                  flight: flight,
+                                  layer: _layers[id]!,
+                                  showsSource: showsSource,
+                                  live: _sync,
+                                  now: () => _layers[id]!,
+                                  sourceOpacity: () => _frame.sourceOpacity,
+                                  targetOpacity: () => _frame.targetOpacity,
+                                  targetSpec: widget.targetSpec,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The surface's outline, painted over its content the way [Material]
+/// paints its shape's border.
+class _OutlinePainter extends CustomPainter {
+  _OutlinePainter(this.shape, this.textDirection);
+
+  final ShapeBorder shape;
+  final TextDirection? textDirection;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    shape.paint(canvas, Offset.zero & size, textDirection: textDirection);
+  }
+
+  @override
+  bool shouldRepaint(_OutlinePainter oldDelegate) =>
+      oldDelegate.shape != shape || oldDelegate.textDirection != textDirection;
+}
+
+/// A shuttle laid out but not shown: while [staged] it neither paints,
+/// nor takes pointers, nor reports semantics.
+class _ShuttleStage extends SingleChildRenderObjectWidget {
+  const _ShuttleStage({required this.staged, super.child});
+
+  final bool staged;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderShuttleStage(staged: staged);
+
+  @override
+  void updateRenderObject(BuildContext context, RenderObject renderObject) {
+    (renderObject as _RenderShuttleStage).staged = staged;
+  }
+}
+
+class _RenderShuttleStage extends RenderProxyBox {
+  _RenderShuttleStage({required this._staged});
+
+  bool _staged;
+
+  bool get staged => _staged;
+
+  set staged(bool value) {
+    if (value == _staged) return;
+    _staged = value;
+    markNeedsPaint();
+    markNeedsSemanticsUpdate();
+  }
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
+      !_staged && super.hitTest(result, position: position);
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (!_staged) super.paint(context, offset);
+  }
+
+  @override
+  void visitChildrenForSemantics(RenderObjectVisitor visitor) {
+    if (!_staged) super.visitChildrenForSemantics(visitor);
   }
 }
 
@@ -2039,29 +2424,21 @@ class _VesselFrameState extends State<_VesselFrame> {
   }
 }
 
+/// Publishes to the target content the part of the keyboard its
+/// surface still overlaps.
 class _MorphContentMediaQuery extends StatelessWidget {
   const _MorphContentMediaQuery({
-    required this.overlayViewInsets,
-    required this.targetRect,
-    required this.overlaySize,
+    required this.viewInsets,
     required this.child,
   });
 
-  final EdgeInsets overlayViewInsets;
-  final Rect targetRect;
-  final Size overlaySize;
+  final EdgeInsets viewInsets;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: MediaQuery.of(context).copyWith(
-        viewInsets: morphContentViewInsets(
-          overlayViewInsets,
-          targetRect,
-          overlaySize,
-        ),
-      ),
+      data: MediaQuery.of(context).copyWith(viewInsets: viewInsets),
       child: child,
     );
   }

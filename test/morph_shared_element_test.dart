@@ -1,6 +1,8 @@
+import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
+import 'package:morph/src/live.dart';
 
 void main() {
   Widget host() {
@@ -191,8 +193,10 @@ void main() {
       find.descendant(of: flying, matching: find.text('badge-source')),
       findsNothing,
     );
-    final Opacity fader = tester.widget<Opacity>(
-      find.descendant(of: flying, matching: find.byType(Opacity)).first,
+    final RenderOpacity fader = tester.renderObject<RenderOpacity>(
+      find
+          .descendant(of: flying, matching: find.byType(MorphLiveOpacity))
+          .first,
     );
     expect(fader.opacity, 1);
     expect(tester.takeException(), isNull);

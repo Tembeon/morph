@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
 
+import 'support/shuttle.dart';
+
 /// Material double-animates shape and elevation changes on its own
 /// hidden 200 ms clock (kThemeChangeDuration): fed a fresh shape every
 /// spring tick, its internal tween chases the frame with visible lag on
@@ -56,9 +58,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
 
-    final Finder shuttleMaterial = find.byWidgetPredicate(
-      (Widget w) => w is Material && w.animationDuration == .zero,
-    );
     expect(
       shuttleMaterial,
       findsOneWidget,
@@ -66,24 +65,30 @@ void main() {
           'The shuttle Material must pin animationDuration to zero: '
           'the spring is the only clock.',
     );
-    final Material material = tester.widget<Material>(shuttleMaterial);
+    final MorphFlight flight = tester
+        .state<MorphScopeState>(find.byType(MorphScope))
+        .flightOf('pill')!;
+    final MorphFrame frame = computeMorphFrame(
+      value: flight.controller.value,
+      sourceRect: flight.sourceRect,
+      targetRect: flight.lastTargetRect,
+      sourceShape: flight.tag.shape,
+      targetShape: flight.target.shape,
+      sourceColor: const Color(0xFF000000),
+      targetColor: const Color(0xFF000000),
+      maxScrimOpacity: 0,
+    );
     final RoundedRectangleBorder frameShape =
-        material.shape! as RoundedRectangleBorder;
+        frame.shape as RoundedRectangleBorder;
     final double frameRadius = frameShape.borderRadius.resolve(.ltr).topLeft.x;
     // Mid-flight: strictly between the endpoints (140 and 28), so a
     // lagging tween could not coincide by accident.
     expect(frameRadius, lessThan(139));
     expect(frameRadius, greaterThan(29));
 
-    // The replica inside the shuttle carries its own PhysicalShape:
-    // the OUTERMOST one is the shuttle surface.
-    final PhysicalShape physical = tester.widget<PhysicalShape>(
-      find
-          .descendant(of: shuttleMaterial, matching: find.byType(PhysicalShape))
-          .first,
-    );
-    final ShapeBorderClipper clipper = physical.clipper as ShapeBorderClipper;
-    expect(clipper.shape, material.shape);
+    // The surface the shuttle draws (the replica inside carries its own
+    // PhysicalShape further down) clips to exactly this frame's shape.
+    expect(shuttleShape(tester), frame.shape);
   });
 
   testWidgets('the replica rides the container geometry and casts no '
@@ -134,9 +139,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
 
-    final Finder shuttleMaterial = find.byWidgetPredicate(
-      (Widget w) => w is Material && w.animationDuration == .zero,
-    );
     final Size shuttle = tester.getSize(shuttleMaterial);
     final MorphScopeState scope = tester.state<MorphScopeState>(
       find.byType(MorphScope),
@@ -159,16 +161,14 @@ void main() {
     );
 
     // One mass - one shadow: every surface INSIDE the shuttle is
-    // shadowless; only the container (the first PhysicalShape) may
-    // carry elevation.
-    final Iterable<PhysicalShape> inner = tester
-        .widgetList<PhysicalShape>(
-          find.descendant(
-            of: shuttleMaterial,
-            matching: find.byType(PhysicalShape),
-          ),
-        )
-        .skip(1);
+    // shadowless; only the container may carry elevation.
+    expect(shuttleSurface(tester).elevation, greaterThan(0));
+    final Iterable<PhysicalShape> inner = tester.widgetList<PhysicalShape>(
+      find.descendant(
+        of: shuttleMaterial,
+        matching: find.byType(PhysicalShape),
+      ),
+    );
     expect(inner, isNotEmpty);
     for (final PhysicalShape shape in inner) {
       expect(shape.elevation, 0);

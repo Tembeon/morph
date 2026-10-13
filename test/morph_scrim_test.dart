@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 
+import 'support/shuttle.dart';
+
 const MorphScrimMotion _scrim = MorphScrimMotion(
   motion: MorphMotion.springs(
     name: 'scrimTest',
@@ -72,16 +74,11 @@ class _Host extends StatelessWidget {
 
 /// The painted scrim's opacity: the alpha of the black full-screen box.
 double _painted(WidgetTester tester) {
-  final Iterable<ColoredBox> boxes = tester
-      .widgetList<ColoredBox>(find.byType(ColoredBox))
-      .where(
-        (ColoredBox box) =>
-            box.color.r == 0 &&
-            box.color.g == 0 &&
-            box.color.b == 0 &&
-            box.color.a > 0,
-      );
-  return boxes.isEmpty ? 0 : boxes.single.color.a;
+  final Iterable<Color> boxes = paintedBoxColors(tester, anyColoredBox).where(
+    (Color color) =>
+        color.r == 0 && color.g == 0 && color.b == 0 && color.a > 0,
+  );
+  return boxes.isEmpty ? 0 : boxes.single.a;
 }
 
 Future<void> _settle(WidgetTester tester) async {

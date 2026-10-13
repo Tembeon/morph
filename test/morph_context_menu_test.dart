@@ -8,6 +8,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
 
+import 'support/shuttle.dart';
+
 const Key _heroBox = ValueKey<String>('hero-box');
 const Size _heroSize = Size(160, 48);
 const double _aboveHeight = 40;
@@ -1675,16 +1677,11 @@ Future<({List<_DimFrame> open, List<_DimFrame> close})> _replayDim(
     ),
   );
   double painted() {
-    final Iterable<ColoredBox> boxes = tester
-        .widgetList<ColoredBox>(find.byType(ColoredBox))
-        .where(
-          (ColoredBox box) =>
-              box.color.r == 0 &&
-              box.color.g == 0 &&
-              box.color.b == 0 &&
-              box.color.a > 0,
-        );
-    return boxes.isEmpty ? 0 : boxes.last.color.a;
+    final Iterable<Color> boxes = paintedBoxColors(tester, anyColoredBox).where(
+      (Color color) =>
+          color.r == 0 && color.g == 0 && color.b == 0 && color.a > 0,
+    );
+    return boxes.isEmpty ? 0 : boxes.last.a;
   }
 
   final TestGesture gesture = await tester.startGesture(const Offset(201, 300));

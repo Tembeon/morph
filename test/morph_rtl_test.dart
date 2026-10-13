@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 
+import 'support/shuttle.dart';
+
 /// RTL coverage: the engine resolves corner geometry with a fixed .ltr
 /// (uniformMorphRadius), which is direction-proof only while the four
 /// corners are equal. These tests pin that contract - the uniform
@@ -108,13 +110,8 @@ void main() {
     // Mid-flight the concentric path emits a plain uniform BorderRadius
     // between the endpoint radii; the shape-lerp fallback would have
     // kept the directional geometry, so the casts distinguish the two.
-    final Material material = tester.widget<Material>(
-      find.byWidgetPredicate(
-        (Widget w) => w is Material && w.animationDuration == .zero,
-      ),
-    );
     final RoundedRectangleBorder shape =
-        material.shape! as RoundedRectangleBorder;
+        shuttleShape(tester) as RoundedRectangleBorder;
     final BorderRadius radius = shape.borderRadius as BorderRadius;
     expect(radius.topLeft.x, inInclusiveRange(8, 24));
 

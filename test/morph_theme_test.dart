@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 import 'package:morph/src/skin.dart';
 
+import 'support/shuttle.dart';
+
 Widget host({MorphTheme? theme, required Widget child}) {
   return MaterialApp(
     theme: ThemeData(extensions: <ThemeExtension<Object?>>[?theme]),
@@ -389,20 +391,18 @@ void main() {
           break;
         }
       }
-      final ColoredBox box = tester.widget<ColoredBox>(
+      final Color box = paintedBoxColors(
+        tester,
         find.descendant(
           of: find.byType(BlockSemantics),
-          matching: find.byType(ColoredBox),
+          matching: anyColoredBox,
         ),
-      );
+      ).single;
       // The hue is the theme's; the color's own opacity composes with
       // the settled scrim opacity (the 0.45 builtin ceiling).
-      expect(box.color.withValues(alpha: 1), scrim.withValues(alpha: 1));
-      expect(box.color.a, closeTo(scrim.a * 0.45, 1e-3));
-      final bool shuttleShadow = tester
-          .widgetList<Material>(find.byType(Material))
-          .any((Material m) => m.shadowColor == shadow);
-      expect(shuttleShadow, isTrue);
+      expect(box.withValues(alpha: 1), scrim.withValues(alpha: 1));
+      expect(box.a, closeTo(scrim.a * 0.45, 1e-3));
+      expect(shuttleSurface(tester).shadowColor, shadow);
       flight!.abort();
     });
 
