@@ -105,6 +105,8 @@ supported.
 | Glass container | `MorphGlassContainer` shades resting glass of joined hosts in one layer; list cards and the search toolbar are stages | IDENTICAL within 1 - 3 channel steps |
 | Pipeline warm-up | `MorphGlassRenderer.precache` | first-frame worst UI/raster: Pixel liquid 102/74 -> 5/11 ms, iPhone 69/362 -> 2/42; costs 0.33 - 0.85 s precache |
 | Skin eval budget | `MorphSkin.defaultEvalBudget` coarsens the grid by the overshoot factor | 64-piece worst case 1.9 ms (8.2 unbounded) |
+| Backdrop cache | glass over an opaque route below it (sheet, alert, action sheet, popover, date picker) paints over a frosted copy of that route, re-copied when what it samples changes, never an older frame (`GlassBackdropCache`); menus excluded | on; `MORPH_BACKDROP_CACHE=false` reads every frame; NEAR (host max 45 - 55 on < 200 px while opening, 0 - 1 at rest); Pixel sheet GPU 515 -> 393 ms/s, 1119 -> 833 mW; iPhone sheet raster p50/p99 -0.23/-0.82 ms |
+| Shader frost | a frost up to 8 device px without dispersion is blurred by the final pass (24 Gaussian taps), no blur pass | on; `MORPH_SHADER_FROST=false` restores the blur pass; NEAR (host tab bar max 29 along the rim); Pixel tab bar GPU 560 -> 514 ms/s, 904 -> 798 mW; iPhone tab bar raster p50/p95 -0.31/-0.35 ms |
 
 ## 4. Standing lessons
 

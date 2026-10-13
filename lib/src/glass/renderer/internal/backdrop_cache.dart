@@ -6,9 +6,11 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 /// Whether glass under a [GlassBackdropCacheScope] reads the scope's cached
-/// backdrop instead of a backdrop filter (prototype, `MORPH_BACKDROP_CACHE`).
+/// backdrop instead of a backdrop filter. On by default;
+/// `--dart-define=MORPH_BACKDROP_CACHE=false` reads the backdrop every frame.
 bool debugMorphBackdropCache = const bool.fromEnvironment(
   'MORPH_BACKDROP_CACHE',
+  defaultValue: true,
 );
 
 /// How many copies every [GlassBackdropCache] took, for a bench report.

@@ -3168,8 +3168,12 @@ enum AnalyticGeometryMode {
 GlassCostProbe debugGlassCostProbe = GlassCostProbe.off;
 
 /// Whether a frost up to [RenderLiquidGlassLayer.shaderFrostMaxDeviceSigma]
-/// is blurred by the final pass itself (prototype, `MORPH_SHADER_FROST`).
-bool debugMorphShaderFrost = const bool.fromEnvironment('MORPH_SHADER_FROST');
+/// is blurred by the final pass itself. On by default;
+/// `--dart-define=MORPH_SHADER_FROST=false` blurs it in a separate pass.
+bool debugMorphShaderFrost = const bool.fromEnvironment(
+  'MORPH_SHADER_FROST',
+  defaultValue: true,
+);
 
 /// The part of a liquid layer's composition that [debugGlassCostProbe]
 /// replaces, to time it on a device.
