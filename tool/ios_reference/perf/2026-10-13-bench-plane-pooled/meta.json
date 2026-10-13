@@ -1,0 +1,28 @@
+{
+ "sdk": "stable",
+ "sha": "e6015ad-dirty",
+ "source": "/Users/tembeon/IdeaProjects/morph/.claude/worktrees/nifty-swanson-e3b33c",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-13 19:28:33.446623",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "0",
+    "AUDIT_SCENES": "segmented,controls,tab-bar,menu,sheet",
+    "MORPH_GLASS_PROBE": "pooled"
+   },
+   "thermal_before": [
+    0,
+    31.76225
+   ],
+   "thermal_after": [
+    0,
+    32.4378
+   ]
+  }
+ }
+}
