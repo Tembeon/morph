@@ -353,8 +353,10 @@ const _ceilings = <String, _Ceiling>{
     layouts: 19,
     paints: 30,
   ),
+  // The close rebuilds the hero's copies, each in the region's own text
+  // style (3 DefaultTextStyle builds).
   'context-menu/flat close': (
-    first: 69,
+    first: 72,
     ms: 656,
     builds: 0,
     layouts: 0,

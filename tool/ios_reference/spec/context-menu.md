@@ -143,6 +143,12 @@ shuttle chain).
   offset vanishes whatever A is. Slots clip natural-size content while the
   extent catches up. A child or satellite change while open rebuilds the
   menu (didUpdateWidget -> flight.markNeedsBuild, deferred).
+- TEXT STYLE: every copy of the hero (the shuttle's source replica, the
+  menu slot, the flying layer) sits under the shuttle's Material, whose
+  default text style (the theme's body) replaced the page's; a hero whose
+  content fills its height overflowed its slot, sized from the source
+  (1.6 pt on the gallery's list rows). The region wraps each copy in its
+  own DefaultTextStyle (context_menu_text_style_test).
 - `replica:` = source-side copy only (no snapshotGhost: without a live
   source marker the pair cannot form); `opensOnSecondaryTap` leaves the
   right click to an ancestor; onHold = the threshold (haptic moment),

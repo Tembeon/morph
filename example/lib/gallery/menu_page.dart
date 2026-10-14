@@ -382,12 +382,8 @@ class _ContextMenuPageState extends State<ContextMenuPage> {
               color: list.cellColor,
               borderRadius: const .all(.circular(14)),
             ),
-            // Taller than its text: a copy of the hero in the opening's
-            // first frame is laid out a pixel or two short of its natural
-            // height, and the text must not overflow it.
-            child: Container(
-              height: 72,
-              padding: const .symmetric(horizontal: 16),
+            child: Padding(
+              padding: const .symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   CircleAvatar(
