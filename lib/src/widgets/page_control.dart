@@ -196,11 +196,16 @@ class MorphPageControlMotion {
   /// Whether nothing moves. A resting finger does not count: the
   /// control's moves and lift arrive as stamped pointer events, which wake
   /// the clock.
-  bool get isSettled =>
-      _timeline.isEmpty &&
+  bool get isSettled => _timeline.isEmpty && _still;
+
+  bool get _still =>
       _platter.isAtRest(_now, 0.002) &&
       _widths.every((MorphSpringState w) => w.isAtRest(_now, 0.01)) &&
       (_fade?.isAtRest(_now, 0.002) ?? true);
+
+  /// The time before which nothing moves, or null while something does:
+  /// a touch waiting out the platter's delay draws nothing new.
+  double? get wakeTime => _still ? _timeline.nextDue : null;
 
   /// Advances the motion to time [t].
   void advance(double t) {
@@ -441,6 +446,9 @@ class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
 
   @override
   bool get motionSettled => _motion.isSettled;
+
+  @override
+  double? get motionWakeTime => _motion.wakeTime;
 
   @override
   void didUpdateWidget(MorphPageControl oldWidget) {

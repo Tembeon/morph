@@ -727,6 +727,10 @@ class _RenderPressedTitle extends RenderProxyBox {
     if (dimmed != _dimmed) {
       _dimmed = dimmed;
       markNeedsCompositingBitsUpdate();
+    } else if (!dimmed) {
+      // Another segment's dimming: this title is unchanged, and without a
+      // layer of its own an update would repaint the row.
+      return;
     }
     markNeedsCompositedLayerUpdate();
   }
