@@ -22,6 +22,7 @@ final class BarsUITests: XCTestCase {
         app = XCUIApplication()
         app.launchEnvironment["PROBE_SCENE"] = "nav"
         app.launchEnvironment["PROBE_REC"] = rec
+        if let dark = env["PROBE_REF_DARK"] { app.launchEnvironment["PROBE_DARK"] = dark }
         for (k, v) in extra { app.launchEnvironment[k] = v }
         app.launch()
         Thread.sleep(forTimeInterval: settle)

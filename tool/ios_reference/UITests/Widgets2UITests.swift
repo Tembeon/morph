@@ -18,6 +18,7 @@ final class Widgets2UITests: XCTestCase {
         app = env["PROBE_BUNDLE"].map { XCUIApplication(bundleIdentifier: $0) } ?? XCUIApplication()
         app.launchEnvironment["PROBE_SCENE"] = scene
         app.launchEnvironment["PROBE_REC"] = rec
+        if let dark = env["PROBE_REF_DARK"] { app.launchEnvironment["PROBE_DARK"] = dark }
         app.launchEnvironment["PROBE_TRACK"] = "^NOTHING$"
         for (k, v) in extra { app.launchEnvironment[k] = v }
         app.launch()

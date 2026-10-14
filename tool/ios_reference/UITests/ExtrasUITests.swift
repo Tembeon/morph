@@ -17,6 +17,7 @@ final class ExtrasUITests: XCTestCase {
         app = env["PROBE_BUNDLE"].flatMap { $0.isEmpty ? nil : XCUIApplication(bundleIdentifier: $0) } ?? XCUIApplication()
         app.launchEnvironment["PROBE_SCENE"] = scene
         app.launchEnvironment["PROBE_REC"] = rec
+        if let dark = env["PROBE_REF_DARK"] { app.launchEnvironment["PROBE_DARK"] = dark }
         app.launchEnvironment["PROBE_TRACK"] = "^NOTHING$"
         for (k, v) in extra { app.launchEnvironment[k] = v }
         if let spinner = env["PROBE_SPINNER"], !spinner.isEmpty { app.launchEnvironment["PROBE_SPINNER"] = spinner }
@@ -165,7 +166,9 @@ final class ExtrasUITests: XCTestCase {
             let field = app.searchFields.firstMatch
             tap(field.exists ? p(field.frame.midX, field.frame.midY) : p(s.width / 2, 190)); pause(1.8)
             shot("search-stacked-active")
-            closeSearch(); pause(1.5)
+            let focused = app.searchFields.firstMatch
+            tap(p(s.width - 38, focused.exists ? focused.frame.midY : 84)); pause(1.5)
+            XCTAssertFalse(app.keyboards.firstMatch.exists)
             shot("search-stacked-return")
         }
         capture("followup-search-toolbar", scene: "x3search", extra: ["PROBE_SEARCH": "toolbar", "PROBE_TBITEMS": "1"]) {
@@ -173,6 +176,7 @@ final class ExtrasUITests: XCTestCase {
             tap(p(s.width / 2, s.height - 52)); pause(1.8)
             shot("search-toolbar-active")
             closeSearch(); pause(1.5)
+            XCTAssertFalse(app.keyboards.firstMatch.exists)
             shot("search-toolbar-return")
         }
     }
