@@ -184,12 +184,23 @@ void main() {
     await _pumpGallery(tester);
     expect(find.byType(MorphGlassScope), findsOneWidget);
     await _open(tester, 'Glass renderer');
-    await tester.tap(find.text('Flat'));
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 10),
+    final flat = find.text('Flat');
+    final settings = GalleryGlassScope.read(tester.element(flat));
+    expect(settings.tier, isNull);
+    await Scrollable.ensureVisible(tester.element(flat), alignment: 0.5);
+    await _settle(tester);
+    // The host draws flat on auto, so the tier goes through fake first to
+    // see the tap on Flat change what is drawn.
+    await tester.tap(find.text('Fake'));
+    await _settle(tester);
+    expect(settings.tier, MorphGlassTier.fake);
+    expect(
+      MorphAdaptiveGlass.tierOf(tester.element(flat)),
+      MorphGlassTier.fake,
     );
+    await tester.tap(flat);
+    await _settle(tester);
+    expect(settings.tier, MorphGlassTier.flat);
     expect(
       MorphAdaptiveGlass.tierOf(tester.element(find.text('Flat'))),
       MorphGlassTier.flat,
