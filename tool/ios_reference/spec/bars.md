@@ -350,9 +350,17 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 ## API gaps
 
 - Subtitles / large subtitles exist as API (`subtitle`, `largeSubtitle`)
-  with static geometry by eye: 13 pt secondaryLabel under the inline
-  title, 15 pt under the large title in a 22 pt band; NOT measured, and
-  the title swap does not animate them apart. Title menu (`titleMenuProvider`),
+  [read from UIKit, notes private; ported]: inline, the title turns 15 pt
+  semibold (short emphasized subheadline) over a 12 pt regular subtitle
+  (short caption 1); large, the title turns 22 pt bold (emphasized title
+  2) over an 11 pt medium subtitle (caption 2); subtitles in
+  secondaryLabel. Large layout: subtitle baseline 16 pt above the area's
+  bottom (the plain title's baseline sits there too), title baseline 6 pt
+  above the subtitle's line; area = title line + subtitle line + 6 in
+  place of the plain title's line (+4.8 pt at 1.2 line heights). Not read:
+  the inline title-subtitle gap (lines stack), the "short" styles' tighter
+  leading (morph uses 1.2), how the title swap animates them. All need a
+  device check. Title menu (`titleMenuProvider`),
   `titleView`, `UINavigationItemStyle` browser / editor (center groups),
   `pinnedTrailingGroup`, overflow menu (`additionalOverflowItems`).
 - `largeTitleDisplayMode` inline variant (automatic / always / never exist;

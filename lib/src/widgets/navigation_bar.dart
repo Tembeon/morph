@@ -48,17 +48,43 @@ abstract final class MorphNavigationBarMetrics {
   /// The size of the inline title.
   static const double titleSize = 17;
 
-  /// The size of the inline subtitle under the inline title: footnote by
-  /// eye, not yet measured on a device.
-  static const double subtitleSize = 13;
+  /// The size of the inline title when a subtitle sits under it: short
+  /// emphasized subheadline, semibold (read from UIKit, notes private).
+  static const double titleWithSubtitleSize = 15;
 
-  /// The size of the subtitle under a large title: subheadline by eye,
-  /// not yet measured on a device.
-  static const double largeSubtitleSize = 15;
+  /// The size of the inline subtitle under the inline title: short
+  /// caption 1, regular, in secondaryLabel (read from UIKit, notes
+  /// private). The gap between the two lines is not read: they stack
+  /// line box on line box.
+  static const double subtitleSize = 12;
 
-  /// The height a large subtitle adds to the large title area (not yet
-  /// measured on a device).
-  static const double largeSubtitleHeight = 22;
+  /// The size of a large title with a subtitle under it: emphasized
+  /// title 2, bold (read from UIKit, notes private).
+  static const double largeTitleWithSubtitleSize = 22;
+
+  /// The size of the subtitle under a large title: caption 2, medium, in
+  /// secondaryLabel (read from UIKit, notes private).
+  static const double largeSubtitleSize = 11;
+
+  /// How far above the bottom of the large title area a large subtitle's
+  /// baseline sits, as the title's own baseline does without a subtitle
+  /// (read from UIKit, notes private).
+  static const double largeBaselineInset = 16;
+
+  /// How far above the top of a large subtitle's line the large title's
+  /// baseline sits (read from UIKit, notes private).
+  static const double largeTitleSubtitleGap = 6;
+
+  /// The height a large subtitle adds to the large title area. UIKit sizes
+  /// the area by the title's and the subtitle's lines plus
+  /// [largeTitleSubtitleGap]; with the 34 point title's line replaced by
+  /// the 22 point one, the change is this (lines at
+  /// [MorphBarMetrics.lineHeight] of their size; the formula is read from
+  /// UIKit, the result needs a device check).
+  static const double largeSubtitleHeight =
+      (largeTitleWithSubtitleSize + largeSubtitleSize - largeTitleSize) *
+          MorphBarMetrics.lineHeight +
+      largeTitleSubtitleGap;
 
   /// The least space between the inline title and the bar's buttons: the
   /// title stays centered unless it would come closer, then it moves away
@@ -84,11 +110,42 @@ TextStyle morphInlineTitleStyle(Color color) => MorphTypography.resolve(
   ),
 );
 
+/// The style of a navigation bar's inline title with a subtitle under it.
+TextStyle morphInlineTitleWithSubtitleStyle(Color color) =>
+    MorphTypography.resolve(
+      TextStyle(
+        fontSize: MorphNavigationBarMetrics.titleWithSubtitleSize,
+        fontWeight: FontWeight.w600,
+        height: MorphBarMetrics.lineHeight,
+        color: color,
+      ),
+    );
+
 /// The style of a navigation bar's inline subtitle, [color] usually the
 /// appearance's [MorphBarAppearance.subtitleColor].
 TextStyle morphInlineSubtitleStyle(Color color) => MorphTypography.resolve(
   MorphTypography.body.copyWith(
     fontSize: MorphNavigationBarMetrics.subtitleSize,
+    height: MorphBarMetrics.lineHeight,
+    color: color,
+  ),
+);
+
+/// The style of a large title with a subtitle under it.
+TextStyle morphLargeTitleWithSubtitleStyle(Color color) =>
+    MorphTypography.resolve(
+      MorphTypography.largeTitle.copyWith(
+        fontSize: MorphNavigationBarMetrics.largeTitleWithSubtitleSize,
+        height: MorphBarMetrics.lineHeight,
+        color: color,
+      ),
+    );
+
+/// The style of the subtitle under a large title.
+TextStyle morphLargeSubtitleStyle(Color color) => MorphTypography.resolve(
+  TextStyle(
+    fontSize: MorphNavigationBarMetrics.largeSubtitleSize,
+    fontWeight: FontWeight.w500,
     height: MorphBarMetrics.lineHeight,
     color: color,
   ),
@@ -281,7 +338,12 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
       }
 
       const black = Color(0xFF000000);
-      final size = measure(title, morphInlineTitleStyle(black));
+      final size = measure(
+        title,
+        subtitle == null
+            ? morphInlineTitleStyle(black)
+            : morphInlineTitleWithSubtitleStyle(black),
+      );
       if (subtitle == null) return size;
       final below = measure(subtitle, morphInlineSubtitleStyle(black));
       return Size(
@@ -568,7 +630,9 @@ class _InlineTitleState extends State<_InlineTitle> {
   @override
   Widget build(BuildContext context) {
     final shown = _shown = _shownNow();
-    final style = morphInlineTitleStyle(widget.color);
+    final style = widget.subtitle == null
+        ? morphInlineTitleStyle(widget.color)
+        : morphInlineTitleWithSubtitleStyle(widget.color);
     final textWidth = widget.size.width;
     final textHeight = widget.size.height;
     const pad = MorphNavigationBarMetrics.titlePadding;
@@ -672,8 +736,11 @@ class MorphLargeTitle extends StatelessWidget {
   final String title;
 
   /// The line under the large title (UIKit `largeSubtitle`, iOS 26), or
-  /// null. It adds [MorphNavigationBarMetrics.largeSubtitleHeight] to the
-  /// area; its size and spacing are not yet measured on a device.
+  /// null. With it the title turns 22 point bold and the 11 point medium
+  /// subtitle sits with its baseline 16 points above the area's bottom,
+  /// the title's baseline 6 points above the subtitle's line; the area
+  /// grows by [MorphNavigationBarMetrics.largeSubtitleHeight]. Read from
+  /// UIKit (notes private), not yet checked on a device.
   final String? subtitle;
 
   /// The height of the large title area, with or without a [subtitle].
@@ -714,35 +781,68 @@ class MorphLargeTitle extends StatelessWidget {
     );
     final subtitle = this.subtitle;
     if (subtitle == null) return head;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        head,
-        SizedBox(
-          height: MorphNavigationBarMetrics.largeSubtitleHeight,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.symmetric(
-              horizontal: MorphNavigationBarMetrics.largeTitleInset,
-            ),
-            child: Align(
-              alignment: AlignmentDirectional.topStart,
-              child: Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: MorphTypography.resolve(
-                  MorphTypography.body.copyWith(
-                    fontSize: MorphNavigationBarMetrics.largeSubtitleSize,
-                    color: look.subtitleColor,
-                  ),
-                ),
-              ),
+    final titleStyle = morphLargeTitleWithSubtitleStyle(look.titleColor);
+    final subtitleStyle = morphLargeSubtitleStyle(look.subtitleColor);
+    const height =
+        MorphNavigationBarMetrics.largeTitleHeight +
+        MorphNavigationBarMetrics.largeSubtitleHeight;
+    const subtitleBaseline =
+        height - MorphNavigationBarMetrics.largeBaselineInset;
+    final ascent = _ascent(subtitle, subtitleStyle);
+    final titleBaseline =
+        subtitleBaseline -
+        ascent -
+        MorphNavigationBarMetrics.largeTitleSubtitleGap;
+    Widget line(String text, TextStyle style, double baseline) => Positioned(
+      left: 0,
+      right: 0,
+      top: 0,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: MorphNavigationBarMetrics.largeTitleInset,
+        ),
+        child: Baseline(
+          baseline: baseline,
+          baselineType: TextBaseline.alphabetic,
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1,
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style,
             ),
           ),
         ),
-      ],
+      ),
     );
+    return Semantics(
+      header: true,
+      child: SizedBox(
+        height: height,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            line(title, titleStyle, titleBaseline),
+            line(subtitle, subtitleStyle, subtitleBaseline),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static double _ascent(String text, TextStyle style) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    );
+    painter.layout();
+    final ascent = painter.computeDistanceToActualBaseline(
+      TextBaseline.alphabetic,
+    );
+    painter.dispose();
+    return ascent;
   }
 }
 
