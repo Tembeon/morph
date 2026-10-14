@@ -413,8 +413,12 @@ final class X3SearchList: X3ScriptedScene, UITableViewDataSource, UISearchResult
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Search"
-        navigationItem.largeTitleDisplayMode = .always
-        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = env["PROBE_LARGE"] == "0" ? .never : .always
+        navigationController?.navigationBar.prefersLargeTitles = env["PROBE_LARGE"] != "0"
+        if env["PROBE_NAVITEMS"] == "1" {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Edit", style: .plain, target: nil, action: nil)
+            navigationItem.rightBarButtonItems = [UIBarButtonItem(image: UIImage(systemName: "plus"), style: .plain, target: nil, action: nil)]
+        }
         search.searchResultsUpdater = self
         search.delegate = self
         search.searchBar.accessibilityIdentifier = "x3_searchbar"

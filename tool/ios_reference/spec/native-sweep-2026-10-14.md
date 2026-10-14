@@ -305,3 +305,18 @@ start-end; thumb color params; slider semantic formatter; localized
 stepper labels; progress `animated` default true (UIKit's setter does not
 animate); activity starts animating (UIKit starts stopped); captions;
 badge appear/leave animation; concentric corner API.
+
+## Status after the navigation bar pass (2026-10-14)
+
+- 1: fixed - the inline title keeps to the room between the groups,
+  measured rule in bars.md "Spec - inline title room".
+- 3: fixed for the toolbar search - `MorphSearchToolbar` hides the
+  scaffold's navigation bar while searching
+  (`hidesNavigationBarDuringPresentation`), content up on the fitted
+  spring; bars.md "Spec - bar hidden while searching" (a bar with items
+  and the way back pending the iPhone).
+- 13: fixed - `MorphScrollIndicator` in the scaffold, bars.md "Spec -
+  scroll indicator" (dark color, minimum lengths pending).
+- 15: `largeTitleDisplayMode` defaults to automatic on the scaffold;
+  `navigationBarHidden` / `setNavigationBarHidden` added. Still open:
+  `titleView`, title menu, centered groups.

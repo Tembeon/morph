@@ -67,7 +67,7 @@ Sources: iPhoneOS27.0.sdk `UIBarButtonItem.h`, `UIBarButtonItemBadge.h`, `UIBarB
 | `.titleView`, iOS 2+ | custom center view | none | missing (segmented control in bar is common) | add `MorphNavigationScaffold.titleView` / `MorphNavigationBar.titleView` (Widget?) |
 | `.subtitle`, `.attributedSubtitle`, `.subtitleView`, iOS 26 (LG) | second line under inline title | none | missing, new LG pattern | add `subtitle` (String?) on scaffold, config, bar (needs device metrics) |
 | `.largeTitle`, `.largeSubtitle`, `.largeAttributedSubtitle`, `.largeSubtitleView`, iOS 26 (LG) | text of the large title area distinct from inline | `MorphLargeTitle(title)`; no subtitle | no large subtitle; large text always = title | add `largeSubtitle`; `MorphLargeTitle(title, subtitle:)` |
-| `.largeTitleDisplayMode` `.automatic/.always/.never/.inline` (inline iOS 17) | per-page large title | `MorphNavigationScaffold.largeTitle` (bool) | bool covers always/never only | rename -> `largeTitleDisplayMode: MorphLargeTitleDisplayMode` (Breaking) |
+| `.largeTitleDisplayMode` `.automatic/.always/.never/.inline` (inline iOS 17) | per-page large title | `MorphNavigationScaffold.largeTitleDisplayMode` (automatic / always / never; default automatic as UIKit, 2026-10-14) | no `.inline` | done; `.inline` open |
 | `.prompt`, legacy | text above title | none | rarely used in LG | skip |
 | `.backBarButtonItem`, legacy | custom back item of next page | none | - | skip (backButtonTitle + backButtonDisplayMode cover it) |
 | `.backButtonTitle`, iOS 11+ | label of the NEXT page's back button | `MorphNavigationScaffold.backTitle`, `MorphNavigationConfig.backTitle` | same semantics, different name | rename -> `backButtonTitle` |
@@ -92,7 +92,7 @@ Sources: iPhoneOS27.0.sdk `UIBarButtonItem.h`, `UIBarButtonItemBadge.h`, `UIBarB
 
 | UIKit API | meaning | morph equivalent | gap / mismatch | proposal |
 |---|---|---|---|---|
-| `UINavigationBar.prefersLargeTitles`, iOS 11+ | stack-wide default for `.automatic` | none | per page only | add `MorphNavigationStack.prefersLargeTitles` with the display-mode enum |
+| `UINavigationBar.prefersLargeTitles`, iOS 11+ | stack-wide default for `.automatic` | `MorphNavigationStack.prefersLargeTitles` | - | done |
 | `UINavigationBar.items`, `pushItem/popItem`, `setItems(_:animated:)` | standalone bar stack | `MorphNavigationBar` (stateless input) + `MorphNavigationConfig` | declarative | keep |
 | `UINavigationBar.tintColor` | bar tint | `MorphBarStyle.foregroundColor` / `prominentColor` | - | keep |
 | `UIBarAppearance.overrideUserInterfaceStyle`, iOS 27 (LG) | force light/dark bar | `MorphBarStyle.light` / `.dark` passed as `style` | covered | keep |
@@ -121,7 +121,7 @@ Sources: iPhoneOS27.0.sdk `UIBarButtonItem.h`, `UIBarButtonItemBadge.h`, `UIBarB
 | `toolbarTitleDisplayMode(.automatic/.large/.inlineLarge/.inline)`, iOS 17 | large title modes; inlineLarge = large title text sitting in the bar | `MorphNavigationScaffold.largeTitle` bool | see UIKit row | enum incl. `inlineLarge` only if measured |
 | `toolbarRole(.automatic/.navigationStack/.browser/.editor)`, iOS 16 | same as `UINavigationItem.style` | none | - | skip (low) |
 | `toolbarTitleMenu { }`, iOS 16 | same as `titleMenuProvider` | none | - | add `titleMenu` |
-| `toolbarVisibility(_:for:)`, iOS 18; `navigationBarHidden` | hide nav bar / bottom bar | none for nav bar; toolbar implicit | cannot hide the stack's nav bar per page | add `MorphNavigationScaffold.navigationBarHidden` (low/med) |
+| `toolbarVisibility(_:for:)`, iOS 18; `navigationBarHidden` | hide nav bar / bottom bar | `MorphNavigationScaffold.navigationBarHidden`; toolbar implicit | - | done (nav bar) |
 | `toolbarBackgroundVisibility(_:for:)` iOS 18, `scrollEdgeEffectStyle(_:for:)` iOS 26 (LG) | bar background / edge effect | `edgeEffect: MorphScrollEdgeEffectStyle?` | - | keep |
 | `toolbarForegroundStyle(_:for:)` | bar foreground color | `MorphBarStyle.foregroundColor` | - | keep |
 | `toolbarMinimizationBehavior` / `toolbarMinimizationRestoration` / `toolbarMinimizationSafeAreaAdjustment`, iOS 27 (LG) | same as `UIBarMinimization` | none | - | same as UIKit row |
@@ -163,7 +163,7 @@ Sources: iPhoneOS27.0.sdk `UIBarButtonItem.h`, `UIBarButtonItemBadge.h`, `UIBarB
 | 9 | Title menu (`titleMenuProvider` / `toolbarTitleMenu`) | med | M | add `titleMenu: List<MorphMenuEntry>?` reusing the menu host |
 | 10 | Search placements in the nav bar (integrated / stacked / button) | med | L | coordinate with search family |
 | 11 | Selected / toggle bar item | low/med | S | add `MorphBarButton.selected` |
-| 12 | Hide nav bar per page (`toolbarVisibility`) | low/med | M | add `navigationBarHidden` on scaffold / config |
+| 12 | ~~Hide nav bar per page~~ done: `navigationBarHidden` | - | - | - |
 | 13 | Bar minimization (iOS 27 `UIBarMinimization`) | low/med | L | measure first; add `minimization` later |
 | 14 | Overflow / `visibilityPriority` / `pinnedTrailingGroup` / `additionalOverflowItems` | low | L | defer (narrow-width and iPad) |
 | 15 | `preferredMenuElementOrder` on bar menus | low | S | add `MorphBarButton.menuOrder` |

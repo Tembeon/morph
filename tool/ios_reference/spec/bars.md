@@ -38,8 +38,8 @@ soft / hard, `hidden`); `UIScrollEdgeElementContainerInteraction`.
 - Navigation: capsule 44, button 36, pad 4, gap 16, label 12, icon 7.
   Toolbar: 48 / 38 / 5 / 14 / 11 / 8 (min 38).
 - Toolbar 28 from the sides and screen bottom; nav bar 54 below the status
-  bar; 16 side inset on 402 pt (20 on 440). Centered title kept 12 from
-  the buttons.
+  bar; 16 side inset on 402 pt (20 on 440). Inline title kept 12 from
+  the buttons (placement: "Spec - inline title room").
 - Press lifts the whole capsule on the glass-button model (1 + 16/w).
 - Text: bar buttons 17 medium (prominent semibold), title 17 semibold,
   large title 34 bold.
@@ -226,6 +226,86 @@ release and on a 0.22 s hold like the inline menu button, its tap 0.013 s
 later [device, 2026-10-05]: see menu-button.md "Bar item menu as primary
 action".
 
+## Spec - inline title room [layout, sim 2026-10-14, scene navtitle]
+
+Probe scene `navtitle` (tool/ios_reference/Sources/NavTitle.swift): a
+pushed page whose navigationItem cycles five titles ("Hi" to a 300+ pt
+one), with and without a subtitle, under a back button and none / one
+icon / an icon pair / pair + prominent Done / two / three text groups;
+iPhone 17 Pro simulator, iOS 27.0, 402 pt. 46 bars filmed (the run was
+cut by the shutdown of the simulators; the leading-group variants are
+missing). Title ink read from the stills (notes and stills private).
+
+- Bounds: `lo` = right edge of the leading groups + 12 (16 without
+  them), `hi` = left edge of the trailing groups - 12 (width - 16 without
+  them). Every group bounds its own side wherever it stands.
+- Centered on the BAR (not on the room) when it fits within [lo, hi] so
+  centered: "Hi" / "Message 4" beside a back button and an icon pair,
+  a 293 pt title with no groups (54.3 - 347.3).
+- Otherwise at `lo`, NOT shifted just as far as needed: "A medium length
+  title" (168 pt) beside the pair starts at 72.7 although 101 - 269 would
+  fit; even "Hi" goes to `lo` beside pair + Done (center 201 > hi 185).
+  Truncated with an ellipsis at `hi`.
+- No room: dropped (three text groups reaching 77 pt). The threshold
+  between 0 and 131 pt of room is not measured.
+- Title + subtitle: one block as wide as the wider line, placed by the
+  same rule; both lines leading-aligned when the block sits at `lo`. One
+  bar of nine (icon at the trailing side, long title truncated, subtitle
+  fits centered) centered the subtitle: not reproduced.
+- morph: `morphInlineTitleBounds` + `morphInlineTitleFrame`
+  (navigation_bar.dart), test/navigation_title_layout_test.dart replays
+  the rows above within 0.5 pt. Before: a capsule straddling the bar's
+  center bounded nothing and the title was drawn over it (sweep item 1).
+
+## Spec - bar hidden while searching [film, sim sweep 2026-10-14]
+
+UISearchController in the toolbar placement
+(`hidesNavigationBarDuringPresentation`, default true), scene `x3search`
+`PROBE_TBITEMS=1`, film runs/native-searchtb (sweep evidence, private):
+on the focus the large title and the content move up together until the
+content sits under the status bar (Item 0 from 185 to 83 pt: 102 pt for
+a 54 pt bar and the 52 pt large title area), on one spring, fitted
+response 0.36 s, damping 0.76 (1.2 pt rms, 17 frames; tail undershoots
+2 pt and returns). The large title fades as it goes (faint at half the
+travel, gone at 0.6). The motion starts at once, 0.33 s before the
+keyboard starts to rise (the field waits for the keyboard,
+`MorphSearchTuning.keyboardWaitLimit`). Ported: `MorphNavigationBarHiding`
+(spring, `largeTitleFade` 2), `MorphNavigationScaffold.navigationBarHidden`
+and `.setNavigationBarHidden(context, hidden:)`, which
+`MorphSearchToolbar` calls (`hidesNavigationBarDuringPresentation`, on).
+APPROXIMATIONS, pending the iPhone: the scene's bar has no buttons and
+no inline title, so how UIKit hides a bar with items is not seen (morph
+slides the whole bar, edge effect included, up off the screen on the same
+progress, a transform, no fade); the way back (close) is not filmed (same
+spring); Reduce Motion switches at once. The scroll view is laid out
+taller by the travel while the bar is hidden or moving, so the content
+it uncovers at the bottom is there; the motion itself builds nothing.
+test/navigation_bar_hiding_test.dart.
+
+## Spec - scroll indicator [film, sim sweep 2026-10-14]
+
+Film runs/native-nav-gest (sweep evidence, private), the large-title
+table scrolled by XCUITest drags, light mode, 3x pixels:
+- 3 pt thick (9 px), round ends, 3 pt from the right edge (x 396 - 399);
+  black at 0.35 (a cyan row 204 -> 133, 0.645).
+- Track from 3 pt below the navigation bar (top 119 = 116 + 3 at the
+  top of the content, also with the large title showing: the large title
+  counts as content).
+- Shows on the first frame the content moves (no fade seen), stays while
+  it moves, fades out 1.06 / 1.08 s after the content rests (finger
+  lifted, deceleration or bounce over), over ~0.2 s, about linear.
+- A pull past the top shortens it pinned at its top (99 -> 18 pt at the
+  deepest pull filmed).
+- Not measured (pending the iPhone): dark mode color (morph: white 0.35),
+  minimum length (36, Flutter's CupertinoScrollbar), minimum while
+  pulled (8), the fade-in, whether a content that fits shows it (morph:
+  no), the bottom inset over a toolbar (morph: the toolbar extent + 3),
+  the long-press scrubbing.
+- morph: `MorphScrollIndicator`, `MorphScrollIndicatorTuning`
+  (scroll_indicator.dart), on in `MorphNavigationScaffold`
+  (`showsVerticalScrollIndicator`); a CustomPaint in its own repaint
+  boundary: a scroll repaints the indicator alone.
+
 ## Spec - inline title, large title, edge effect
 
 - Inline title: crit 0.45 in / 0.7 out, +15 pt rise, blur 4; edge effect
@@ -407,8 +487,13 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
   `titleView`, `UINavigationItemStyle` browser / editor (center groups),
   `pinnedTrailingGroup`, overflow menu (`additionalOverflowItems`).
 - `largeTitleDisplayMode` inline variant (automatic / always / never exist;
-  automatic follows the page below, the first page
-  `MorphNavigationStack.prefersLargeTitles`).
+  automatic, the scaffold's default as in UIKit, follows the page below,
+  the first page `MorphNavigationStack.prefersLargeTitles`).
+- `titleView`, title menu (`titleMenuProvider` / SwiftUI
+  `toolbarTitleMenu`), centered groups (`centerItemGroups`, styles
+  browser / editor): not ported. `titleView` would place its child by the
+  inline title room rule; the title menu needs the bar's menu machinery
+  on the title.
 - Bar button badges exist (`MorphBarButton.badge`, `MorphBadge`)
   [read from UIKit, notes private; ported in badge.dart]: systemRed fill,
   white text, caption 1 medium (12 pt w500); height = text line + 2 + 2,

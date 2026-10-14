@@ -41,7 +41,7 @@ LG = new with Liquid Glass (iOS 26/27).
 | `viewControllers`, `setViewControllers(_:animated:)` | read / replace the whole stack | none (imperative only) | no declarative stack | add Navigator 2: `MorphNavigationStack(pages:, onDidRemovePage:)` + `MorphNavigationPage` (see ranked #1) |
 | `topViewController`, `visibleViewController` | queries | `ModalRoute.of`, `NavigatorObserver` | - | skip (Flutter idiom) |
 | `navigationBar` / `toolbar` (managed bars) | the shared bars | built into `MorphNavigationStack` | not replaceable; style via `MorphBarStyle` | keep |
-| `isNavigationBarHidden`, `setNavigationBarHidden(_:animated:)` | hide nav bar | none | missing | add `MorphNavigationScaffold.navigationBarHidden` (see bars.md) |
+| `isNavigationBarHidden`, `setNavigationBarHidden(_:animated:)` | hide nav bar | `MorphNavigationScaffold.navigationBarHidden`, `MorphNavigationScaffold.setNavigationBarHidden(context, hidden:)` (motion of the search presentation, bars.md) | - | done |
 | `isToolbarHidden`, `setToolbarHidden(_:animated:)` | toolbar visibility | derived from `toolbarLeading/toolbarTrailing` (`MorphNavigationConfig.hasToolbar`) | declarative | keep |
 | `interactivePopGestureRecognizer`, iOS 7+ | edge swipe back | `MorphNavigationRoute` edge pop (`MorphNavigationTransition.edgeWidth` 20, `popDistance`, `popVelocity`) | no per-stack switch other than `PopScope` | keep; add `MorphNavigationStack.popGestureEnabled` if asked |
 | `interactiveContentPopGestureRecognizer`, iOS 26 (LG) | back swipe from anywhere on the content | none (edge only) | missing; iOS 26 users expect it | add full-width content pop (default on, yields to horizontal scrollables); measure first |
@@ -70,7 +70,7 @@ LG = new with Liquid Glass (iOS 26/27).
 | `navigationTransition(.automatic)` / `.zoom(sourceID:in:)` iOS 18 / `.crossFade` iOS 27 (LG) | per-destination transition | `MorphNavigationRoute(zoomSource:)`; no crossFade | name `MorphNavigationTransition` is taken by a tuning-constants class | rename constants, add transition value (Breaking) |
 | `matchedTransitionSource(id:in:)` on View (iOS 18) and ToolbarContent (iOS 26 LG) | mark zoom source | `MorphTag(id:)` under `MorphScope` | no toolbar-item source | add bar-button source (same as UIKit row) |
 | `navigationBarBackButtonHidden(_:)` | hide back | none | same as UIKit `hidesBackButton` | add (bars.md) |
-| `toolbarVisibility(_:for:)`, iOS 18 | hide bars per page | none for nav bar | same as UIKit row | add `navigationBarHidden` |
+| `toolbarVisibility(_:for:)`, iOS 18 | hide bars per page | `MorphNavigationScaffold.navigationBarHidden` | - | done |
 | `navigationTitle` / `navigationSubtitle` | title | see bars.md | - | - |
 | `NavigationSplitView`, iOS 16 | sidebar / content / detail columns | none | iPad / desktop layout; phones collapse to a stack | skip for 1.0 (low on phone; macOS desktop could use it later) |
 
@@ -100,7 +100,7 @@ LG = new with Liquid Glass (iOS 26/27).
 | 3 | Zoom options: `dimmingColor`, `interactiveDismissShouldBegin` | med | S | add `dimmingColor` to `MorphPushZoomTuning`/`MorphZoomTuning` (or route), add `zoomDismissShouldBegin` callback on route / `pushMorphZoom` / `presentMorphSheet` |
 | 4 | Zoom from a bar button (`sourceBarButtonItemProvider`, SwiftUI toolbar `matchedTransitionSource`, iOS 26) | med | M | each `MorphBarButton` registers a `MorphTag` under its id; `pushMorphZoom(from: barButtonId)` |
 | 5 | Cross-fade navigation transition (`.crossDissolve` / SwiftUI `.crossFade` iOS 27) | med | S | `MorphNavigationRouteTransition.crossFade` (spring from the reduced-motion fade path; measure) |
-| 6 | Hide nav bar per page (`setNavigationBarHidden`, `toolbarVisibility`) | low/med | M | `navigationBarHidden` on scaffold / config |
+| 6 | ~~Hide nav bar per page~~ done 2026-10-14: `navigationBarHidden`, `setNavigationBarHidden` | - | - | - |
 | 7 | `alignmentRectProvider` | low | M | `alignmentRect` callback |
 | 8 | `NavigationSplitView` | low (phone) | L | defer past 1.0 |
 | 9 | `hidesBottomBarWhenPushed` with `MorphTabBar` | low | M | tab-bar family |

@@ -148,6 +148,8 @@ final class NavTitlePage: UITableViewController {
         let row: [String: Any] = ["i": index, "title": c.title, "subtitle": c.subtitle ?? "", "leading": c.leading,
                                   "trailing": c.trailing, "barW": r2(bar.bounds.width), "labels": labels, "views": buttons]
         if let data = try? JSONSerialization.data(withJSONObject: row), let s = String(data: data, encoding: .utf8) { lines.append(s) }
+        let jsonl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("navtitle.jsonl")
+        try? (lines.joined(separator: "\n") + "\n").write(to: jsonl, atomically: true, encoding: .utf8)
         let renderer = UIGraphicsImageRenderer(bounds: CGRect(x: 0, y: 0, width: window.bounds.width, height: 130))
         let png = renderer.pngData { _ in window.drawHierarchy(in: window.bounds, afterScreenUpdates: false) }
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
