@@ -141,9 +141,19 @@ class MorphAlertMotion {
   /// Whether the alert has left and nothing moves any more.
   bool get isDismissed => _dismissing && _progress.isAtRest(_now, 0.002);
 
-  /// Whether nothing moves.
+  /// Whether nothing moves visibly any more: the fade and the dimming
+  /// swing less than [MorphRest.opacity] and the scale less than
+  /// [MorphRest.scale] of the alert's width ([settle] lands them).
   bool get isSettled =>
-      _progress.isAtRest(_now, 0.001) && _scale.isAtRest(_now, 1e-4);
+      _progress.isWithin(_now, MorphRest.opacity) &&
+      _scale.isWithin(_now, MorphRest.scale(MorphAlertTuning.width));
+
+  /// Lands every spring on its target at the motion's time: at a visible
+  /// rest ([isSettled]) nothing that shows moves (NEAR, invisible).
+  void settle() {
+    _progress.settle(_now);
+    _scale.settle(_now);
+  }
 
   /// Starts presenting the alert at time [t].
   void present(double t) {

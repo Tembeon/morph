@@ -2316,6 +2316,11 @@ class _RenderShuttleStage extends RenderProxyBox {
   bool hitTest(BoxHitTestResult result, {required Offset position}) =>
       !_staged && super.hitTest(result, position: position);
 
+  // A frame of the flight repaints the shuttle, not the overlay and the
+  // app it floats over.
+  @override
+  bool get isRepaintBoundary => true;
+
   @override
   void paint(PaintingContext context, Offset offset) {
     if (!_staged) super.paint(context, offset);

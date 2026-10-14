@@ -675,6 +675,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
       _motion.focus(t, delay: 0);
     }
     _motion.advance(t);
+    _motion.land(t);
   }
 
   @override
@@ -841,87 +842,93 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
     final close = _close!;
     final leadItems = _leadItems;
     final trailItems = _trailItems;
-    return CallbackShortcuts(
-      bindings: <ShortcutActivator, VoidCallback>{
-        const SingleActivator(LogicalKeyboardKey.escape): _end,
-      },
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final size = constraints.biggest;
-          _layouts = (
-            rest: morphSearchBarLayout(
-              width: size.width,
-              bottom: size.height - MorphSearchTuning.restInset,
-              focused: false,
-              leading: leadWidths,
-              trailing: trailWidths,
-              rtl: rtl,
-            ),
-            focused: morphSearchBarLayout(
-              width: size.width,
-              bottom:
-                  size.height -
-                  (_motion.isFocused ? keyboard : _frozenKeyboard ?? keyboard) -
-                  MorphSearchTuning.keyboardGap,
-              focused: true,
-              leading: leadWidths,
-              trailing: trailWidths,
-              rtl: rtl,
-            ),
-            virtual: morphSearchBarLayout(
-              width: size.width,
-              bottom: size.height - MorphSearchTuning.keyboardGap,
-              focused: true,
-              leading: leadWidths,
-              trailing: trailWidths,
-              rtl: rtl,
-            ),
-          );
-          final structure = _ticks.read()!;
-          final side = structure.side;
-          final shut = structure.close;
-          return MorphGlassStage(
-            open: structure.open,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                MorphLivePositionedTemplate(
-                  key: const ValueKey<String>('field'),
-                  live: _ticks,
-                  template: () => Positioned.fromRect(
-                    rect: _frame.field,
-                    child: morphLiveSlot,
-                  ),
-                  child: field,
-                ),
-                for (var i = 0; i < leadItems.length; i++)
-                  _placed(
-                    () => _frame.leading[i],
-                    () => 1 - _frame.p,
-                    side,
-                    leadItems[i],
-                    key: ValueKey<Object>(('lead', leadItems[i].button.id)),
-                  ),
-                for (var i = 0; i < trailItems.length; i++)
-                  _placed(
-                    () => _frame.trailing[i],
-                    () => 1 - _frame.p,
-                    side,
-                    trailItems[i],
-                    key: ValueKey<Object>(('trail', trailItems[i].button.id)),
-                  ),
-                if (shut != null)
-                  _placed(
-                    () => _frame.close,
-                    () => _frame.p,
-                    shut,
-                    close,
-                    key: const ValueKey<String>('close'),
-                  ),
-              ],
-            ),
-          );
+    // A repaint boundary of its own: a frame of the focus transition
+    // repaints the bar, not the page under it.
+    return RepaintBoundary(
+      child: CallbackShortcuts(
+        bindings: <ShortcutActivator, VoidCallback>{
+          const SingleActivator(LogicalKeyboardKey.escape): _end,
         },
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final size = constraints.biggest;
+            _layouts = (
+              rest: morphSearchBarLayout(
+                width: size.width,
+                bottom: size.height - MorphSearchTuning.restInset,
+                focused: false,
+                leading: leadWidths,
+                trailing: trailWidths,
+                rtl: rtl,
+              ),
+              focused: morphSearchBarLayout(
+                width: size.width,
+                bottom:
+                    size.height -
+                    (_motion.isFocused
+                        ? keyboard
+                        : _frozenKeyboard ?? keyboard) -
+                    MorphSearchTuning.keyboardGap,
+                focused: true,
+                leading: leadWidths,
+                trailing: trailWidths,
+                rtl: rtl,
+              ),
+              virtual: morphSearchBarLayout(
+                width: size.width,
+                bottom: size.height - MorphSearchTuning.keyboardGap,
+                focused: true,
+                leading: leadWidths,
+                trailing: trailWidths,
+                rtl: rtl,
+              ),
+            );
+            final structure = _ticks.read()!;
+            final side = structure.side;
+            final shut = structure.close;
+            return MorphGlassStage(
+              open: structure.open,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  MorphLivePositionedTemplate(
+                    key: const ValueKey<String>('field'),
+                    live: _ticks,
+                    template: () => Positioned.fromRect(
+                      rect: _frame.field,
+                      child: morphLiveSlot,
+                    ),
+                    child: field,
+                  ),
+                  for (var i = 0; i < leadItems.length; i++)
+                    _placed(
+                      () => _frame.leading[i],
+                      () => 1 - _frame.p,
+                      side,
+                      leadItems[i],
+                      key: ValueKey<Object>(('lead', leadItems[i].button.id)),
+                    ),
+                  for (var i = 0; i < trailItems.length; i++)
+                    _placed(
+                      () => _frame.trailing[i],
+                      () => 1 - _frame.p,
+                      side,
+                      trailItems[i],
+                      key: ValueKey<Object>(('trail', trailItems[i].button.id)),
+                    ),
+                  if (shut != null)
+                    _placed(
+                      () => _frame.close,
+                      () => _frame.p,
+                      shut,
+                      close,
+                      key: const ValueKey<String>('close'),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -947,10 +954,11 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
     final virtual = layouts.virtual;
     final p = _motion.progress(_motion.time);
     final focusing = _motion.isFocused;
-    final closeRect = _frozenClose ?? Rect.lerp(rest.close, focused.close, p)!;
+    final closeRect =
+        _frozenClose ?? morphLerpRect(rest.close, focused.close, p);
     _lastClose = closeRect;
     Rect side(Rect atRest, Rect atFocus) =>
-        focusing ? atRest : Rect.lerp(atFocus, atRest, 1 - p)!;
+        focusing ? atRest : morphLerpRect(atFocus, atRest, 1 - p);
     _frame = _ToolbarFrame(
       p: p,
       field: Rect.lerp(rest.field, focused.field, p)!,

@@ -63,6 +63,17 @@ scene `menu` with `PROBE_CTX=1`.
 engine flight on a transparent vessel surface spec; `scrimMotion`
 (`MorphScrimMotion`) for the dim.
 
+Per-frame work (lifecycle.md, 2026-10-14): the source, hidden once
+takeoff settled, returns to its natural size at once (it sprang back for
+a second, repainting itself and the page; identical: nothing shows it).
+A flight closed before it settled hands back a source that shows, which
+still springs. While the source grows under the finger or lands it is a
+repaint boundary of its own (`MorphLiveApart`). The shuttle of every
+flight is a repaint boundary. Host: hold 20 paints a frame to 2,
+release 1.41 s to 0.37 s and 54 to 30 paints a frame. Still per frame:
+the vessel follows the morph by layout (19 layouts: the engine's
+shuttle chain).
+
 ## Not reproduced / open
 
 - Satellites are app-built columns, not UIMenu rows (no row styling

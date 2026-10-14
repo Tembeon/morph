@@ -1141,18 +1141,16 @@ class _MenuShapes extends StatelessWidget {
     final glass = MorphGlassScope.maybeOf(context);
     final content = this.content;
     final frames = this.frames;
-    final Widget glyph = Center(
-      child: MorphLiveTemplate(
-        live: frames,
-        template: () {
-          final now = shapes();
-          return Transform.scale(
-            scaleX: now.sourceScale * now.lookStretch,
-            scaleY: now.sourceScale,
-          );
-        },
-        child: MorphGlyphs(child: this.glyph),
-      ),
+    final Widget glyph = MorphLiveTemplate(
+      live: frames,
+      template: () {
+        final now = shapes();
+        return Transform.scale(
+          scaleX: now.sourceScale * now.lookStretch,
+          scaleY: now.sourceScale,
+        );
+      },
+      child: MorphGlyphs(child: this.glyph),
     );
     final Widget surfaces;
     if (glass == null) {
@@ -1218,13 +1216,18 @@ class _MenuShapes extends StatelessWidget {
       children: [
         Positioned.fill(child: surfaces),
         ?content,
-        MorphLivePositionedTemplate(
-          live: frames,
-          template: () => Positioned.fromRect(
-            rect: shapes().sourceRect,
-            child: morphLiveSlot,
-          ),
-          child: IgnorePointer(
+        Positioned.fill(
+          child: MorphLiveCenter(
+            live: frames,
+            rectOf: () => shapes().sourceRect,
+            // The glyph is laid out in the source's box of the frame,
+            // centered, but again only when that can change it; the
+            // ellipsis is the same box in any box as large.
+            fixedSize: this.glyph is _Ellipsis
+                ? const Size.square(MorphMenuTuning.ellipsisSize)
+                : null,
+            hiddenOf: look ? () => shapes().look.opacity <= 0 : null,
+            ignoring: true,
             child: look
                 ? _Faded(
                     frames: frames,
@@ -1550,21 +1553,16 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             menu: true,
             look: true,
             menuBlur: motion.tuning.cardBlur,
-            content: MorphLivePositionedTemplate(
-              live: _ticks,
-              template: () => Positioned.fromRect(
-                rect: _frame!.menu.rect,
-                child: morphLiveSlot,
-              ),
-              child: MorphLiveTemplate(
+            content: Positioned.fill(
+              child: MorphLiveWindow(
                 live: _ticks,
-                template: () => ClipRRect(
-                  borderRadius: .circular(_frame!.menu.radius),
-                  clipBehavior: cards.length > 1 ? .none : .antiAlias,
-                ),
+                windowOf: () => _frame!.menu.rrect,
+                clipsOf: () => _frame!.cards.length < 2,
                 child: Stack(
                   clipBehavior: .none,
                   children: [
+                    // The content moves inside the window by its
+                    // transform, so a frame that moves it lays nothing out.
                     MorphLivePositionedTemplate(
                       live: _ticks,
                       template: () {
@@ -1581,11 +1579,14 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                         live: _ticks,
                         template: () {
                           final now = _frame!;
-                          return Transform.scale(
-                            scaleX: now.scale * now.stretch.dx,
-                            scaleY: now.scale * now.stretch.dy,
-                            alignment: .topLeft,
+                          final transform = Matrix4.identity();
+                          transform.scaleByDouble(
+                            now.scale * now.stretch.dx,
+                            now.scale * now.stretch.dy,
+                            1,
+                            1,
                           );
+                          return Transform(transform: transform);
                         },
                         child: Stack(
                           clipBehavior: .none,

@@ -664,7 +664,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         _pressWatch = null;
       }
       unawaited(pressWatch.cancel());
-      _releasePress(flight);
+      _releasePress(flight, hidden: true);
     });
     unawaited(_pressWatch?.cancel());
     _pressWatch = pressWatch;
@@ -674,21 +674,28 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
           _pressWatch = null;
           unawaited(pressWatch.cancel());
         }
-        _releasePress(flight);
+        _releasePress(flight, hidden: false);
       }),
     );
   }
 
-  void _releasePress(MorphFlight flight) {
+  void _releasePress(MorphFlight flight, {required bool hidden}) {
     if (!identical(_pressOwner, flight)) {
       return;
     }
     _pressOwner = null;
-    if (mounted) {
-      // The source is hidden once takeoff has settled, so returning its
-      // endpoint to natural size cannot flicker. A later close now lands
-      // on the actual resting pixels instead of growing into the held
-      // size and shrinking for a second time.
+    if (!mounted) return;
+    // The source is hidden once takeoff has settled, so its endpoint
+    // returns to natural size at once: nothing shows it, and a spring
+    // there would repaint the hidden source (and the page around it)
+    // every frame for a second. A later close lands on the actual
+    // resting pixels instead of growing into the held size and shrinking
+    // for a second time. A flight closed before it settled hands back a
+    // source that shows, which springs back.
+    if (hidden) {
+      _press.stop();
+      _press.value = 0;
+    } else {
       _settlePress();
     }
   }
@@ -850,15 +857,21 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     // tag's live rect is the lifted one, so the flight takes off from
     // exactly the pixels under the finger, and the wrapper chain is
     // identical at rest - no remount across the press.
-    final Widget lifted = MorphLiveTransform(
+    final Widget lifted = MorphLiveApart(
+      // Apart while it grows or lands, so those frames repaint the
+      // source, not the page around it.
       live: _heroScale,
-      writeInto: (Matrix4 into) {
-        final double scale =
-            (_size.isEmpty ? 1 : 1 + _press.value / _size.longestSide) +
-            _landing.value;
-        into.scaleByDouble(scale, scale, 1, 1);
-      },
-      child: tagged,
+      apartOf: () => _press.value != 0 || _landing.value != 0,
+      child: MorphLiveTransform(
+        live: _heroScale,
+        writeInto: (Matrix4 into) {
+          final double scale =
+              (_size.isEmpty ? 1 : 1 + _press.value / _size.longestSide) +
+              _landing.value;
+          into.scaleByDouble(scale, scale, 1, 1);
+        },
+        child: tagged,
+      ),
     );
     return Semantics(
       onLongPress: widget.enabled ? _open : null,

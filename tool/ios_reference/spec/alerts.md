@@ -100,7 +100,22 @@ hands back the card built before, so the card does not rebuild; host
 recorder, dismiss frame 0: 115 -> 76 builds (100 -> 74 for an action
 sheet), the rest the navigator's own pop. The 18-25 paints a frame of the
 show and dismiss motions stay (the dimming and the card's fade repaint
-the route; gap 12 in lifecycle.md).
+the route; gap 12 in lifecycle.md): the card's glass and text must
+repaint while the scale moves (the glyph policy reads the scale at
+paint), and the text below the policy is a repaint boundary, so a frame
+that only fades it keeps its pictures.
+
+Rest (2026-10-14): the alert settles once the fade and the dimming swing
+less than `MorphRest.opacity` and the scale less than
+`MorphRest.scale(320)` (0.1 pt across the card), and lands on its
+targets - NEAR, invisible. Show 0.51 -> 0.42 s, dismiss 0.43 -> 0.40 s.
+Before, the scale stopped 1e-4 short of 1, so the resting card kept the
+text the policy draws from its raster while the scale moves; it now rests
+at exactly 1 and draws the text live (the "at rest exact" below now
+holds). The alert cells of example/test/fixtures/control_goldens.json
+were recorded again for this (frames 8-26 of 39). Popovers keep their
+0.001 rest: a visible rest there (0.1 pt over the 240 pt sweep from
+0.01) is stricter and would run longer.
 
 Performance trade (2026-10-13, declared in `showMorphAlert`): the card's
 content (text, buttons, fields) is a `MorphGlyphs.faded` card. While its

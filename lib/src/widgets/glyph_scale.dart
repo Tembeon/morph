@@ -826,6 +826,32 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   /// Whether this frame's paint already took every raster it needs.
   static bool _batched = false;
 
+  /// The frames of the latest two paints of any drawing, the latest last.
+  static Duration? _paintFrameBefore;
+  static Duration? _paintFrame;
+
+  /// The frame this drawing last painted in.
+  Duration? _paintedIn;
+
+  /// Whether this drawing has not painted yet or painted in the latest
+  /// frame any drawing painted in: one an ancestor hides (an opacity at
+  /// zero) paints nowhere, and a raster taken for it would never be drawn.
+  bool get _shown {
+    final painted = _paintedIn;
+    return painted == null ||
+        painted == _paintFrame ||
+        painted == _paintFrameBefore;
+  }
+
+  void _notePaint() {
+    final now = SchedulerBinding.instance.currentSystemFrameTimeStamp;
+    if (now != _paintFrame) {
+      _paintFrameBefore = _paintFrame;
+      _paintFrame = now;
+    }
+    _paintedIn = now;
+  }
+
   /// The pyramid's levels below the raster: the coarsest is 1/32 of it,
   /// which a 10 point blur still spans under two texels of at a device
   /// pixel ratio of 6.
@@ -1190,7 +1216,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
       _batched = true;
       SchedulerBinding.instance.addPostFrameCallback((_) => _batched = false);
       for (final other in _attached) {
-        if (identical(other, this)) continue;
+        if (identical(other, this) || !other._shown) continue;
         if (other._needsRaster()) jobs.add(other);
       }
     }
@@ -1220,6 +1246,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   @override
   void paint(PaintingContext context, Offset offset) {
     if (child == null) return;
+    _notePaint();
     _checkChildContent();
     final stable = _advanceStable();
     final screen = _screenScale();

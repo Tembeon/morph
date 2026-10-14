@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
@@ -1589,19 +1590,15 @@ void main() {
       await tester.pump(const Duration(microseconds: 8333));
       final copy = find.text('Copy');
       if (copy.evaluate().isEmpty) continue;
-      Element? clip;
+      RenderMorphLiveWindow? window;
       tester.element(copy).visitAncestorElements((Element element) {
         if (element is RenderObjectElement &&
-            element.renderObject is RenderClipRRect) {
-          clip = element;
+            element.renderObject is RenderMorphLiveWindow) {
+          window = element.renderObject as RenderMorphLiveWindow;
         }
         return true;
       });
-      heights.add(
-        tester
-            .getRect(find.byElementPredicate((Element e) => identical(e, clip)))
-            .height,
-      );
+      heights.add(window!.window.outerRect.height);
     }
     expect(heights, hasLength(3));
     expect(heights[0], greaterThan(24), reason: 'no held first frame');

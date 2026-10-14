@@ -5,7 +5,7 @@ Status: native from lab captures (iPhone 16 Pro, iOS 27.0.1, programmatic window
 `test/lifecycle_counts_test.dart` (flat and liquid tiers, 16 ms frames). The tables below
 are the 2026-10-13 recording; the gaps closed since are in "Closed" with their new
 numbers, which the recorder pins as ceilings (`_ceilings`: last active frame, median
-builds and paints after the first frame).
+builds, layouts and paints after the first frame).
 
 ## What is counted
 
@@ -23,7 +23,8 @@ render objects painted):
   does not count.
 
 Rerun: `LIFECYCLE_LOG=true flutter test test/lifecycle_counts_test.dart` (or
-`LIFECYCLE_OUT=<file>`). Every scene drives the native window's programmatic trigger: the
+`LIFECYCLE_OUT=<file>`); `LIFECYCLE_WHO=<step>:<frame>` names every element built and
+every render object laid out or painted in one frame, with the widgets above it. Every scene drives the native window's programmatic trigger: the
 parent sets the selection or value, a route is shown and dismissed through its API, a
 scroll controller animates for 300 ms.
 
@@ -87,6 +88,11 @@ different); times are the last frame with any work.
 | 4 | scroll edge tail (side effect) | 0/0/30 for 0.5-1 s | 0/0/1 | the edge effect's bar is a repaint boundary (nav stack bars) |
 | 8 | sheet detent change, first frame | 118-123 builds (the whole content) | 19-20 | the scope gets the new detent over the same content; `scrollControllerOf` ignores the detent |
 | 12 | alert dismiss, first frame | 115 builds (100 action sheet) | 76 (74), the rest the navigator's pop | the card built before is handed back |
+| 9 | menu (button menu) open / close | open 0/10-11/22-27 to 0.93 s (liquid 0/15-16/31-37), 636 layouts; landing 0/6/9, 445 layouts | open 0/1/22 (liquid 0/6/29), 131 layouts; landing 0/0/8, 29 layouts | the content shows through a live window laid out once; the look is laid out only when its box can change it |
+| 3 | search tab: activate, resign, cancel | activate 0/21-26/46-47 with 36-59-build bursts, then 1-2/46-66/69-88 (b/l/p 374/2728/4123); resign 1-2/46-67/59-89 (174/1902/2784); cancel 0/21-25/41-45 (156/578/1203) | activate 0/19-26/29-37, then 1/34-37/41-57, bursts 2-32 (204/1846/2451); resign 1/34-37/41-57 (105/1070/1544); cancel 0/17-25/24-28 (92/595/744) | the bar is a repaint boundary; boxes that only travel keep their size; the morph and the focus transition land at rest; what a part shows is pushed to it, not rebuilt |
+| 7 | search toolbar: focus | 1-2/32-55/66-74 (135/1193/1773) | 1/32-35/36-38 (118/858/1007) | repaint boundary; the close button and the side items keep their size |
+| 6 | context menu: hold, release, close | hold 0/0/20; release 0/19/54 to 1.41 s (2658 paints); close tail 0/0/20 | hold 0/0/2; release 0/19/30 to 0.37 s (646); close tail 0/0/2 | the hidden source returns at once; the source is apart while it grows or lands; the shuttle of every flight is a repaint boundary |
+| 12 | alert show / dismiss | 0/0/18 to 0.51 s / 0.43 s (665 / 503 paints) | 0/0/18 to 0.42 s / 0.40 s (544 / 453) | visible rest, landing on the targets; the text is a repaint boundary below the glyph policy |
 
 Rest thresholds (cross-cutting): every motion above settles once every spring's
 remaining swing is under `MorphRest` (0.1 pt, 0.3 device px at 3x; scales over their
@@ -98,9 +104,14 @@ route-scope builders; the bar items whose scale or presence changes repaint ever
 (their content under a live transform); the lens and the switch knob move by layout (2
 layouts a frame: a live stack and its fill); the sheet content is laid out on every frame
 of a detent spring (laying it out once at the target is a pixel trade, sheets.md); the
-alert's 18-25 paints a frame; the menu's second heavy frame (it opens after the measured
-delay; building it in the tap's frame only moves the work) and its 10-16 layouts a frame;
-gaps 3, 6, 7, 9, 11, 15.
+alert's 18-22 paints a frame (its glass and its text under the glyph policy, which must
+see the scale at paint); the menu's second heavy frame (it opens after the measured
+delay; building it in the tap's frame only moves the work), its 22 paints a frame (the
+rows under the content's scale, the glyph policy again) and, liquid, the 5 layouts a
+frame of the glass host placing its surfaces; the search tab's shapes follow the morph
+by layout (about 10 layouts each: glass, clip, touch wrappers) and the field lays out
+while its width changes (native SwiftUI does too: 25-27); the context menu's vessel
+follows the flight by layout (19 a frame, the engine's shuttle chain); gaps 11, 15.
 
 ## Port suggestions, by gap
 

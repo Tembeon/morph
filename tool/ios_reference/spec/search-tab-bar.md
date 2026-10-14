@@ -47,6 +47,23 @@ testX3Video (film), testX3Timing (`tm-tab-in/out-<gap>` via twoTaps,
 (search_motion.dart). Test: search_test. Film side:
 example/integration_test/search_date_scenes.dart.
 
+Per-frame work (lifecycle.md, 2026-10-14): the bar is a repaint boundary
+(the page under it no longer repaints with the morph); the close button
+travels at its size to the bit (`morphLerpRect`), so it is neither laid
+out nor its glass rebuilt every frame; the tab spring lands on its
+target once it rests within 0.001 and the focus transition does the same
+(`MorphSearchMotion.land`) - NEAR: the shapes jump by at most 0.001 of
+their travel (0.3 pt over 300 pt), once, where they used to freeze that
+far off; what the tabs and the circle show or take (the label, the
+placeholder, touches) is pushed to the part that reads it, so a flip
+rebuilds that part, not the whole morph. Side effect, policy-declared:
+the close button's content holds still while it scales in, so the glyph
+policy draws it from its raster (NEAR) where it snapped before.
+Still per frame: the tab and search shapes are boxes that follow the
+morph by layout (about 10 layouts each, their glass, clip and touch
+wrappers), and the field relayouts while the focus transition changes
+its width.
+
 ## Not reproduced / open
 
 - The glass morph is a rect lerp fitted to film, no tuning value found.
