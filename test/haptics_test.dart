@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/widgets.dart';
 
@@ -102,5 +102,42 @@ void main() {
     await tester.pumpWidget(host(value: true));
     await tester.pumpAndSettle();
     expect(calls, isEmpty);
+  });
+
+  testWidgets('a context menu plays its preview tap when the hold opens it', (
+    tester,
+  ) async {
+    var holds = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Center(
+          child: MorphContextMenuRegion(
+            onHold: () => holds++,
+            below: MorphSatellite(
+              height: 40,
+              builder: (BuildContext context, MorphFlight flight) =>
+                  const Text('action'),
+            ),
+            child: Container(
+              width: 120,
+              height: 48,
+              color: const Color(0xFF334455),
+            ),
+          ),
+        ),
+      ),
+    );
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(MorphContextMenuRegion)),
+    );
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(holds, 1);
+    expect(calls, ['HapticFeedbackType.heavyImpact']);
+    await gesture.up();
+    await tester.pumpAndSettle();
   });
 }

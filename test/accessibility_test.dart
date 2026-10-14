@@ -1,8 +1,9 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
+import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/switch_motion.dart';
 
 Future<T> _resolve<T>(
@@ -149,6 +150,69 @@ void main() {
       expect(popover.scale(0), 1);
       expect(popover.opacity(0), 0);
     });
+  });
+
+  test('a finger moving the menu highlight to another row is reported', () {
+    final motion = MorphMenuMotion(
+      button: const Rect.fromLTWH(179, 300, 44, 44),
+      itemCount: 4,
+      bounds: const Size(402, 874),
+    );
+    var tracked = 0;
+    motion.onTrackedHighlight = () => tracked++;
+    motion.advance(-4);
+    motion.open(-3);
+    motion.advance(0);
+    final menu = motion.menuRect;
+    final rows = [
+      for (var i = 0; i < 4; i++)
+        Offset(menu.center.dx, menu.top + menu.height * (i + 0.5) / 4),
+    ];
+    motion.pointerDown(0, rows[0]);
+    motion.pointerMove(0.05, rows[0].translate(0, 2));
+    motion.pointerMove(0.1, rows[1]);
+    motion.pointerMove(0.15, rows[2]);
+    expect(tracked, 3);
+    motion.highlight(0.2, 0);
+    expect(tracked, 3);
+  });
+
+  testWidgets('a held context menu hero keeps its size under Reduce Motion', (
+    tester,
+  ) async {
+    const box = ValueKey<String>('box');
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(disableAnimations: true),
+          child: MorphScope(child: child!),
+        ),
+        home: Center(
+          child: MorphContextMenuRegion(
+            below: MorphSatellite(
+              height: 40,
+              builder: (BuildContext context, MorphFlight flight) =>
+                  const Text('action'),
+            ),
+            child: Container(
+              key: box,
+              width: 120,
+              height: 48,
+              color: const Color(0xFF334455),
+            ),
+          ),
+        ),
+      ),
+    );
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(box)),
+    );
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(tester.getRect(find.byKey(box)).width, 120);
+    await gesture.up();
+    await tester.pumpAndSettle();
   });
 
   group('Increase Contrast tables', () {
