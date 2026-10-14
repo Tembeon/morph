@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/rendering.dart'
+    show BoxHitTestResult, RenderRepaintBoundary;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/live.dart';
@@ -436,7 +438,8 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
 
   // A bar repaints on its own: its motion leaves the pages and the
   // navigator around it unpainted.
-  Widget _bars(Widget bar) => RepaintBoundary(
+  Widget _bars(Widget bar, {bool hidden = false}) => _BarBoundary(
+    hidden: hidden,
     child: MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar),
   );
 
@@ -514,25 +517,23 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
               left: 0,
               right: 0,
               top: 0,
-              child: IgnorePointer(
-                ignoring: config?.navigationBarHidden ?? false,
-                child: _bars(
-                  MorphNavigationBar(
-                    title: config?.title,
-                    subtitle: config?.subtitle,
-                    leading: leading,
-                    trailing: config?.trailing ?? const [],
-                    titleVisible: config?.titleVisible ?? true,
-                    scrolledUnder: config?.scrolledUnder ?? false,
-                    animate: config?.animate ?? true,
-                    edgeEffect: config?.edgeEffect,
-                    titleExitShift: _titleExit,
-                    drift: drift,
-                    appearance: widget.appearance,
-                    menuAppearance: widget.menuAppearance,
-                    menuTuning: widget.menuTuning,
-                    menuOverlay: widget.menuOverlay,
-                  ),
+              child: _bars(
+                hidden: config?.navigationBarHidden ?? false,
+                MorphNavigationBar(
+                  title: config?.title,
+                  subtitle: config?.subtitle,
+                  leading: leading,
+                  trailing: config?.trailing ?? const [],
+                  titleVisible: config?.titleVisible ?? true,
+                  scrolledUnder: config?.scrolledUnder ?? false,
+                  animate: config?.animate ?? true,
+                  edgeEffect: config?.edgeEffect,
+                  titleExitShift: _titleExit,
+                  drift: drift,
+                  appearance: widget.appearance,
+                  menuAppearance: widget.menuAppearance,
+                  menuTuning: widget.menuTuning,
+                  menuOverlay: widget.menuOverlay,
                 ),
               ),
             ),
@@ -1282,7 +1283,8 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
 
   // A bar repaints on its own: its motion leaves the pages and the
   // navigator around it unpainted.
-  Widget _bars(Widget bar) => RepaintBoundary(
+  Widget _bars(Widget bar, {bool hidden = false}) => _BarBoundary(
+    hidden: hidden,
     child: MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar),
   );
 
@@ -1514,20 +1516,18 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
           left: 0,
           right: 0,
           top: 0,
-          child: IgnorePointer(
-            ignoring: _hidesBar,
-            child: _bars(
-              MorphNavigationBar(
-                title: widget.title,
-                subtitle: widget.subtitle,
-                leading: leading,
-                trailing: _hidesBar ? const [] : widget.trailing,
-                titleVisible: _titleVisible && !_hidesBar,
-                scrolledUnder: _scrolledUnder && !_hidesBar,
-                animate: _animate,
-                edgeEffect: widget.edgeEffect,
-                appearance: widget.appearance,
-              ),
+          child: _bars(
+            hidden: _hidesBar,
+            MorphNavigationBar(
+              title: widget.title,
+              subtitle: widget.subtitle,
+              leading: leading,
+              trailing: _hidesBar ? const [] : widget.trailing,
+              titleVisible: _titleVisible && !_hidesBar,
+              scrolledUnder: _scrolledUnder && !_hidesBar,
+              animate: _animate,
+              edgeEffect: widget.edgeEffect,
+              appearance: widget.appearance,
             ),
           ),
         ),
@@ -1636,4 +1636,33 @@ class MorphFirstFrameStart extends Simulation {
 
   @override
   bool isDone(double time) => inner.isDone(_time(time));
+}
+
+/// A bar's repaint boundary, which lets touches through to the page while
+/// the bar is [hidden]: one render object for both, so a bar costs no more
+/// paints than its boundary did.
+class _BarBoundary extends SingleChildRenderObjectWidget {
+  const _BarBoundary({required this.hidden, super.child});
+
+  final bool hidden;
+
+  @override
+  _RenderBarBoundary createRenderObject(BuildContext context) =>
+      _RenderBarBoundary(hidden: hidden);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderBarBoundary renderObject,
+  ) => renderObject.hidden = hidden;
+}
+
+class _RenderBarBoundary extends RenderRepaintBoundary {
+  _RenderBarBoundary({required this.hidden});
+
+  bool hidden;
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
+      !hidden && super.hitTest(result, position: position);
 }
