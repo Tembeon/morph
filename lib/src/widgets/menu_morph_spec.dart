@@ -8,11 +8,15 @@ import 'package:morph/src/spring.dart';
 /// and content travel on slightly underdamped springs; character comes
 /// from a separate [kick] and [settle], and the opening ([eject]) and
 /// closing ([absorb]) of the main shape use their own springs. Only
-/// [eject], [absorb] and [speed] drive the menu implementation. All other
-/// fields preserve UIKit's reference settings; changing them does not
-/// change the menu. UIKit
-/// divides time by [speed], so the effective response of every spring is
-/// its response times [speed].
+/// [eject], [absorb], [speed], [kicks] and [fuses] drive the menu
+/// implementation. All other fields preserve UIKit's reference settings;
+/// changing them does not change the menu. UIKit divides time by [speed],
+/// so the effective response of every spring is its response times
+/// [speed].
+///
+/// [context] is the morph of a context menu, which grows out of a blob at
+/// the held view's center beside the lifted preview instead of out of a
+/// button.
 class MorphMenuMorphSpec {
   /// Creates a morph spec from explicit values.
   const MorphMenuMorphSpec({
@@ -33,6 +37,8 @@ class MorphMenuMorphSpec {
     this.shrinkingIntermediateShapeRatio = 0.9,
     this.genieScale = 0.4,
     this.speed = 0.7,
+    this.kicks = true,
+    this.fuses = true,
   });
 
   /// The spring of the surface's position.
@@ -115,6 +121,18 @@ class MorphMenuMorphSpec {
   /// The speed multiplier UIKit applies to the morph.
   final double speed;
 
+  /// Whether the menu and source shapes ring with their measured kicks:
+  /// the menu shape's open kick and close strike and the source shape's
+  /// kick. A context menu has no source shape and its menu follows the
+  /// plain spring (0.6 percent rms of travel on the device morph).
+  final bool kicks;
+
+  /// Whether the menu and source shapes fuse into one silhouette while
+  /// they part and meet. The context menu draws its preview on glass of
+  /// its own, which the menu never fuses with (read from UIKit, notes
+  /// private).
+  final bool fuses;
+
   /// [spring] as it runs at [speed]: its response times [speed], its
   /// damping ratio unchanged.
   MorphSpring atSpeed(MorphSpring spring) =>
@@ -122,4 +140,18 @@ class MorphMenuMorphSpec {
 
   /// UIKit's `liquidMorph` tuning.
   static const standard = MorphMenuMorphSpec();
+
+  /// The morph of UIKit's context menu, measured on an iPhone 16 Pro (iOS
+  /// 27, `ios27-device/context_menu/morph.json`): the menu grows out of
+  /// its blob and retracts into it on one spring both ways, response
+  /// 0.284 s and damping ratio 0.81, the spring the preview resizes on
+  /// (0.4 - 0.6 percent rms of travel), without kicks and without fusing
+  /// with the preview.
+  static const context = MorphMenuMorphSpec(
+    eject: MorphSpring(0.284, 0.81),
+    absorb: MorphSpring(0.284, 0.81),
+    speed: 1,
+    kicks: false,
+    fuses: false,
+  );
 }

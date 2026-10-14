@@ -45,6 +45,7 @@ export 'src/widgets/lens_motion.dart'
 export 'src/widgets/menu_morph_spec.dart' show MorphMenuMorphSpec;
 export 'src/widgets/menu_motion.dart'
     show
+        MorphMenuAttachment,
         MorphMenuBlob,
         MorphMenuCard,
         MorphMenuMotion,

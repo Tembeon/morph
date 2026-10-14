@@ -1087,10 +1087,11 @@ typedef _ButtonStructure = ({bool landing, bool still});
 typedef _Look = ({double opacity, double blur});
 
 /// Both shapes of the morph at one frame, in the coordinates of the box
-/// they are drawn in; [menu] is null for the resting button.
+/// they are drawn in; [menu] is null for the resting button, [source] for
+/// a menu without a source shape (a context menu).
 typedef _Shapes = ({
   RRect? menu,
-  RRect source,
+  RRect? source,
   Rect sourceRect,
   double sourceScale,
   double lookStretch,
@@ -1181,20 +1182,22 @@ class _MenuShapes extends StatelessWidget {
           final menu = now.menu;
           final own = surface?.color;
           final share = 1 - now.look.opacity;
+          final source = now.source;
           return MorphGlassFrame(
             [
-              MorphGlassSurface(
-                kind: MorphGlassKind.button,
-                shape: now.source,
-                color: own == null
-                    ? style.glassColor
-                    : Color.lerp(own, style.glassColor, share)!,
-                tint: own == null
-                    ? style.glassTint
-                    : Color.lerp(own, style.glassTint, share),
-                blurRadius: menu == null ? null : menuBlur,
-                brightness: brightness,
-              ),
+              if (source != null)
+                MorphGlassSurface(
+                  kind: MorphGlassKind.button,
+                  shape: source,
+                  color: own == null
+                      ? style.glassColor
+                      : Color.lerp(own, style.glassColor, share)!,
+                  tint: own == null
+                      ? style.glassTint
+                      : Color.lerp(own, style.glassTint, share),
+                  blurRadius: menu == null ? null : menuBlur,
+                  brightness: brightness,
+                ),
               if (menu != null)
                 MorphGlassSurface(
                   kind: MorphGlassKind.menu,
@@ -2249,7 +2252,7 @@ class _LayerFrame {
     size = motion.menuRect.size;
     shapes = (
       menu: motion.rootBlob.rrect,
-      source: source.rrect,
+      source: motion.drawsSource ? source.rrect : null,
       sourceRect: source.rect,
       sourceScale: source.scale,
       lookStretch: motion.buttonLookStretch,
@@ -3431,7 +3434,7 @@ class _GlassPainter extends CustomPainter {
   });
 
   final MorphMenuAppearance style;
-  final RRect source;
+  final RRect? source;
   final RRect? menu;
   final MorphGlassOutline? outline;
   final ({Color color, Color? rim})? surface;
@@ -3446,7 +3449,8 @@ class _GlassPainter extends CustomPainter {
       shape = outline.path;
     } else {
       shape = Path();
-      shape.addRRect(source);
+      final source = this.source;
+      if (source != null) shape.addRRect(source);
       if (menu != null) shape.addRRect(menu);
     }
     canvas.drawShadow(shape, style.shadowColor, style.shadowElevation, true);
