@@ -162,10 +162,21 @@ class MorphSlider extends StatefulWidget {
   static const double height = 34;
 
   /// How much one arrow key or adjust action moves a continuous slider;
-  /// a stepped one moves by one stop.
+  /// a stepped one moves to the next stop on that side, so a value set
+  /// between stops lands on one.
   static const double keyboardStep = 0.1;
 
-  double get _step => ticks >= 2 ? 1 / (ticks - 1) : keyboardStep;
+  /// The track position, 0 to 1, one step from [from] in the direction
+  /// of [delta]: [keyboardStep] further for a continuous slider, the next
+  /// stop on that side for a stepped one.
+  double _stepFrom(double from, int delta) {
+    if (ticks < 2) return (from + delta * keyboardStep).clamp(0.0, 1.0);
+    final steps = ticks - 1;
+    final at = from * steps;
+    // A stop the parent rounded sits a hair off it and still counts as it.
+    final base = delta > 0 ? (at + 1e-6).floor() : (at - 1e-6).ceil();
+    return (base + delta).clamp(0, steps) / steps;
+  }
 
   @override
   State<MorphSlider> createState() => _MorphSliderState();
@@ -275,7 +286,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   void _nudge(int delta) {
     if (!_enabled) return;
     final from = _unit(widget.value);
-    final unit = (from + delta * widget._step).clamp(0.0, 1.0);
+    final unit = widget._stepFrom(from, delta);
     if (unit == from) return;
     final value = _out(unit);
     widget.onChangeStart?.call(widget.value);
@@ -491,8 +502,8 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
                   enabled: _enabled,
                   label: widget.semanticLabel,
                   value: percent(value),
-                  increasedValue: percent(value + widget._step),
-                  decreasedValue: percent(value - widget._step),
+                  increasedValue: percent(widget._stepFrom(value, 1)),
+                  decreasedValue: percent(widget._stepFrom(value, -1)),
                   onIncrease: _enabled && value < 1 ? () => _nudge(1) : null,
                   onDecrease: _enabled && value > 0 ? () => _nudge(-1) : null,
                 );

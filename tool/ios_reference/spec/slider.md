@@ -80,7 +80,14 @@ example/integration_test/slider_video_test.dart.
 `MorphSlider` (`ticks`, `keyboardStep`, `onChangeEnd`), `MorphSliderAppearance`,
 `MorphSliderMotion` (slider.dart, slider_motion.dart). Tests:
 controls_test, controls_scroll_test (a drag taken over by the list returns
-to its start value).
+to its start value), slider_ticks_rest_test and
+slider_ticks_device_clock_test (a stepped thumb leans off its stop only
+while the finger is down - the measured hold, device recording 0.68 h at a
+still finger - and rests on the stop after every release, tap, fling,
+cancel, loss to a list, disable, parent change and keyboard step; touches
+stamped as the device delivers them). A keyboard or screen reader step of a
+stepped slider goes to the next stop on that side, so a value set between
+stops lands on one (not measured on the device).
 
 The thumb lens settles as the switch knob does (`MorphSmallLens`,
 lens-and-flex.md "Rest").

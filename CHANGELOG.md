@@ -175,6 +175,9 @@ tool/ios_reference/spec/lifecycle.md "Closed"):
   alone while it grows under the finger or lands.
 - An alert settles at a visible rest and lands on its targets (show 0.51
   to 0.42 s); the resting card's text is drawn live and exact.
+- Fixed: an arrow key or screen reader step on a stepped `MorphSlider`
+  whose value sat between stops moved it by a step's length and left the
+  thumb between stops; it now goes to the next stop on that side.
 
 Migration, old -> new:
 
