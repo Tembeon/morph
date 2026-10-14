@@ -2,8 +2,10 @@
 
 Status: native from lab captures (iPhone 16 Pro, iOS 27.0.1, programmatic windows,
 120 Hz rows; notes private); morph from the host recorder
-`test/lifecycle_counts_test.dart` (flat and liquid tiers, 16 ms frames). Record mode: no
-counts are pinned yet.
+`test/lifecycle_counts_test.dart` (flat and liquid tiers, 16 ms frames). The tables below
+are the 2026-10-13 recording; the gaps closed since are in "Closed" with their new
+numbers, which the recorder pins as ceilings (`_ceilings`: last active frame, median
+builds and paints after the first frame).
 
 ## What is counted
 
@@ -68,6 +70,31 @@ frame for 0.5-0.7 s vs 1 native frame), glass button enable / tint / title chang
 sheet present / dismiss (1 heavy frame, then 1 paint per frame), scroll jumps (1-2 frames).
 The slider, page control and date picker wheels jump where the native control animates a
 programmatic change: a fidelity gap, not a frame-time one.
+
+## Closed (2026-10-14)
+
+morph tokens `builds/layouts/paints` per frame after the first, flat (liquid where
+different); times are the last frame with any work.
+
+| # | family, trigger | before | after | how |
+|---|---|---|---|---|
+| 1 | tab bar, selection set by the parent | 0/2/99 (liquid 0/2/102) to 1.55-1.86 s | 0/2/17 (liquid 0/2/18) to 1.33-1.46 s | label rows are repaint boundaries while the bar does not swell and no lens copies them; settle at visible rest |
+| 2 | navigation push / pop | 6/5/75-97, tail 0/3/58 to 1.26 s | 2/5/38-47, tail 0/3/18 to 0.96 s | the route hands back its built transition; bars, inline titles and bar items are repaint boundaries; bar motion settles at visible rest |
+| 5 | segmented, selection set by the parent | 0/2/29 (liquid 0/2/10) to 1.63 s | 0/2/8 (liquid 0/2/9) to 1.30 s | control and flat labels are repaint boundaries; settle at visible rest |
+| 10 | switch, value set by the parent | 0/2/9 to 1.23 s | 0/2/9 to 0.83-0.94 s, the page no longer repaints with it | control is a repaint boundary; settle at visible rest |
+| 13 | glass button held | 12-21 paints every frame while held (2.6 s+) | 16 paints a frame for the 0.45 s lift, then asleep until the finger moves or lifts | a held press settles |
+| 14 | activity indicator | a frame scheduled for nothing between images (31 frames/s) | one frame per image (20 frames/s) | the doze wakes for the image's own frame |
+| 4 | scroll edge tail (side effect) | 0/0/30 for 0.5-1 s | 0/0/1 | the edge effect's bar is a repaint boundary (nav stack bars) |
+
+Rest thresholds (cross-cutting): every motion above settles once every spring's
+remaining swing is under `MorphRest` (0.1 pt, 0.3 device px at 3x; scales over their
+surface's extent; opacities under half an 8-bit step) and snaps onto its targets:
+invisible, NEAR (lens-and-flex.md "Rest").
+
+Still open: the 2 builds a frame of the navigation slide are the framework's own
+route-scope builders; the bar items whose scale or presence changes repaint every frame
+(their content under a live transform); the lens and the switch knob move by layout (2
+layouts a frame: a live stack and its fill); gaps 3, 6-9, 11, 12, 15.
 
 ## Port suggestions, by gap
 

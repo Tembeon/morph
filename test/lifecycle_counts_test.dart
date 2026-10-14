@@ -30,9 +30,13 @@ import 'package:morph/widgets.dart';
 /// A frame prints as `builds/layouts/paints`, an idle frame as `0`, and a
 /// run of K idle frames as `0xK`. Frames are 16 ms, the Pixel 6a's 60 Hz.
 ///
-/// This is a measurement tool in record mode: it asserts nothing about
-/// the counts. `LIFECYCLE_LOG=true` prints every timeline;
-/// `LIFECYCLE_OUT=<file>` writes them to a file.
+/// The scenes whose gap to native was closed are pinned in [_ceilings]:
+/// the last frame with any work, and the median builds and paints of the
+/// frames after the first. A change may lower them, never raise them. The
+/// others are recorded only. `LIFECYCLE_LOG=true` prints every timeline;
+/// `LIFECYCLE_OUT=<file>` writes them to a file; `LIFECYCLE_TOP=<n>` lists
+/// n render object classes per step instead of 8, `LIFECYCLE_DUMP=true`
+/// prints the classes painted in every frame.
 void main() {
   final log = Platform.environment['LIFECYCLE_LOG'] == 'true';
   final out = Platform.environment['LIFECYCLE_OUT'];
@@ -66,18 +70,48 @@ void main() {
         await _settle(tester);
         final lines = <String>[];
         final recorder = _Recorder(tester);
+        final over = <String>[];
         for (final step in setup.steps) {
           final result = await recorder.record(step);
           lines.add(result.describe(name));
+          if (_ceilings['$name ${step.name}'] case final ceiling?) {
+            over.addAll(result.over(ceiling));
+          }
         }
         await setup.end?.call(tester);
         await _settle(tester);
         report.addAll(lines);
         if (log) debugPrint(lines.join('\n'));
+        expect(over, isEmpty, reason: '$name rose above its ceilings');
       });
     }
   }
 }
+
+/// The pinned scenes, by `family/tier step`: the last frame with any
+/// work in ms, and the median builds and paints of the frames after the
+/// first (lifecycle.md, 2026-10-14).
+const _ceilings = <String, _Ceiling>{
+  'segmented/flat select-2': (ms: 1296, builds: 0, paints: 8),
+  'segmented/flat select-3': (ms: 1328, builds: 0, paints: 8),
+  'segmented/liquid select-2': (ms: 1296, builds: 0, paints: 9),
+  'tabbar/flat select-1': (ms: 1328, builds: 0, paints: 17),
+  'tabbar/flat select-0': (ms: 1456, builds: 0, paints: 17),
+  'tabbar/liquid select-1': (ms: 1328, builds: 0, paints: 18),
+  'tabbar/liquid select-0': (ms: 1456, builds: 0, paints: 18),
+  'switch/flat set-on': (ms: 944, builds: 0, paints: 9),
+  'switch/flat set-off': (ms: 832, builds: 0, paints: 9),
+  'switch/liquid set-on': (ms: 944, builds: 0, paints: 9),
+  'button/flat highlight-on': (ms: 448, builds: 0, paints: 16),
+  'button/flat highlight-off': (ms: 704, builds: 0, paints: 16),
+  'button/liquid highlight-on': (ms: 448, builds: 0, paints: 16),
+  'navigation/flat push': (ms: 960, builds: 2, paints: 47),
+  'navigation/flat pop': (ms: 944, builds: 2, paints: 49),
+  'navigation/liquid push': (ms: 960, builds: 2, paints: 48),
+  'navigation/liquid pop': (ms: 944, builds: 2, paints: 49),
+};
+
+typedef _Ceiling = ({int ms, int builds, int paints});
 
 const _screen = Size(402, 874);
 const _frame = Duration(milliseconds: 16);
@@ -170,6 +204,8 @@ class _Recorder {
   final Map<String, int> _layouts = {};
   final Map<String, int> _paints = {};
   Set<Element> _elements = {};
+  final Map<String, int>? _dump =
+      Platform.environment['LIFECYCLE_DUMP'] == 'true' ? {} : null;
 
   static void _bump(Map<String, int> map, String key) =>
       map[key] = (map[key] ?? 0) + 1;
@@ -199,6 +235,7 @@ class _Recorder {
     };
     debugOnProfilePaint = (RenderObject object) {
       if (object.isRepaintBoundary && !object.debugNeedsPaint) return;
+      if (_dump != null) _bump(_dump, object.runtimeType.toString());
       _now.paints++;
       final type = object.runtimeType.toString();
       if (type.contains('Glass')) _now.glass++;
@@ -229,6 +266,10 @@ class _Recorder {
         _now.unmounts = _elements.where((e) => !now.contains(e)).length;
         _elements = now;
         frames.add(_now);
+        if (_dump != null) {
+          debugPrint('frame ${frames.length - 1} ${step.name}: $_dump');
+          _dump.clear();
+        }
         _now = _Counts();
         if (step.frames == null &&
             i >= 3 &&
@@ -294,7 +335,51 @@ class _Result {
   static String _top(Map<String, int> map) {
     final entries = map.entries.toList();
     entries.sort((a, b) => b.value.compareTo(a.value));
-    return [for (final e in entries.take(8)) '${e.key} ${e.value}'].join(', ');
+    return [
+      for (final e in entries.take(
+        int.parse(Platform.environment['LIFECYCLE_TOP'] ?? '8'),
+      ))
+        '${e.key} ${e.value}',
+    ].join(', ');
+  }
+
+  int get _lastActiveMs {
+    var last = -1;
+    for (final (i, f) in frames.indexed) {
+      if (!f.idle) last = i;
+    }
+    return (last + 1) * 16;
+  }
+
+  List<_Counts> get _body {
+    var last = -1;
+    for (final (i, f) in frames.indexed) {
+      if (!f.idle) last = i;
+    }
+    return last > 1 ? frames.sublist(1, last) : const [];
+  }
+
+  static int _median(List<int> values) {
+    if (values.isEmpty) return 0;
+    final sorted = [...values];
+    sorted.sort();
+    return sorted[sorted.length ~/ 2];
+  }
+
+  /// The ways this step went over [ceiling], or none.
+  List<String> over(_Ceiling ceiling) {
+    final body = _body;
+    final builds = _median([for (final f in body) f.builds]);
+    final paints = _median([for (final f in body) f.paints]);
+    return [
+      if (!settled) '$name did not settle',
+      if (_lastActiveMs > ceiling.ms)
+        '$name: last active $_lastActiveMs ms > ${ceiling.ms}',
+      if (builds > ceiling.builds)
+        '$name: median builds $builds > ${ceiling.builds}',
+      if (paints > ceiling.paints)
+        '$name: median paints $paints > ${ceiling.paints}',
+    ];
   }
 
   static String _spread(List<int> values) {
