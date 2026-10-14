@@ -191,3 +191,31 @@ class MorphZoomShapeClipper extends CustomClipper<RRect> {
   bool shouldReclip(MorphZoomShapeClipper oldClipper) =>
       oldClipper.shape != shape;
 }
+
+/// Clips a zoom container to its current shape with continuous corners:
+/// the rounded superellipse of the shape's radii, as UIKit's sheet draws
+/// them.
+@internal
+class MorphZoomContinuousClipper extends CustomClipper<RSuperellipse> {
+  /// Creates a clipper for [shape].
+  const MorphZoomContinuousClipper(this.shape);
+
+  /// The current container shape.
+  final RRect shape;
+
+  @override
+  RSuperellipse getClip(Size size) => RSuperellipse.fromLTRBAndCorners(
+    shape.left,
+    shape.top,
+    shape.right,
+    shape.bottom,
+    topLeft: shape.tlRadius,
+    topRight: shape.trRadius,
+    bottomLeft: shape.blRadius,
+    bottomRight: shape.brRadius,
+  );
+
+  @override
+  bool shouldReclip(MorphZoomContinuousClipper oldClipper) =>
+      oldClipper.shape != shape;
+}

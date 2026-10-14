@@ -3,7 +3,9 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/highlight_motion.dart';
+import 'package:morph/src/widgets/sheet.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
@@ -196,6 +198,44 @@ class MorphListAppearance {
     chevronColor,
     iconColor,
   );
+}
+
+/// The page behind an inset grouped list:
+/// [MorphListAppearance.backgroundColor] under [child], the
+/// `backgroundColor` of a `UITableView(style: .insetGrouped)`.
+///
+/// Inside a sheet presented with [showMorphSheet] it follows the sheet's
+/// background as UIKit's table does: clear while the sheet floats as
+/// glass, so the glass shows between the cards, and the grouped gray once
+/// the sheet docks at the large detent, fading with the sheet's opaque
+/// fill on the same spring and at the same point of a drag (simulator
+/// capture: an inset grouped table is clear at the medium detent and
+/// systemGroupedBackground at the large one). The fill is read on every
+/// frame of the sheet's motion without a rebuild.
+class MorphListBackground extends StatelessWidget {
+  /// Creates the background.
+  const MorphListBackground({this.appearance, this.child, super.key});
+
+  /// The look; null resolves the ambient one.
+  final MorphListAppearance? appearance;
+
+  /// The list.
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = MorphListAppearance.resolve(
+      context,
+      appearance,
+    ).backgroundColor;
+    final sheet = morphSheetFillOf(context);
+    if (sheet == null) return ColoredBox(color: color, child: child);
+    return MorphLiveColoredBox(
+      live: sheet.frames,
+      colorOf: () => color.withValues(alpha: color.a * sheet.fill()),
+      child: child,
+    );
+  }
 }
 
 /// One section of an inset grouped list, as iOS 27 settings and index

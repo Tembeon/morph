@@ -623,4 +623,47 @@ void main() {
     await gesture.up();
     await _settle(tester);
   });
+
+  testWidgets('a grouped list background follows the docked fill', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(402, 874) * 3;
+    tester.view.devicePixelRatio = 3;
+    tester.view.padding = const FakeViewPadding(top: 62 * 3, bottom: 34 * 3);
+    addTearDown(tester.view.reset);
+    MorphSheet? sheet;
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+          builder: (BuildContext context) {
+            sheet = MorphSheet.of(context);
+            return const MorphListBackground(
+              child: SizedBox.expand(key: _contentKey),
+            );
+          },
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    final gray = MorphListAppearance.light.backgroundColor;
+    RenderObject fill() => tester.renderObject(
+      find.descendant(
+        of: find.byType(MorphListBackground),
+        matching: find.byWidgetPredicate(
+          (Widget w) => w.runtimeType.toString() == 'MorphLiveColoredBox',
+        ),
+      ),
+    );
+    expect(fill(), isNot(paints..rect()));
+    sheet!.animateTo(MorphSheetDetent.large);
+    await _settle(tester);
+    expect(fill(), paints..rect(color: gray));
+    expect(
+      tester.renderObject<RenderBox>(find.byType(MorphListBackground)).size,
+      const Size(402, 812),
+    );
+  });
 }

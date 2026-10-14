@@ -28,6 +28,10 @@ no behaviour or pixel change: every rename keeps what the old name did.
     the display's.
   - the dark docked fill is systemBackground as rendered, 0xFF1C1C1E
     (was 0xFF2C2C2E).
+  - the zoom container clips with continuous corners as well.
+  - new `MorphListBackground`: the grouped page behind an inset grouped
+    list; in a sheet it is clear while the sheet floats and fades to the
+    grouped gray with the sheet's docked fill, as UIKit's table does.
   - `MorphSheetMotion` takes `fullHeight` and exposes `fill` and
     `cornerBlend`; `MorphSheetTuning` gains `stretchLimit`,
     `dragDockShortfall` and `backgroundSwitch`.

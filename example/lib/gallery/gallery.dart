@@ -328,10 +328,12 @@ class _GalleryOptionsSheet extends StatelessWidget {
       padding: const .only(top: 24, bottom: 32),
       children: options(context),
     );
-    if (listenable == null) return list(context);
-    return ListenableBuilder(
-      listenable: listenable,
-      builder: (BuildContext context, Widget? _) => list(context),
+    if (listenable == null) return MorphListBackground(child: list(context));
+    return MorphListBackground(
+      child: ListenableBuilder(
+        listenable: listenable,
+        builder: (BuildContext context, Widget? _) => list(context),
+      ),
     );
   }
 }

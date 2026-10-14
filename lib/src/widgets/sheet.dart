@@ -325,6 +325,22 @@ abstract class MorphSheet {
   }
 }
 
+/// The docked fill of the sheet around [context] as a live source: the
+/// sheet's frame notifier and a read of the fill's opacity, 0 floating to
+/// 1 docked; null outside a sheet. A detent change does not rebuild
+/// [context].
+({Listenable frames, double Function() fill})? morphSheetFillOf(
+  BuildContext context,
+) {
+  final scope = InheritedModel.inheritFrom<_SheetScope>(
+    context,
+    aspect: _SheetAspect.controller,
+  );
+  if (scope == null) return null;
+  final state = scope.state;
+  return (frames: state.frames, fill: state._fillNow);
+}
+
 /// What a dependent of a [_SheetScope] reads: the sheet with its detent,
 /// or only its scroll controller, which a detent change leaves alone.
 enum _SheetAspect { sheet, controller }
@@ -786,6 +802,11 @@ class _SheetViewState extends State<_SheetView>
 
   bool get _scrollDragging => _motion?.isDragging ?? false;
 
+  double _fillNow() {
+    final motion = _motion;
+    return motion == null ? 0 : motion.fill(motion.time);
+  }
+
   // The content widget is reused while its inputs hold, so a rebuild of
   // the chrome (each keyboard-inset frame) leaves the app's builder alone;
   // content that reads the MediaQuery still rebuilds through its own
@@ -1170,8 +1191,9 @@ extension on _SheetViewState {
           child: IgnorePointer(
             child: MorphLiveTemplate(
               live: frames,
-              template: () =>
-                  ClipRRect(clipper: MorphZoomShapeClipper(now().shape)),
+              template: () => ClipRSuperellipse(
+                clipper: MorphZoomContinuousClipper(now().shape),
+              ),
               child: MorphLiveOpacity(
                 live: frames,
                 opacityOf: () => now().opacity,
@@ -1389,7 +1411,10 @@ class _SheetBody extends StatelessWidget {
       ],
     );
     if (!clipped) return body;
-    return ClipRRect(clipper: MorphZoomShapeClipper(shape()), child: body);
+    return ClipRSuperellipse(
+      clipper: MorphZoomContinuousClipper(shape()),
+      child: body,
+    );
   }
 }
 

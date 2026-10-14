@@ -85,14 +85,18 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   is the "line" seen on the phone. `MorphSheetMotion.fill`,
   `backgroundSwitch`.
 - Content: an insetGrouped table in the sheet is clear while floating and
-  systemGroupedBackground when docked (UIKit switches it; morph does not
-  touch the app's content - see gaps).
+  systemGroupedBackground when docked; its cells stay white. morph:
+  `MorphListBackground` (the page behind an inset grouped list) reads the
+  sheet's fill live and paints the grouped gray at its opacity, so it
+  switches with the sheet's background; outside a sheet it is opaque.
 
 ## Spec - corners [sim 2026-10-14]
 
 - Continuous corners (cornerCurve continuous) on the sheet's clip: morph
   clips with the rounded superellipse of the same radii (`MorphLiveBox`
-  `continuous`); the glass already drew one.
+  `continuous`); the glass already drew one. The zoom container and a
+  zooming or scrubbed sheet clip continuous too (the corner radius still
+  runs from the source's to the sheet's).
 - Unscaled radii: top 38; bottom floating display - 8 = 54 (drawn 51.85
   at the floating scale), docked = the display radius (UIKit stores
   infinity, the environment radius 62 on this screen).
@@ -171,11 +175,6 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
 
 ## Not reproduced / open
 
-- Grouped list content does not switch its background with the sheet
-  (UIKit clears an insetGrouped table while floating); `MorphListSection`
-  in a sheet keeps its appearance's background.
-- The zoom container clips with circular corners (the source may be any
-  shape); the sheet itself clips continuous.
 - The bottom radius during a drag rounds the inset to a pixel in UIKit
   (steps of a third of a point); morph is smooth.
 - Measured on the simulator only (background flip, corners, stretch room):
