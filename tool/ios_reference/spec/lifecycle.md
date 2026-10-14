@@ -1,7 +1,8 @@
 # Lifecycle passports - main-thread work per frame, native vs morph
 
-Status: native from lab captures (iPhone 16 Pro, iOS 27.0.1, programmatic windows,
-120 Hz rows; notes private); morph from the host recorder
+Status: native from lab captures (iPhone 16 Pro, iOS 27.0.1, programmatic windows and,
+since 2026-10-14, touch windows - "Touch phase" below; 120 Hz rows; notes private); morph
+from the host recorder
 `test/lifecycle_counts_test.dart` (flat and liquid tiers, 16 ms frames). The tables below
 are the 2026-10-13 recording; the gaps closed since are in "Closed" with their new
 numbers, which the recorder pins as ceilings (`_ceilings`: last active frame, median
@@ -115,6 +116,98 @@ follows the flight by layout (19 a frame, the engine's shuttle chain); gaps 11, 
 the minimizing tab bar's collapse keeps 3 layouts a frame from its glass host and 4 from
 the selected label shrinking in the first half (tab-bar-minimize.md).
 
+## Touch phase (2026-10-14)
+
+Native: lab touch captures (iPhone 16 Pro, iOS 27, XCUITest gestures, 120 Hz rows) for 13
+families; the search and search toolbar captures failed and are missing. morph: the
+recorder's `*-touch` scenes replay the same gestures at 60 Hz (a tap is a 0.1 s hold;
+holds and moves as the lab's), with pointer time stamps. A morph token is
+`builds/layouts/paints` per 16 ms frame; "held" is the frames while the finger is down
+after the touch-down frame. "Creations" are view and layer creations.
+
+UIKit works on the main thread at the edges of a touch (touch-down, a crossing, the
+release, a cleanup ~0.8-1 s later that removes what the touch built) and leaves the
+motion to the render server. Only the slider (2 layouts a drag frame), a page control
+scrub (1 a frame), a sheet drag (14-23 a frame), a scroll (3-11) and a wheel (3-22) lay
+out on every frame of a drag, and nothing at all happens while a finger holds still.
+
+### Native, per phase
+
+| family | touch-down | held, dragged | release | after |
+|---|---|---|---|---|
+| segmented | on the selected segment: 41 layouts + 39 creations (the lifted lens), 24-30 layouts the next frame; on another: 1 layout (its title dims) | nothing, except 28-30 layouts in the frame the lens crosses into another segment | on another segment the lift and travel happen here: 45-54 layouts + 39 creations, then 5-8; 24 layouts when the lens lands | 20 removals at ~0.8 s |
+| tab bar | 56-57 layouts + 42 creations, 24-29 + 3 the next frame, 14-15 ~0.1 s later | nothing; 10-12-layout blips crossing a tab | 44 layouts (lens) + 18-31 (tabs, labels), the content swap | 19 removals at ~1 s |
+| tab bar, swipe to minimize | nothing for 13 frames | 3-9 layouts every frame through drag and deceleration; the morph frame 52 layouts + 61 creations, 40 the next | - | 17 removals at ~1 s |
+| switch | 2 frames later: 43-50 layouts + 39 creations, then 30 | nothing, held or dragged | 24-25 layouts | 19 removals at ~0.8 s |
+| slider | 41-50 layouts + 39 creations | 2 layouts every drag frame; nothing held still | 24 + 1 layouts | 19 removals at ~0.8 s; a tap on the track does nothing |
+| stepper | nothing on +; on -: 8 layouts + 6 creations | nothing, repeats included | 4 layouts on - | - |
+| glass button | 2 creations, no layout | nothing; 1 layout leaving and re-entering | 7 layouts + 3 creations | 3 removals at ~0.9 s |
+| merge (glass view dragged in a container) | nothing for the whole window | - | - | - |
+| menu | tap: built in the release frame, 154 layouts + 218 creations, 22 next; bar menu: 11 layouts every other frame for 0.1 s pressed, then 247 + 349; card long press: 9 + 11 at 0.17 s, 1 layout a frame for 8 frames, the lift 202 + 298 at 0.26 s, then nothing | - | close by a tap: 60-76 layouts + 70-77 creations | removals at 0.85-1.3 s |
+| sheet | - | 23 layouts every frame dragging up, 14 down; 84 layouts + 48 creations crossing into the large detent | 47-68 layouts, then nothing | swipe dismiss: 3 layouts a frame for its 0.18 s; 248 removals at ~0.8 s |
+| alert | on an action: 10 creations, 7 layouts next frame | 8 creations + 1 layout per slide to another action; nothing otherwise | 13 layouts | 67 removals at ~0.42 s |
+| scroll edge | - | 3-11 layouts every drag frame (11 while the large title collapses; cells as rows appear) | - | deceleration 3-14 layouts every frame for ~2.8 s |
+| page control | nothing | scrub: 1 layout every frame from ~0.17 s into the hold, 3 at a page step | tap: 2 layouts, then 1 a frame for 0.27 s | - |
+| date picker | tap on the date: the calendar in one frame, 370 layouts + 770 creations; a day: 27 layouts, nothing created | wheel: 3-22 layouts every frame for ~0.3 s, 10 creations as rows appear | - | close: 25 layouts + 18 creations, removals at ~1 s |
+
+### morph against native
+
+Flat tier; liquid where different. After the fixes below.
+
+| family | morph during the touch | gap |
+|---|---|---|
+| segmented | down on another segment 0/0/25 (its title's dim layer), then nothing held; release 13/17/42, then 0/2/8 a frame to 1.4 s; drag 0/2/8 a frame (liquid 0/3/41 lifted) | the lens moves by layout every frame, native only at crossings |
+| tab bar | held or dragged 0/2/100 while the swell grows (~0.45 s), then 0/2/18; liquid 21-23 builds at the lift, 0/3/108 a frame while lifted; release tail 0/2/17 to 1.36 s | labels repaint while the swell changes or a lifted lens copies them |
+| switch | 0/2/9 a frame for the lift (~0.45 s), then asleep held; drag 0/2/9 a frame; release 0/2/9 to ~0.9 s | knob by layout; native 2 frames at down, 1 at the release |
+| slider | drag 3/6/31 a frame (3 builds are the app's onChanged); held still asleep after 0.45 s | 6 layouts a frame against 2 |
+| stepper | 11/0/13 at down, 12/0/13 at the release; repeats 12/0/0 | parity (native 0-8 layouts) |
+| glass button | down 3/3/16 (liquid 10/3/16), 12-16 paints a frame for the press lift and every frame the finger moves | native nothing while held or dragged |
+| merge | the app moves the view by rebuilding: 4/2/35 a frame (liquid 4/2/19) | the flat container repaints the page around it (#15) |
+| menu, context menu | taps and holds as the programmatic rows above | as above |
+| sheet | drag 0/19/30 a frame (liquid 0/24/34); release 0/19/31 for 0.55 s; swipe dismiss 0/0/1 a frame | drag at parity; the release lays out every frame of the spring, native once |
+| alert | down 0/0/10, a slide 0/0/28, held 0/0/18 a frame; release 76 builds (the dismissal) | 18 paints a frame held (press scale through the glyph policy) |
+| scroll edge | drag 0/4/23 a frame, 6/9 with 11 rows mounted every 4-5 frames | parity |
+| page control | down 0/0/5, nothing held, release 5/0/5; scrub 0/0/5 a frame | parity |
+| date picker | open 125/93/44 + 44/113/0, 7 idle frames, a 194-paint frame; a day 86/33/167; wheel 0/1/40 a frame, at each crossing 34/18/92 + 6/2/50 | a day rebuilds the calendar (native 27 layouts) |
+
+### Closed (touch)
+
+| family, gesture | before | after | how |
+|---|---|---|---|
+| alert, press and slide over the actions | 59/1/51 at touch-down and at every slide; release 115 builds | 0/0/10 at touch-down, 0/0/28 per slide; release 76 | the highlighted action is a listenable its button's fill paints from, under a boundary of its own; pixels identical |
+| switch, slider, tab bar, segmented: finger held still | the press ticked every frame while held: switch 0/2/9, slider 0/2/13, tab bar 0/2/100, segmented lifted lens 0/2/8 (liquid 0/3/41) | asleep once the lift settles (~0.45 s); the next move wakes the clock and is followed | a held press settles under MorphRest; a move the lens has not followed keeps it awake one frame |
+| tab bar, drag or hold at full swell | 0/2/100 a frame (flat) | 0/2/18; tap 8292 -> 4438 paints, drag 13504 -> 7762 | the bar draws at its target swell once the swell is steady (NEAR, at most 0.1 pt off), so the label rows stay repaint boundaries |
+| segmented, press on another segment | 0/0/23 a frame for the 0.47 s dim | 0/0/25 once, then nothing; press-hold-other 1767 -> 830 paints | titles other than the dimmed one ignore its dim |
+| page control, tap | 0/0/5 a frame while held | nothing until the release (40 -> 10 paints) | the platter's 0.193 s delay dozes |
+| date picker, wheel swipe | at each crossing 71/20/148 then 43/4/106 | 34/18/92 then 6/2/50 | the wheel views are kept while what they draw is unchanged; the parent's echo rebuilds no row |
+
+Perf fixture (test/fixtures/perf/counts.json): tab-bar/flat 79.8 -> 54.7 paints a frame,
+fake and liquid 87.8 -> 72.7; lens-held/flat 97 -> 78 frames. The tab bar drag strikes
+one more glyph scale in its first run (the target swell; glyph_strikes_test 6 -> 7 flat,
+36 -> 37 liquid).
+
+### Open (touch)
+
+- The lens, switch knob and slider thumb lifts run on the main thread: 0.45 s of 2 layouts
+  + 8-13 paints a frame at touch-down and again after the release (native: one frame each,
+  the render server animates). The lens and knob move by layout (2 layouts a frame).
+- Tab bar: the labels repaint every frame while the swell grows or shrinks (~0.45 s at each
+  end of a press) and, liquid, while the lifted lens copies them (108 paints a frame);
+  glass button (12-16) and alert (18) repaint their content every frame the press scale
+  moves. All three are the glyph policy, which must see the scale at paint.
+- Slider drag: 6 layouts + 31 paints a frame against 2 layouts (the glass hosts of the
+  track and thumb lay out and repaint with the thumb).
+- Sheet: the release lays the content out every frame of the detent spring (19-24 a frame
+  for 0.55 s); the drag itself is at parity.
+- Date picker: a tap on a day rebuilds the calendar (86 builds, 167 paints; native 27
+  layouts) - key the day cells; a wheel crossing still rebuilds the compact label row (34
+  builds).
+- Merge, flat tier: a glass view the app moves repaints the page around its container
+  (13 of 35 paints a frame; #15).
+- Stepper: the pressed half rebuilds the control at touch-down and release (11-12 builds).
+- Scroll flings: parity in layouts; the list repaints its 20 visible row wrappers a frame,
+  the framework's own.
+
 ## Port suggestions, by gap
 
 1. Tab bar. Every frame of the lens motion repaints all four tabs' glyphs and labels
@@ -211,6 +304,9 @@ Native and morph per window; morph tokens are `builds/layouts/paints` per 16 ms 
 ## Open
 
 - Native date picker compact open and close need a recapture (the window stalled).
-- Native context menu has no programmatic window; only the button menu is measured.
+- Native context menu has no programmatic window; its touch window (a card long press)
+  is in "Touch phase".
+- Native search and search toolbar touch captures failed (the test anchors); their rows
+  are programmatic only.
 - The morph counts are host counts. The device check of a change is still frame time and
   energy on the Pixel 6a (docs/performance.md); these tables say where to look.
