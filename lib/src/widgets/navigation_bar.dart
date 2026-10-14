@@ -283,6 +283,8 @@ class MorphNavigationBar extends StatefulWidget {
     this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
     this.sideInset = MorphNavigationBarMetrics.sideInset,
+    this.hiding,
+    this.hidden,
     super.key,
   });
 
@@ -352,6 +354,16 @@ class MorphNavigationBar extends StatefulWidget {
 
   /// The space between the screen's sides and the outer capsules.
   final double sideInset;
+
+  /// How far the bar is hidden, 0 shown and 1 slid up off the screen with
+  /// its edge effect; null keeps it shown. A [MorphNavigationScaffold]
+  /// drives it.
+  @internal
+  final Animation<double>? hiding;
+
+  /// Whether the bar is hidden or hiding: it takes no touches then.
+  @internal
+  final ValueListenable<bool>? hidden;
 
   /// The height of a bar below a status bar [topInset] tall.
   static double heightFor(double topInset) =>
@@ -580,34 +592,63 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
         ),
       ),
     );
-    if (edge == null) return bar;
     final extent = MorphNavigationBar.heightFor(top);
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: 0,
-          right: 0,
-          top: 0,
-          height: MorphScrollEdgeEffect.bandExtent(
-            edge,
-            extent,
-            MorphScrollEdgeEffectAppearance.resolve(
-              context,
-              widget.edgeEffectAppearance,
+    if (edge == null) return _hideable(bar, extent);
+    final band = MorphScrollEdgeEffect.bandExtent(
+      edge,
+      extent,
+      MorphScrollEdgeEffectAppearance.resolve(
+        context,
+        widget.edgeEffectAppearance,
+      ),
+    );
+    return _hideable(
+      Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: band,
+            child: MorphScrollEdgeEffect.driven(
+              extent: extent,
+              style: edge,
+              appearance: widget.edgeEffectAppearance,
+              opacity: () => _motion.edgeOpacity,
+              repaint: frames,
             ),
           ),
-          child: MorphScrollEdgeEffect.driven(
-            extent: extent,
-            style: edge,
-            appearance: widget.edgeEffectAppearance,
-            opacity: () => _motion.edgeOpacity,
-            repaint: frames,
-          ),
-        ),
-        bar,
-      ],
+          bar,
+        ],
+      ),
+      math.max(extent, band),
     );
+  }
+
+  // Slides the bar (and its edge effect, [travel] reaching past both) up
+  // off the screen while it hides: a transform, so the glass keeps reading
+  // its backdrop and the motion builds nothing.
+  Widget _hideable(Widget bar, double travel) {
+    final hiding = widget.hiding;
+    if (hiding == null) return bar;
+    Widget out = MorphLiveTransform.matrix(
+      live: hiding,
+      alignment: null,
+      matrixOf: () =>
+          Matrix4.translationValues(0, -travel * hiding.value.clamp(0, 1.2), 0),
+      child: bar,
+    );
+    final hidden = widget.hidden;
+    if (hidden != null) {
+      out = ValueListenableBuilder<bool>(
+        valueListenable: hidden,
+        builder: (BuildContext context, bool hidden, Widget? child) =>
+            IgnorePointer(ignoring: hidden, child: child),
+        child: out,
+      );
+    }
+    return out;
   }
 }
 
