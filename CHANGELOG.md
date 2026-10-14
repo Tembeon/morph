@@ -189,6 +189,14 @@ tool/ios_reference/spec/lifecycle.md "Closed"):
   `tickHold`, `tickFollowSpring` and `tickReleaseDelay` give way to
   `tickExponent` 5, `tickProjection` and `tickProjectionThreshold`;
   `tickReleaseSpring` is 0.4 / 1.
+- `MorphSlider`'s drag starts as UIKit's pan (read from UIKit): it begins
+  at 10 pt of travel (`MorphSliderMotion.panSlop`, was 11) and the value
+  counts only the travel past it, continuous and stepped alike; before, it
+  counted from the first touch past 11 pt. New
+  `MorphSliderMotion.pointerMove(begin:)` starts a drag that had to wait
+  from where it begins, as UIKit resets a waited pan's translation. The
+  device replays feed touches 12.5 ms after their stamps, as the device
+  delivers them; drag values now replay within 0.003 - 0.5 pt.
 
 Migration, old -> new:
 

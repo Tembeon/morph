@@ -105,17 +105,10 @@ void main() {
         }
         await tester.pump(const Duration(milliseconds: 300));
         final held = s.thumbCenter - (18.5 + s.value * _travel);
-        double lean(double dx) {
-          final u = ((0.5 + dx / _width - s.value) * 8).clamp(-1.0, 1.0);
-          return u * u * u * u * u * _travel / 8;
-        }
-
         expect(
-          held,
-          inInclusiveRange(lean(offset - 0.5) - 3, lean(offset + 0.5) + 3),
-          reason:
-              'a held finger leans the thumb by the detent curve, give or '
-              'take the lens drift after the jump',
+          held.abs(),
+          lessThanOrEqualTo(_travel / 8 + 0.01),
+          reason: 'a held finger never leans the thumb past the midpoint',
         );
         await gesture.up();
         await tester.pumpAndSettle();
@@ -388,6 +381,23 @@ void main() {
           m.pointerUp(0.5, x + d);
         });
         expectOnStop(m, 'drag $d');
+      }
+    });
+
+    test('a held finger leans the thumb by the detent curve', () {
+      for (var d = -130.0; d <= 130; d += 3.7) {
+        final m = MorphSliderMotion(width: _width, value: 0.5, ticks: 5);
+        final x = 18.5 + 0.5 * _travel;
+        m.pointerDown(0, x);
+        m.pointerMove(0.1, x + MorphSliderMotion.panSlop * d.sign);
+        m.pointerMove(0.2, x + MorphSliderMotion.panSlop * d.sign + d);
+        final p = (0.5 + d / _width).clamp(0.0, 1.0);
+        final u = ((p - m.value) * 8).clamp(-1.0, 1.0);
+        expect(
+          m.position,
+          closeTo(m.value + u * u * u * u * u / 8, 1e-9),
+          reason: 'drag $d',
+        );
       }
     });
 

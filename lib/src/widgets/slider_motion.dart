@@ -11,12 +11,15 @@ import 'package:morph/src/widgets/timeline.dart';
 /// The motion of an iOS 27 slider: value, thumb lens and track stretch.
 ///
 /// Only the thumb is a handle: a press on it lifts the thumb lens, a tap
-/// or a drag that starts on the track does nothing. A drag begins after
-/// [panSlop] pixels and maps the finger's travel from that point onto
-/// the value by the full track width, so the thumb trails the finger and
-/// never catches up with it: when the value reaches an end, the finger
-/// leads the thumb by the slop plus the thumb width times the travel
-/// left, and only past that point does the track stretch. The thumb
+/// or a drag that starts on the track does nothing. A drag begins once
+/// the finger has moved [panSlop] pixels and maps its travel beyond that
+/// distance onto the value by the full track width, as UIKit's pan
+/// removes its hysteresis from the translation (a drag whose start had to
+/// wait counts from where it begins, see [pointerMove]). So the thumb
+/// trails the finger and never catches up with it: when the value reaches
+/// an end, the finger leads the thumb by the slop plus the thumb width
+/// times the travel left, and only past that point does the track
+/// stretch. The thumb
 /// follows the value directly. On release the value glides on: it keeps
 /// the release speed for [glideCoast], then the speed decays
 /// exponentially with the time constant [glideDecay], so a release at
@@ -74,9 +77,11 @@ class MorphSliderMotion {
   /// The height of the resting track.
   static const double trackHeight = 6;
 
-  /// How far the finger moves before a drag begins, fitted to slow drags
-  /// recorded on an iPhone and in the simulator.
-  static const double panSlop = 11;
+  /// How far the finger moves before a drag begins; the value counts only
+  /// the travel past it. UIKit's pan hysteresis, read from UIKit, notes
+  /// private; every device recording whose drag began at once counts from
+  /// exactly this distance.
+  static const double panSlop = 10;
 
   /// How far outside the resting thumb a press still grabs it.
   static const double thumbSlop = 8;
@@ -288,14 +293,20 @@ class MorphSliderMotion {
   }
 
   /// The finger moved to [x].
-  void pointerMove(double t, double x) {
+  ///
+  /// With [begin], a drag that has not begun yet begins here and counts
+  /// the travel from [x], as UIKit's pan does when its start waited on
+  /// another gesture: it resets its translation instead of removing the
+  /// hysteresis.
+  void pointerMove(double t, double x, {bool begin = false}) {
     advance(t);
     final press = _press;
     if (press == null) return;
     if (!press.dragging) {
-      if ((x - press.downX).abs() <= panSlop) return;
+      final travel = x - press.downX;
+      if (!begin && travel.abs() < panSlop) return;
       press.dragging = true;
-      press.anchor = x;
+      press.anchor = begin ? x : press.downX + travel.sign * panSlop;
       press.from = _stepped ? _positionAt(t) : _value;
       press.sample(t, x);
       return;

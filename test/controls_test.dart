@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
 
+import 'support/slider_feed.dart';
 import 'support/trace.dart';
 import 'package:morph/motion.dart';
 
@@ -29,22 +30,30 @@ double _rms(Iterable<double> errors) {
   return n == 0 ? double.nan : math.sqrt(sum / n);
 }
 
-/// Feeds the touches of [trace] up to time [t] into [feed], once each.
+/// Feeds the touches of [trace] delivered by time [t] into [feed], once
+/// each: a touch arrives [lag] after its stamp.
 class _Touches {
-  _Touches(this.trace);
+  _Touches(this.trace, {this.lag = 0});
 
   final Trace trace;
+  final double lag;
   int _next = 0;
 
   void until(double t, void Function(TraceTouch touch) feed) {
-    while (_next < trace.touches.length && trace.touches[_next].t <= t) {
+    while (_next < trace.touches.length && trace.touches[_next].t + lag <= t) {
       feed(trace.touches[_next]);
       _next++;
     }
   }
 }
 
-({MorphSliderMotion motion, double left, Trace trace, _Touches touches})
+({
+  MorphSliderMotion motion,
+  double left,
+  Trace trace,
+  _Touches touches,
+  Map<TraceTouch, bool> waits,
+})
 _slider(
   String file, {
   double width = 300,
@@ -54,26 +63,14 @@ _slider(
   final trace = Trace.load('${device ? _deviceDir : _dir}/$file');
   final motion = MorphSliderMotion(width: width, value: value, frameRate: 60);
   motion.advance(trace.touches.first.t - 1);
+  final lag = device ? deviceDeliveryLag : 0.0;
   return (
     motion: motion,
     left: (device ? _deviceControlX : _controlX) - width / 2,
     trace: trace,
-    touches: _Touches(trace),
+    touches: _Touches(trace, lag: lag),
+    waits: waitedBegins(trace, width, value, lag),
   );
-}
-
-void Function(TraceTouch) _feedSlider(MorphSliderMotion m, double left) {
-  return (TraceTouch touch) {
-    final x = touch.x - left;
-    switch (touch.phase) {
-      case 0:
-        m.pointerDown(touch.t, x);
-      case 3:
-        m.pointerUp(touch.t, x);
-      case _:
-        m.pointerMove(touch.t, x);
-    }
-  };
 }
 
 /// The model's value at every recorded valueChanged event during the
@@ -85,14 +82,14 @@ void Function(TraceTouch) _feedSlider(MorphSliderMotion m, double left) {
   bool device = false,
 }) {
   final s = _slider(file, width: width, value: value, device: device);
-  final feed = _feedSlider(s.motion, s.left);
+  final feed = feedSlider(s.motion, s.left, s.waits);
   final up = s.trace.touches.lastWhere((t) => t.phase == 3).t;
   final drag = <double>[];
   for (final e in s.trace.events) {
     if (e['e'] != 'valueChanged') continue;
     final t = (e['t']! as num).toDouble();
     if (t >= up) break;
-    s.touches.until(t - 0.002, feed);
+    s.touches.until(device ? t : t - 0.002, feed);
     s.motion.advance(t);
     drag.add((s.motion.value - (e['v']! as num).toDouble()) * width);
   }
@@ -297,7 +294,7 @@ Widget _host(Widget child) => Directionality(
   bool device = false,
 }) {
   final s = _slider(file, width: width, value: value, device: device);
-  final feed = _feedSlider(s.motion, s.left);
+  final feed = feedSlider(s.motion, s.left, s.waits);
   final left = <double>[];
   final right = <double>[];
   final height = <double>[];
@@ -341,7 +338,7 @@ Widget _host(Widget child) => Directionality(
     if (f.t < s.trace.touches.first.t || f.t > up) continue;
     s.touches.until(f.t, (touch) {
       finger = touch.x;
-      _feedSlider(s.motion, s.left)(touch);
+      feedSlider(s.motion, s.left, s.waits)(touch);
     });
     s.motion.advance(f.t);
     final model = s.left + s.motion.thumbCenter;
@@ -471,7 +468,7 @@ const double _rowLag = 1 / 120;
 ({double fill, double thumb, double stops}) _ticksReplay(String file) {
   final s = _slider(file, value: 0, device: true);
   s.motion.ticks = 5;
-  final feed = _feedSlider(s.motion, s.left);
+  final feed = feedSlider(s.motion, s.left, s.waits);
   final fill = <double>[];
   final thumb = <double>[];
   var stops = 0.0;
@@ -578,14 +575,11 @@ void main() {
       );
     });
 
-    // The detent curve has no tuning to fit: the residual is the finger
-    // mapping near a midpoint, where a point of finger moves the thumb up
-    // to four, and the feed's touch-to-frame latency.
     test('a stepped slider follows the device detent curve', () {
       final e = _ticksReplay('slider-ticks5-video-dark.jsonl');
       expect(e.stops, lessThan(1e-6));
-      expect(e.fill, lessThan(2.3));
-      expect(e.thumb, lessThan(2.4));
+      expect(e.fill, lessThan(1.85));
+      expect(e.thumb, lessThan(1.55));
     });
 
     test('device stepped thumbs undo the detent curve onto touch pixels', () {
@@ -634,23 +628,23 @@ void main() {
 
     test('a slider drag maps the finger by the full track width', () {
       for (final (file, width, value, limit) in [
-        ('slider-w300-drag-slow.jsonl', 300.0, 0.3, 4.2),
-        ('slider-w200-drag-slow.jsonl', 200.0, 0.3, 4.7),
-        ('slider-w300-glide-v150.jsonl', 300.0, 0.1, 0.9),
-        ('slider-w300-glide-v250.jsonl', 300.0, 0.1, 1.8),
-        ('slider-w300-glide-v400.jsonl', 300.0, 0.1, 6.8),
-        ('slider-w200-glide-v150.jsonl', 200.0, 0.1, 0.6),
-        ('slider-w200-glide-v250.jsonl', 200.0, 0.1, 0.8),
-        ('slider-w200-glide-v400.jsonl', 200.0, 0.1, 3.5),
-        ('slider-w200-end-max-slow.jsonl', 200.0, 0.5, 2.0),
-        ('slider-w200-end-min-slow.jsonl', 200.0, 0.5, 2.0),
-        ('slider-w200-sweep.jsonl', 200.0, 0.0, 2.4),
-        ('slider-w260-sweep.jsonl', 260.0, 0.0, 2.2),
-        ('slider-w200-nearend-max.jsonl', 200.0, 0.9, 2.2),
-        ('slider-w200-offgrab-max.jsonl', 200.0, 0.5, 1.0),
-        ('slider-w200-fast-max.jsonl', 200.0, 0.5, 1.4),
-        ('slider-w200-fast-min.jsonl', 200.0, 0.5, 1.4),
-        ('slider-w200-fling-max.jsonl', 200.0, 0.5, 1.3),
+        ('slider-w300-drag-slow.jsonl', 300.0, 0.3, 0.2),
+        ('slider-w200-drag-slow.jsonl', 200.0, 0.3, 0.2),
+        ('slider-w300-glide-v150.jsonl', 300.0, 0.1, 0.3),
+        ('slider-w300-glide-v250.jsonl', 300.0, 0.1, 0.5),
+        ('slider-w300-glide-v400.jsonl', 300.0, 0.1, 1.7),
+        ('slider-w200-glide-v150.jsonl', 200.0, 0.1, 0.05),
+        ('slider-w200-glide-v250.jsonl', 200.0, 0.1, 0.05),
+        ('slider-w200-glide-v400.jsonl', 200.0, 0.1, 0.05),
+        ('slider-w200-end-max-slow.jsonl', 200.0, 0.5, 0.1),
+        ('slider-w200-end-min-slow.jsonl', 200.0, 0.5, 0.5),
+        ('slider-w200-sweep.jsonl', 200.0, 0.0, 0.55),
+        ('slider-w260-sweep.jsonl', 260.0, 0.0, 0.1),
+        ('slider-w200-nearend-max.jsonl', 200.0, 0.9, 0.05),
+        ('slider-w200-offgrab-max.jsonl', 200.0, 0.5, 0.5),
+        ('slider-w200-fast-max.jsonl', 200.0, 0.5, 0.05),
+        ('slider-w200-fast-min.jsonl', 200.0, 0.5, 0.05),
+        ('slider-w200-fling-max.jsonl', 200.0, 0.5, 0.05),
       ]) {
         final e = _sliderValues(file, width: width, value: value, device: true);
         expect(e.n, greaterThan(15), reason: file);
@@ -668,15 +662,15 @@ void main() {
 
     test('a device slider thumb stays behind the finger at its ends', () {
       for (final (file, width, value, limit, leadTolerance) in [
-        ('slider-w200-end-max-slow.jsonl', 200.0, 0.5, 1.6, 1.0),
-        ('slider-w200-end-min-slow.jsonl', 200.0, 0.5, 1.6, 1.0),
-        ('slider-w200-sweep.jsonl', 200.0, 0.0, 2.1, 1.0),
-        ('slider-w260-sweep.jsonl', 260.0, 0.0, 2.1, 1.0),
-        ('slider-w200-nearend-max.jsonl', 200.0, 0.9, 1.3, 1.0),
-        ('slider-w200-atend-max.jsonl', 200.0, 1.0, 2.0, double.nan),
+        ('slider-w200-end-max-slow.jsonl', 200.0, 0.5, 0.7, 0.6),
+        ('slider-w200-end-min-slow.jsonl', 200.0, 0.5, 0.5, 0.6),
+        ('slider-w200-sweep.jsonl', 200.0, 0.0, 0.6, 0.6),
+        ('slider-w260-sweep.jsonl', 260.0, 0.0, 0.4, 0.2),
+        ('slider-w200-nearend-max.jsonl', 200.0, 0.9, 0.5, 0.6),
+        ('slider-w200-atend-max.jsonl', 200.0, 1.0, 0.55, double.nan),
         ('slider-w200-offgrab-max.jsonl', 200.0, 0.5, 0.6, 1.0),
-        ('slider-w200-fast-max.jsonl', 200.0, 0.5, 3.7, 6.5),
-        ('slider-w200-fast-min.jsonl', 200.0, 0.5, 3.7, 6.5),
+        ('slider-w200-fast-max.jsonl', 200.0, 0.5, 3.4, 6.0),
+        ('slider-w200-fast-min.jsonl', 200.0, 0.5, 1.7, 3.5),
       ]) {
         final e = _thumbReplay(file, width: width, value: value);
         expect(e.n, greaterThan(70), reason: file);
@@ -696,17 +690,17 @@ void main() {
           device: true,
         );
         expect(st.n, greaterThan(70), reason: file);
-        expect(st.left, lessThan(0.7), reason: '$file left end');
-        expect(st.right, lessThan(0.7), reason: '$file right end');
-        expect(st.height, lessThan(0.25), reason: '$file height');
+        expect(st.left, lessThan(0.65), reason: '$file left end');
+        expect(st.right, lessThan(0.65), reason: '$file right end');
+        expect(st.height, lessThan(0.2), reason: '$file height');
       }
     });
 
     test('a slider dragged past an end stretches the track', () {
       for (final (file, limit) in [
         ('slider-w300-drag-pastend.jsonl', 0.25),
-        ('slider-w300-drag-paststart.jsonl', 0.6),
-        ('slider-w300-drag-pastend-far.jsonl', 1.3),
+        ('slider-w300-drag-paststart.jsonl', 0.25),
+        ('slider-w300-drag-pastend-far.jsonl', 0.75),
         ('slider-w300-drag-pastend-small.jsonl', 2.1),
       ]) {
         final e = _stretchReplay(file);
@@ -752,11 +746,16 @@ void main() {
         await gesture.moveBy(const Offset(10, 0));
         await tester.pump(const Duration(milliseconds: 16));
       }
-      expect(value, moreOrLessEquals(0.5, epsilon: 1e-9));
+      const dragged = 0.3 + (14 + 60 - MorphSliderMotion.panSlop) / 300;
+      expect(
+        value,
+        moreOrLessEquals(dragged, epsilon: 1e-9),
+        reason: 'the value counts the travel past the slop',
+      );
       await tester.pump(const Duration(milliseconds: 200));
       await gesture.up();
       await tester.pumpAndSettle();
-      expect(value, moreOrLessEquals(0.5, epsilon: 1e-9));
+      expect(value, moreOrLessEquals(dragged, epsilon: 1e-9));
       expect(ended, value);
       expect(tester.binding.hasScheduledFrame, isFalse);
     });
