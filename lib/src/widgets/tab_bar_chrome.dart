@@ -407,6 +407,7 @@ class MorphTabBarGroupGeometry {
     required this.collapsed,
     required this.accessory,
     required this.inlineAccessory,
+    this.searchCollapsed,
   });
 
   /// Lays out a bar [barWidth] wide in a group [width] wide, with an
@@ -414,13 +415,15 @@ class MorphTabBarGroupGeometry {
   /// the minimized circle [MorphTabBarMinimizeTuning.collapsedInset]
   /// inside the bar group's leading side and bottom, the accessory
   /// [MorphTabBarMinimizeTuning.spacing] above the bar across the group
-  /// and, inline, between the circle and the group's trailing side.
-  /// [rtl] mirrors it.
+  /// and, inline, between the circle and the group's trailing side (or,
+  /// with [search], the minimized search tab's circle, the leading
+  /// circle mirrored). [rtl] mirrors it.
   factory MorphTabBarGroupGeometry.of({
     required double width,
     required double barWidth,
     required bool accessory,
     bool rtl = false,
+    bool search = false,
   }) {
     const barHeight = MorphTabBarMetrics.height;
     const side = MorphTabBarMinimizeTuning.sideInset;
@@ -438,10 +441,16 @@ class MorphTabBarGroupGeometry {
     );
     final collapsed = Rect.fromLTWH(side + inset, barTop + inset, size, size);
     final regular = Rect.fromLTWH(side, barTop - gap - h, width - 2 * side, h);
+    final searchCircle = Rect.fromLTWH(
+      width - side - inset - size,
+      collapsed.top,
+      size,
+      size,
+    );
     final inline = Rect.fromLTRB(
       collapsed.right + gap,
       collapsed.top,
-      width - side - inset,
+      search ? searchCircle.left - gap : width - side - inset,
       collapsed.top + h,
     );
     Rect mirror(Rect r) => rtl
@@ -453,6 +462,7 @@ class MorphTabBarGroupGeometry {
       collapsed: mirror(collapsed),
       accessory: mirror(regular),
       inlineAccessory: mirror(inline),
+      searchCollapsed: search ? mirror(searchCircle) : null,
     );
   }
 
@@ -470,6 +480,10 @@ class MorphTabBarGroupGeometry {
 
   /// The accessory next to the minimized bar.
   final Rect inlineAccessory;
+
+  /// The minimized search tab's circle at the group's trailing side, or
+  /// null when the bar has no [MorphTabRole.search] tab.
+  final Rect? searchCollapsed;
 }
 
 /// A tab bar with its minimizing behavior and bottom accessory: the
@@ -491,8 +505,14 @@ class MorphTabBarChrome extends StatefulWidget {
     required this.accessory,
     required this.contentScroll,
     this.barPress,
+    this.onSelect,
     super.key,
   });
+
+  /// Selects a tab, as the expanded bar's own selection does: the
+  /// minimized search circle and the leading circle of a bar whose search
+  /// tab is selected select through it (null: they only expand the bar).
+  final ValueChanged<int>? onSelect;
 
   /// The expanded bar, built by the tab bar.
   final Widget bar;
@@ -645,6 +665,43 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
   MorphTabBarGroupGeometry? _geometry;
   Rect _bar = Rect.zero;
   Rect _accessory = Rect.zero;
+  Rect _search = Rect.zero;
+  double _searchShown = 0;
+
+  // The tab the leading circle shows while the search tab is selected:
+  // the last other tab selected, as UIKit's minimized bar keeps it.
+  int _lastOther = 0;
+
+  int get _searchIndex =>
+      widget.items.indexWhere((item) => item.role == MorphTabRole.search);
+
+  void _noteSelection() {
+    final search = _searchIndex;
+    final selected = widget.selected;
+    if (selected != search && selected >= 0) {
+      _lastOther = selected;
+    } else if (_lastOther == search || _lastOther >= widget.items.length) {
+      _lastOther = search == 0 && widget.items.length > 1 ? 1 : 0;
+    }
+  }
+
+  int get _lead {
+    final selected = widget.selected.clamp(0, widget.items.length - 1);
+    return selected == _searchIndex ? _lastOther : selected;
+  }
+
+  void _collapsedTapped() {
+    final searchSelected = _searchIndex >= 0 && widget.selected == _searchIndex;
+    expandMinimized();
+    if (searchSelected) widget.onSelect?.call(_lastOther);
+  }
+
+  void _searchTapped() {
+    final search = _searchIndex;
+    if (search < 0 || widget.selected == search) return;
+    widget.onSelect?.call(search);
+  }
+
   final ValueNotifier<bool> _labelShown = ValueNotifier<bool>(true);
   final ValueNotifier<bool> _collapsedEnabled = ValueNotifier<bool>(false);
 
@@ -659,6 +716,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
   @override
   void initState() {
     super.initState();
+    _noteSelection();
     _ticks.follow(frames);
   }
 
@@ -671,6 +729,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
   @override
   void didUpdateWidget(MorphTabBarChrome oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _noteSelection();
     _follow();
     changeMinimizeBehavior(widget.behavior);
   }
@@ -756,10 +815,15 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
     _pointer = null;
     final t = stamp(event);
     _motion.advance(t);
+    final tap = !_motion.held && !_motion.scrubs;
     _motion.pressUp(t);
     if (_handed) widget.barPress?.pressUp(_toBar(event) as PointerUpEvent);
     _handed = false;
     wake();
+    final search = _searchIndex;
+    if (tap && search >= 0 && widget.selected == search) {
+      widget.onSelect?.call(_lastOther);
+    }
   }
 
   void _pointerCancel(PointerCancelEvent event) {
@@ -791,7 +855,12 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
       geometry.inlineAccessory,
       shape,
     )!;
+    final searchEnd = geometry.searchCollapsed;
+    if (searchEnd != null) {
+      _search = Rect.lerp(_searchSlot(geometry), searchEnd, shape)!;
+    }
     final q = content.clamp(0.0, 1.0);
+    _searchShown = q;
     _labelShown.value = (1 - q * 2).clamp(0.0, 1.0) > 0.01;
     _collapsedEnabled.value = _motion.minimized;
     final resting = _motion.restsExpanded(t);
@@ -799,6 +868,23 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
       resting: resting,
       minimized: _motion.minimized,
       apart: resting || !_accessory.inflate(1).overlaps(_bar),
+    );
+  }
+
+  // Where the search circle starts: a circle as tall as the bar around the
+  // search tab's slot, inside the expanded bar's glass.
+  Rect _searchSlot(MorphTabBarGroupGeometry geometry) {
+    final count = widget.items.length;
+    final bar = geometry.bar;
+    final pitch = (bar.width - 2 * MorphTabBarMetrics.sideInset) / count;
+    final index = widget.rtl ? count - 1 - _searchIndex : _searchIndex;
+    return Rect.fromCenter(
+      center: Offset(
+        bar.left + MorphTabBarMetrics.sideInset + pitch * (index + 0.5),
+        bar.center.dy,
+      ),
+      width: bar.height,
+      height: bar.height,
     );
   }
 
@@ -878,12 +964,15 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
       barWidth: widget.barWidth,
       accessory: accessory != null,
       rtl: widget.rtl,
+      search: _searchIndex >= 0,
     );
     final structure = _ticks.read()!;
     final resting = structure.resting;
     final glass = widget.glass;
     final style = widget.appearance;
-    final selected = widget.selected.clamp(0, widget.items.length - 1);
+    final selected = _lead;
+    final searchEnd = geometry.searchCollapsed;
+    final searching = !resting && searchEnd != null;
     // Each part is a repaint boundary of its own: a frame of the morph
     // repaints the moving glass and composites the rest. The accessory is
     // glass of its own, never one body with the bar's (as on iOS: fused,
@@ -897,7 +986,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
     if (glass != null && (!resting || accessory != null)) {
       glassLayer = _cached(
         'glass',
-        (glass, resting, shared, accessory != null),
+        (glass, resting, shared, accessory != null, searching),
         () => Positioned.fill(
           key: const ValueKey<String>('glass'),
           child: RepaintBoundary(
@@ -908,6 +997,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
                 frames: _ticks,
                 frame: () => MorphGlassFrame([
                   if (!resting) _capsuleSurface(_bar),
+                  if (searching) _capsuleSurface(_search),
                   if (shared && accessory != null) _capsuleSurface(_accessory),
                 ]),
               ),
@@ -1022,7 +1112,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
           brightness: widget.brightness,
           rtl: widget.rtl,
           label: widget.items[selected].label,
-          onTap: expandMinimized,
+          onTap: _collapsedTapped,
           enabled: _collapsedEnabled,
           drawsGlass: glass == null,
           tapsOnTouch: false,
@@ -1036,6 +1126,31 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
           key: const ValueKey<String>('collapsed'),
           rect: geometry.bar.expandToInclude(geometry.collapsed),
           child: RepaintBoundary(child: _collapsed),
+        ),
+      );
+    }
+    if (searching) {
+      final search = widget.items[_searchIndex];
+      final searchSelected = widget.selected == _searchIndex;
+      children.add(
+        _cached(
+          'search',
+          (search, searchSelected, searchEnd, style, glass, widget.brightness),
+          () => KeyedSubtree(
+            key: const ValueKey<String>('searchCircle'),
+            child: _SearchTabCircle(
+              live: _ticks,
+              rect: () => _search,
+              shown: () => _searchShown,
+              end: searchEnd,
+              item: search,
+              color: searchSelected ? style.selectedColor : style.color,
+              style: style,
+              drawsGlass: glass == null,
+              enabled: _collapsedEnabled,
+              onTap: _searchTapped,
+            ),
+          ),
         ),
       );
     }
@@ -1055,6 +1170,112 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The minimized bar's search tab circle, laid out once at [end] and
+/// carried from the search tab's slot to [end] by paint: its glyph fades
+/// in as [shown] runs to 1. With [drawsGlass] it paints its flat body
+/// itself; otherwise the bar group's glass layer draws it.
+class _SearchTabCircle extends StatelessWidget {
+  const _SearchTabCircle({
+    required this.live,
+    required this.rect,
+    required this.shown,
+    required this.end,
+    required this.item,
+    required this.color,
+    required this.style,
+    required this.drawsGlass,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final Listenable live;
+  final Rect Function() rect;
+  final double Function() shown;
+  final Rect end;
+  final MorphTabItem item;
+  final Color color;
+  final MorphTabBarAppearance style;
+  final bool drawsGlass;
+  final ValueListenable<bool> enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    RRect shape() {
+      final r = rect().shift(-end.topLeft);
+      return RRect.fromRectAndRadius(r, Radius.circular(r.shortestSide / 2));
+    }
+
+    return Positioned.fromRect(
+      rect: end,
+      child: Stack(
+        fit: StackFit.expand,
+        clipBehavior: Clip.none,
+        children: [
+          if (drawsGlass)
+            IgnorePointer(
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  painter: MorphCapsulePainter(
+                    live: live,
+                    shape: shape,
+                    color: () => style.barColor,
+                    shadow: style.shadowColor,
+                  ),
+                ),
+              ),
+            ),
+          RepaintBoundary(
+            child: MorphLiveTransform.matrix(
+              live: live,
+              alignment: null,
+              matrixOf: () {
+                final d = rect().center - end.center;
+                return Matrix4.translationValues(d.dx, d.dy, 0);
+              },
+              child: MorphLiveOpacity(
+                live: live,
+                opacityOf: () => shown().clamp(0.0, 1.0),
+                child: Semantics(
+                  button: true,
+                  label: item.label,
+                  onTap: onTap,
+                  excludeSemantics: true,
+                  child: ValueListenableBuilder<bool>(
+                    valueListenable: enabled,
+                    builder: (BuildContext context, bool on, Widget? child) =>
+                        IgnorePointer(
+                          ignoring: !on,
+                          child: MorphPress(
+                            enabled: on,
+                            onActivate: onTap,
+                            focusRing: true,
+                            focusSemantics: false,
+                            child: child!,
+                          ),
+                        ),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onTap,
+                      child: Center(
+                        child: Icon(
+                          item.icon,
+                          size: MorphTabBarMetrics.iconSize,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
