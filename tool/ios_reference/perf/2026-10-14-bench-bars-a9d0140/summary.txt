@@ -1,0 +1,30 @@
+a9d0140  runs 5  fixed-perf False  2026-10-14 00:50
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+nav/nav-navigation-toolbar-liquid   384   2.9   6.5   7.8   9.4   4.6   0.0    7   581    [ui 5.465->6.481, power_mw 653->581]
+nav/nav-navigation-nested-push-liq  409   5.4   9.7   7.5  10.7   6.9   1.5   12   706  ui-layout:5 ui-build:1 bad ui: layout 12.2, paint 4.5, build 3.5  [=]
+                                     dart (617 samples): _RenderLiveTransform.performLayout 42, _MorphGlassHostElement.update 20, _RenderShadedGlyphs.paint 8, _LivePositionedTemplateElement.update 8 ms
+                                     ui by code (nearest owner, ms/frame): morph 2.81, app 0.00, framework 2.58
+                                     ui by owner (self ms/frame): HandleOOBMessage 1.51, Dart_InvokeClosure 1.15, _RenderGlassShadow 0.70, RenderLiquidGlassLayer 0.69, _RenderShadedGlyphs 0.58, RenderSemanticsAnnotations 0.22
+nav/nav-navigation-nested-pop-liqu  397   4.9   8.9   7.9  10.4   6.1   1.3    2   600  ui-layout:5 bad ui: layout 15.0, paint 7.7, build 3.7  [gpu 5.442->6.079, power_mw 715->600]
+                                     dart (315 samples): _MorphGlassHostElement.update 21, _LivePositionedTemplateElement.update 11, _RenderLiveTransform.performLayout 10, _LiveDrivenElement.mount 9 ms
+                                     ui by code (nearest owner, ms/frame): morph 2.46, app 0.00, framework 1.70
+                                     ui by owner (self ms/frame): HandleOOBMessage 1.40, Dart_InvokeClosure 1.05, RenderLiquidGlassLayer 0.73, _RenderGlassShadow 0.67, _RenderShadedGlyphs 0.48, RenderSemanticsAnnotations 0.21
+nav/nav-navigation-enter-flat       405   2.5   5.4   5.8   8.4   3.4   1.0    9   507  ui-layout:4 bad ui: layout 11.8, build 5.5, paint 2.3  [raster 9.704->8.38, power_mw 579->507]
+                                     dart (228 samples): _RenderLiveTransform.performLayout 22, _MorphGlassHostElement.update 2, _RenderShadedGlyphs.paint 2, RenderMorphGlyphs._rasterizeAt 2 ms
+                                     ui by code (nearest owner, ms/frame): morph 0.68, app 0.00, framework 2.00
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 0.79, RenderSemanticsAnnotations 0.29, _RenderShadedGlyphs 0.29, RenderCustomPaint 0.28, RenderStack 0.26, RenderIgnorePointer 0.17
+nav/nav-navigation-toolbar-flat     379   2.2   5.8   5.5   7.1   1.9   0.3    6   488  ui-build:1 bad ui: build 9.2, compositing 2.1, paint 2.1  [ui 5.253->5.792, raster 8.108->7.069, power_mw 546->488]
+nav/nav-navigation-nested-push-fla  404   3.4   7.5   5.4   7.2   2.9   1.0   10   508  ui-layout:4 bad ui: layout 10.4, build 6.3, paint 4.6  [raster 8.643->7.216, power_mw 619->508]
+                                     dart (215 samples): _RenderLiveTransform.performLayout 12, _MorphGlassHostElement.update 12, _LivePositionedTemplateElement.mount 5, _LivePositionedTemplateElement.update 4 ms
+                                     ui by code (nearest owner, ms/frame): morph 1.02, app 0.00, framework 3.26
+                                     ui by owner (self ms/frame): HandleOOBMessage 2.93, Dart_InvokeClosure 1.00, _RenderShadedGlyphs 0.66, RenderStack 0.40, RenderSemanticsAnnotations 0.36, RenderCustomPaint 0.31
+nav/nav-navigation-nested-pop-flat  389   2.9   6.3   5.6   7.3   2.6   1.3    3   509  ui-layout:5 bad ui: layout 22.3, paint 9.5, build 4.8  [raster 8.614->7.344, power_mw 622->509]
+                                     dart (434 samples): _MorphGlassHostElement.update 26, _RenderLiveTransform.performLayout 19, _LivePositionedTemplateElement.update 15, _LiveDrivenElement.mount 11 ms
+                                     ui by code (nearest owner, ms/frame): morph 1.80, app 0.00, framework 3.21
+                                     ui by owner (self ms/frame): HandleOOBMessage 5.21, Dart_InvokeClosure 0.87, _RenderShadedGlyphs 0.52, RenderStack 0.38, RenderSemanticsAnnotations 0.31, RenderCustomPaint 0.28
+nav/nav-navigation-enter-liquid     408   3.8   8.0   8.0  11.0   6.0   1.2    8   603  ui-layout:5 bad ui: layout 14.3, build 6.5, paint 3.2  [power_mw 700->603]
+                                     dart (489 samples): _RenderLiveTransform.performLayout 48, _MorphGlassHostElement.update 5, _MorphGlassHostElement.mount 4, _RenderShadedGlyphs.paint 2 ms
+                                     ui by code (nearest owner, ms/frame): morph 2.04, app 0.00, framework 1.51
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 1.01, RenderLiquidGlassLayer 0.58, _RenderGlassShadow 0.47, _RenderShadedGlyphs 0.32, RenderSemanticsAnnotations 0.16, RenderParagraph 0.15

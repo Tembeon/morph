@@ -1,0 +1,27 @@
+eaf1cff  runs 5  fixed-perf False  2026-10-14 00:55
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+nav/nav-navigation-toolbar-liquid   383   3.0   6.3   7.6   9.5   4.5   0.3    9   601  ui-build:1 bad ui: build 9.4, compositing 2.9, paint 2.1  [ui 5.465->6.326, power_mw 653->601]
+nav/nav-navigation-nested-push-liq  408   5.3  10.4   7.4  11.2   6.7   2.5    8   667  ui-layout:6 ui-build:3 ui-paint:1 bad ui: layout 9.7, paint 3.6, build 2.8  [power_mw 711->667]
+                                     dart (423 samples): _RenderLiveTransform.performLayout 39, _MorphGlassHostElement.update 8, _LivePositionedTemplateElement.update 3, _LiveDrivenElement.mount 2 ms
+                                     ui by code (nearest owner, ms/frame): morph 4.33, app 0.00, framework 1.71
+                                     ui by owner (self ms/frame): HandleOOBMessage 3.03, Dart_InvokeClosure 1.28, RenderLiquidGlassLayer 0.67, _RenderGlassShadow 0.66, _RenderShadedGlyphs 0.49, RenderLiquidGlass 0.26
+nav/nav-navigation-nested-pop-liqu  404   5.3   9.1   8.0  10.3   5.9   1.0    1   608  ui-layout:4 bad ui: layout 12.2, paint 5.1, build 3.1  [power_mw 715->608]
+                                     dart (331 samples): _MorphGlassHostElement.update 20, _LiveDrivenElement.mount 9, _RenderLiveTransform.performLayout 6, _RenderShadedGlyphs.paint 6 ms
+                                     ui by code (nearest owner, ms/frame): morph 2.86, app 0.00, framework 2.75
+                                     ui by owner (self ms/frame): HandleOOBMessage 1.56, Dart_InvokeClosure 1.26, RenderLiquidGlassLayer 0.76, _RenderGlassShadow 0.60, _RenderShadedGlyphs 0.47, RenderLiquidGlass 0.27
+nav/nav-navigation-enter-flat       403   2.7   5.7   5.9   8.4   3.5   0.2    8   506  ui-layout:1 bad ui: layout 11.8, build 5.5, paint 2.3  [raster 9.704->8.362, over_pct 1.2->0.2, power_mw 579->506]
+nav/nav-navigation-toolbar-flat     378   2.3   5.5   5.6   7.2   1.9   0.0    8   475    [raster 8.108->7.199, power_mw 546->475]
+nav/nav-navigation-nested-push-fla  404   3.5   7.3   5.4   7.2   3.0   1.0   14   507  ui-layout:4 bad ui: layout 9.6, build 8.7, paint 5.2  [raster 8.643->7.153, power_mw 619->507]
+                                     dart (225 samples): _RenderLiveTransform.performLayout 22, _MorphGlassHostElement.update 2, _LivePositionedTemplateElement.update 2, MorphBarStyle.resolve 1 ms
+                                     ui by code (nearest owner, ms/frame): morph 1.10, app 0.00, framework 2.69
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 1.07, _RenderShadedGlyphs 0.59, RenderStack 0.40, RenderCustomPaint 0.29, _RenderItemSemantics 0.27, RenderPointerListener 0.25
+nav/nav-navigation-nested-pop-flat  393   3.0   7.3   5.6   7.4   2.6   1.3    2   487  ui-layout:5 bad ui: layout 15.6, paint 5.4, build 4.8  [raster 8.614->7.441, power_mw 622->487]
+                                     dart (212 samples): _MorphGlassHostElement.update 10, _RenderLiveTransform.performLayout 6, _LivePositionedTemplateElement.mount 4, _RenderShadedGlyphs.paint 4 ms
+                                     ui by code (nearest owner, ms/frame): morph 0.92, app 0.00, framework 4.32
+                                     ui by owner (self ms/frame): HandleOOBMessage 3.66, Dart_InvokeClosure 0.96, _RenderShadedGlyphs 0.49, RenderStack 0.41, RenderCustomPaint 0.30, _RenderItemSemantics 0.27
+nav/nav-navigation-enter-liquid     407   3.9   8.0   7.8  11.0   6.1   1.5    7   602  ui-layout:5 raster-sched:1 bad ui: layout 11.7, build 5.5, paint 2.5  [power_mw 700->602]
+                                     dart (364 samples): _RenderLiveTransform.performLayout 37, _MorphGlassHostElement.update 4, _MorphGlassHostElement.mount 4, _LivePositionedTemplateElement.mount 2 ms
+                                     ui by code (nearest owner, ms/frame): morph 1.99, app 0.00, framework 2.16
+                                     ui by owner (self ms/frame): HandleOOBMessage 1.49, Dart_InvokeClosure 1.06, RenderLiquidGlassLayer 0.58, _RenderGlassShadow 0.44, _RenderShadedGlyphs 0.27, RenderLiquidGlass 0.15

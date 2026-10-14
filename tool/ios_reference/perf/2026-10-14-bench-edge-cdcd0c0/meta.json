@@ -1,0 +1,25 @@
+{
+ "sdk": "stable",
+ "sha": "cdcd0c0",
+ "source": "/tmp/morph-perf/src/bench-cdcd0c0",
+ "fixed": false,
+ "runs": 5,
+ "date": "2026-10-14 02:01:37.755987",
+ "launches": {
+  "nav": {
+   "args": {
+    "NAV_MODES": "liquid,flat",
+    "NAV_MOTIONS": "steady,nested-push,nested-pop",
+    "NAV_RUNS": "5"
+   },
+   "thermal_before": [
+    0,
+    29.733051
+   ],
+   "thermal_after": [
+    0,
+    30.875153
+   ]
+  }
+ }
+}

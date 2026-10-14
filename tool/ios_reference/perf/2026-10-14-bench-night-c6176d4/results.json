@@ -1,0 +1,4573 @@
+{
+ "audit/liquid/idle": {
+  "budget_ms": 16.666666666666668,
+  "runs": 1,
+  "seconds": 8.0,
+  "frames": 0,
+  "fps": 0.0,
+  "ui_p50": null,
+  "ui_p95": null,
+  "ui_max": null,
+  "raster_p50": null,
+  "raster_p95": null,
+  "raster_max": null,
+  "gpu_p50": null,
+  "gpu_p95": null,
+  "gpu_ms_per_s": 0.0,
+  "save_layers_per_frame": 0,
+  "submits_per_frame": 0,
+  "over": 0,
+  "over_pct": 0,
+  "causes": {},
+  "ui_phase_ms_per_frame": {},
+  "ui_owner_ms_per_frame": {},
+  "raster_self_ms_per_frame": {},
+  "glyph_atlas_ms_per_frame": 0.0,
+  "glyph_strike_frames_pct": 0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": null,
+  "raster_runnable_share": null,
+  "dropped": 0,
+  "cpu_mhz": {
+   "little": 472,
+   "mid": 500,
+   "big": 500
+  },
+  "gpu_mhz": null,
+  "power_mw": 337,
+  "rails_mw": {
+   "display": 132,
+   "cpu.little": 43,
+   "cpu.mid": 28,
+   "memory.interface": 27,
+   "system.fabric": 24,
+   "ddr.c": 23,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "cpu.big": 9,
+   "ddr.b": 8,
+   "ddr.a": 5,
+   "aoc.memory": 4,
+   "gpu": 2,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "audit/liquid/idle-frames": {
+  "budget_ms": 16.666666666666668,
+  "runs": 1,
+  "seconds": 4.02,
+  "frames": 1,
+  "fps": 0.2,
+  "ui_p50": 3.806355,
+  "ui_p95": 3.806355,
+  "ui_max": 3.806355,
+  "raster_p50": 14.845297,
+  "raster_p95": 14.845297,
+  "raster_max": 14.845297,
+  "gpu_p50": 1.908732,
+  "gpu_p95": 1.908732,
+  "gpu_ms_per_s": 0.5,
+  "save_layers_per_frame": 1.0,
+  "submits_per_frame": 2.0,
+  "over": 0,
+  "over_pct": 0.0,
+  "causes": {},
+  "ui_phase_ms_per_frame": {
+   "compositing": 1.871,
+   "other": 1.689,
+   "layout": 0.108,
+   "paint": 0.085,
+   "finalize": 0.053
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.237,
+   "Dart_NewInteger": 0.058,
+   "POST_FRAME": 0.036
+  },
+  "raster_self_ms_per_frame": {
+   "QueueSubmit": 5.789,
+   "SurfaceFrame::Encode": 4.581,
+   "Canvas::saveLayer": 0.781,
+   "acquireNextBufferLocked": 0.596,
+   "CreateGlyphAtlas": 0.556,
+   "LayerTree::Paint": 0.271,
+   "Rasterizer::DrawToSurfaces": 0.265,
+   "AcquireNextSurface": 0.245
+  },
+  "glyph_atlas_ms_per_frame": 0.556,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.0,
+  "raster_runnable_share": 0.149,
+  "dropped": 0,
+  "cpu_mhz": {
+   "little": 330,
+   "mid": 405,
+   "big": 500
+  },
+  "gpu_mhz": 471,
+  "power_mw": 281,
+  "rails_mw": {
+   "display": 133,
+   "cpu.little": 22,
+   "system.fabric": 22,
+   "aoc.logic": 18,
+   "ddr.c": 17,
+   "memory.interface": 16,
+   "cpu.mid": 14,
+   "tpu": 12,
+   "cpu.big": 9,
+   "ddr.b": 8,
+   "aoc.memory": 4,
+   "ddr.a": 4,
+   "gpu": 2,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "audit/liquid/page-open": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 29.55,
+  "frames": 1445,
+  "fps": 48.9,
+  "ui_p50": 3.417684,
+  "ui_p95": 7.977051,
+  "ui_max": 48.515463,
+  "raster_p50": 8.393554,
+  "raster_p95": 12.279948,
+  "raster_max": 24.298788,
+  "gpu_p50": 4.620523,
+  "gpu_p95": 7.66927,
+  "gpu_ms_per_s": 240.22,
+  "save_layers_per_frame": 3.21,
+  "submits_per_frame": 2.13,
+  "over": 26,
+  "over_pct": 1.8,
+  "causes": {
+   "raster-cpu": 17,
+   "ui-layout": 4,
+   "ui-semantics": 2,
+   "ui-paint": 2,
+   "raster-sched": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "other": 1.228,
+   "paint": 1.227,
+   "compositing": 1.044,
+   "layout": 0.206,
+   "semantics": 0.138,
+   "build": 0.088,
+   "finalize": 0.04
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.045,
+   "SEMANTICS": 0.096,
+   "POST_FRAME": 0.037,
+   "QueueSubmit": 0.034,
+   "Dart_NewInteger": 0.023,
+   "Dart_StringToUTF8": 0.017,
+   "Dart_Invoke": 0.002,
+   "ProcessWeakHandles": 0.002,
+   "Dart_StringToUTF16": 0.002,
+   "ParallelMark": 0.001
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.131,
+   "QueueSubmit": 2.323,
+   "Canvas::saveLayer": 1.054,
+   "CreateGlyphAtlas": 0.294,
+   "acquireNextBufferLocked": 0.244,
+   "LayerTree::Paint": 0.243,
+   "Rasterizer::DrawToSurfaces": 0.188,
+   "QueuePresentKHR": 0.183
+  },
+  "glyph_atlas_ms_per_frame": 0.339,
+  "glyph_strike_frames_pct": 4.5,
+  "bad_glyph_atlas_ms_per_frame": 1.43,
+  "bad_raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 5.26,
+   "QueueSubmit": 4.34,
+   "Canvas::saveLayer": 3.93,
+   "UpdateAtlasBitmap": 0.72,
+   "CreateGlyphAtlas": 0.71,
+   "PipelineVK::Create": 0.59,
+   "LayerTree::Paint": 0.38,
+   "acquireNextBufferLocked": 0.36
+  },
+  "bad_ui_phase_ms_per_frame": {
+   "semantics": 9.22,
+   "layout": 8.37,
+   "paint": 4.98,
+   "build": 2.9,
+   "compositing": 1.71,
+   "other": 1.3,
+   "finalize": 0.02
+  },
+  "ui_runnable_share": 0.005,
+  "raster_runnable_share": 0.037,
+  "dropped": 64,
+  "cpu_mhz": {
+   "little": 703,
+   "mid": 583,
+   "big": 529
+  },
+  "gpu_mhz": 254,
+  "power_mw": 618,
+  "rails_mw": {
+   "display": 140,
+   "gpu": 107,
+   "cpu.little": 92,
+   "memory.interface": 61,
+   "ddr.c": 55,
+   "cpu.mid": 44,
+   "cpu.big": 34,
+   "system.fabric": 32,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 9,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 1374,
+   "morph_inclusive_ms": {
+    "_RenderLiveTransform.performLayout": 57.2,
+    "GlassCompositionProbe.paint": 36.8,
+    "LiquidGlassRenderObject.paint": 36.8,
+    "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 36.8,
+    "LiquidGlassRenderObject._paintGlass": 36.2,
+    "_LiveDrivenElement.mount": 18.8,
+    "_MorphGlassHostElement.update": 16.8,
+    "_MorphGlassHostElement.mount": 9.8
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 120.0,
+    "_AbstractType.toString": 42.8,
+    "FlutterView.__updateSemantics$Method$FfiNative": 12.5,
+    "_NativeParagraph._layout": 9.0,
+    "Object.runtimeType": 8.2,
+    "_NativeParagraph.__paint$Method$FfiNative": 7.5,
+    "_NativeSemanticsUpdateBuilder.__updateNode$Method$FfiNative": 7.5,
+    "_NativeParagraphBuilder.__constructor$Method$FfiNative": 4.8
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 1.41,
+    "app": 0.0,
+    "framework": 2.18
+   },
+   "stalls": [
+    {
+     "ms": 527.4,
+     "samples": 1030,
+     "morph_inclusive_ms": {
+      "GlassCompositionProbe.paint": 256.5,
+      "LiquidGlassRenderObject.paint": 256.5,
+      "LiquidGlassRenderObject._paintGlass": 256.5,
+      "RenderLiquidGlassLayer.paintFrame": 256.5,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 256.5,
+      "RenderLiquidGlassLayer._prepareGeometryAppearance": 256.5,
+      "_framed.<anonymous closure>": 0.5,
+      "MorphFrameSync._sync": 0.5
+     },
+     "self_ms": {
+      "RenderLiquidGlassLayer._prepareGeometryAppearance": 256.5,
+      "MorphBarMotion._pulsed": 0.2,
+      "_Double.<": 0.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "Offset.==": 0.2
+     }
+    },
+    {
+     "ms": 562.7,
+     "samples": 1062,
+     "morph_inclusive_ms": {
+      "_framed.<anonymous closure>": 0.8,
+      "MorphFrameSync._sync": 0.8,
+      "MorphGlassChannel.push": 0.5,
+      "_MorphGlassHostElement._push": 0.5,
+      "_MorphGlassHostElement._framed": 0.5,
+      "_MorphGlassHostElement._sync": 0.5,
+      "_MixinApplication238&State&SingleTickerProviderStateMixin&MorphClock._onTick": 0.2,
+      "_MorphBarItemsState.advanceMotion": 0.2
+     },
+     "self_ms": {
+      "BoxConstraints.==": 264.0,
+      "MorphSpringState.isWithin": 0.2,
+      "ListIterator.moveNext": 0.2,
+      "Offset.unary-": 0.2,
+      "ChangeNotifier.notifyListeners": 0.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "ContainerLayer.updateSubtreeNeedsAddToScene": 0.2
+     }
+    },
+    {
+     "ms": 69.8,
+     "samples": 152,
+     "morph_inclusive_ms": {
+      "GlassCompositionProbe.paint": 8.8,
+      "LiquidGlassRenderObject.paint": 8.8,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 8.8,
+      "LiquidGlassRenderObject._paintGlass": 8.5,
+      "_LiveDrivenElement.mount": 7.8,
+      "_RenderLiveTransform.performLayout": 5.5,
+      "_MorphGlassHostElement.mount": 2.8,
+      "_LivePositionedTemplateElement.mount": 1.8
+     },
+     "self_ms": {
+      "dart.developer._reportTaskEvent": 17.5,
+      "_AbstractType.toString": 3.5,
+      "_NativeParagraph.__paint$Method$FfiNative": 1.0,
+      "Object.runtimeType": 0.8,
+      "RenderObjectElement.renderObject": 0.5,
+      "Element.inflateWidget": 0.5,
+      "_GrowableList._grow": 0.5,
+      "SemanticsFlags._initSemanticsFlags": 0.5
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 1.835,
+   "HandleOOBMessage": 0.904,
+   "RenderLiquidGlassLayer": 0.36,
+   "_RenderGlassShadow": 0.177,
+   "_RenderShadedGlyphs": 0.154,
+   "RenderLiquidGlass": 0.087,
+   "RenderRepaintBoundary": 0.086,
+   "SEMANTICS": 0.086,
+   "_RenderLiveStack": 0.076,
+   "RenderParagraph": 0.072
+  },
+  "layers": {
+   "offscreen_per_frame": 3.2,
+   "backdrops_per_frame": 3.01,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 2.4,
+   "owners_per_frame": {
+    "MorphPresentationBoundary > MorphNavigationBar > MorphScrollEdgeEffect [-] _RenderEdge": 1.4,
+    "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 0.98,
+    "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [(fused, 0)] RenderLiquidGlassLayer": 0.38,
+    "MorphNavigationStack > MorphPresentationBoundary > MorphToolbar [body] RenderLiquidGlassLayer": 0.25,
+    "opacity unknown OpacityLayer": 0.19
+   }
+  }
+ },
+ "audit/liquid/home-scroll": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 35.02,
+  "frames": 1980,
+  "fps": 56.5,
+  "ui_p50": 1.550904,
+  "ui_p95": 3.155233,
+  "ui_max": 8.674154,
+  "raster_p50": 8.365682,
+  "raster_p95": 10.927084,
+  "raster_max": 15.208699,
+  "gpu_p50": 4.285686,
+  "gpu_p95": 4.694906,
+  "gpu_ms_per_s": 225.92,
+  "save_layers_per_frame": 2.83,
+  "submits_per_frame": 2.02,
+  "over": 0,
+  "over_pct": 0.0,
+  "causes": {},
+  "ui_phase_ms_per_frame": {
+   "compositing": 0.771,
+   "other": 0.532,
+   "paint": 0.269,
+   "layout": 0.103,
+   "finalize": 0.018,
+   "build": 0.014
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.39,
+   "Dart_NewInteger": 0.022,
+   "POST_FRAME": 0.013,
+   "Dart_StringToUTF8": 0.0,
+   "Dart_StringToUTF16": 0.0
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.852,
+   "QueueSubmit": 2.466,
+   "Canvas::saveLayer": 1.062,
+   "CreateGlyphAtlas": 0.364,
+   "acquireNextBufferLocked": 0.251,
+   "QueuePresentKHR": 0.194,
+   "LayerTree::Paint": 0.188,
+   "Rasterizer::DrawToSurfaces": 0.171
+  },
+  "glyph_atlas_ms_per_frame": 0.364,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.002,
+  "raster_runnable_share": 0.04,
+  "dropped": 11,
+  "cpu_mhz": {
+   "little": 618,
+   "mid": 507,
+   "big": 506
+  },
+  "gpu_mhz": 251,
+  "power_mw": 543,
+  "rails_mw": {
+   "display": 134,
+   "gpu": 86,
+   "cpu.little": 68,
+   "ddr.c": 56,
+   "memory.interface": 54,
+   "cpu.mid": 36,
+   "system.fabric": 32,
+   "cpu.big": 25,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 8,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "audit/liquid/segmented": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 32.72,
+  "frames": 1960,
+  "fps": 59.9,
+  "ui_p50": 2.786011,
+  "ui_p95": 5.205485,
+  "ui_max": 9.97994,
+  "raster_p50": 9.549032,
+  "raster_p95": 13.338135,
+  "raster_max": 17.758667,
+  "gpu_p50": 3.427897,
+  "gpu_p95": 3.683187,
+  "gpu_ms_per_s": 190.99,
+  "save_layers_per_frame": 1.78,
+  "submits_per_frame": 2.0,
+  "over": 11,
+  "over_pct": 0.6,
+  "causes": {
+   "raster-wait": 6,
+   "raster-cpu": 4,
+   "raster-sched": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 1.298,
+   "compositing": 0.828,
+   "other": 0.817,
+   "layout": 0.085,
+   "finalize": 0.018,
+   "build": 0.001
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.658,
+   "Dart_NewInteger": 0.021,
+   "POST_FRAME": 0.015,
+   "Dart_StringToUTF8": 0.0,
+   "Dart_StringToUTF16": 0.0
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.179,
+   "QueueSubmit": 2.054,
+   "waitForBufferRelease": 1.412,
+   "Canvas::saveLayer": 0.705,
+   "LayerTree::Paint": 0.308,
+   "acquireNextBufferLocked": 0.235,
+   "CreateGlyphAtlas": 0.219,
+   "Rasterizer::DrawToSurfaces": 0.208
+  },
+  "glyph_atlas_ms_per_frame": 0.226,
+  "glyph_strike_frames_pct": 1.2,
+  "bad_glyph_atlas_ms_per_frame": 0.27,
+  "bad_raster_self_ms_per_frame": {
+   "waitForBufferRelease": 5.45,
+   "SurfaceFrame::Encode": 4.42,
+   "QueueSubmit": 3.23,
+   "Canvas::saveLayer": 0.95,
+   "QueuePresentKHR": 0.54,
+   "LayerTree::Paint": 0.41,
+   "acquireNextBufferLocked": 0.38,
+   "CreateGlyphAtlas": 0.27
+  },
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.003,
+  "raster_runnable_share": 0.033,
+  "dropped": 9,
+  "cpu_mhz": {
+   "little": 675,
+   "mid": 522,
+   "big": 505
+  },
+  "gpu_mhz": 251,
+  "power_mw": 577,
+  "rails_mw": {
+   "display": 128,
+   "gpu": 91,
+   "cpu.little": 84,
+   "memory.interface": 61,
+   "ddr.c": 57,
+   "cpu.mid": 41,
+   "system.fabric": 33,
+   "cpu.big": 29,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 8,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 703,
+   "morph_inclusive_ms": {
+    "GlassCompositionProbe.paint": 8.2,
+    "LiquidGlassRenderObject.paint": 8.2,
+    "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 8.2,
+    "LiquidGlassRenderObject._paintGlass": 7.5,
+    "_RenderContentSource.paint": 7.0,
+    "RenderLiquidGlassLayer.paintFrame": 3.5,
+    "_RenderGlassShadow.paint": 3.2,
+    "_RenderScreenScalePaint.paint": 2.5
+   },
+   "self_ms": {
+    "_AbstractType.toString": 51.8,
+    "dart.developer._reportTaskEvent": 19.0,
+    "Object.runtimeType": 11.5,
+    "_StringBase._concatRangeNative": 7.2,
+    "_OneByteString._concatAll": 6.2,
+    "Element.widget": 4.0,
+    "LayerHandle.layer": 3.5,
+    "_relabel.visit": 3.0
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 1.38,
+    "app": 0.0,
+    "framework": 1.72
+   },
+   "stalls": [
+    {
+     "ms": 490.1,
+     "samples": 3,
+     "morph_inclusive_ms": {
+      "_MorphGlassHostElement._sync": 0.5,
+      "MorphGlassContainerScope.maybeOf": 0.2,
+      "_MorphGlassHostElement._structureOf": 0.2,
+      "_MorphGlassHostElement._push": 0.2
+     },
+     "self_ms": {
+      "Element.visitAncestorElements": 0.2,
+      "MorphGlassContainerScope.maybeOf": 0.2,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9ab8c0": 0.2
+     }
+    },
+    {
+     "ms": 529.8,
+     "samples": 1016,
+     "morph_inclusive_ms": {
+      "_RenderContentSource.paint": 0.8,
+      "_MorphGlassHostElement._sync": 0.5,
+      "_sync.<anonymous closure>": 0.2,
+      "MorphGlassChannel.push": 0.2,
+      "updateRenderObject.<anonymous closure>": 0.2,
+      "_MorphGlassHostElement._push": 0.2,
+      "build.settings": 0.2,
+      "_MixinApplication373&RenderLiquidGlassGeometry&LiquidGlassShapeRenderObject&MorphLiveBinding._onLive": 0.2
+     },
+     "self_ms": {
+      "_MixinApplication21&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin.paint": 252.0,
+      "dart.developer._reportTaskEvent": 0.5,
+      "_NativeParagraph.__paint$Method$FfiNative": 0.5,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9787ac": 0.2,
+      "Element.dirty": 0.2,
+      "build.settings": 0.2,
+      "_NativeCanvas.__drawPicture$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 541.7,
+     "samples": 1045,
+     "morph_inclusive_ms": {
+      "RenderLiquidGlass.performLayout": 0.2
+     },
+     "self_ms": {
+      "TimelineTask.start": 260.8,
+      "dart.developer._reportTaskEvent": 0.5
+     }
+    },
+    {
+     "ms": 534.1,
+     "samples": 1018,
+     "morph_inclusive_ms": {
+      "GlassCompositionProbe.paint": 252.5,
+      "LiquidGlassRenderObject.paint": 252.5,
+      "LiquidGlassRenderObject._paintGlass": 252.5,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 252.5,
+      "_RenderGlassShadow.paint": 252.0,
+      "_RenderGlassShadow._paintsFor": 251.8,
+      "_RenderContentSource.paint": 0.8,
+      "RenderLiquidGlassLayer.paintFrame": 0.5
+     },
+     "self_ms": {
+      "_RenderGlassShadow._paintsFor": 251.8,
+      "_NativeCanvas.__drawPicture$Method$FfiNative": 0.5,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9ab2b8": 0.2,
+      "TestPlatformDispatcher.onBeginFrame": 0.2,
+      "MorphGlassOptics.displacementAt": 0.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "_NativePictureRecorder.__constructor$Method$FfiNative": 0.2,
+      "_NativeParagraph.__paint$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 544.2,
+     "samples": 1016,
+     "morph_inclusive_ms": {
+      "_RenderContentSource.paint": 252.2,
+      "_MorphGlassHostElement._sync": 0.8,
+      "_MorphGlassHostElement._push": 0.5,
+      "MorphGlassRenderer._layerStructure": 0.2,
+      "_MorphGlassHostElement._structureOf": 0.2,
+      "MorphGlassRenderer.structureOf": 0.2,
+      "MorphGlassChannel.push": 0.2,
+      "updateRenderObject.<anonymous closure>": 0.2
+     },
+     "self_ms": {
+      "LayerHandle.layer=": 252.2,
+      "dart.developer._reportTaskEvent": 0.5,
+      "write": 0.2,
+      "Element.visitAncestorElements": 0.2,
+      "_GrowableList.addAll": 0.2,
+      "ListIterator.moveNext": 0.2,
+      "_NativeSceneBuilder.__pushClipPath$Method$FfiNative": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "HandleOOBMessage": 1.283,
+   "Dart_InvokeClosure": 0.861,
+   "RenderLiquidGlassLayer": 0.36,
+   "_RenderScreenScalePaint": 0.221,
+   "_RenderGlassShadow": 0.204,
+   "RenderParagraph": 0.169,
+   "RenderSemanticsAnnotations": 0.137,
+   "_RenderContentSource": 0.129,
+   "RenderCustomPaint": 0.092,
+   "_RenderLiveStack": 0.089
+  },
+  "layers": {
+   "offscreen_per_frame": 1.79,
+   "backdrops_per_frame": 1.79,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 1.79,
+   "owners_per_frame": {
+    "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+    "MorphSegmentedControl > MorphDisabled > MorphPress [(glass, 0)] RenderLiquidGlassLayer": 0.79
+   }
+  }
+ },
+ "audit/liquid/tab-bar": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 41.98,
+  "frames": 2513,
+  "fps": 59.9,
+  "ui_p50": 4.64209,
+  "ui_p95": 7.333089,
+  "ui_max": 11.534546,
+  "raster_p50": 9.429769,
+  "raster_p95": 12.051921,
+  "raster_max": 17.562215,
+  "gpu_p50": 8.17859,
+  "gpu_p95": 11.733601,
+  "gpu_ms_per_s": 470.56,
+  "save_layers_per_frame": 4.85,
+  "submits_per_frame": 2.01,
+  "over": 4,
+  "over_pct": 0.2,
+  "causes": {
+   "raster-cpu": 4
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 2.533,
+   "other": 1.031,
+   "compositing": 0.961,
+   "layout": 0.062,
+   "build": 0.029,
+   "finalize": 0.019
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.868,
+   "Dart_NewInteger": 0.021,
+   "POST_FRAME": 0.018
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.332,
+   "QueueSubmit": 2.601,
+   "Canvas::saveLayer": 1.665,
+   "LayerTree::Paint": 0.276,
+   "acquireNextBufferLocked": 0.245,
+   "Rasterizer::DrawToSurfaces": 0.223,
+   "QueuePresentKHR": 0.18,
+   "CreateGlyphAtlas": 0.174
+  },
+  "glyph_atlas_ms_per_frame": 0.182,
+  "glyph_strike_frames_pct": 0.4,
+  "bad_glyph_atlas_ms_per_frame": 1.82,
+  "bad_raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 4.96,
+   "QueueSubmit": 4.85,
+   "Canvas::saveLayer": 3.36,
+   "UpdateAtlasBitmap": 1.38,
+   "CreateGlyphAtlas": 0.43,
+   "LayerTree::Paint": 0.42,
+   "acquireNextBufferLocked": 0.29,
+   "QueuePresentKHR": 0.27
+  },
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.004,
+  "raster_runnable_share": 0.026,
+  "dropped": 13,
+  "cpu_mhz": {
+   "little": 748,
+   "mid": 588,
+   "big": 507
+  },
+  "gpu_mhz": 251,
+  "power_mw": 798,
+  "rails_mw": {
+   "gpu": 212,
+   "display": 176,
+   "cpu.little": 95,
+   "memory.interface": 76,
+   "ddr.c": 67,
+   "cpu.mid": 44,
+   "cpu.big": 38,
+   "system.fabric": 36,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.a": 10,
+   "ddr.b": 9,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 490,
+   "morph_inclusive_ms": {
+    "_RenderContentSource.paint": 17.2,
+    "RenderMorphGlyphs.paint": 12.0,
+    "RenderMorphGlyphs._paintSharp": 10.8,
+    "RenderMorphGlyphs._rasterizeAt": 7.5,
+    "RenderMorphGlyphs._rasterize": 6.8,
+    "_rasterize.<anonymous closure>": 5.8,
+    "<anonymous closure>": 5.5,
+    "LiquidGlassRenderObject.paint": 4.5
+   },
+   "self_ms": {
+    "_AbstractType.toString": 34.5,
+    "dart.developer._reportTaskEvent": 15.0,
+    "_StringBase._concatRangeNative": 6.2,
+    "Object.runtimeType": 5.2,
+    "_OneByteString._concatAll": 3.8,
+    "_NativeParagraph.__paint$Method$FfiNative": 2.8,
+    "_relabel.visit": 2.2,
+    "_GrowableList.add": 1.8
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 2.54,
+    "app": 0.0,
+    "framework": 1.49
+   },
+   "stalls": [
+    {
+     "ms": 556.1,
+     "samples": 1077,
+     "morph_inclusive_ms": {
+      "_RenderContentSource.paint": 268.0,
+      "RenderMorphGlyphs.paint": 267.2,
+      "RenderMorphGlyphs._paintSharp": 267.2,
+      "_paintSharp.<anonymous closure>": 1.0,
+      "MorphLiveClipper.getClip": 0.5,
+      "_LensClipper._clip": 0.5,
+      "_LensClipper.<anonymous closure>": 0.5,
+      "_ChannelPick.value": 0.2
+     },
+     "self_ms": {
+      "PaintingContext.canvas": 266.2,
+      "dart.developer._reportTaskEvent": 1.2,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9d9e1c": 0.2,
+      "PlatformDispatcher._scheduleFrame": 0.2,
+      "_shapes.<anonymous closure>": 0.2,
+      "_NativePath.__addRRect$Method$FfiNative": 0.2,
+      "RenderFlex.paint": 0.2,
+      "_NativePath.__constructor$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 575.0,
+     "samples": 3,
+     "morph_inclusive_ms": {
+      "_ChannelPick.value": 0.2,
+      "MorphGlassChannel.push": 0.2,
+      "updateRenderObject.<anonymous closure>": 0.2,
+      "_MixinApplication373&RenderLiquidGlassGeometry&LiquidGlassShapeRenderObject&MorphLiveBinding._onLive": 0.2,
+      "_MorphGlassHostElement._push": 0.2,
+      "_shapeFrame": 0.2,
+      "morphLiquidAppearance": 0.2,
+      "LiquidGlassAppearance.LiquidGlassAppearance.ios27Regular": 0.2
+     },
+     "self_ms": {
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9d1d78": 0.2,
+      "LiquidGlassAppearance.LiquidGlassAppearance.ios27Regular": 0.2,
+      "_NativeSceneBuilder.__pushOffset$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 556.8,
+     "samples": 3,
+     "morph_inclusive_ms": {
+      "_RenderContentSource.paint": 0.2
+     },
+     "self_ms": {
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9ab8fc": 0.2,
+      "_NativeCanvas.__clipPath$Method$FfiNative": 0.2,
+      "dart.developer._reportTaskEvent": 0.2
+     }
+    },
+    {
+     "ms": 541.3,
+     "samples": 1065,
+     "morph_inclusive_ms": {
+      "_RenderContentSource.paint": 1.2,
+      "RenderMorphGlyphs.paint": 1.0,
+      "RenderMorphGlyphs._paintSharp": 0.8,
+      "_paintSharp.<anonymous closure>": 0.5,
+      "GlassCompositionProbe.paint": 0.5,
+      "LiquidGlassRenderObject.paint": 0.5,
+      "LiquidGlassRenderObject._paintGlass": 0.5,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 0.5
+     },
+     "self_ms": {
+      "__Map&_LinkedHashBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin._set": 262.2,
+      "_AbstractType.toString": 0.5,
+      "dart.developer._reportTaskEvent": 0.5,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x4fd0b8": 0.2,
+      "_GrowableList.elementAt": 0.2,
+      "_List.[]=": 0.2,
+      "pow": 0.2,
+      "_GrowableList.add": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 0.924,
+   "HandleOOBMessage": 0.848,
+   "RenderMorphGlyphs": 0.488,
+   "RenderParagraph": 0.456,
+   "RenderLiquidGlassLayer": 0.355,
+   "RenderClipPath": 0.256,
+   "RenderConstrainedBox": 0.244,
+   "_RenderScreenScalePaint": 0.238,
+   "RenderFlex": 0.221,
+   "_RenderGlassShadow": 0.185
+  },
+  "layers": {
+   "offscreen_per_frame": 4.88,
+   "backdrops_per_frame": 4.88,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 4.88,
+   "owners_per_frame": {
+    "MorphPresentationBoundary > MorphNavigationBar > MorphScrollEdgeEffect [-] _RenderEdge": 2.0,
+    "TabBarPage > MorphTabBar > MorphPress [body] RenderLiquidGlassLayer": 1.0,
+    "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+    "TabBarPage > MorphTabBar > MorphPress [(glass, 0)] RenderLiquidGlassLayer": 0.88
+   }
+  }
+ },
+ "audit/liquid/controls": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 32.93,
+  "frames": 1938,
+  "fps": 58.9,
+  "ui_p50": 2.884562,
+  "ui_p95": 9.238647,
+  "ui_max": 15.423177,
+  "raster_p50": 8.727417,
+  "raster_p95": 12.46582,
+  "raster_max": 18.586141,
+  "gpu_p50": 4.01001,
+  "gpu_p95": 5.623046,
+  "gpu_ms_per_s": 236.63,
+  "save_layers_per_frame": 2.14,
+  "submits_per_frame": 2.0,
+  "over": 4,
+  "over_pct": 0.2,
+  "causes": {
+   "raster-cpu": 3,
+   "raster-wait": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 1.126,
+   "compositing": 1.01,
+   "other": 0.795,
+   "build": 0.523,
+   "layout": 0.345,
+   "finalize": 0.018
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.633,
+   "Dart_NewInteger": 0.022,
+   "POST_FRAME": 0.016,
+   "Dart_StringToUTF8": 0.006,
+   "Dart_StringToUTF16": 0.003
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.319,
+   "QueueSubmit": 2.209,
+   "Canvas::saveLayer": 1.021,
+   "LayerTree::Paint": 0.298,
+   "waitForBufferRelease": 0.272,
+   "acquireNextBufferLocked": 0.246,
+   "Rasterizer::DrawToSurfaces": 0.194,
+   "QueuePresentKHR": 0.184
+  },
+  "glyph_atlas_ms_per_frame": 0.138,
+  "glyph_strike_frames_pct": 0.2,
+  "bad_glyph_atlas_ms_per_frame": 0.2,
+  "bad_raster_self_ms_per_frame": {
+   "QueueSubmit": 5.95,
+   "SurfaceFrame::Encode": 4.77,
+   "Canvas::saveLayer": 2.89,
+   "waitForBufferRelease": 1.66,
+   "LayerTree::Paint": 0.41,
+   "acquireNextBufferLocked": 0.36,
+   "LayerTree::Preroll": 0.25,
+   "Rasterizer::DrawToSurfaces": 0.23
+  },
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.003,
+  "raster_runnable_share": 0.034,
+  "dropped": 82,
+  "cpu_mhz": {
+   "little": 642,
+   "mid": 504,
+   "big": 505
+  },
+  "gpu_mhz": 251,
+  "power_mw": 596,
+  "rails_mw": {
+   "display": 129,
+   "gpu": 127,
+   "cpu.little": 72,
+   "memory.interface": 59,
+   "ddr.c": 58,
+   "cpu.mid": 38,
+   "system.fabric": 33,
+   "cpu.big": 29,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 9,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 1864,
+   "morph_inclusive_ms": {
+    "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 24.2,
+    "GlassCompositionProbe.paint": 24.0,
+    "LiquidGlassRenderObject.paint": 24.0,
+    "LiquidGlassRenderObject._paintGlass": 21.8,
+    "_RenderGlassShadow.paint": 15.2,
+    "RenderLiquidGlassLayer.paintFrame": 11.5,
+    "RenderMorphGlyphs.paint": 8.2,
+    "morphResolveAppearance": 7.0
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 134.2,
+    "_AbstractType.toString": 76.5,
+    "Object.runtimeType": 15.5,
+    "_StringBase._concatRangeNative": 13.5,
+    "_OneByteString._concatAll": 6.2,
+    "Element.widget": 6.2,
+    "_relabel.visit": 5.2,
+    "_NativeParagraph.__paint$Method$FfiNative": 4.5
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 1.42,
+    "app": 0.01,
+    "framework": 2.27
+   },
+   "stalls": [
+    {
+     "ms": 549.2,
+     "samples": 1116,
+     "morph_inclusive_ms": {
+      "_MorphGlassHostElement._sync": 0.2,
+      "morphResolveAppearance": 0.2,
+      "_extensionOf": 0.2,
+      "MorphListAppearance.resolve": 0.2,
+      "MorphLiveTransform.updateRenderObject": 0.2,
+      "GlassCompositionProbe.paint": 0.2,
+      "LiquidGlassRenderObject.paint": 0.2,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 0.2
+     },
+     "self_ms": {
+      "Timeline.finishSync": 275.5,
+      "dart.developer._reportTaskEvent": 2.0,
+      "RenderObject.markNeedsLayout": 0.2,
+      "_AbstractType.toString": 0.2,
+      "_HashMap.[]=": 0.2,
+      "_MixinApplication246&RenderBox&RenderObjectWithChildMixin&RenderObjectWithLayoutCallbackMixin&RenderAbstractLayoutBuilderMixin._updateCallback": 0.2,
+      "Element.dependOnInheritedWidgetOfExactType": 0.2,
+      "PictureLayer.picture=": 0.2
+     }
+    },
+    {
+     "ms": 510.6,
+     "samples": 1033,
+     "morph_inclusive_ms": {
+      "GlassShadow._applyLive": 254.0,
+      "MorphGlassChannel.push": 254.0,
+      "_MixinApplication224&RenderProxyBox&MorphLiveBinding._onLive": 254.0,
+      "build.shape": 254.0,
+      "_MorphGlassHostElement._push": 254.0,
+      "_MorphGlassHostElement.update": 254.0,
+      "createRenderObject.<anonymous closure>": 254.0,
+      "_themeHost.<anonymous closure>": 0.2
+     },
+     "self_ms": {
+      "build.shape": 254.0,
+      "dart.developer._reportTaskEvent": 3.2,
+      "write": 0.2,
+      "Element.widget": 0.2,
+      "_NativeParagraphBuilder.__pushStyle$Method$FfiNative": 0.2,
+      "__Map&_LinkedHashBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin._getValueOrData": 0.2
+     }
+    },
+    {
+     "ms": 536.0,
+     "samples": 1077,
+     "morph_inclusive_ms": {
+      "morphResolveAppearance": 268.0,
+      "_themeHost": 268.0,
+      "MorphListAppearance.resolve": 268.0,
+      "_RenderGlassShadow.paint": 0.2,
+      "_RenderGlassShadow._drawShape": 0.2
+     },
+     "self_ms": {
+      "Element.visitAncestorElements": 268.0,
+      "dart.developer._reportTaskEvent": 0.5,
+      "SliverMultiBoxAdaptorElement.performRebuild": 0.2,
+      "_NativeParagraphBuilder.__pushStyle$Method$FfiNative": 0.2,
+      "_NativeCanvas.__drawRSuperellipse$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 603.6,
+     "samples": 1149,
+     "morph_inclusive_ms": {
+      "GeometryTransformTrackingLayer.updateSubtreeNeedsAddToScene": 283.5,
+      "GlassCompositionProbe.paint": 1.2,
+      "LiquidGlassRenderObject.paint": 1.2,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 1.2,
+      "LiquidGlassRenderObject._paintGlass": 1.0,
+      "_MorphGlassHostElement._push": 0.8,
+      "_MorphGlassHostElement._sync": 0.8,
+      "MorphGlassChannel.push": 0.5
+     },
+     "self_ms": {
+      "GeometryTransformTrackingLayer.updateSubtreeNeedsAddToScene": 283.2,
+      "dart.developer._reportTaskEvent": 0.5,
+      "_GrowableList.add": 0.5,
+      "[Native] /apex/com.android.runtime/lib64/bionic/libc.so+0x61df8": 0.2,
+      "FlutterError.reportError": 0.2,
+      "MorphSliderMotion.width": 0.2,
+      "LiquidGlassSettings.copyWith": 0.2,
+      "RenderLiquidGlass.shape=": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "HandleOOBMessage": 1.182,
+   "Dart_InvokeClosure": 0.778,
+   "RenderLiquidGlassLayer": 0.428,
+   "_RenderGlassShadow": 0.278,
+   "RenderParagraph": 0.156,
+   "RenderCustomPaint": 0.115,
+   "RenderSemanticsAnnotations": 0.078,
+   "_RenderLiveStack": 0.075,
+   "SliverList": 0.065,
+   "MorphGlassHost": 0.062
+  },
+  "layers": {
+   "offscreen_per_frame": 2.11,
+   "backdrops_per_frame": 2.11,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 2.11,
+   "owners_per_frame": {
+    "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+    "MorphSlider > MorphDisabled > MorphPress [(glass, 0)] RenderLiquidGlassLayer": 0.64,
+    "MorphSwitch > MorphDisabled > MorphPress [(glass, 0)] RenderLiquidGlassLayer": 0.47
+   }
+  }
+ },
+ "audit/liquid/menu": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 22.52,
+  "frames": 1284,
+  "fps": 57.0,
+  "ui_p50": 5.431885,
+  "ui_p95": 10.816976,
+  "ui_max": 32.249919,
+  "raster_p50": 8.662517,
+  "raster_p95": 14.094605,
+  "raster_max": 27.211344,
+  "gpu_p50": 5.427816,
+  "gpu_p95": 12.990317,
+  "gpu_ms_per_s": 387.33,
+  "save_layers_per_frame": 2.15,
+  "submits_per_frame": 2.06,
+  "over": 48,
+  "over_pct": 3.7,
+  "causes": {
+   "raster-cpu": 21,
+   "ui-layout": 8,
+   "ui-other": 7,
+   "raster-wait": 4,
+   "gpu": 3,
+   "ui-finalize": 2,
+   "ui-gc": 1,
+   "ui-paint": 1,
+   "raster-sched": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 2.014,
+   "compositing": 1.756,
+   "other": 1.498,
+   "layout": 0.375,
+   "build": 0.109,
+   "finalize": 0.052,
+   "gc": 0.008
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.311,
+   "QueueSubmit": 0.579,
+   "Dart_Invoke": 0.028,
+   "Dart_NewInteger": 0.023,
+   "CopyMutableObjectGraph": 0.02,
+   "Dart_StringToUTF8": 0.016,
+   "POST_FRAME": 0.015,
+   "Dart_NewStringFromCString": 0.014,
+   "ParallelMark": 0.004,
+   "Dart_StringToUTF16": 0.004
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.755,
+   "QueueSubmit": 2.334,
+   "Canvas::saveLayer": 1.118,
+   "acquireNextBufferLocked": 0.243,
+   "LayerTree::Paint": 0.221,
+   "Rasterizer::DrawToSurfaces": 0.204,
+   "QueuePresentKHR": 0.179,
+   "LayerTree::Preroll": 0.144
+  },
+  "glyph_atlas_ms_per_frame": 0.136,
+  "glyph_strike_frames_pct": 4.5,
+  "bad_glyph_atlas_ms_per_frame": 0.95,
+  "bad_raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 8.32,
+   "QueueSubmit": 4.27,
+   "Canvas::saveLayer": 3.4,
+   "UpdateAtlasBitmap": 0.71,
+   "SurfaceFrame::Submit": 0.34,
+   "acquireNextBufferLocked": 0.29,
+   "LayerTree::Paint": 0.29,
+   "Rasterizer::DrawToSurfaces": 0.25
+  },
+  "bad_ui_phase_ms_per_frame": {
+   "other": 5.51,
+   "layout": 5.31,
+   "paint": 5.18,
+   "compositing": 3.06,
+   "build": 1.47,
+   "finalize": 0.79,
+   "gc": 0.34
+  },
+  "ui_runnable_share": 0.014,
+  "raster_runnable_share": 0.031,
+  "dropped": 70,
+  "cpu_mhz": {
+   "little": 776,
+   "mid": 550,
+   "big": 520
+  },
+  "gpu_mhz": 256,
+  "power_mw": 757,
+  "rails_mw": {
+   "gpu": 221,
+   "display": 126,
+   "cpu.little": 105,
+   "memory.interface": 71,
+   "ddr.c": 66,
+   "cpu.mid": 40,
+   "cpu.big": 40,
+   "system.fabric": 35,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.a": 10,
+   "ddr.b": 9,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 4140,
+   "morph_inclusive_ms": {
+    "LiquidGlassRenderObject.paint": 121.2,
+    "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 121.2,
+    "GlassCompositionProbe.paint": 121.0,
+    "LiquidGlassRenderObject._paintGlass": 117.5,
+    "_framed.<anonymous closure>": 54.0,
+    "MorphFrameSync._sync": 54.0,
+    "_MorphMenuLayerState._update": 51.0,
+    "_LayerFrame": 49.5
+   },
+   "self_ms": {
+    "_AbstractType.toString": 221.8,
+    "dart.developer._reportTaskEvent": 194.0,
+    "Object.runtimeType": 47.2,
+    "_StringBase._concatRangeNative": 39.2,
+    "CommandBuffer.__submit$Method$FfiNative": 38.5,
+    "_OneByteString._concatAll": 20.8,
+    "Element.widget": 18.2,
+    "_relabel.visit": 15.2
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 2.6,
+    "app": 0.0,
+    "framework": 2.6
+   },
+   "stalls": [
+    {
+     "ms": 554.6,
+     "samples": 1085,
+     "morph_inclusive_ms": {
+      "GeometryRenderLink.updatePaintOrder": 0.2,
+      "sortGlassPaintOrder": 0.2,
+      "GlassCompositionProbe.paint": 0.2,
+      "LiquidGlassRenderObject.paint": 0.2,
+      "LiquidGlassRenderObject._paintGlass": 0.2,
+      "LiquidGlassRenderObject.collectFrameGeometry": 0.2,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 0.2,
+      "_OpacitySeedLayer.addToScene": 0.2
+     },
+     "self_ms": {
+      "_StringBase._interpolateSingle": 269.8,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x93ecd4": 0.2,
+      "_AbstractType.toString": 0.2,
+      "ListIterator.moveNext": 0.2,
+      "_NativeParagraphBuilder.__pushStyle$Method$FfiNative": 0.2,
+      "sortGlassPaintOrder": 0.2,
+      "_NativeSceneBuilder.__pushOffset$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 67.0,
+     "samples": 169,
+     "morph_inclusive_ms": {
+      "RenderMorphGlyphs.paint": 4.0,
+      "RenderMorphGlyphs._paintSharp": 4.0,
+      "RenderMorphGlyphs._rasterizeAt": 3.8,
+      "<anonymous closure>": 3.5,
+      "RenderMorphGlyphs._rasterize": 3.5,
+      "_rasterize.<anonymous closure>": 3.5,
+      "GlassCompositionProbe.paint": 2.2,
+      "LiquidGlassRenderObject.paint": 2.2
+     },
+     "self_ms": {
+      "dart.developer._reportTaskEvent": 10.5,
+      "_AbstractType.toString": 9.0,
+      "Object.runtimeType": 2.2,
+      "_StringBase._concatRangeNative": 2.0,
+      "_NativeParagraph.__paint$Method$FfiNative": 1.0,
+      "_StringBase._interpolate": 0.8,
+      "__Map&_LinkedHashBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin._findValueOrInsertPoint": 0.8,
+      "_OneByteString._concatAll": 0.8
+     }
+    },
+    {
+     "ms": 552.0,
+     "samples": 10,
+     "morph_inclusive_ms": {
+      "GlassCompositionProbe.paint": 0.5,
+      "LiquidGlassRenderObject.paint": 0.5,
+      "LiquidGlassRenderObject._paintGlass": 0.5,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 0.5,
+      "GeometryRenderLink.updatePaintOrder": 0.2,
+      "sortGlassPaintOrder": 0.2,
+      "LiquidGlassRenderObject.collectFrameGeometry": 0.2,
+      "RenderLiquidGlassLayer._bindGeometryShader": 0.2
+     },
+     "self_ms": {
+      "_AbstractType.toString": 0.8,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9bf48c": 0.2,
+      "__Set&_LinkedHashBase&SetMixin&_HashBase&_OperatorEqualsAndHashCode._hashCode": 0.2,
+      "Object.runtimeType": 0.2,
+      "CommandBuffer.__submit$Method$FfiNative": 0.2,
+      "_StringBase._concatRangeNative": 0.2,
+      "LayerHandle.layer": 0.2,
+      "StringBuffer._addPart": 0.2
+     }
+    },
+    {
+     "ms": 69.0,
+     "samples": 156,
+     "morph_inclusive_ms": {
+      "RenderMorphGlyphs.paint": 3.0,
+      "RenderMorphGlyphs._paintSharp": 3.0,
+      "<anonymous closure>": 2.5,
+      "RenderMorphGlyphs._rasterizeAt": 2.5,
+      "RenderMorphGlyphs._rasterize": 2.2,
+      "_rasterize.<anonymous closure>": 2.2,
+      "_LivePositionedTemplateElement.mount": 2.0,
+      "_LiveDrivenElement.mount": 1.8
+     },
+     "self_ms": {
+      "dart.developer._reportTaskEvent": 12.0,
+      "_AbstractType.toString": 6.2,
+      "Object.runtimeType": 1.5,
+      "_NativeParagraph.__paint$Method$FfiNative": 0.8,
+      "_OneByteString._concatAll": 0.8,
+      "_StringBase._concatRangeNative": 0.8,
+      "morphBoxDistance": 0.5,
+      "StatelessElement.build": 0.5
+     }
+    },
+    {
+     "ms": 527.9,
+     "samples": 1059,
+     "morph_inclusive_ms": {
+      "_OpacitySeedLayer.addToScene": 264.5
+     },
+     "self_ms": {
+      "Layer.engineLayer=": 264.5,
+      "FlutterView.__render$Method$FfiNative": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 2.547,
+   "HandleOOBMessage": 2.054,
+   "RenderLiquidGlassLayer": 0.913,
+   "QueueSubmit": 0.576,
+   "RenderParagraph": 0.238,
+   "RenderCustomPaint": 0.153,
+   "RenderTransform": 0.13,
+   "RenderStack": 0.129,
+   "_RenderLiveSemantics": 0.126,
+   "RenderPositionedBox": 0.125
+  },
+  "layers": {
+   "offscreen_per_frame": 2.08,
+   "backdrops_per_frame": 1.9,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 1.9,
+   "owners_per_frame": {
+    "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+    "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer": 0.6,
+    "MorphPress > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer": 0.3,
+    "image_filter unknown ImageFilterLayer": 0.17,
+    "opacity unknown OpacityLayer": 0.0
+   }
+  }
+ },
+ "audit/liquid/sheet": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 22.47,
+  "frames": 1211,
+  "fps": 53.9,
+  "ui_p50": 2.694498,
+  "ui_p95": 6.846517,
+  "ui_max": 27.716105,
+  "raster_p50": 8.664998,
+  "raster_p95": 13.581176,
+  "raster_max": 29.353394,
+  "gpu_p50": 7.027629,
+  "gpu_p95": 16.691569,
+  "gpu_ms_per_s": 435.35,
+  "save_layers_per_frame": 3.39,
+  "submits_per_frame": 2.03,
+  "over": 85,
+  "over_pct": 7.0,
+  "causes": {
+   "gpu": 63,
+   "raster-wait": 12,
+   "ui-layout": 5,
+   "raster-cpu": 4,
+   "raster-sched": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "compositing": 1.739,
+   "other": 0.843,
+   "paint": 0.566,
+   "layout": 0.114,
+   "build": 0.049,
+   "finalize": 0.031
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.649,
+   "QueueSubmit": 0.046,
+   "POST_FRAME": 0.043,
+   "Dart_NewInteger": 0.024,
+   "Dart_Invoke": 0.003,
+   "ProcessWeakHandles": 0.002,
+   "ParallelMark": 0.002,
+   "Dart_StringToUTF8": 0.002,
+   "Dart_NewStringFromCString": 0.001,
+   "ProcessIsolateGroupRoots": 0.001
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.199,
+   "QueueSubmit": 2.279,
+   "Canvas::saveLayer": 1.258,
+   "waitForBufferRelease": 0.291,
+   "LayerTree::Paint": 0.266,
+   "acquireNextBufferLocked": 0.24,
+   "Rasterizer::DrawToSurfaces": 0.2,
+   "QueuePresentKHR": 0.197
+  },
+  "glyph_atlas_ms_per_frame": 0.175,
+  "glyph_strike_frames_pct": 0.3,
+  "bad_glyph_atlas_ms_per_frame": 0.42,
+  "bad_raster_self_ms_per_frame": {
+   "waitForBufferRelease": 7.31,
+   "QueueSubmit": 4.67,
+   "SurfaceFrame::Encode": 3.1,
+   "Canvas::saveLayer": 2.59,
+   "acquireNextBufferLocked": 0.3,
+   "LayerTree::Paint": 0.25,
+   "UpdateAtlasBitmap": 0.22,
+   "CreateGlyphAtlas": 0.21
+  },
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 7.94,
+   "paint": 6.23,
+   "compositing": 3.96,
+   "build": 1.88,
+   "other": 1.61,
+   "finalize": 0.02
+  },
+  "ui_runnable_share": 0.005,
+  "raster_runnable_share": 0.036,
+  "dropped": 28,
+  "cpu_mhz": {
+   "little": 610,
+   "mid": 523,
+   "big": 504
+  },
+  "gpu_mhz": 383,
+  "power_mw": 920,
+  "rails_mw": {
+   "gpu": 443,
+   "display": 132,
+   "cpu.little": 68,
+   "ddr.c": 62,
+   "memory.interface": 61,
+   "cpu.mid": 37,
+   "system.fabric": 34,
+   "cpu.big": 28,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.a": 9,
+   "ddr.b": 9,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 1037,
+   "morph_inclusive_ms": {
+    "GlassCompositionProbe.paint": 25.5,
+    "LiquidGlassRenderObject.paint": 25.5,
+    "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 25.5,
+    "LiquidGlassRenderObject._paintGlass": 24.8,
+    "RenderMorphLiveBox.performLayout": 19.0,
+    "paint.transformed": 16.5,
+    "RenderMorphLiveBox.paint": 16.5,
+    "clipped.<anonymous closure>": 15.8
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 76.5,
+    "_AbstractType.toString": 42.0,
+    "Object.runtimeType": 7.2,
+    "CommandBuffer.__submit$Method$FfiNative": 5.2,
+    "PlatformDispatcher.___sendPlatformMessage$Method$FfiNative": 5.2,
+    "_StringBase._concatRangeNative": 4.0,
+    "_NativeParagraph.__paint$Method$FfiNative": 3.5,
+    "_OneByteString._concatAll": 3.5
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 1.86,
+    "app": 0.0,
+    "framework": 1.42
+   },
+   "stalls": [
+    {
+     "ms": 547.6,
+     "samples": 1043,
+     "morph_inclusive_ms": {
+      "_ensureFrameCounter.<anonymous closure>": 256.5,
+      "GeometryTransformTrackingLayer.updateSubtreeNeedsAddToScene": 0.8,
+      "RenderLiquidGlassLayer.onCompositing": 0.5,
+      "LiquidGlassRenderObject.pollCompositorTranslation": 0.5,
+      "LiquidGlassRenderObject.runCompositorPoll": 0.5,
+      "setUpLayer.<anonymous closure>": 0.5,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin._whileCompositing": 0.5,
+      "_OpacitySeedLayer.addToScene": 0.5
+     },
+     "self_ms": {
+      "ListBase._filter": 256.5,
+      "_NativePictureRecorder.__endRecording$Method$FfiNative": 0.5,
+      "RenderObject.getTransformTo": 0.5,
+      "[Native] /apex/com.android.runtime/lib64/bionic/libc.so+0xe0038": 0.2,
+      "[Native] /apex/com.android.runtime/lib64/bionic/libc.so+0x61f10": 0.2,
+      "ListIterator.moveNext": 0.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "ContainerLayer.detach": 0.2
+     }
+    },
+    {
+     "ms": 531.5,
+     "samples": 1031,
+     "morph_inclusive_ms": {
+      "GeometryTransformTrackingLayer.updateSubtreeNeedsAddToScene": 255.8,
+      "RenderLiquidGlassLayer.onCompositing": 255.5,
+      "LiquidGlassRenderObject.pollCompositorTranslation": 255.5,
+      "LiquidGlassRenderObject.runCompositorPoll": 255.5,
+      "setUpLayer.<anonymous closure>": 255.5,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin._whileCompositing": 255.5,
+      "LiquidGlassRenderObject._translationDelta": 255.2,
+      "LiquidGlassRenderObject._sharedTranslation": 255.2
+     },
+     "self_ms": {
+      "LiquidGlassRenderObject._translationDelta": 255.2,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0xb98990": 0.2,
+      "_CustomZone._delegate": 0.2,
+      "PlatformDispatcher._scheduleFrame": 0.2,
+      "MorphSheetMotion.height": 0.2,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0xa6f068": 0.2,
+      "_NativePicture.__dispose$Method$FfiNative": 0.2,
+      "_MixinApplication21&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin.paint": 0.2
+     }
+    },
+    {
+     "ms": 507.3,
+     "samples": 1026,
+     "morph_inclusive_ms": {
+      "GlassCompositionProbe.paint": 0.8,
+      "LiquidGlassRenderObject.paint": 0.8,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 0.8,
+      "RenderMorphGlyphs.paint": 0.8,
+      "RenderMorphGlyphs._paintSharp": 0.8,
+      "_MorphGlassHostElement._sync": 0.5,
+      "LiquidGlassRenderObject._paintGlass": 0.5,
+      "RenderMorphGlyphs._rasterize": 0.5
+     },
+     "self_ms": {
+      "Timeline.finishSync": 252.8,
+      "dart.developer._reportTaskEvent": 0.5,
+      "[Native] /apex/com.android.runtime/lib64/bionic/libc.so+0xe1a40": 0.2,
+      "dart.developer._getTraceClock": 0.2,
+      "Element.visitAncestorElements": 0.2,
+      "_IntegerImplementation.clamp": 0.2,
+      "LayerHandle.layer=": 0.2,
+      "BackdropFilterLayer.filter=": 0.2
+     }
+    },
+    {
+     "ms": 535.9,
+     "samples": 1024,
+     "morph_inclusive_ms": {
+      "GlassCompositionProbe.paint": 254.8,
+      "LiquidGlassRenderObject.paint": 254.8,
+      "LiquidGlassRenderObject._paintGlass": 254.8,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 254.8,
+      "RenderLiquidGlassLayer._buildGpuGeometryImage": 254.2,
+      "FlutterGpuGeometryRenderer.render": 254.2,
+      "RenderLiquidGlassLayer.paintFrame": 254.2,
+      "MorphGlassChannel.push": 0.2
+     },
+     "self_ms": {
+      "RenderPass.bindUniform": 253.2,
+      "write": 0.2,
+      "_MixinApplication0&BindingBase&SchedulerBinding.handleBeginFrame": 0.2,
+      "_LiveStackParentData.place": 0.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "EmptyIterator.moveNext": 0.2,
+      "Texture.__initialize$Method$FfiNative": 0.2,
+      "Texture.__asImage$Method$FfiNative": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "HandleOOBMessage": 1.88,
+   "Dart_InvokeClosure": 0.894,
+   "RenderLiquidGlassLayer": 0.139,
+   "RenderCustomPaint": 0.083,
+   "_RenderGlassShadow": 0.052,
+   "RenderParagraph": 0.052,
+   "POST_FRAME": 0.046,
+   "_RenderLiveColoredBox": 0.043,
+   "RenderMorphGlyphs": 0.041,
+   "QueueSubmit": 0.037
+  },
+  "layers": {
+   "offscreen_per_frame": 4.09,
+   "backdrops_per_frame": 4.09,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 2.53,
+   "owners_per_frame": {
+    "MorphGlassContainer > MorphGlassButton > MorphPress [body] RenderLiquidGlassLayer": 2.71,
+    "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+    "MorphGlassInspector [sheet] RenderLiquidGlassLayer": 0.38
+   }
+  }
+ },
+ "audit/liquid/list": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 35.03,
+  "frames": 1979,
+  "fps": 56.5,
+  "ui_p50": 1.828492,
+  "ui_p95": 3.808716,
+  "ui_max": 17.25879,
+  "raster_p50": 8.86792,
+  "raster_p95": 11.285767,
+  "raster_max": 21.626058,
+  "gpu_p50": 5.342083,
+  "gpu_p95": 5.989258,
+  "gpu_ms_per_s": 293.05,
+  "save_layers_per_frame": 2.9,
+  "submits_per_frame": 2.0,
+  "over": 9,
+  "over_pct": 0.5,
+  "causes": {
+   "raster-cpu": 8,
+   "ui-paint": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "compositing": 1.205,
+   "other": 0.523,
+   "paint": 0.311,
+   "layout": 0.112,
+   "finalize": 0.017,
+   "build": 0.012
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.366,
+   "QueueSubmit": 0.037,
+   "POST_FRAME": 0.032,
+   "Dart_NewInteger": 0.021,
+   "Dart_Invoke": 0.002,
+   "Dart_NewStringFromCString": 0.001,
+   "Dart_StringToUTF8": 0.0
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.653,
+   "QueueSubmit": 2.355,
+   "Canvas::saveLayer": 0.941,
+   "LayerTree::Paint": 0.298,
+   "acquireNextBufferLocked": 0.244,
+   "CreateGlyphAtlas": 0.228,
+   "QueuePresentKHR": 0.195,
+   "Rasterizer::DrawToSurfaces": 0.166
+  },
+  "glyph_atlas_ms_per_frame": 0.229,
+  "glyph_strike_frames_pct": 0.2,
+  "bad_glyph_atlas_ms_per_frame": 0.35,
+  "bad_raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 7.28,
+   "Canvas::saveLayer": 4.05,
+   "QueueSubmit": 3.3,
+   "waitForBufferRelease": 0.65,
+   "LayerTree::Paint": 0.54,
+   "acquireNextBufferLocked": 0.37,
+   "CreateGlyphAtlas": 0.35,
+   "LayerTree::Preroll": 0.26
+  },
+  "bad_ui_phase_ms_per_frame": {
+   "paint": 10.87,
+   "compositing": 4.89,
+   "other": 0.92,
+   "layout": 0.56,
+   "finalize": 0.03
+  },
+  "ui_runnable_share": 0.004,
+  "raster_runnable_share": 0.041,
+  "dropped": 26,
+  "cpu_mhz": {
+   "little": 618,
+   "mid": 548,
+   "big": 504
+  },
+  "gpu_mhz": 251,
+  "power_mw": 602,
+  "rails_mw": {
+   "display": 131,
+   "gpu": 128,
+   "cpu.little": 70,
+   "memory.interface": 61,
+   "ddr.c": 58,
+   "cpu.mid": 39,
+   "system.fabric": 33,
+   "cpu.big": 29,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 9,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 4541,
+   "morph_inclusive_ms": {
+    "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 403.0,
+    "GlassCompositionProbe.paint": 402.5,
+    "LiquidGlassRenderObject.paint": 402.5,
+    "LiquidGlassRenderObject._paintGlass": 397.0,
+    "RenderLiquidGlassLayer.paintFrame": 75.0,
+    "RenderLiquidGlassLayer._buildGpuGeometryImage": 52.2,
+    "FlutterGpuGeometryRenderer.flushPendingSubmissions": 40.2,
+    "MorphDeferredSubmissions.flush": 40.2
+   },
+   "self_ms": {
+    "_AbstractType.toString": 253.8,
+    "dart.developer._reportTaskEvent": 208.0,
+    "Object.runtimeType": 51.5,
+    "_NativeParagraph.__paint$Method$FfiNative": 48.0,
+    "_StringBase._concatRangeNative": 46.5,
+    "CommandBuffer.__submit$Method$FfiNative": 40.0,
+    "_OneByteString._concatAll": 26.2,
+    "_relabel.visit": 23.2
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 0.77,
+    "app": 0.0,
+    "framework": 2.98
+   },
+   "stalls": [
+    {
+     "ms": 508.0,
+     "samples": 1033,
+     "morph_inclusive_ms": {
+      "GeometryTransformTrackingLayer.updateSubtreeNeedsAddToScene": 0.2,
+      "RenderLiquidGlassLayer.onCompositing": 0.2,
+      "LiquidGlassRenderObject.pollCompositorTranslation": 0.2,
+      "LiquidGlassRenderObject.runCompositorPoll": 0.2,
+      "setUpLayer.<anonymous closure>": 0.2,
+      "RenderLiquidGlassGeometry.pollRelativeTransforms": 0.2,
+      "_MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin._whileCompositing": 0.2
+     },
+     "self_ms": {
+      "LayerCensus._meaningful": 256.2,
+      "_AbstractType.toString": 0.5,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x94a044": 0.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "_GrowableList.add": 0.2,
+      "_GaussianBlurImageFilter._toNativeImageFilter": 0.2,
+      "Element.widget": 0.2,
+      "_StringBase.startsWith": 0.2
+     }
+    },
+    {
+     "ms": 652.3,
+     "samples": 2,
+     "morph_inclusive_ms": {},
+     "self_ms": {
+      "PlatformDispatcher._scheduleFrame": 0.2,
+      "_NativeSceneBuilder.__addRetained$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 577.6,
+     "samples": 1091,
+     "morph_inclusive_ms": {},
+     "self_ms": {
+      "ContainerLayer.attach": 272.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "_AbstractType.toString": 0.2
+     }
+    },
+    {
+     "ms": 511.8,
+     "samples": 1042,
+     "morph_inclusive_ms": {},
+     "self_ms": {
+      "_GrowableList.sublist": 256.0,
+      "_AbstractType.toString": 1.5,
+      "AnimationController._tick": 0.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "ContainerLayer.updateSubtreeNeedsAddToScene": 0.2,
+      "RenderView._updateSystemChrome": 0.2,
+      "Element.widget": 0.2,
+      "MultiChildRenderObjectElement.renderObject": 0.2
+     }
+    },
+    {
+     "ms": 505.5,
+     "samples": 1034,
+     "morph_inclusive_ms": {},
+     "self_ms": {
+      "LayerCensus._meaningful": 254.8,
+      "_AbstractType.toString": 1.5,
+      "Object.runtimeType": 0.5,
+      "setEquals": 0.2,
+      "__Map&_LinkedHashBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin.[]=": 0.2,
+      "Element.widget": 0.2,
+      "_OneByteString._concatAll": 0.2,
+      "__Map&_LinkedHashBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin._insert": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 2.579,
+   "HandleOOBMessage": 1.5,
+   "RenderLiquidGlassLayer": 0.182,
+   "RenderParagraph": 0.142,
+   "QueueSubmit": 0.12,
+   "RenderSemanticsAnnotations": 0.113,
+   "RenderSliverToBoxAdapter": 0.086,
+   "RenderConstrainedBox": 0.082,
+   "RenderFlex": 0.08,
+   "RenderViewport": 0.058
+  },
+  "layers": {
+   "offscreen_per_frame": 2.94,
+   "backdrops_per_frame": 2.68,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 2.68,
+   "owners_per_frame": {
+    "MorphPresentationBoundary > MorphNavigationBar > MorphScrollEdgeEffect [-] _RenderEdge": 1.68,
+    "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+    "opacity unknown OpacityLayer": 0.25
+   }
+  }
+ },
+ "audit/flat/idle": {
+  "budget_ms": 16.666666666666668,
+  "runs": 1,
+  "seconds": 8.0,
+  "frames": 0,
+  "fps": 0.0,
+  "ui_p50": null,
+  "ui_p95": null,
+  "ui_max": null,
+  "raster_p50": null,
+  "raster_p95": null,
+  "raster_max": null,
+  "gpu_p50": null,
+  "gpu_p95": null,
+  "gpu_ms_per_s": 0.0,
+  "save_layers_per_frame": 0,
+  "submits_per_frame": 0,
+  "over": 0,
+  "over_pct": 0,
+  "causes": {},
+  "ui_phase_ms_per_frame": {},
+  "ui_owner_ms_per_frame": {},
+  "raster_self_ms_per_frame": {},
+  "glyph_atlas_ms_per_frame": 0.0,
+  "glyph_strike_frames_pct": 0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": null,
+  "raster_runnable_share": null,
+  "dropped": 0,
+  "cpu_mhz": {
+   "little": 390,
+   "mid": 425,
+   "big": 502
+  },
+  "gpu_mhz": null,
+  "power_mw": 293,
+  "rails_mw": {
+   "display": 131,
+   "cpu.little": 29,
+   "system.fabric": 22,
+   "memory.interface": 19,
+   "ddr.c": 18,
+   "aoc.logic": 18,
+   "cpu.mid": 16,
+   "tpu": 12,
+   "cpu.big": 9,
+   "ddr.b": 8,
+   "ddr.a": 4,
+   "aoc.memory": 4,
+   "gpu": 2,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "audit/flat/idle-frames": {
+  "budget_ms": 16.666666666666668,
+  "runs": 1,
+  "seconds": 4.02,
+  "frames": 1,
+  "fps": 0.2,
+  "ui_p50": 3.301026,
+  "ui_p95": 3.301026,
+  "ui_max": 3.301026,
+  "raster_p50": 13.86031,
+  "raster_p95": 13.86031,
+  "raster_max": 13.86031,
+  "gpu_p50": 0.994344,
+  "gpu_p95": 0.994344,
+  "gpu_ms_per_s": 0.34,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.0,
+  "over": 0,
+  "over_pct": 0.0,
+  "causes": {},
+  "ui_phase_ms_per_frame": {
+   "other": 1.664,
+   "compositing": 1.359,
+   "layout": 0.12,
+   "paint": 0.094,
+   "finalize": 0.064
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.258,
+   "Dart_NewInteger": 0.049,
+   "POST_FRAME": 0.043
+  },
+  "raster_self_ms_per_frame": {
+   "QueueSubmit": 5.945,
+   "SurfaceFrame::Encode": 4.108,
+   "acquireNextBufferLocked": 0.711,
+   "CreateGlyphAtlas": 0.611,
+   "LayerTree::Preroll": 0.355,
+   "Rasterizer::DrawToSurfaces": 0.261,
+   "QueuePresentKHR": 0.222,
+   "queueBuffer": 0.211
+  },
+  "glyph_atlas_ms_per_frame": 0.611,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.0,
+  "raster_runnable_share": 0.101,
+  "dropped": 0,
+  "cpu_mhz": {
+   "little": 347,
+   "mid": 451,
+   "big": 500
+  },
+  "gpu_mhz": 471,
+  "power_mw": 289,
+  "rails_mw": {
+   "display": 132,
+   "cpu.little": 24,
+   "system.fabric": 22,
+   "memory.interface": 19,
+   "aoc.logic": 18,
+   "cpu.mid": 17,
+   "ddr.c": 17,
+   "tpu": 12,
+   "cpu.big": 9,
+   "ddr.b": 8,
+   "ddr.a": 4,
+   "aoc.memory": 4,
+   "gpu": 2,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "audit/flat/page-open": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 29.56,
+  "frames": 1440,
+  "fps": 48.7,
+  "ui_p50": 2.066202,
+  "ui_p95": 5.067138,
+  "ui_max": 43.591472,
+  "raster_p50": 6.163004,
+  "raster_p95": 9.086629,
+  "raster_max": 41.757405,
+  "gpu_p50": 1.985473,
+  "gpu_p95": 3.49577,
+  "gpu_ms_per_s": 102.91,
+  "save_layers_per_frame": 0.19,
+  "submits_per_frame": 1.35,
+  "over": 14,
+  "over_pct": 1.0,
+  "causes": {
+   "ui-semantics": 6,
+   "ui-layout": 4,
+   "raster-cpu": 3,
+   "ui-build": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "other": 0.905,
+   "paint": 0.61,
+   "compositing": 0.598,
+   "layout": 0.18,
+   "semantics": 0.147,
+   "build": 0.092,
+   "finalize": 0.037
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.728,
+   "SEMANTICS": 0.104,
+   "POST_FRAME": 0.034,
+   "Dart_NewInteger": 0.021,
+   "Dart_StringToUTF8": 0.016,
+   "IterateIsolateRoots": 0.002,
+   "Dart_StringToUTF16": 0.001,
+   "MournWeakHandles": 0.0,
+   "PipelineFull": 0.0,
+   "Prologue": 0.0
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.537,
+   "QueueSubmit": 1.697,
+   "CreateGlyphAtlas": 0.329,
+   "acquireNextBufferLocked": 0.236,
+   "Rasterizer::DrawToSurfaces": 0.184,
+   "LayerTree::Paint": 0.178,
+   "QueuePresentKHR": 0.175,
+   "queueBuffer": 0.13
+  },
+  "glyph_atlas_ms_per_frame": 0.38,
+  "glyph_strike_frames_pct": 4.9,
+  "bad_glyph_atlas_ms_per_frame": 8.13,
+  "bad_raster_self_ms_per_frame": {
+   "PipelineVK::Create": 9.88,
+   "UpdateAtlasBitmap": 6.86,
+   "SurfaceFrame::Encode": 4.04,
+   "QueueSubmit": 1.61,
+   "CreateGlyphAtlas": 1.28,
+   "AppendToExistingAtlas": 0.46,
+   "LayerTree::Paint": 0.26,
+   "acquireNextBufferLocked": 0.26
+  },
+  "bad_ui_phase_ms_per_frame": {
+   "semantics": 11.85,
+   "layout": 7.35,
+   "build": 3.27,
+   "paint": 3.26,
+   "other": 1.26,
+   "compositing": 0.93,
+   "finalize": 0.03
+  },
+  "ui_runnable_share": 0.002,
+  "raster_runnable_share": 0.045,
+  "dropped": 64,
+  "cpu_mhz": {
+   "little": 583,
+   "mid": 487,
+   "big": 513
+  },
+  "gpu_mhz": 255,
+  "power_mw": 461,
+  "rails_mw": {
+   "display": 139,
+   "cpu.little": 60,
+   "memory.interface": 45,
+   "ddr.c": 45,
+   "gpu": 37,
+   "cpu.mid": 32,
+   "system.fabric": 29,
+   "cpu.big": 23,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 919,
+   "morph_inclusive_ms": {
+    "_RenderLiveTransform.performLayout": 51.0,
+    "_LiveDrivenElement.mount": 8.8,
+    "_MorphGlassHostElement.mount": 4.0,
+    "_LivePositionedTemplateElement.mount": 2.8,
+    "MorphWidgetsTheme.maybeOf": 1.8,
+    "_themeHost": 1.5,
+    "_MorphGlassHostElement.build": 1.5,
+    "MorphBarAppearance.resolve": 1.2
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 81.0,
+    "FlutterView.__updateSemantics$Method$FfiNative": 30.5,
+    "_AbstractType.toString": 14.5,
+    "_NativeSemanticsUpdateBuilder.__updateNode$Method$FfiNative": 10.5,
+    "_NativeParagraph._layout": 4.5,
+    "_NativeParagraph.__paint$Method$FfiNative": 4.5,
+    "_NativeParagraphBuilder.__pushStyle$Method$FfiNative": 4.2,
+    "_NativeParagraphBuilder.__constructor$Method$FfiNative": 3.5
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 0.74,
+    "app": 0.0,
+    "framework": 2.13
+   },
+   "stalls": [
+    {
+     "ms": 75.6,
+     "samples": 180,
+     "morph_inclusive_ms": {
+      "_LiveDrivenElement.mount": 11.0,
+      "_RenderLiveTransform.performLayout": 7.5,
+      "_MorphGlassHostElement.mount": 3.2,
+      "_LivePositionedTemplateElement.mount": 2.8,
+      "_MorphGlassHostElement.build": 1.0,
+      "_MixinApplication216&RenderSemanticsAnnotations&MorphLiveBinding.attach": 1.0,
+      "MorphMenuAppearance.resolve": 0.8,
+      "_MorphMenuSourceState.build": 0.8
+     },
+     "self_ms": {
+      "dart.developer._reportTaskEvent": 21.0,
+      "_AbstractType.toString": 4.0,
+      "Object.runtimeType": 1.0,
+      "Element.widget": 0.8,
+      "_NativeParagraphBuilder.__constructor$Method$FfiNative": 0.8,
+      "_NativeParagraph.__paint$Method$FfiNative": 0.8,
+      "PlatformDispatcher.___sendPlatformMessage$Method$FfiNative": 0.8,
+      "RenderObject.adoptChild": 0.5
+     }
+    },
+    {
+     "ms": 529.9,
+     "samples": 2,
+     "morph_inclusive_ms": {
+      "MorphGlassChannel.push": 0.2,
+      "_framed.<anonymous closure>": 0.2,
+      "_MorphGlassHostElement._push": 0.2,
+      "_MorphGlassHostElement._framed": 0.2,
+      "_MorphGlassHostElement._sync": 0.2,
+      "MorphFrameSync._sync": 0.2,
+      "MorphChanges._changed": 0.2
+     },
+     "self_ms": {
+      "RenderObject.markNeedsPaint": 0.2,
+      "_NativeSceneBuilder.__pushTransform$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 72.8,
+     "samples": 171,
+     "morph_inclusive_ms": {
+      "_RenderLiveTransform.performLayout": 18.8,
+      "_MorphGlassHostElement.mount": 1.0,
+      "MorphBarAppearance.resolve": 0.8,
+      "_MorphNavigationScaffoldState.build": 0.5,
+      "_brightnessOf": 0.5,
+      "morphBrightnessOf": 0.5,
+      "_MorphNavigationStackState.build": 0.2,
+      "_MorphNavigationBarState.build": 0.2
+     },
+     "self_ms": {
+      "dart.developer._reportTaskEvent": 19.5,
+      "_AbstractType.toString": 3.5,
+      "_NativeParagraphBuilder.__constructor$Method$FfiNative": 1.8,
+      "__Map&_LinkedHashBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin._getValueOrData": 1.2,
+      "_NativeParagraph._layout": 1.2,
+      "_NativeParagraphBuilder.__pushStyle$Method$FfiNative": 1.0,
+      "_NativeParagraphBuilder.__build$Method$FfiNative": 1.0,
+      "StatefulElement.build": 0.5
+     }
+    },
+    {
+     "ms": 488.3,
+     "samples": 1011,
+     "morph_inclusive_ms": {
+      "_ticks.<anonymous closure>": 251.2,
+      "_framed.<anonymous closure>": 251.2,
+      "MorphFrameSync._sync": 251.2,
+      "_MorphBarItemsState._sync": 251.2,
+      "MorphBarMotion._pulsed": 251.0,
+      "MorphBarMotion.capsules": 251.0,
+      "MorphSpringState.value": 251.0,
+      "MorphBarMotion.items": 0.2
+     },
+     "self_ms": {
+      "MorphSpringState.value": 251.0,
+      "_AbstractType.toString": 0.5,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9bf494": 0.2,
+      "_Double.clamp": 0.2,
+      "Paint": 0.2,
+      "_NativeCanvas.__drawRRect$Method$FfiNative": 0.2,
+      "Element.widget": 0.2
+     }
+    },
+    {
+     "ms": 560.8,
+     "samples": 1,
+     "morph_inclusive_ms": {},
+     "self_ms": {
+      "dart.developer._reportTaskEvent": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 1.763,
+   "HandleOOBMessage": 1.323,
+   "_RenderShadedGlyphs": 0.191,
+   "RenderCustomPaint": 0.145,
+   "SEMANTICS": 0.098,
+   "RenderIgnorePointer": 0.092,
+   "RenderParagraph": 0.09,
+   "RenderStack": 0.087,
+   "RenderRepaintBoundary": 0.085,
+   "_RenderLiveStack": 0.063
+  },
+  "layers": {
+   "offscreen_per_frame": 0.19,
+   "backdrops_per_frame": 0.0,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 0.0,
+   "owners_per_frame": {
+    "opacity unknown OpacityLayer": 0.19
+   }
+  }
+ },
+ "audit/flat/home-scroll": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 34.97,
+  "frames": 1974,
+  "fps": 56.5,
+  "ui_p50": 1.278809,
+  "ui_p95": 2.526652,
+  "ui_max": 6.244344,
+  "raster_p50": 6.62968,
+  "raster_p95": 10.937134,
+  "raster_max": 18.218261,
+  "gpu_p50": 1.893311,
+  "gpu_p95": 2.201824,
+  "gpu_ms_per_s": 107.15,
+  "save_layers_per_frame": 0.27,
+  "submits_per_frame": 1.29,
+  "over": 1,
+  "over_pct": 0.1,
+  "causes": {
+   "raster-wait": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "compositing": 0.553,
+   "other": 0.499,
+   "paint": 0.25,
+   "layout": 0.094,
+   "finalize": 0.017,
+   "build": 0.016
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.358,
+   "Dart_NewInteger": 0.021,
+   "POST_FRAME": 0.014,
+   "Dart_StringToUTF8": 0.0,
+   "Dart_StringToUTF16": 0.0
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.455,
+   "QueueSubmit": 1.717,
+   "waitForBufferRelease": 0.738,
+   "CreateGlyphAtlas": 0.388,
+   "acquireNextBufferLocked": 0.241,
+   "QueuePresentKHR": 0.177,
+   "Rasterizer::DrawToSurfaces": 0.173,
+   "queueBuffer": 0.133
+  },
+  "glyph_atlas_ms_per_frame": 0.388,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.4,
+  "bad_raster_self_ms_per_frame": {
+   "waitForBufferRelease": 8.13,
+   "QueueSubmit": 4.15,
+   "SurfaceFrame::Encode": 2.94,
+   "acquireNextBufferLocked": 0.53,
+   "CreateGlyphAtlas": 0.4,
+   "queueBuffer": 0.31,
+   "Rasterizer::DrawToSurfaces": 0.23,
+   "releaseBuffer": 0.22
+  },
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.003,
+  "raster_runnable_share": 0.045,
+  "dropped": 14,
+  "cpu_mhz": {
+   "little": 579,
+   "mid": 469,
+   "big": 505
+  },
+  "gpu_mhz": 251,
+  "power_mw": 457,
+  "rails_mw": {
+   "display": 133,
+   "cpu.little": 60,
+   "memory.interface": 48,
+   "ddr.c": 48,
+   "gpu": 33,
+   "cpu.mid": 32,
+   "system.fabric": 30,
+   "cpu.big": 23,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "audit/flat/segmented": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 32.37,
+  "frames": 1941,
+  "fps": 60.0,
+  "ui_p50": 1.536051,
+  "ui_p95": 2.612224,
+  "ui_max": 6.361369,
+  "raster_p50": 5.912394,
+  "raster_p95": 7.07609,
+  "raster_max": 12.327148,
+  "gpu_p50": 0.984456,
+  "gpu_p95": 1.137817,
+  "gpu_ms_per_s": 60.01,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.0,
+  "over": 0,
+  "over_pct": 0.0,
+  "causes": {},
+  "ui_phase_ms_per_frame": {
+   "other": 0.716,
+   "compositing": 0.594,
+   "paint": 0.268,
+   "layout": 0.07,
+   "finalize": 0.017,
+   "build": 0.001
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.556,
+   "Dart_NewInteger": 0.021,
+   "POST_FRAME": 0.013,
+   "Dart_StringToUTF8": 0.0,
+   "Dart_StringToUTF16": 0.0
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.079,
+   "QueueSubmit": 1.62,
+   "acquireNextBufferLocked": 0.271,
+   "LayerTree::Paint": 0.233,
+   "CreateGlyphAtlas": 0.219,
+   "QueuePresentKHR": 0.185,
+   "Rasterizer::DrawToSurfaces": 0.173,
+   "queueBuffer": 0.139
+  },
+  "glyph_atlas_ms_per_frame": 0.219,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.001,
+  "raster_runnable_share": 0.048,
+  "dropped": 1,
+  "cpu_mhz": {
+   "little": 611,
+   "mid": 466,
+   "big": 508
+  },
+  "gpu_mhz": 251,
+  "power_mw": 454,
+  "rails_mw": {
+   "display": 127,
+   "cpu.little": 67,
+   "ddr.c": 49,
+   "memory.interface": 47,
+   "cpu.mid": 32,
+   "system.fabric": 30,
+   "gpu": 28,
+   "cpu.big": 23,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "audit/flat/tab-bar": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 37.99,
+  "frames": 2279,
+  "fps": 60.0,
+  "ui_p50": 2.400188,
+  "ui_p95": 4.029622,
+  "ui_max": 9.261638,
+  "raster_p50": 7.950968,
+  "raster_p95": 11.660116,
+  "raster_max": 20.107462,
+  "gpu_p50": 2.516602,
+  "gpu_p95": 2.69812,
+  "gpu_ms_per_s": 144.64,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.89,
+  "over": 5,
+  "over_pct": 0.2,
+  "causes": {
+   "raster-wait": 4,
+   "raster-cpu": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 1.268,
+   "other": 0.729,
+   "compositing": 0.469,
+   "layout": 0.049,
+   "finalize": 0.016,
+   "build": 0.007
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.581,
+   "Dart_NewInteger": 0.019,
+   "POST_FRAME": 0.012
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.427,
+   "QueueSubmit": 1.923,
+   "waitForBufferRelease": 1.761,
+   "acquireNextBufferLocked": 0.243,
+   "LayerTree::Paint": 0.195,
+   "Rasterizer::DrawToSurfaces": 0.192,
+   "QueuePresentKHR": 0.172,
+   "CreateGlyphAtlas": 0.152
+  },
+  "glyph_atlas_ms_per_frame": 0.153,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.19,
+  "bad_raster_self_ms_per_frame": {
+   "waitForBufferRelease": 7.71,
+   "QueueSubmit": 4.65,
+   "SurfaceFrame::Encode": 3.3,
+   "acquireNextBufferLocked": 0.57,
+   "LayerTree::Paint": 0.26,
+   "Rasterizer::DrawToSurfaces": 0.2,
+   "CreateGlyphAtlas": 0.19,
+   "LayerTree::Preroll": 0.18
+  },
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.002,
+  "raster_runnable_share": 0.047,
+  "dropped": 10,
+  "cpu_mhz": {
+   "little": 600,
+   "mid": 503,
+   "big": 503
+  },
+  "gpu_mhz": 251,
+  "power_mw": 549,
+  "rails_mw": {
+   "display": 174,
+   "cpu.little": 66,
+   "memory.interface": 55,
+   "gpu": 53,
+   "ddr.c": 51,
+   "cpu.mid": 39,
+   "system.fabric": 31,
+   "cpu.big": 28,
+   "aoc.logic": 17,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 8,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 29,
+   "morph_inclusive_ms": {
+    "RenderMorphGlyphs.paint": 2.8,
+    "RenderMorphGlyphs._paintSharp": 2.2,
+    "_paintSharp.<anonymous closure>": 2.0,
+    "_LensClipper.<anonymous closure>": 0.5,
+    "RenderMorphGlyphs._screenScale": 0.5,
+    "_MixinApplication248&State&SingleTickerProviderStateMixin&MorphClock._onTick": 0.2,
+    "MorphChanges._changed": 0.2,
+    "_MorphTabBarState._lensShape": 0.2
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 2.8,
+    "_AbstractType.toString": 1.5,
+    "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9d2cc0": 0.2,
+    "_MorphTabBarState._lensShape": 0.2,
+    "Element.visitAncestorElements": 0.2,
+    "RenderBox.constraints": 0.2,
+    "_NativeParagraph.__paint$Method$FfiNative": 0.2,
+    "_NativePath.__constructor$Method$FfiNative": 0.2
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 1.62,
+    "app": 0.0,
+    "framework": 2.05
+   },
+   "stalls": [
+    {
+     "ms": 556.4,
+     "samples": 1086,
+     "morph_inclusive_ms": {
+      "RenderMorphGlyphs._paintSharp": 269.5,
+      "_paintSharp.<anonymous closure>": 269.5,
+      "RenderMorphGlyphs.paint": 269.5,
+      "_MixinApplication248&State&SingleTickerProviderStateMixin&MorphClock._onTick": 0.2,
+      "_MorphGlassHostElement._framed": 0.2,
+      "_MorphGlassHostElement._sync": 0.2,
+      "_sync.<anonymous closure>": 0.2,
+      "_FillPainter.paint": 0.2
+     },
+     "self_ms": {
+      "Timeline.finishSync": 268.8,
+      "dart.developer._reportTaskEvent": 1.0,
+      "write": 0.2,
+      "_Zone.inSameErrorZone": 0.2,
+      "Element.dirty": 0.2,
+      "StackParentData.positionedChildConstraints": 0.2,
+      "_NativeCanvas.__drawRRect$Method$FfiNative": 0.2,
+      "_AbstractType.toString": 0.2
+     }
+    },
+    {
+     "ms": 551.4,
+     "samples": 1060,
+     "morph_inclusive_ms": {
+      "RenderMorphGlyphs._paintSharp": 263.8,
+      "_paintSharp.<anonymous closure>": 263.8,
+      "RenderMorphGlyphs.paint": 263.8,
+      "_MorphGlassHostElement._sync": 0.2,
+      "_MorphGlassHostElement._push": 0.2,
+      "_MorphGlassHostElement._structureOf": 0.2
+     },
+     "self_ms": {
+      "_MixinApplication21&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin.paint": 263.8,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x93ed00": 0.2,
+      "_MorphGlassHostElement._structureOf": 0.2,
+      "_NativeCanvas.__constructor$Method$FfiNative": 0.2,
+      "_NativeCanvas.__clipPath$Method$FfiNative": 0.2,
+      "dart.developer._reportTaskEvent": 0.2
+     }
+    },
+    {
+     "ms": 624.6,
+     "samples": 1132,
+     "morph_inclusive_ms": {
+      "RenderMorphGlyphs._paintSharp": 0.8,
+      "_paintSharp.<anonymous closure>": 0.8,
+      "RenderMorphGlyphs.paint": 0.8,
+      "_MixinApplication248&State&SingleTickerProviderStateMixin&MorphClock._onTick": 0.2,
+      "MorphChanges._changed": 0.2,
+      "_MorphTabBarState._lensShape": 0.2,
+      "_LensClipper.<anonymous closure>": 0.2,
+      "_MorphGlassHostElement._push": 0.2
+     },
+     "self_ms": {
+      "_MixinApplication41&RenderBox&ContainerRenderObjectMixin&RenderBoxContainerDefaultsMixin.defaultPaint": 280.0,
+      "dart.developer._reportTaskEvent": 0.8,
+      "_NativeParagraph.__paint$Method$FfiNative": 0.5,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9787ac": 0.2,
+      "_MorphTabBarState._lensShape": 0.2,
+      "Color.lerp": 0.2,
+      "PlatformDispatcher._drawFrame": 0.2,
+      "_AbstractType.toString": 0.2
+     }
+    },
+    {
+     "ms": 586.7,
+     "samples": 1133,
+     "morph_inclusive_ms": {
+      "_MorphGlassHostElement._sync": 0.2,
+      "_FillPainter.paint": 0.2,
+      "morphPaintGlassGlow": 0.2,
+      "MorphGlassGlowPainter.paint": 0.2
+     },
+     "self_ms": {
+      "_MixinApplication21&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin.paint": 281.2,
+      "_NativeCanvas.__clipPath$Method$FfiNative": 0.5,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x93ece4": 0.2,
+      "Element.visitAncestorElements": 0.2,
+      "_AbstractType.toString": 0.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "_NativeCanvas.__drawRRect$Method$FfiNative": 0.2,
+      "_NativeCanvas.__drawRect$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 526.1,
+     "samples": 1031,
+     "morph_inclusive_ms": {
+      "RenderMorphGlyphs._paintSharp": 0.5,
+      "_paintSharp.<anonymous closure>": 0.5,
+      "RenderMorphGlyphs.paint": 0.5,
+      "morphPaintGlassGlow": 0.2,
+      "MorphGlassGlowPainter.paint": 0.2
+     },
+     "self_ms": {
+      "Timeline.finishSync": 255.8,
+      "_AbstractType.toString": 0.5,
+      "_NativeParagraph.__paint$Method$FfiNative": 0.5,
+      "_CustomZone.runUnary": 0.2,
+      "morphPaintGlassGlow": 0.2,
+      "dart.developer._reportTaskEvent": 0.2,
+      "_NativeSceneBuilder.__pushOffset$Method$FfiNative": 0.2
+     }
+    },
+    {
+     "ms": 534.3,
+     "samples": 1040,
+     "morph_inclusive_ms": {
+      "MorphGlassFrame.partsFor": 0.2,
+      "MorphGlassFrame._silhouetteParts": 0.2,
+      "MorphGlassRenderer.structureOf": 0.2,
+      "MorphGlassLayerParts.MorphGlassLayerParts.of": 0.2,
+      "_MorphGlassHostElement._push": 0.2,
+      "_MorphGlassHostElement._sync": 0.2,
+      "_MorphGlassHostElement._structureOf": 0.2,
+      "RenderMorphGlyphs._paintSharp": 0.2
+     },
+     "self_ms": {
+      "_MixinApplication21&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin.paint": 259.0,
+      "__Map&_LinkedHashBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin.forEach": 0.2,
+      "MorphGlassLayerParts.MorphGlassLayerParts.of": 0.2,
+      "_NativeCanvas.__transform$Method$FfiNative": 0.2,
+      "dart.developer._reportTaskEvent": 0.2
+     }
+    },
+    {
+     "ms": 558.5,
+     "samples": 1100,
+     "morph_inclusive_ms": {
+      "RenderMorphGlyphs._paintSharp": 274.2,
+      "RenderMorphGlyphs.paint": 274.2,
+      "_paintSharp.<anonymous closure>": 273.8,
+      "MorphGlassChannel.push": 0.2,
+      "_MixinApplication221&RenderStack&MorphLiveBinding._onLive": 0.2,
+      "_MorphGlassHostElement._push": 0.2,
+      "_MorphGlassHostElement._sync": 0.2,
+      "_RenderLiveStack.follow": 0.2
+     },
+     "self_ms": {
+      "_MixinApplication21&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin.paint": 273.8,
+      "dart.developer._reportTaskEvent": 0.5,
+      "RenderBox.markNeedsLayout": 0.2,
+      "_GrowableList._GrowableList._literal1": 0.2,
+      "MorphGlyphTracker.settleNext": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "HandleOOBMessage": 1.634,
+   "Dart_InvokeClosure": 0.653,
+   "RenderMorphGlyphs": 0.542,
+   "RenderParagraph": 0.529,
+   "RenderConstrainedBox": 0.29,
+   "RenderCustomPaint": 0.284,
+   "RenderFlex": 0.266,
+   "RenderSemanticsAnnotations": 0.235,
+   "RenderClipPath": 0.224,
+   "RenderExcludeSemantics": 0.145
+  },
+  "layers": {
+   "offscreen_per_frame": 0.0,
+   "backdrops_per_frame": 0.0,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 0.0,
+   "owners_per_frame": {}
+  }
+ },
+ "audit/flat/controls": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 32.88,
+  "frames": 1935,
+  "fps": 58.9,
+  "ui_p50": 1.675537,
+  "ui_p95": 7.3726,
+  "ui_max": 14.339599,
+  "raster_p50": 5.655639,
+  "raster_p95": 6.918132,
+  "raster_max": 15.711182,
+  "gpu_p50": 0.925375,
+  "gpu_p95": 1.080362,
+  "gpu_ms_per_s": 55.51,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.0,
+  "over": 0,
+  "over_pct": 0.0,
+  "causes": {},
+  "ui_phase_ms_per_frame": {
+   "other": 0.707,
+   "compositing": 0.601,
+   "paint": 0.469,
+   "build": 0.459,
+   "layout": 0.312,
+   "finalize": 0.016
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.546,
+   "Dart_NewInteger": 0.022,
+   "POST_FRAME": 0.014,
+   "Dart_StringToUTF8": 0.006,
+   "Dart_StringToUTF16": 0.003
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 1.981,
+   "QueueSubmit": 1.622,
+   "acquireNextBufferLocked": 0.25,
+   "LayerTree::Paint": 0.222,
+   "Rasterizer::DrawToSurfaces": 0.184,
+   "QueuePresentKHR": 0.18,
+   "CreateGlyphAtlas": 0.143,
+   "queueBuffer": 0.133
+  },
+  "glyph_atlas_ms_per_frame": 0.144,
+  "glyph_strike_frames_pct": 0.2,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.002,
+  "raster_runnable_share": 0.052,
+  "dropped": 46,
+  "cpu_mhz": {
+   "little": 589,
+   "mid": 479,
+   "big": 502
+  },
+  "gpu_mhz": 251,
+  "power_mw": 442,
+  "rails_mw": {
+   "display": 128,
+   "cpu.little": 60,
+   "memory.interface": 48,
+   "ddr.c": 47,
+   "cpu.mid": 33,
+   "system.fabric": 30,
+   "cpu.big": 24,
+   "gpu": 23,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "audit/flat/menu": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 22.5,
+  "frames": 1292,
+  "fps": 57.4,
+  "ui_p50": 2.605266,
+  "ui_p95": 6.683065,
+  "ui_max": 34.277547,
+  "raster_p50": 5.615763,
+  "raster_p95": 9.088257,
+  "raster_max": 25.350301,
+  "gpu_p50": 1.385212,
+  "gpu_p95": 3.198405,
+  "gpu_ms_per_s": 88.97,
+  "save_layers_per_frame": 0.23,
+  "submits_per_frame": 1.31,
+  "over": 22,
+  "over_pct": 1.7,
+  "causes": {
+   "ui-layout": 9,
+   "ui-other": 6,
+   "raster-cpu": 4,
+   "raster-wait": 1,
+   "ui-build": 1,
+   "ui-finalize": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "other": 1.399,
+   "paint": 0.685,
+   "compositing": 0.679,
+   "layout": 0.385,
+   "build": 0.101,
+   "finalize": 0.058
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.212,
+   "Dart_NewInteger": 0.022,
+   "CopyMutableObjectGraph": 0.021,
+   "POST_FRAME": 0.013,
+   "Dart_StringToUTF8": 0.009,
+   "Dart_StringToUTF16": 0.004,
+   "ForwardNewSpace": 0.002,
+   "ParallelMark": 0.001,
+   "ProcessIsolateGroupRoots": 0.001,
+   "Dart_SendPortGetId": 0.0
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.198,
+   "QueueSubmit": 1.772,
+   "acquireNextBufferLocked": 0.252,
+   "QueuePresentKHR": 0.196,
+   "Rasterizer::DrawToSurfaces": 0.195,
+   "LayerTree::Paint": 0.178,
+   "Canvas::saveLayer": 0.174,
+   "queueBuffer": 0.13
+  },
+  "glyph_atlas_ms_per_frame": 0.148,
+  "glyph_strike_frames_pct": 4.6,
+  "bad_glyph_atlas_ms_per_frame": 6.37,
+  "bad_raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 6.03,
+   "UpdateAtlasBitmap": 5.35,
+   "Canvas::saveLayer": 3.04,
+   "QueueSubmit": 2.78,
+   "CreateGlyphAtlas": 1.01,
+   "acquireNextBufferLocked": 0.36,
+   "AppendToExistingAtlas": 0.25,
+   "Rasterizer::DrawToSurfaces": 0.24
+  },
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 7.5,
+   "other": 6.54,
+   "paint": 3.8,
+   "build": 1.91,
+   "compositing": 1.01,
+   "finalize": 0.89
+  },
+  "ui_runnable_share": 0.005,
+  "raster_runnable_share": 0.048,
+  "dropped": 53,
+  "cpu_mhz": {
+   "little": 653,
+   "mid": 484,
+   "big": 502
+  },
+  "gpu_mhz": 251,
+  "power_mw": 475,
+  "rails_mw": {
+   "display": 124,
+   "cpu.little": 74,
+   "memory.interface": 52,
+   "ddr.c": 52,
+   "cpu.mid": 34,
+   "gpu": 32,
+   "system.fabric": 31,
+   "cpu.big": 25,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 8,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 2347,
+   "morph_inclusive_ms": {
+    "_LivePositionedTemplateElement.update": 48.2,
+    "_LiveDrivenElement.update": 47.8,
+    "_MorphMenuLayerState._update": 42.2,
+    "_LayerFrame": 42.0,
+    "MorphMenuMotion.silhouetteFor": 40.5,
+    "_framed.<anonymous closure>": 39.8,
+    "MorphFrameSync._sync": 39.5,
+    "RenderMorphGlyphs.paint": 35.0
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 159.5,
+    "_AbstractType.toString": 112.5,
+    "Object.runtimeType": 25.0,
+    "_StringBase._concatRangeNative": 18.0,
+    "_NativeParagraph.__paint$Method$FfiNative": 13.0,
+    "_OneByteString._concatAll": 11.2,
+    "Element.widget": 9.8,
+    "_BlurredUnion.blurred": 9.5
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 0.53,
+    "app": 0.0,
+    "framework": 3.15
+   },
+   "stalls": [
+    {
+     "ms": 529.5,
+     "samples": 1084,
+     "morph_inclusive_ms": {
+      "_BodyPainter.paint": 0.2
+     },
+     "self_ms": {
+      "Map.Map._fromLiteral": 270.0,
+      "dart.developer._reportTaskEvent": 0.2,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0xb5dda0": 0.2,
+      "_NativeParagraph.__paint$Method$FfiNative": 0.2,
+      "_BodyPainter.paint": 0.2
+     }
+    },
+    {
+     "ms": 546.0,
+     "samples": 1060,
+     "morph_inclusive_ms": {},
+     "self_ms": {
+      "BoxConstraints.==": 261.8,
+      "dart.developer._reportTaskEvent": 1.5,
+      "write": 0.2,
+      "[Native] /data/app/~~vZDVcYblyrWvIzc_WFSuDQ==/dev.tembeon.morph_example-3c26fptpfgZKPxagCg7vrg==/base.apk!/lib/arm64-v8a/libflutter.so+0x93ec60": 0.2,
+      "Object._haveSameRuntimeType": 0.2,
+      "_MixinApplication19&RenderBox&RenderObjectWithChildMixin.child=": 0.2,
+      "InheritedModelElement.updateDependencies": 0.2,
+      "_GrowableList.isEmpty": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 2.411,
+   "HandleOOBMessage": 0.964,
+   "RenderParagraph": 0.263,
+   "RenderTransform": 0.169,
+   "RenderStack": 0.159,
+   "_RenderLiveSemantics": 0.153,
+   "RenderPositionedBox": 0.149,
+   "RenderIgnorePointer": 0.122,
+   "RenderConstrainedBox": 0.115,
+   "RenderMorphGlyphs": 0.105
+  },
+  "layers": {
+   "offscreen_per_frame": 0.19,
+   "backdrops_per_frame": 0.0,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 0.0,
+   "owners_per_frame": {
+    "image_filter unknown ImageFilterLayer": 0.18,
+    "opacity unknown OpacityLayer": 0.01
+   }
+  }
+ },
+ "audit/flat/sheet": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 22.44,
+  "frames": 1216,
+  "fps": 54.2,
+  "ui_p50": 1.460287,
+  "ui_p95": 3.424886,
+  "ui_max": 20.562419,
+  "raster_p50": 5.545166,
+  "raster_p95": 7.942749,
+  "raster_max": 14.237102,
+  "gpu_p50": 2.368001,
+  "gpu_p95": 3.397299,
+  "gpu_ms_per_s": 119.26,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.37,
+  "over": 2,
+  "over_pct": 0.2,
+  "causes": {
+   "ui-build": 1,
+   "ui-layout": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "other": 0.724,
+   "compositing": 0.54,
+   "paint": 0.347,
+   "layout": 0.102,
+   "build": 0.063,
+   "finalize": 0.026
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.534,
+   "POST_FRAME": 0.04,
+   "Dart_NewInteger": 0.024,
+   "Dart_StringToUTF8": 0.001,
+   "Dart_StringToUTF16": 0.001
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 1.915,
+   "QueueSubmit": 1.855,
+   "acquireNextBufferLocked": 0.249,
+   "CreateGlyphAtlas": 0.195,
+   "QueuePresentKHR": 0.191,
+   "LayerTree::Paint": 0.187,
+   "Rasterizer::DrawToSurfaces": 0.169,
+   "queueBuffer": 0.145
+  },
+  "glyph_atlas_ms_per_frame": 0.207,
+  "glyph_strike_frames_pct": 0.3,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 5.72,
+   "build": 5.68,
+   "paint": 3.28,
+   "other": 2.77,
+   "compositing": 1.33,
+   "finalize": 0.02
+  },
+  "ui_runnable_share": 0.002,
+  "raster_runnable_share": 0.056,
+  "dropped": 13,
+  "cpu_mhz": {
+   "little": 559,
+   "mid": 448,
+   "big": 505
+  },
+  "gpu_mhz": 251,
+  "power_mw": 449,
+  "rails_mw": {
+   "display": 130,
+   "cpu.little": 55,
+   "ddr.c": 46,
+   "memory.interface": 45,
+   "gpu": 42,
+   "cpu.mid": 29,
+   "system.fabric": 29,
+   "cpu.big": 21,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 613,
+   "morph_inclusive_ms": {
+    "RenderMorphLiveBox.performLayout": 12.0,
+    "_RenderLiveTransform.performLayout": 7.8,
+    "clipped.<anonymous closure>": 6.2,
+    "RenderMorphLiveBox.paint": 6.2,
+    "paint.transformed": 6.2,
+    "paint.clipped": 6.2,
+    "RenderMorphGlyphs.paint": 5.5,
+    "RenderMorphGlyphs._paintSharp": 5.2
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 68.2,
+    "_AbstractType.toString": 13.5,
+    "PlatformDispatcher.___sendPlatformMessage$Method$FfiNative": 6.2,
+    "Object.runtimeType": 3.0,
+    "Element.widget": 2.5,
+    "_NativeParagraph.__paint$Method$FfiNative": 2.0,
+    "_NativeCanvas.__drawRRect$Method$FfiNative": 1.8,
+    "_NativePictureRecorder.__endRecording$Method$FfiNative": 1.8
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 0.25,
+    "app": 0.0,
+    "framework": 0.95
+   },
+   "stalls": []
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 0.583,
+   "RenderCustomPaint": 0.087,
+   "_RenderLiveColoredBox": 0.048,
+   "RenderParagraph": 0.044,
+   "RenderMorphGlyphs": 0.039,
+   "_RenderLiveTransform": 0.034,
+   "POST_FRAME": 0.034,
+   "RenderMorphLiveBox": 0.031,
+   "RenderRepaintBoundary": 0.028,
+   "Dart_NewInteger": 0.025
+  },
+  "layers": {
+   "offscreen_per_frame": 0.0,
+   "backdrops_per_frame": 0.0,
+   "in_picture_save_layers": 0.0,
+   "captures_per_frame": 0.0,
+   "owners_per_frame": {}
+  }
+ },
+ "audit/flat/list": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 34.98,
+  "frames": 1975,
+  "fps": 56.5,
+  "ui_p50": 1.230184,
+  "ui_p95": 2.408122,
+  "ui_max": 7.114054,
+  "raster_p50": 6.683635,
+  "raster_p95": 8.756225,
+  "raster_max": 16.500081,
+  "gpu_p50": 2.116536,
+  "gpu_p95": 2.498982,
+  "gpu_ms_per_s": 121.96,
+  "save_layers_per_frame": 0.28,
+  "submits_per_frame": 1.28,
+  "over": 0,
+  "over_pct": 0.0,
+  "causes": {},
+  "ui_phase_ms_per_frame": {
+   "compositing": 0.563,
+   "other": 0.493,
+   "paint": 0.169,
+   "layout": 0.105,
+   "finalize": 0.017,
+   "build": 0.014
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.352,
+   "Dart_NewInteger": 0.022,
+   "POST_FRAME": 0.013
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.711,
+   "QueueSubmit": 1.764,
+   "CreateGlyphAtlas": 0.256,
+   "LayerTree::Paint": 0.25,
+   "acquireNextBufferLocked": 0.239,
+   "QueuePresentKHR": 0.18,
+   "Rasterizer::DrawToSurfaces": 0.17,
+   "LayerTree::Preroll": 0.136
+  },
+  "glyph_atlas_ms_per_frame": 0.258,
+  "glyph_strike_frames_pct": 0.2,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.002,
+  "raster_runnable_share": 0.046,
+  "dropped": 0,
+  "cpu_mhz": {
+   "little": 610,
+   "mid": 500,
+   "big": 508
+  },
+  "gpu_mhz": 251,
+  "power_mw": 476,
+  "rails_mw": {
+   "display": 131,
+   "cpu.little": 68,
+   "memory.interface": 49,
+   "ddr.c": 49,
+   "gpu": 39,
+   "cpu.mid": 37,
+   "system.fabric": 30,
+   "cpu.big": 23,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "nav/nav-navigation-toolbar-flat": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.52,
+  "frames": 290,
+  "fps": 38.6,
+  "ui_p50": 2.353313,
+  "ui_p95": 6.237834,
+  "ui_max": 17.002644,
+  "raster_p50": 5.873576,
+  "raster_p95": 7.429972,
+  "raster_max": 14.434367,
+  "gpu_p50": 1.30721,
+  "gpu_p95": 1.887288,
+  "gpu_ms_per_s": 55.24,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.17,
+  "over": 1,
+  "over_pct": 0.3,
+  "causes": {
+   "ui-build": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "other": 0.915,
+   "paint": 0.86,
+   "compositing": 0.739,
+   "layout": 0.193,
+   "build": 0.142,
+   "finalize": 0.018,
+   "gc": 0.013
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.744,
+   "Dart_NewInteger": 0.024,
+   "POST_FRAME": 0.015,
+   "ParallelMark": 0.004,
+   "ForwardNewSpace": 0.003,
+   "ProcessWeakHandles": 0.001,
+   "FinishIncrementalCompact": 0.001,
+   "Dart_StringToUTF8": 0.001,
+   "ProcessIsolateGroupRoots": 0.001,
+   "Roots": 0.001
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.103,
+   "QueueSubmit": 1.632,
+   "LayerTree::Paint": 0.274,
+   "acquireNextBufferLocked": 0.249,
+   "Rasterizer::DrawToSurfaces": 0.205,
+   "QueuePresentKHR": 0.176,
+   "LayerTree::Preroll": 0.163,
+   "queueBuffer": 0.133
+  },
+  "glyph_atlas_ms_per_frame": 0.147,
+  "glyph_strike_frames_pct": 2.8,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {
+   "build": 8.82,
+   "compositing": 2.64,
+   "paint": 2.17,
+   "layout": 2.02,
+   "other": 1.32,
+   "finalize": 0.05
+  },
+  "ui_runnable_share": 0.006,
+  "raster_runnable_share": 0.052,
+  "dropped": 9,
+  "cpu_mhz": {
+   "little": 557,
+   "mid": 461,
+   "big": 505
+  },
+  "gpu_mhz": 251,
+  "power_mw": 440,
+  "rails_mw": {
+   "display": 169,
+   "cpu.little": 53,
+   "ddr.c": 38,
+   "memory.interface": 35,
+   "system.fabric": 27,
+   "cpu.mid": 27,
+   "gpu": 25,
+   "aoc.logic": 18,
+   "cpu.big": 16,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 6,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "nav/nav-navigation-toolbar-liquid": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.52,
+  "frames": 292,
+  "fps": 38.9,
+  "ui_p50": 3.463705,
+  "ui_p95": 9.04537,
+  "ui_max": 18.181641,
+  "raster_p50": 8.180339,
+  "raster_p95": 10.986043,
+  "raster_max": 15.48759,
+  "gpu_p50": 3.824056,
+  "gpu_p95": 4.547932,
+  "gpu_ms_per_s": 150.7,
+  "save_layers_per_frame": 2.0,
+  "submits_per_frame": 2.14,
+  "over": 3,
+  "over_pct": 1.0,
+  "causes": {
+   "ui-build": 3
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 1.533,
+   "compositing": 1.092,
+   "other": 1.087,
+   "layout": 0.289,
+   "build": 0.153,
+   "finalize": 0.029
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.906,
+   "Dart_NewInteger": 0.024,
+   "POST_FRAME": 0.02,
+   "Dart_StringToUTF8": 0.002,
+   "Dart_StringToUTF16": 0.001
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.969,
+   "QueueSubmit": 2.108,
+   "Canvas::saveLayer": 0.705,
+   "LayerTree::Paint": 0.331,
+   "acquireNextBufferLocked": 0.261,
+   "Rasterizer::DrawToSurfaces": 0.215,
+   "QueuePresentKHR": 0.204,
+   "LayerTree::Preroll": 0.195
+  },
+  "glyph_atlas_ms_per_frame": 0.129,
+  "glyph_strike_frames_pct": 0.7,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {
+   "build": 9.35,
+   "compositing": 3.07,
+   "paint": 2.07,
+   "layout": 2.0,
+   "other": 1.4,
+   "finalize": 0.05
+  },
+  "ui_runnable_share": 0.003,
+  "raster_runnable_share": 0.04,
+  "dropped": 6,
+  "cpu_mhz": {
+   "little": 510,
+   "mid": 462,
+   "big": 508
+  },
+  "gpu_mhz": 251,
+  "power_mw": 504,
+  "rails_mw": {
+   "display": 169,
+   "gpu": 73,
+   "cpu.little": 54,
+   "memory.interface": 41,
+   "ddr.c": 40,
+   "cpu.mid": 29,
+   "system.fabric": 28,
+   "cpu.big": 19,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 160,
+   "morph_inclusive_ms": {
+    "_MorphGlassHostElement.update": 13.0,
+    "_LivePositionedTemplateElement.mount": 4.8,
+    "_LiveDrivenElement.mount": 3.5,
+    "_LivePositionedTemplateElement.update": 3.0,
+    "_LiveDrivenElement.update": 1.2,
+    "<anonymous closure>": 1.0,
+    "MorphGlassChannel.push": 0.8,
+    "_MorphGlassHostElement.build": 0.8
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 16.0,
+    "_AbstractType.toString": 4.0,
+    "FlutterView.__render$Method$FfiNative": 0.8,
+    "_HashMap.[]=": 0.8,
+    "_StringBase._interpolateSingle": 0.5,
+    "Element.widget": 0.5,
+    "Object.runtimeType": 0.5,
+    "_ChannelPick.value": 0.5
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 1.59,
+    "app": 0.0,
+    "framework": 1.54
+   },
+   "stalls": []
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 0.825,
+   "RenderLiquidGlassLayer": 0.483,
+   "_RenderShadedGlyphs": 0.459,
+   "_RenderGlassShadow": 0.398,
+   "RenderRepaintBoundary": 0.159,
+   "RenderLiquidGlass": 0.111,
+   "RenderExcludeSemantics": 0.094,
+   "RenderParagraph": 0.084,
+   "RenderPointerListener": 0.082,
+   "_RenderItemSemantics": 0.082
+  }
+ },
+ "nav/nav-navigation-steady-liquid": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.51,
+  "frames": 450,
+  "fps": 59.9,
+  "ui_p50": 1.708781,
+  "ui_p95": 3.345826,
+  "ui_max": 7.354614,
+  "raster_p50": 9.179525,
+  "raster_p95": 13.518148,
+  "raster_max": 22.357828,
+  "gpu_p50": 4.500611,
+  "gpu_p95": 5.015423,
+  "gpu_ms_per_s": 273.08,
+  "save_layers_per_frame": 4.0,
+  "submits_per_frame": 2.0,
+  "over": 5,
+  "over_pct": 1.1,
+  "causes": {
+   "raster-cpu": 3,
+   "raster-sched": 1,
+   "raster-wait": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "compositing": 1.012,
+   "other": 0.533,
+   "layout": 0.251,
+   "paint": 0.14,
+   "finalize": 0.024
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.391,
+   "Dart_NewInteger": 0.023,
+   "POST_FRAME": 0.012,
+   "Dart_StringToUTF8": 0.002,
+   "Dart_StringToUTF16": 0.001
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.872,
+   "QueueSubmit": 2.426,
+   "Canvas::saveLayer": 1.418,
+   "waitForBufferRelease": 0.692,
+   "LayerTree::Paint": 0.321,
+   "acquireNextBufferLocked": 0.246,
+   "Rasterizer::DrawToSurfaces": 0.203,
+   "QueuePresentKHR": 0.19
+  },
+  "glyph_atlas_ms_per_frame": 0.126,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.13,
+  "bad_raster_self_ms_per_frame": {
+   "waitForBufferRelease": 5.87,
+   "QueueSubmit": 4.3,
+   "SurfaceFrame::Encode": 3.06,
+   "QueuePresentKHR": 1.7,
+   "Canvas::saveLayer": 1.49,
+   "acquireNextBufferLocked": 0.36,
+   "LayerTree::Paint": 0.34,
+   "queueBuffer": 0.25
+  },
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.003,
+  "raster_runnable_share": 0.03,
+  "dropped": 0,
+  "cpu_mhz": {
+   "little": 649,
+   "mid": 518,
+   "big": 500
+  },
+  "gpu_mhz": 251,
+  "power_mw": 657,
+  "rails_mw": {
+   "display": 178,
+   "gpu": 125,
+   "cpu.little": 75,
+   "memory.interface": 63,
+   "ddr.c": 62,
+   "cpu.mid": 39,
+   "system.fabric": 33,
+   "cpu.big": 29,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.a": 9,
+   "ddr.b": 9,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 0,
+   "morph_inclusive_ms": {},
+   "self_ms": {},
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 0.1,
+    "app": 0.0,
+    "framework": 2.22
+   },
+   "stalls": [
+    {
+     "ms": 484.1,
+     "samples": 911,
+     "morph_inclusive_ms": {},
+     "self_ms": {
+      "RenderSliverMultiBoxAdaptor.paintExtentOf": 227.0,
+      "ScrollPosition.notifyListeners": 0.2,
+      "dart.math.min": 0.2,
+      "Object.runtimeType": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "HandleOOBMessage": 1.356,
+   "RenderSliverList": 0.38,
+   "Dart_InvokeClosure": 0.359,
+   "RenderIndexedSemantics": 0.223,
+   "RenderSliverToBoxAdapter": 0.081,
+   "RenderParagraph": 0.065,
+   "RenderViewport": 0.054,
+   "RenderPadding": 0.034,
+   "RenderFlex": 0.034,
+   "RenderSemanticsGestureHandler": 0.029
+  }
+ },
+ "nav/nav-navigation-nested-pop-liquid": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.52,
+  "frames": 282,
+  "fps": 37.5,
+  "ui_p50": 5.592692,
+  "ui_p95": 9.994262,
+  "ui_max": 49.558716,
+  "raster_p50": 8.056641,
+  "raster_p95": 12.571981,
+  "raster_max": 15.907227,
+  "gpu_p50": 4.231852,
+  "gpu_p95": 6.061484,
+  "gpu_ms_per_s": 170.49,
+  "save_layers_per_frame": 2.71,
+  "submits_per_frame": 2.14,
+  "over": 5,
+  "over_pct": 1.8,
+  "causes": {
+   "ui-layout": 5
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 2.571,
+   "other": 1.881,
+   "compositing": 1.338,
+   "layout": 0.573,
+   "build": 0.145,
+   "finalize": 0.058
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.679,
+   "POST_FRAME": 0.057,
+   "QueueSubmit": 0.026,
+   "Dart_NewInteger": 0.021,
+   "Dart_StringToUTF8": 0.008,
+   "Dart_StringToUTF16": 0.003,
+   "IncrementalMarkWithSizeBudget": 0.002,
+   "Dart_Invoke": 0.001,
+   "Dart_NewStringFromCString": 0.0
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.249,
+   "QueueSubmit": 2.077,
+   "Canvas::saveLayer": 0.778,
+   "LayerTree::Paint": 0.383,
+   "Rasterizer::DrawToSurfaces": 0.272,
+   "acquireNextBufferLocked": 0.251,
+   "LayerTree::Preroll": 0.225,
+   "QueuePresentKHR": 0.186
+  },
+  "glyph_atlas_ms_per_frame": 0.11,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 22.47,
+   "build": 5.51,
+   "paint": 5.05,
+   "compositing": 3.22,
+   "other": 2.88,
+   "finalize": 0.15
+  },
+  "ui_runnable_share": 0.003,
+  "raster_runnable_share": 0.034,
+  "dropped": 4,
+  "cpu_mhz": {
+   "little": 596,
+   "mid": 483,
+   "big": 508
+  },
+  "gpu_mhz": 251,
+  "power_mw": 524,
+  "rails_mw": {
+   "display": 170,
+   "cpu.little": 66,
+   "gpu": 65,
+   "memory.interface": 47,
+   "ddr.c": 43,
+   "cpu.mid": 31,
+   "system.fabric": 29,
+   "cpu.big": 24,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 8,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 199,
+   "morph_inclusive_ms": {
+    "_MorphGlassHostElement.update": 15.2,
+    "_LiveDrivenElement.mount": 6.2,
+    "_RenderLiveTransform.performLayout": 4.2,
+    "_LivePositionedTemplateElement.mount": 4.0,
+    "_MorphBarItemsState._relayout": 2.2,
+    "_buildRow.<anonymous closure>": 2.2,
+    "_LivePositionedTemplateElement.update": 2.2,
+    "LiquidGlassRenderObject._paintGlass": 2.2
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 20.8,
+    "_AbstractType.toString": 2.5,
+    "Lists.copy": 1.0,
+    "_HashSet.add": 0.8,
+    "_NativeParagraphBuilder.__build$Method$FfiNative": 0.8,
+    "_NativeParagraph._layout": 0.8,
+    "PlatformDispatcher.___sendPlatformMessage$Method$FfiNative": 0.8,
+    "Element.widget": 0.5
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 3.38,
+    "app": 0.0,
+    "framework": 3.19
+   },
+   "stalls": [
+    {
+     "ms": 475.7,
+     "samples": 934,
+     "morph_inclusive_ms": {
+      "_OpacitySeedLayer.addToScene": 229.2,
+      "LiquidGlassRenderObject._paintGlass": 1.0,
+      "GlassCompositionProbe.paint": 1.0,
+      "_MixinApplication20&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 1.0,
+      "LiquidGlassRenderObject.paint": 1.0,
+      "MorphFrameSync._sync": 0.8,
+      "_framed.<anonymous closure>": 0.8,
+      "_MorphGlassHostElement._framed": 0.5
+     },
+     "self_ms": {
+      "_NativeSceneBuilder.pushClipRect": 229.0,
+      "dart.developer._reportTaskEvent": 1.2,
+      "_NativeParagraph.__paint$Method$FfiNative": 0.5,
+      "[Native] /data/app/~~svL84Sl05_HC1DCfZ-Sxwg==/dev.tembeon.morph_example-yt7QRS6ok7z0HybQ1N7EZg==/base.apk!/lib/arm64-v8a/libflutter.so+0x93ecd0": 0.2,
+      "vsnprintf": 0.2,
+      "_NativePath.__constructor$Method$FfiNative": 0.2,
+      "_RawLiquidGlass._apply": 0.2,
+      "MorphLivePositionedTemplate.applyParentData": 0.2
+     }
+    },
+    {
+     "ms": 466.4,
+     "samples": 916,
+     "morph_inclusive_ms": {
+      "GlassCompositionProbe.paint": 1.0,
+      "_MixinApplication20&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 1.0,
+      "LiquidGlassRenderObject.paint": 1.0,
+      "_framed.<anonymous closure>": 0.8,
+      "MorphFrameSync._sync": 0.8,
+      "_RenderShadedGlyphs.paint": 0.8,
+      "RenderMorphGlyphs._paintSharp": 0.8,
+      "LiquidGlassRenderObject._paintGlass": 0.8
+     },
+     "self_ms": {
+      "Timeline.startSync": 224.5,
+      "dart.developer._reportTaskEvent": 1.2,
+      "TimelineTask.start": 0.2,
+      "items.<anonymous closure>": 0.2,
+      "_layer.<anonymous closure>": 0.2,
+      "_GrowableList._GrowableList._literal3": 0.2,
+      "_FullNode.get": 0.2,
+      "SingleChildRenderObjectElement.visitChildren": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "HandleOOBMessage": 4.062,
+   "Dart_InvokeClosure": 1.319,
+   "RenderLiquidGlassLayer": 0.716,
+   "_RenderShadedGlyphs": 0.598,
+   "_RenderGlassShadow": 0.545,
+   "RenderRepaintBoundary": 0.246,
+   "RenderLiquidGlass": 0.209,
+   "_RenderLiveStack": 0.148,
+   "RenderCustomPaint": 0.137,
+   "RenderConstrainedBox": 0.132
+  }
+ },
+ "nav/nav-navigation-steady-flat": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.51,
+  "frames": 450,
+  "fps": 59.9,
+  "ui_p50": 1.606608,
+  "ui_p95": 2.790853,
+  "ui_max": 5.692749,
+  "raster_p50": 5.855509,
+  "raster_p95": 7.124715,
+  "raster_max": 14.264404,
+  "gpu_p50": 1.400146,
+  "gpu_p95": 1.566203,
+  "gpu_ms_per_s": 84.9,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.0,
+  "over": 0,
+  "over_pct": 0.0,
+  "causes": {},
+  "ui_phase_ms_per_frame": {
+   "compositing": 0.851,
+   "other": 0.515,
+   "layout": 0.244,
+   "paint": 0.132,
+   "finalize": 0.025
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.373,
+   "Dart_NewInteger": 0.022,
+   "POST_FRAME": 0.011,
+   "Dart_StringToUTF8": 0.002,
+   "Dart_StringToUTF16": 0.001
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 1.984,
+   "QueueSubmit": 1.624,
+   "acquireNextBufferLocked": 0.261,
+   "LayerTree::Paint": 0.254,
+   "Rasterizer::DrawToSurfaces": 0.216,
+   "QueuePresentKHR": 0.178,
+   "LayerTree::Preroll": 0.14,
+   "queueBuffer": 0.136
+  },
+  "glyph_atlas_ms_per_frame": 0.128,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {},
+  "ui_runnable_share": 0.001,
+  "raster_runnable_share": 0.054,
+  "dropped": 0,
+  "cpu_mhz": {
+   "little": 605,
+   "mid": 471,
+   "big": 506
+  },
+  "gpu_mhz": 251,
+  "power_mw": 514,
+  "rails_mw": {
+   "display": 178,
+   "cpu.little": 62,
+   "ddr.c": 51,
+   "memory.interface": 50,
+   "gpu": 36,
+   "cpu.mid": 32,
+   "system.fabric": 31,
+   "cpu.big": 23,
+   "aoc.logic": 17,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0
+ },
+ "nav/nav-navigation-nested-pop-flat": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.52,
+  "frames": 277,
+  "fps": 36.8,
+  "ui_p50": 3.744344,
+  "ui_p95": 7.27063,
+  "ui_max": 40.030884,
+  "raster_p50": 6.106038,
+  "raster_p95": 8.476156,
+  "raster_max": 13.735148,
+  "gpu_p50": 1.307536,
+  "gpu_p95": 2.624796,
+  "gpu_ms_per_s": 59.58,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.17,
+  "over": 3,
+  "over_pct": 1.1,
+  "causes": {
+   "ui-layout": 3
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 1.569,
+   "other": 1.437,
+   "compositing": 1.023,
+   "layout": 0.317,
+   "build": 0.11,
+   "finalize": 0.044
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.236,
+   "POST_FRAME": 0.048,
+   "Dart_NewInteger": 0.021,
+   "Dart_StringToUTF8": 0.005,
+   "Dart_StringToUTF16": 0.002
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.456,
+   "QueueSubmit": 1.615,
+   "LayerTree::Paint": 0.363,
+   "Rasterizer::DrawToSurfaces": 0.255,
+   "acquireNextBufferLocked": 0.253,
+   "LayerTree::Preroll": 0.208,
+   "QueuePresentKHR": 0.177,
+   "queueBuffer": 0.126
+  },
+  "glyph_atlas_ms_per_frame": 0.117,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 16.04,
+   "build": 4.85,
+   "other": 3.15,
+   "paint": 3.09,
+   "compositing": 2.23,
+   "finalize": 0.16
+  },
+  "ui_runnable_share": 0.003,
+  "raster_runnable_share": 0.05,
+  "dropped": 2,
+  "cpu_mhz": {
+   "little": 521,
+   "mid": 470,
+   "big": 505
+  },
+  "gpu_mhz": 251,
+  "power_mw": 452,
+  "rails_mw": {
+   "display": 169,
+   "cpu.little": 50,
+   "ddr.c": 39,
+   "memory.interface": 39,
+   "gpu": 29,
+   "cpu.mid": 29,
+   "system.fabric": 28,
+   "cpu.big": 18,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 6,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 0,
+   "morph_inclusive_ms": {},
+   "self_ms": {},
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 1.01,
+    "app": 0.0,
+    "framework": 3.31
+   },
+   "stalls": [
+    {
+     "ms": 461.9,
+     "samples": 901,
+     "morph_inclusive_ms": {
+      "_RenderLiveTransform.performLayout": 1.0,
+      "_framed.<anonymous closure>": 0.5,
+      "MorphFrameSync._sync": 0.5,
+      "_RenderShadedGlyphs.paint": 0.5,
+      "MorphGlassFrame._silhouetteParts": 0.2,
+      "_MorphGlassHostElement._push": 0.2,
+      "_MorphGlassHostElement._structureOf": 0.2,
+      "MorphGlassRenderer._flatMerged": 0.2
+     },
+     "self_ms": {
+      "_MixinApplication19&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin.paint": 222.5,
+      "dart.developer._reportTaskEvent": 1.2,
+      "MorphGlassFrame._silhouetteParts": 0.2,
+      "Float64List": 0.2,
+      "_NativeParagraph._layout": 0.2,
+      "_AbstractType.toString": 0.2,
+      "_NativeCanvas.__drawRect$Method$FfiNative": 0.2,
+      "_NativeCanvas.__constructor$Method$FfiNative": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "HandleOOBMessage": 1.841,
+   "Dart_InvokeClosure": 1.033,
+   "_RenderShadedGlyphs": 0.683,
+   "RenderCustomPaint": 0.284,
+   "RenderRepaintBoundary": 0.265,
+   "RenderStack": 0.257,
+   "RenderIgnorePointer": 0.203,
+   "RenderPointerListener": 0.148,
+   "RenderExcludeSemantics": 0.142,
+   "_RenderLiveStack": 0.132
+  }
+ },
+ "nav/nav-navigation-enter-liquid": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.52,
+  "frames": 293,
+  "fps": 39.0,
+  "ui_p50": 4.044637,
+  "ui_p95": 8.987183,
+  "ui_max": 35.149943,
+  "raster_p50": 8.586792,
+  "raster_p95": 11.283284,
+  "raster_max": 20.802572,
+  "gpu_p50": 4.795818,
+  "gpu_p95": 6.566408,
+  "gpu_ms_per_s": 179.85,
+  "save_layers_per_frame": 2.56,
+  "submits_per_frame": 2.22,
+  "over": 6,
+  "over_pct": 2.0,
+  "causes": {
+   "ui-layout": 5,
+   "raster-wait": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 1.658,
+   "other": 1.477,
+   "compositing": 1.047,
+   "layout": 0.463,
+   "build": 0.162,
+   "gc": 0.027,
+   "finalize": 0.021
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.28,
+   "POST_FRAME": 0.044,
+   "QueueSubmit": 0.03,
+   "Dart_NewInteger": 0.023,
+   "Dart_StringToUTF8": 0.023,
+   "Dart_StringToUTF16": 0.006,
+   "ParallelMark": 0.006,
+   "ForwardNewSpace": 0.005,
+   "ProcessWeakHandles": 0.004,
+   "FinishIncrementalCompact": 0.004
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.582,
+   "QueueSubmit": 2.151,
+   "Canvas::saveLayer": 0.746,
+   "LayerTree::Paint": 0.309,
+   "CreateGlyphAtlas": 0.27,
+   "acquireNextBufferLocked": 0.254,
+   "Rasterizer::DrawToSurfaces": 0.204,
+   "LayerTree::Preroll": 0.184
+  },
+  "glyph_atlas_ms_per_frame": 0.277,
+  "glyph_strike_frames_pct": 1.7,
+  "bad_glyph_atlas_ms_per_frame": 0.31,
+  "bad_raster_self_ms_per_frame": {
+   "QueueSubmit": 15.14,
+   "SurfaceFrame::Encode": 2.68,
+   "Canvas::saveLayer": 0.77,
+   "CreateGlyphAtlas": 0.31,
+   "LayerTree::Paint": 0.31,
+   "acquireNextBufferLocked": 0.28,
+   "Rasterizer::DrawToSurfaces": 0.26,
+   "LayerTree::Preroll": 0.19
+  },
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 13.8,
+   "build": 6.0,
+   "paint": 3.02,
+   "other": 1.8,
+   "compositing": 1.56,
+   "finalize": 0.02
+  },
+  "ui_runnable_share": 0.005,
+  "raster_runnable_share": 0.034,
+  "dropped": 7,
+  "cpu_mhz": {
+   "little": 625,
+   "mid": 511,
+   "big": 528
+  },
+  "gpu_mhz": 251,
+  "power_mw": 544,
+  "rails_mw": {
+   "display": 165,
+   "gpu": 72,
+   "cpu.little": 71,
+   "memory.interface": 51,
+   "ddr.c": 46,
+   "cpu.mid": 33,
+   "system.fabric": 30,
+   "cpu.big": 25,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 246,
+   "morph_inclusive_ms": {
+    "_RenderLiveTransform.performLayout": 26.5,
+    "_MorphGlassHostElement.mount": 1.2,
+    "MorphGlassRenderer.buildFrom": 0.5,
+    "morphLiquidLayer": 0.5,
+    "_MorphGlassHostElement.build": 0.5,
+    "MorphGlassRenderer._layer": 0.5,
+    "_RenderContentSource.paint": 0.5,
+    "RenderLiquidGlassLayer.onCompositorTranslated": 0.5
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 24.2,
+    "_AbstractType.toString": 5.5,
+    "_NativeParagraphBuilder.__pushStyle$Method$FfiNative": 3.0,
+    "_NativeParagraph.__paint$Method$FfiNative": 1.8,
+    "_NativeParagraph._layout": 1.5,
+    "_NativeParagraphBuilder.__build$Method$FfiNative": 1.5,
+    "PlatformDispatcher.___sendPlatformMessage$Method$FfiNative": 1.2,
+    "_NativeParagraphBuilder.__constructor$Method$FfiNative": 1.0
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 2.83,
+    "app": 0.0,
+    "framework": 1.55
+   },
+   "stalls": [
+    {
+     "ms": 456.1,
+     "samples": 922,
+     "morph_inclusive_ms": {
+      "GeometryTransformTrackingLayer.updateSubtreeNeedsAddToScene": 227.2,
+      "RenderLiquidGlassLayer.trackedTransform": 227.0,
+      "LiquidGlassRenderObject._paintGlass": 0.8,
+      "GlassCompositionProbe.paint": 0.8,
+      "_MixinApplication20&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 0.8,
+      "LiquidGlassRenderObject.paint": 0.8,
+      "_ChannelPick.value": 0.5,
+      "MorphFrameSync._sync": 0.5
+     },
+     "self_ms": {
+      "RenderObject.getTransformTo": 227.0,
+      "dart.developer._reportTaskEvent": 1.0,
+      "[Native] /data/app/~~svL84Sl05_HC1DCfZ-Sxwg==/dev.tembeon.morph_example-yt7QRS6ok7z0HybQ1N7EZg==/base.apk!/lib/arm64-v8a/libflutter.so+0x9bf504": 0.2,
+      "pthread_getspecific": 0.2,
+      "_NativePath.__op$Method$FfiNative": 0.2,
+      "_ChannelPick.value": 0.2,
+      "_FullNode.get": 0.2,
+      "RenderObject.depth": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "HandleOOBMessage": 1.877,
+   "Dart_InvokeClosure": 1.078,
+   "RenderLiquidGlassLayer": 0.624,
+   "_RenderGlassShadow": 0.394,
+   "_RenderShadedGlyphs": 0.314,
+   "RenderLiquidGlass": 0.146,
+   "RenderRepaintBoundary": 0.145,
+   "RenderParagraph": 0.138,
+   "_RenderLiveStack": 0.112,
+   "RenderConstrainedBox": 0.094
+  }
+ },
+ "nav/nav-navigation-nested-push-flat": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.52,
+  "frames": 289,
+  "fps": 38.4,
+  "ui_p50": 4.24585,
+  "ui_p95": 9.018514,
+  "ui_max": 31.297811,
+  "raster_p50": 6.153524,
+  "raster_p95": 9.103923,
+  "raster_max": 11.238281,
+  "gpu_p50": 1.940633,
+  "gpu_p95": 3.08309,
+  "gpu_ms_per_s": 73.41,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.16,
+  "over": 4,
+  "over_pct": 1.4,
+  "causes": {
+   "ui-layout": 3,
+   "ui-build": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 1.631,
+   "other": 1.567,
+   "compositing": 1.057,
+   "layout": 0.392,
+   "build": 0.164,
+   "finalize": 0.018,
+   "gc": 0.018
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.355,
+   "POST_FRAME": 0.042,
+   "Dart_NewInteger": 0.023,
+   "Dart_StringToUTF8": 0.018,
+   "ForwardNewSpace": 0.007,
+   "ParallelMark": 0.003,
+   "Dart_StringToUTF16": 0.002,
+   "ProcessWeakHandles": 0.002,
+   "ProcessIsolateGroupRoots": 0.002,
+   "Roots": 0.002
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.361,
+   "QueueSubmit": 1.551,
+   "LayerTree::Paint": 0.406,
+   "Rasterizer::DrawToSurfaces": 0.285,
+   "acquireNextBufferLocked": 0.258,
+   "LayerTree::Preroll": 0.227,
+   "waitForBufferRelease": 0.223,
+   "QueuePresentKHR": 0.18
+  },
+  "glyph_atlas_ms_per_frame": 0.088,
+  "glyph_strike_frames_pct": 1.4,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 8.68,
+   "build": 7.84,
+   "paint": 4.88,
+   "other": 3.52,
+   "compositing": 2.91,
+   "finalize": 0.04
+  },
+  "ui_runnable_share": 0.003,
+  "raster_runnable_share": 0.044,
+  "dropped": 11,
+  "cpu_mhz": {
+   "little": 570,
+   "mid": 454,
+   "big": 525
+  },
+  "gpu_mhz": 251,
+  "power_mw": 466,
+  "rails_mw": {
+   "display": 175,
+   "cpu.little": 59,
+   "ddr.c": 41,
+   "memory.interface": 40,
+   "cpu.mid": 28,
+   "system.fabric": 28,
+   "gpu": 26,
+   "cpu.big": 19,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 6,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 519,
+   "morph_inclusive_ms": {
+    "_RenderLiveTransform.performLayout": 42.8,
+    "_MorphGlassHostElement.update": 13.2,
+    "_LivePositionedTemplateElement.update": 5.2,
+    "_LivePositionedTemplateElement.mount": 4.2,
+    "_RenderShadedGlyphs.paint": 3.2,
+    "_LiveDrivenElement.mount": 3.0,
+    "<anonymous closure>": 2.8,
+    "_LiveDrivenElement.update": 2.8
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 64.8,
+    "_AbstractType.toString": 11.2,
+    "_NativePictureRecorder.__endRecording$Method$FfiNative": 3.2,
+    "_NativeCanvas.__drawRect$Method$FfiNative": 2.8,
+    "Object.runtimeType": 2.5,
+    "_NativeParagraph._layout": 2.0,
+    "_NativeParagraphBuilder.__constructor$Method$FfiNative": 1.8,
+    "_NativeSceneBuilder.__pushOffset$Method$FfiNative": 1.5
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 1.5,
+    "app": 0.01,
+    "framework": 3.88
+   },
+   "stalls": [
+    {
+     "ms": 84.4,
+     "samples": 141,
+     "morph_inclusive_ms": {
+      "_RenderLiveTransform.performLayout": 14.0,
+      "_MorphGlassHostElement.update": 1.5,
+      "_LivePositionedTemplateElement.update": 1.0,
+      "_MorphNavigationBarState.build": 0.5,
+      "_LiveDrivenElement.update": 0.5,
+      "MorphWidgetsTheme.maybeOf": 0.2,
+      "MorphBarAppearance.resolve": 0.2,
+      "_themeHost": 0.2
+     },
+     "self_ms": {
+      "dart.developer._reportTaskEvent": 17.5,
+      "_AbstractType.toString": 4.0,
+      "Object._haveSameRuntimeType": 0.8,
+      "Object.runtimeType": 0.5,
+      "_RenderObjectSemantics": 0.5,
+      "_NativeCanvas.__drawRect$Method$FfiNative": 0.5,
+      "AnimationController._tick": 0.2,
+      "_StringBase._interpolateSingle": 0.2
+     }
+    },
+    {
+     "ms": 447.9,
+     "samples": 913,
+     "morph_inclusive_ms": {
+      "_RenderShadedGlyphs.paint": 0.5,
+      "RenderMorphGlyphs._paintSharp": 0.5,
+      "_MixinApplication24&State&SingleTickerProviderStateMixin&MorphClock._onTick": 0.2,
+      "_MorphBarItemsState.advanceMotion": 0.2,
+      "MorphBarMotion.advance": 0.2,
+      "MorphGlassFrame._silhouetteParts": 0.2,
+      "_MorphGlassHostElement._push": 0.2,
+      "_MorphGlassHostElement._structureOf": 0.2
+     },
+     "self_ms": {
+      "_MixinApplication19&RenderBox&RenderObjectWithChildMixin&RenderProxyBoxMixin.paint": 226.0,
+      "dart.developer._reportTaskEvent": 0.5,
+      "_GrowableList.add": 0.2,
+      "Lists.copy": 0.2,
+      "_StringBase._interpolateSingle": 0.2,
+      "_NativeCanvas.__drawImageRect$Method$FfiNative": 0.2,
+      "_NativeCanvas.__constructor$Method$FfiNative": 0.2,
+      "PictureLayer.picture=": 0.2
+     }
+    }
+   ]
+  },
+  "ui_owners": {
+   "HandleOOBMessage": 2.353,
+   "Dart_InvokeClosure": 1.131,
+   "_RenderShadedGlyphs": 0.801,
+   "RenderRepaintBoundary": 0.291,
+   "RenderCustomPaint": 0.277,
+   "RenderStack": 0.24,
+   "RenderIgnorePointer": 0.2,
+   "RenderPointerListener": 0.158,
+   "RenderConstrainedBox": 0.144,
+   "RenderExcludeSemantics": 0.144
+  }
+ },
+ "nav/nav-navigation-enter-flat": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.52,
+  "frames": 290,
+  "fps": 38.6,
+  "ui_p50": 2.798706,
+  "ui_p95": 6.049438,
+  "ui_max": 24.495728,
+  "raster_p50": 6.414673,
+  "raster_p95": 8.832682,
+  "raster_max": 11.919189,
+  "gpu_p50": 2.52413,
+  "gpu_p95": 3.669718,
+  "gpu_ms_per_s": 86.29,
+  "save_layers_per_frame": 0.0,
+  "submits_per_frame": 1.26,
+  "over": 5,
+  "over_pct": 1.7,
+  "causes": {
+   "ui-layout": 5
+  },
+  "ui_phase_ms_per_frame": {
+   "other": 1.191,
+   "paint": 0.884,
+   "compositing": 0.717,
+   "layout": 0.345,
+   "build": 0.154,
+   "finalize": 0.018,
+   "gc": 0.008
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 0.997,
+   "POST_FRAME": 0.033,
+   "Dart_NewInteger": 0.022,
+   "Dart_StringToUTF8": 0.022,
+   "Dart_StringToUTF16": 0.005,
+   "ParallelMark": 0.003,
+   "ProcessWeakHandles": 0.002,
+   "ProcessIsolateGroupRoots": 0.001,
+   "HandleOOBMessage": 0.001,
+   "SweepNew": 0.0
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 2.904,
+   "QueueSubmit": 1.553,
+   "CreateGlyphAtlas": 0.299,
+   "LayerTree::Paint": 0.258,
+   "acquireNextBufferLocked": 0.246,
+   "Rasterizer::DrawToSurfaces": 0.204,
+   "QueuePresentKHR": 0.183,
+   "LayerTree::Preroll": 0.157
+  },
+  "glyph_atlas_ms_per_frame": 0.317,
+  "glyph_strike_frames_pct": 3.4,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 11.23,
+   "build": 5.87,
+   "paint": 2.31,
+   "other": 1.46,
+   "compositing": 1.04,
+   "finalize": 0.02
+  },
+  "ui_runnable_share": 0.004,
+  "raster_runnable_share": 0.038,
+  "dropped": 8,
+  "cpu_mhz": {
+   "little": 627,
+   "mid": 473,
+   "big": 503
+  },
+  "gpu_mhz": 251,
+  "power_mw": 484,
+  "rails_mw": {
+   "display": 165,
+   "cpu.little": 68,
+   "memory.interface": 44,
+   "ddr.c": 43,
+   "gpu": 35,
+   "cpu.mid": 29,
+   "system.fabric": 29,
+   "cpu.big": 21,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 50,
+   "morph_inclusive_ms": {
+    "_RenderLiveTransform.performLayout": 6.0,
+    "MorphBarAppearance.resolve": 0.2,
+    "MorphWidgetsTheme.maybeOf": 0.2,
+    "_themeHost": 0.2,
+    "_themeHost.<anonymous closure>": 0.2,
+    "_MorphNavigationScaffoldState.build": 0.2,
+    "build.<anonymous closure>": 0.2,
+    "_MorphSegmentedControlState._surfaces": 0.2
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 6.2,
+    "_AbstractType.toString": 0.8,
+    "_NativeParagraph._layout": 0.5,
+    "_NativeParagraphBuilder.__pushStyle$Method$FfiNative": 0.5,
+    "_NativeParagraphBuilder.__build$Method$FfiNative": 0.5,
+    "_NativeParagraphBuilder.__addText$Method$FfiNative": 0.5,
+    "_NativePictureRecorder.__endRecording$Method$FfiNative": 0.5,
+    "write": 0.2
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 0.75,
+    "app": 0.0,
+    "framework": 1.7
+   },
+   "stalls": []
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 0.914,
+   "_RenderShadedGlyphs": 0.391,
+   "RenderCustomPaint": 0.215,
+   "RenderStack": 0.149,
+   "RenderRepaintBoundary": 0.135,
+   "RenderIgnorePointer": 0.13,
+   "RenderParagraph": 0.102,
+   "_RenderLiveStack": 0.093,
+   "RenderPointerListener": 0.086,
+   "_RenderLiveTransform": 0.078
+  }
+ },
+ "nav/nav-navigation-nested-push-liquid": {
+  "budget_ms": 16.666666666666668,
+  "runs": 5,
+  "seconds": 7.52,
+  "frames": 294,
+  "fps": 39.1,
+  "ui_p50": 5.832967,
+  "ui_p95": 10.606934,
+  "ui_max": 32.086223,
+  "raster_p50": 7.984131,
+  "raster_p95": 12.657552,
+  "raster_max": 16.214477,
+  "gpu_p50": 5.024577,
+  "gpu_p95": 7.326254,
+  "gpu_ms_per_s": 201.28,
+  "save_layers_per_frame": 2.39,
+  "submits_per_frame": 2.15,
+  "over": 7,
+  "over_pct": 2.4,
+  "causes": {
+   "ui-layout": 5,
+   "ui-build": 1,
+   "ui-paint": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 2.543,
+   "other": 1.935,
+   "compositing": 1.32,
+   "layout": 0.433,
+   "build": 0.138,
+   "finalize": 0.041
+  },
+  "ui_owner_ms_per_frame": {
+   "Dart_InvokeClosure": 1.747,
+   "POST_FRAME": 0.038,
+   "QueueSubmit": 0.023,
+   "Dart_NewInteger": 0.02,
+   "Dart_StringToUTF8": 0.014,
+   "Dart_StringToUTF16": 0.002,
+   "Dart_Invoke": 0.001,
+   "Dart_NewStringFromCString": 0.001
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.186,
+   "QueueSubmit": 2.035,
+   "Canvas::saveLayer": 0.783,
+   "LayerTree::Paint": 0.415,
+   "Rasterizer::DrawToSurfaces": 0.273,
+   "acquireNextBufferLocked": 0.256,
+   "LayerTree::Preroll": 0.246,
+   "QueuePresentKHR": 0.18
+  },
+  "glyph_atlas_ms_per_frame": 0.066,
+  "glyph_strike_frames_pct": 0.0,
+  "bad_glyph_atlas_ms_per_frame": 0.0,
+  "bad_raster_self_ms_per_frame": {},
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 8.93,
+   "paint": 4.41,
+   "build": 3.67,
+   "compositing": 2.6,
+   "other": 2.25,
+   "finalize": 0.03
+  },
+  "ui_runnable_share": 0.005,
+  "raster_runnable_share": 0.033,
+  "dropped": 9,
+  "cpu_mhz": {
+   "little": 650,
+   "mid": 534,
+   "big": 503
+  },
+  "gpu_mhz": 251,
+  "power_mw": 586,
+  "rails_mw": {
+   "display": 176,
+   "gpu": 100,
+   "cpu.little": 75,
+   "memory.interface": 51,
+   "ddr.c": 46,
+   "cpu.mid": 36,
+   "system.fabric": 30,
+   "cpu.big": 23,
+   "aoc.logic": 18,
+   "tpu": 12,
+   "ddr.b": 9,
+   "ddr.a": 7,
+   "aoc.memory": 4,
+   "gps": 1
+  },
+  "thermal_status": 0,
+  "dart": {
+   "samples": 543,
+   "morph_inclusive_ms": {
+    "_RenderLiveTransform.performLayout": 39.5,
+    "_MorphGlassHostElement.update": 22.5,
+    "_LiveDrivenElement.mount": 9.5,
+    "_LivePositionedTemplateElement.mount": 6.2,
+    "_MorphBarItemsState._relayout": 4.5,
+    "_buildRow.<anonymous closure>": 4.5,
+    "_LivePositionedTemplateElement.update": 4.5,
+    "GlassCompositionProbe.paint": 3.5
+   },
+   "self_ms": {
+    "dart.developer._reportTaskEvent": 62.2,
+    "_AbstractType.toString": 12.5,
+    "_NativeParagraphBuilder.__build$Method$FfiNative": 2.0,
+    "_NativeSceneBuilder.__pushOffset$Method$FfiNative": 1.8,
+    "Object.runtimeType": 1.8,
+    "PlatformDispatcher.___sendPlatformMessage$Method$FfiNative": 1.5,
+    "Lists.copy": 1.5,
+    "_HashSet.add": 1.5
+   },
+   "over": true,
+   "ui_split_ms_per_frame": {
+    "morph": 2.67,
+    "app": 0.0,
+    "framework": 2.17
+   },
+   "stalls": []
+  },
+  "ui_owners": {
+   "Dart_InvokeClosure": 1.485,
+   "_RenderShadedGlyphs": 0.659,
+   "RenderLiquidGlassLayer": 0.659,
+   "_RenderGlassShadow": 0.592,
+   "RenderRepaintBoundary": 0.249,
+   "RenderLiquidGlass": 0.185,
+   "RenderConstrainedBox": 0.15,
+   "RenderParagraph": 0.13,
+   "RenderPointerListener": 0.125,
+   "RenderExcludeSemantics": 0.12
+  }
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "sdk": "stable",
+ "sha": "c6176d4e",
+ "source": "/tmp/morph-perf/src/bench-c6176d4e",
+ "fixed": false,
+ "runs": 5,
+ "date": "2026-10-14 04:13:13.007892",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "5",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8",
+    "AUDIT_SCENES": "menu"
+   },
+   "thermal_before": [
+    0,
+    34.1017
+   ],
+   "thermal_after": [
+    0,
+    34.2337
+   ]
+  },
+  "audit-flat": {
+   "args": {
+    "GALLERY_GLASS": "flat",
+    "AUDIT_RUNS": "5",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8",
+    "AUDIT_SCENES": "menu"
+   },
+   "thermal_before": [
+    0,
+    34.207104
+   ],
+   "thermal_after": [
+    0,
+    33.85895
+   ]
+  }
+ }
+}

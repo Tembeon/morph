@@ -1,0 +1,10 @@
+cdcd0c0f  runs 5  fixed-perf False  2026-10-14 04:10
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   310    [=]
+audit/liquid/idle-frames              1   3.2   3.2  15.3  15.3   1.6   0.0    0   280    [=]
+audit/liquid/menu                  1282   5.6  11.3   8.5  13.9  12.8   4.0   69   774  raster-cpu:24 ui-layout:11 ui-other:6 gpu:4 ui-paint:3 ui-compositing:1 ui-build:1 ui-finalize:1 bad raster: SurfaceFrame::Encode 10.3, Canvas::saveLayer 4.7, QueueSubmit 3.3  [ui 14.04->11.32, over_pct 5.3->4]
+audit/flat/idle                       0     -     -     -     -     -   0.0    0   286    [=]
+audit/flat/idle-frames                1   3.2   3.2  11.8  11.8   0.9   0.0    0   277    [=]
+audit/flat/menu                    1298   2.6   6.6   5.8   9.5   3.3   1.1   50   472  ui-other:8 ui-layout:4 raster-cpu:2 bad ui: other 10.8, layout 4.5, paint 3.2  [ui 10.27->6.608, raster 11.19->9.535, power_mw 553->472]

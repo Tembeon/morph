@@ -1,0 +1,26 @@
+{
+ "sdk": "stable",
+ "sha": "913bd6b",
+ "source": "/tmp/morph-perf/src/bench-913bd6b",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-14 00:43:21.953299",
+ "launches": {
+  "nav": {
+   "args": {
+    "NAV_MODES": "liquid,flat",
+    "NAV_MOTIONS": "steady",
+    "NAV_RUNS": "3",
+    "MORPH_GLASS_PROBE": "skip"
+   },
+   "thermal_before": [
+    0,
+    33.279003
+   ],
+   "thermal_after": [
+    0,
+    33.518253
+   ]
+  }
+ }
+}
