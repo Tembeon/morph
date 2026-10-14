@@ -24,7 +24,7 @@
   "tab-bar/flat": {
     "frames": 218,
     "builds": 0.1,
-    "paints": 54.7,
+    "paints": 79.8,
     "pictures": 1.0,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -288,8 +288,8 @@
   "tab-bar/fake": {
     "frames": 218,
     "builds": 0.5,
-    "paints": 72.7,
-    "pictures": 3.0,
+    "paints": 87.8,
+    "pictures": 3.2,
     "captures": 2.6,
     "offscreen": 2.6,
     "snapshotImages": 0.0,
@@ -552,8 +552,8 @@
   "tab-bar/liquid": {
     "frames": 218,
     "builds": 0.5,
-    "paints": 72.7,
-    "pictures": 3.0,
+    "paints": 87.8,
+    "pictures": 3.2,
     "captures": 2.6,
     "offscreen": 2.6,
     "snapshotImages": 0.0,

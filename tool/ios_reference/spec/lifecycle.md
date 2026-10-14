@@ -157,7 +157,7 @@ Flat tier; liquid where different. After the fixes below.
 | family | morph during the touch | gap |
 |---|---|---|
 | segmented | down on another segment 0/0/25 (its title's dim layer), then nothing held; release 13/17/42, then 0/2/8 a frame to 1.4 s; drag 0/2/8 a frame (liquid 0/3/41 lifted) | the lens moves by layout every frame, native only at crossings |
-| tab bar | held or dragged 0/2/100 while the swell grows (~0.45 s), then 0/2/18; liquid 21-23 builds at the lift, 0/3/108 a frame while lifted; release tail 0/2/17 to 1.36 s | labels repaint while the swell changes or a lifted lens copies them |
+| tab bar | held or dragged 0/2/100 every frame the bar is swollen (liquid 21-23 builds at the lift, 0/3/108 while lifted); held still asleep after ~0.45 s; release tail 0/2/99 to 1.36 s | the labels repaint every frame under the swell; native nothing |
 | switch | 0/2/9 a frame for the lift (~0.45 s), then asleep held; drag 0/2/9 a frame; release 0/2/9 to ~0.9 s | knob by layout; native 2 frames at down, 1 at the release |
 | slider | drag 3/6/31 a frame (3 builds are the app's onChanged); held still asleep after 0.45 s | 6 layouts a frame against 2 |
 | stepper | 11/0/13 at down, 12/0/13 at the release; repeats 12/0/0 | parity (native 0-8 layouts) |
@@ -176,23 +176,28 @@ Flat tier; liquid where different. After the fixes below.
 |---|---|---|---|
 | alert, press and slide over the actions | 59/1/51 at touch-down and at every slide; release 115 builds | 0/0/10 at touch-down, 0/0/28 per slide; release 76 | the highlighted action is a listenable its button's fill paints from, under a boundary of its own; pixels identical |
 | switch, slider, tab bar, segmented: finger held still | the press ticked every frame while held: switch 0/2/9, slider 0/2/13, tab bar 0/2/100, segmented lifted lens 0/2/8 (liquid 0/3/41) | asleep once the lift settles (~0.45 s); the next move wakes the clock and is followed | a held press settles under MorphRest; a move the lens has not followed keeps it awake one frame |
-| tab bar, drag or hold at full swell | 0/2/100 a frame (flat) | 0/2/18; tap 8292 -> 4438 paints, drag 13504 -> 7762 | the bar draws at its target swell once the swell is steady (NEAR, at most 0.1 pt off), so the label rows stay repaint boundaries |
 | segmented, press on another segment | 0/0/23 a frame for the 0.47 s dim | 0/0/25 once, then nothing; press-hold-other 1767 -> 830 paints | titles other than the dimmed one ignore its dim |
 | page control, tap | 0/0/5 a frame while held | nothing until the release (40 -> 10 paints) | the platter's 0.193 s delay dozes |
 | date picker, wheel swipe | at each crossing 71/20/148 then 43/4/106 | 34/18/92 then 6/2/50 | the wheel views are kept while what they draw is unchanged; the parent's echo rebuilds no row |
 
-Perf fixture (test/fixtures/perf/counts.json): tab-bar/flat 79.8 -> 54.7 paints a frame,
-fake and liquid 87.8 -> 72.7; lens-held/flat 97 -> 78 frames. The tab bar drag strikes
-one more glyph scale in its first run (the target swell; glyph_strikes_test 6 -> 7 flat,
-36 -> 37 liquid).
+Perf fixture (test/fixtures/perf/counts.json): lens-held/flat 97 -> 78 frames (the same
+work over fewer frames; builds 0.2 -> 0.3 and paints 10.3 -> 10.6 a frame are the
+average over the shorter window). Host goldens of the example (control_goldens_test) are
+unchanged: every fix above keeps pixels.
 
 ### Open (touch)
 
 - The lens, switch knob and slider thumb lifts run on the main thread: 0.45 s of 2 layouts
   + 8-13 paints a frame at touch-down and again after the release (native: one frame each,
   the render server animates). The lens and knob move by layout (2 layouts a frame).
-- Tab bar: the labels repaint every frame while the swell grows or shrinks (~0.45 s at each
-  end of a press) and, liquid, while the lifted lens copies them (108 paints a frame);
+- Tab bar: the labels repaint every frame the bar is swollen (100 paints a frame, flat,
+  for the whole press and ~1 s after) and, liquid, while the lifted lens copies them (108).
+  Tried: draw the bar at its target swell once the swell's remaining swing is under
+  MorphRest and keep the label rows repaint boundaries then: a drag 0/2/100 -> 0/2/18 a
+  frame, tap 8292 -> 4438 paints, perf tab-bar/flat 79.8 -> 54.7, one more first-run glyph
+  strike. Not shipped: the rows' glyphs then align to their layer, not the screen, and
+  shift by up to one device pixel at the moment the swell steadies (over15 0.14 % of the
+  frame, max 253 on glyph edges). A pixel trade for the owner's eye on the iPhone;
   glass button (12-16) and alert (18) repaint their content every frame the press scale
   moves. All three are the glyph policy, which must see the scale at paint.
 - Slider drag: 6 layouts + 31 paints a frame against 2 layouts (the glass hosts of the

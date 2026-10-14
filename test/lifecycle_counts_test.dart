@@ -394,7 +394,7 @@ const _ceilings = <String, _Ceiling>{
     ms: 2192,
     builds: 0,
     layouts: 2,
-    paints: 18,
+    paints: 100,
   ),
   'tabbar-touch/flat press-hold-home': (
     first: 0,
