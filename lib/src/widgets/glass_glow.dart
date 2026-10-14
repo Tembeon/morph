@@ -229,8 +229,8 @@ class MorphTouchGlowMotion {
     Brightness.light => 0.667,
   };
 
-  /// The glow white level of clear glass in both appearances (UIKit
-  /// `clearGlassDodgeWhite`, read from UIKit, notes private).
+  /// The glow white level of clear glass in both appearances (read from
+  /// UIKit, notes private).
   static const double clearGlassWhite = 0.7;
 
   /// The glow white level of tinted glass over the tint's luminance:

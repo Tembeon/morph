@@ -81,7 +81,7 @@ class MorphBadge {
       Object.hash(count, text, foregroundColor, backgroundColor);
 }
 
-/// The metrics of a [MorphBadge], read from UIKit's `_UIBarBadgeMetrics`
+/// The metrics of a [MorphBadge], read from UIKit's bar badge metrics
 /// and its badge placement (notes private).
 @internal
 abstract final class MorphBadgeMetrics {

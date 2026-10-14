@@ -201,9 +201,8 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
   read). `selectedImage` exists (`selectedIcon`, drawn inside the lens).
   Reselection (`onReselected`) fires on release: UIKit's floating tab bar
   decides a reselect of the highlighted item at the lift and fails it when
-  the lift is outside (`shouldReselectHighlightedItemOnLift`,
-  `shouldFailSelectionOnLiftOutside`) [read from UIKit field names]; any
-  delay after the lift is not traced.
+  the lift is outside [read from UIKit, notes private]; any delay after
+  the lift is not traced.
   Subtitles, tab groups, hidden tabs.
 - `tabBarMinimizeBehavior` (bar collapsing on scroll) - not measured; the probe can already set it (`w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
 - `bottomAccessory` (mini player above the bar) - not measured.
