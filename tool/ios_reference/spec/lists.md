@@ -3,7 +3,8 @@
 Status: measured simulator (layout + colors, light and dark); ported
 (`MorphListSection`, `MorphListRow`, `MorphListAppearance`, `MorphListMetrics`);
 pinned by test/list_test.dart; rows' glass in one layer per section
-(test/list_glass_stage_test.dart). Motion (highlight timing) not measured.
+(test/list_glass_stage_test.dart). Highlight timing measured on the
+simulator (2026-10-14, see Spec).
 
 ## Native
 
@@ -103,9 +104,22 @@ section does not repaint its rows).
 
 ## Not reproduced / open
 
-- Highlight timing (UIKit delays the highlight inside a scroll view and
-  fades the deselection): morph highlights on Flutter's tap-down, removes on
-  release, no fade. Keyboard focus shows the highlight (unmeasured).
+- Highlight timing [sim 2026-10-14, iOS 27.0 iPhone 17 sim, UITableView
+  inset grouped, XCUITest taps / holds / press-then-drag, 60 Hz]: the
+  scroll view's `_touchDelayForScrollDetection` is 0.15 s (read from UIKit, notes private); the
+  highlight appears at full strength 0.155 - 0.166 s after the touch (no
+  fade in); a tap shorter than that shows it at the release; a scroll
+  taking the touch removes it at once; the previous selection clears at
+  once. UIKit then keeps the row selected until the app deselects;
+  `deselectRow(animated: true)` and `setHighlighted(_:animated: true)`
+  are a 0.5 s CABasicAnimation on the selected background's opacity,
+  timing (0.42, 0, 0.58, 1) (read from the layer). morph
+  (`MorphListRowHighlightMotion`): the delay inside a scrollable (none
+  outside: the highlight then shows at Flutter's tap-down), instant
+  cancel, and after a tap the deselect fade - the standard tap handler,
+  since a morph row keeps no selection. Keyboard focus shows the
+  highlight at once (unmeasured). test/highlight_motion_test.dart,
+  test/list_test.dart.
 - Disabled cell look (no change drawn).
 - A value cell whose title and detail do not fit side by side stacks them
   (`prefersSideBySideTextAndSecondaryText`); morph keeps them side by side

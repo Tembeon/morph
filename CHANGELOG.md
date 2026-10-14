@@ -40,6 +40,15 @@ no behaviour or pixel change: every rename keeps what the old name did.
   2.625x), and a fading hard effect needs one color pass instead of two.
   The navigation bar's inline title paints in its own layer, so its
   spring no longer repaints the bar.
+- Measured timings (iOS 27.0 simulator): `MorphSlider.animated` springs a
+  new value on UIKit's programmatic spring (0.4 / 0.8) instead of
+  jumping; a `MorphListRow` inside a scrollable highlights after UIKit's
+  0.15 s touch delay, drops the highlight at once when a scroll takes the
+  touch and fades it out over 0.5 s after a tap (it vanished on release);
+  a pressed unselected segment of `MorphSegmentedControl` dims its title
+  to 0.2 (0.47 s) and restores it on release (0.2 s). New pure motions
+  `MorphListRowHighlightMotion` and `MorphSegmentHighlightMotion`
+  (`motion.dart`).
 - `MorphScrollEdgeEffect.edge` asserts a vertical edge, the only ones it
   draws. `MorphNavigationBarDrift` and the bar's `drift` /
   `titleExitShift` are `@internal`: the stack's interactive pop drives

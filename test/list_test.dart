@@ -145,11 +145,64 @@ void main() {
     expect(fill('Row'), MorphListAppearance.light.highlightColor);
     await gesture.up();
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+    final fading = fill('Row');
+    expect(fading, isNotNull);
+    expect(fading!.a, closeTo(0.5, 0.05));
+    await tester.pumpAndSettle();
     expect(fill('Row'), isNull);
     expect(taps, 1);
     await tester.tap(find.text('Inert'));
     await tester.pump(const Duration(milliseconds: 200));
     expect(fill('Inert'), isNull);
+  });
+
+  testWidgets('in a scrollable a row highlights after the touch delay and '
+      'a scroll takes the highlight at once', (tester) async {
+    await _pump(
+      tester,
+      SizedBox(
+        height: 600,
+        child: ListView(
+          children: [
+            MorphListSection(
+              children: [
+                for (var i = 0; i < 30; i++)
+                  MorphListRow(title: Text('Row $i'), onTap: () {}),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+    Color? fill() {
+      final box = tester.widget<DecoratedBox>(
+        find
+            .ancestor(
+              of: find.text('Row 3'),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      return (box.decoration as BoxDecoration).color;
+    }
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Row 3')),
+    );
+    // The test's frame clock starts the motion at the first frame.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 130));
+    expect(fill(), isNull);
+    await tester.pump(const Duration(milliseconds: 20));
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(fill(), MorphListAppearance.light.highlightColor);
+    await gesture.moveBy(const Offset(0, -60));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(fill(), isNull);
+    await gesture.up();
+    await tester.pumpAndSettle();
   });
 
   testWidgets('a disabled row ignores taps; Enter taps a focused row', (

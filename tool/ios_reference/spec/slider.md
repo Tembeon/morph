@@ -6,7 +6,7 @@ replayed. Thumb = small lens: [lens-and-flex.md](lens-and-flex.md).
 ## Native
 
 `UISlider` (thumb `_UILiquidLensView`). Public API (SDK 27.0): `value`,
-`minimumValue`, `maximumValue`, `setValue:animated:` (fixed velocity),
+`minimumValue`, `maximumValue`, `setValue:animated:`,
 `continuous`, `minimumValueImage`, `maximumValueImage`,
 `minimumTrackTintColor`, `maximumTrackTintColor`, `thumbTintColor`,
 thumb/track images per state, `sliderStyle` (`UISliderStyle` default /
@@ -34,6 +34,15 @@ thumbless), `trackConfiguration` (`UISliderTrackConfiguration`:
   then exponential decay `glideDecay` 0.083 s (total 0.123 s x v), stopped
   at the ends [device].
 - Thumb rms vs device: 0.4 - 1.9 pt slow drags, 3.4 fast.
+- `setValue:animated: YES` [tuning + fit, sim 2026-10-14]: the glass
+  slider moves fill and thumb per frame (no CAAnimation) on
+  `_UIFluidSliderSettings.programmaticUpdate` = response 0.4, damping 0.8
+  (read from UIKit, notes private); fill fits 0.400 - 0.404 / 0.79 - 0.80
+  for jumps 0.01 to 0.8 (rms <= 0.16 pt, 300 pt track), start one frame
+  after the call, overshoot 1.5 percent of the jump at every distance. NOT
+  fixed velocity: the duration does not depend on the distance.
+  `MorphSliderMotion.programmaticSpring`, `MorphSlider.animated`;
+  test/slider_set_value_test.dart replays the 0.1 -> 0.9 fill (< 1 pt).
 - Look [film 2026-10-03]: fill 0x0088FF light / 0x0091FF dark; track black /
   white at 10 percent; thumb platter white in BOTH appearances; fill is its
   own rounded bar ending at the thumb center; within `fillRamp` 0.0198 of an
@@ -106,5 +115,7 @@ lens-and-flex.md "Rest").
 - `UISliderTrackConfiguration`: custom tick positions, tick titles/images,
   `allowsTickValuesOnly = false`, `neutralValue` (fill from a neutral
   point), enabled sub-range.
-- min/max value images; `setValue:animated:` (fixed-velocity animation,
-  unmeasured).
+- min/max value images.
+- `setValue:animated:` overshoot at an end: on iOS the spring's overshoot
+  past the max/min drives the track stretch (0.31 -> 1.0 peaked at 1.11 of
+  the travel in the fill); morph clamps the animated thumb to the ends.

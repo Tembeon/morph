@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/highlight_motion.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/press.dart';
@@ -232,6 +234,47 @@ class _MorphSegmentedControlState
 
   bool get _enabled => widget.onChanged != null;
 
+  final MorphSegmentHighlightMotion _highlight = MorphSegmentHighlightMotion();
+  final ValueNotifier<(int?, double)> _dim = ValueNotifier((null, 1));
+
+  @override
+  void advanceMotion(double t) {
+    super.advanceMotion(t);
+    _highlight.advance(t);
+    _syncDim(t);
+  }
+
+  @override
+  bool get motionSettled => super.motionSettled && _highlight.isSettled(clock);
+
+  @override
+  void dispose() {
+    _dim.dispose();
+    super.dispose();
+  }
+
+  void _syncDim(double t) {
+    final index = _highlight.index;
+    final value = (index, index == null ? 1.0 : _highlight.opacity(t, index));
+    if (_dim.value != value) _dim.value = value;
+  }
+
+  void _pressTitle(double t, Offset local) {
+    if (_motion == null || _slots.isEmpty) return;
+    final index = motion.slotAt(trackPosition(local));
+    if (!_selectable(index) || (!_none && index == motion.selected)) return;
+    _highlight.press(t, index);
+    _syncDim(t);
+    wake();
+  }
+
+  void _releaseTitle(double t) {
+    if (_highlight.index == null) return;
+    _highlight.release(t);
+    _syncDim(t);
+    wake();
+  }
+
   final MorphLabelWidths _labelWidths = MorphLabelWidths();
 
   List<double> _labelSpans() => _labelWidths.of(
@@ -362,6 +405,7 @@ class _MorphSegmentedControlState
 
   @override
   void onControlDown(double t, PointerDownEvent event) {
+    _pressTitle(t, event.localPosition);
     if (!_none) {
       super.onControlDown(t, event);
       return;
@@ -376,6 +420,7 @@ class _MorphSegmentedControlState
 
   @override
   void onControlUp(double t, PointerUpEvent event) {
+    _releaseTitle(t);
     if (_noneDown == null) {
       super.onControlUp(t, event);
       return;
@@ -386,6 +431,7 @@ class _MorphSegmentedControlState
 
   @override
   void onControlCancel(double t) {
+    _releaseTitle(t);
     if (_noneDown == null) {
       super.onControlCancel(t);
       return;
@@ -513,18 +559,22 @@ class _MorphSegmentedControlState
                   onTap: _enabled && _selectable(i) ? () => _select(i) : null,
                   child: ExcludeSemantics(
                     child: Center(
-                      child: _dimmed(
-                        !widget.segments[i].enabled,
-                        style.disabledOpacity,
-                        Text(
-                          widget.segments[i].title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textScaler: _scaler,
-                          style: MorphTypography.resolve(
-                            i == selected
-                                ? style.selectedTextStyle
-                                : style.textStyle,
+                      child: _PressedTitle(
+                        dim: _dim,
+                        index: i,
+                        child: _dimmed(
+                          !widget.segments[i].enabled,
+                          style.disabledOpacity,
+                          Text(
+                            widget.segments[i].title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textScaler: _scaler,
+                            style: MorphTypography.resolve(
+                              i == selected
+                                  ? style.selectedTextStyle
+                                  : style.textStyle,
+                            ),
                           ),
                         ),
                       ),
@@ -612,6 +662,99 @@ class _SegmentedPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SegmentedPainter oldDelegate) => true;
+}
+
+/// A segment's title, dimmed while a finger presses its segment: the
+/// dimming changes the alpha of the title's own layer, without building or
+/// repainting it.
+class _PressedTitle extends SingleChildRenderObjectWidget {
+  const _PressedTitle({
+    required this.dim,
+    required this.index,
+    required super.child,
+  });
+
+  final ValueListenable<(int?, double)> dim;
+  final int index;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderPressedTitle(dim, index);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderPressedTitle renderObject,
+  ) {
+    renderObject.dim = dim;
+    renderObject.index = index;
+  }
+}
+
+class _RenderPressedTitle extends RenderProxyBox {
+  _RenderPressedTitle(this._dim, this._index);
+
+  ValueListenable<(int?, double)> _dim;
+  int _index;
+
+  ValueListenable<(int?, double)> get dim => _dim;
+
+  set dim(ValueListenable<(int?, double)> value) {
+    if (identical(value, _dim)) return;
+    if (attached) _dim.removeListener(_changed);
+    _dim = value;
+    if (attached) _dim.addListener(_changed);
+    _changed();
+  }
+
+  int get index => _index;
+
+  set index(int value) {
+    if (value == _index) return;
+    _index = value;
+    _changed();
+  }
+
+  double get _opacity {
+    final (pressed, opacity) = _dim.value;
+    return pressed == _index ? opacity : 1;
+  }
+
+  bool _dimmed = false;
+
+  void _changed() {
+    final dimmed = _opacity < 1;
+    if (dimmed != _dimmed) {
+      _dimmed = dimmed;
+      markNeedsCompositingBitsUpdate();
+    }
+    markNeedsCompositedLayerUpdate();
+  }
+
+  @override
+  bool get isRepaintBoundary => child != null && _dimmed;
+
+  @override
+  OffsetLayer updateCompositedLayer({
+    required covariant OpacityLayer? oldLayer,
+  }) {
+    final layer = oldLayer ?? OpacityLayer();
+    layer.alpha = Color.getAlphaFromOpacity(_opacity);
+    return layer;
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _dim.addListener(_changed);
+    _dimmed = _opacity < 1;
+  }
+
+  @override
+  void detach() {
+    _dim.removeListener(_changed);
+    super.detach();
+  }
 }
 
 Widget _dimmed(bool dimmed, double opacity, Widget child) =>
