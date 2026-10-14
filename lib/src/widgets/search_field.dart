@@ -107,6 +107,64 @@ class MorphSearchFieldAppearance {
     light: light,
     dark: dark,
   );
+
+  /// Copies this appearance with the given fields replaced.
+  MorphSearchFieldAppearance copyWith({
+    Color? capsuleColor,
+    Color? rimColor,
+    Color? shadowColor,
+    Color? textColor,
+    Color? placeholderColor,
+    Color? restingPlaceholderColor,
+    Color? glyphColor,
+    Color? clearColor,
+    Color? clearGlyphColor,
+    Color? cursorColor,
+    Color? disabledFillColor,
+  }) => MorphSearchFieldAppearance(
+    capsuleColor: capsuleColor ?? this.capsuleColor,
+    rimColor: rimColor ?? this.rimColor,
+    shadowColor: shadowColor ?? this.shadowColor,
+    textColor: textColor ?? this.textColor,
+    placeholderColor: placeholderColor ?? this.placeholderColor,
+    restingPlaceholderColor:
+        restingPlaceholderColor ?? this.restingPlaceholderColor,
+    glyphColor: glyphColor ?? this.glyphColor,
+    clearColor: clearColor ?? this.clearColor,
+    clearGlyphColor: clearGlyphColor ?? this.clearGlyphColor,
+    cursorColor: cursorColor ?? this.cursorColor,
+    disabledFillColor: disabledFillColor ?? this.disabledFillColor,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphSearchFieldAppearance &&
+      other.capsuleColor == capsuleColor &&
+      other.rimColor == rimColor &&
+      other.shadowColor == shadowColor &&
+      other.textColor == textColor &&
+      other.placeholderColor == placeholderColor &&
+      other.restingPlaceholderColor == restingPlaceholderColor &&
+      other.glyphColor == glyphColor &&
+      other.clearColor == clearColor &&
+      other.clearGlyphColor == clearGlyphColor &&
+      other.cursorColor == cursorColor &&
+      other.disabledFillColor == disabledFillColor;
+
+  @override
+  int get hashCode => Object.hash(
+    capsuleColor,
+    rimColor,
+    shadowColor,
+    textColor,
+    placeholderColor,
+    restingPlaceholderColor,
+    glyphColor,
+    clearColor,
+    clearGlyphColor,
+    cursorColor,
+    disabledFillColor,
+  );
 }
 
 /// The iOS 27 search field: a glass capsule with a magnifier, the text

@@ -76,6 +76,35 @@ class MorphSwitchAppearance {
     lightHighContrast: lightHighContrast,
     darkHighContrast: darkHighContrast,
   );
+
+  /// Copies this appearance with the given fields replaced.
+  MorphSwitchAppearance copyWith({
+    Color? activeTrackColor,
+    Color? inactiveTrackColor,
+    Color? thumbColor,
+    double? disabledOpacity,
+  }) => MorphSwitchAppearance(
+    activeTrackColor: activeTrackColor ?? this.activeTrackColor,
+    inactiveTrackColor: inactiveTrackColor ?? this.inactiveTrackColor,
+    thumbColor: thumbColor ?? this.thumbColor,
+    disabledOpacity: disabledOpacity ?? this.disabledOpacity,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphSwitchAppearance &&
+      other.activeTrackColor == activeTrackColor &&
+      other.inactiveTrackColor == inactiveTrackColor &&
+      other.thumbColor == thumbColor &&
+      other.disabledOpacity == disabledOpacity;
+
+  @override
+  int get hashCode => Object.hash(
+    activeTrackColor,
+    inactiveTrackColor,
+    thumbColor,
+    disabledOpacity,
+  );
 }
 
 /// A switch that moves exactly like iOS 27's UISwitch.

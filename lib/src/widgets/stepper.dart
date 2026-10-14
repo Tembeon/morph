@@ -76,6 +76,47 @@ class MorphStepperAppearance {
     light: light,
     dark: dark,
   );
+
+  /// Copies this appearance with the given fields replaced.
+  MorphStepperAppearance copyWith({
+    Color? backgroundColor,
+    Color? foregroundColor,
+    Color? limitForegroundColor,
+    Color? pressedOverlay,
+    bool? pressedReplacesFill,
+    Color? dividerColor,
+    double? dividerHeight,
+  }) => MorphStepperAppearance(
+    backgroundColor: backgroundColor ?? this.backgroundColor,
+    foregroundColor: foregroundColor ?? this.foregroundColor,
+    limitForegroundColor: limitForegroundColor ?? this.limitForegroundColor,
+    pressedOverlay: pressedOverlay ?? this.pressedOverlay,
+    pressedReplacesFill: pressedReplacesFill ?? this.pressedReplacesFill,
+    dividerColor: dividerColor ?? this.dividerColor,
+    dividerHeight: dividerHeight ?? this.dividerHeight,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphStepperAppearance &&
+      other.backgroundColor == backgroundColor &&
+      other.foregroundColor == foregroundColor &&
+      other.limitForegroundColor == limitForegroundColor &&
+      other.pressedOverlay == pressedOverlay &&
+      other.pressedReplacesFill == pressedReplacesFill &&
+      other.dividerColor == dividerColor &&
+      other.dividerHeight == dividerHeight;
+
+  @override
+  int get hashCode => Object.hash(
+    backgroundColor,
+    foregroundColor,
+    limitForegroundColor,
+    pressedOverlay,
+    pressedReplacesFill,
+    dividerColor,
+    dividerHeight,
+  );
 }
 
 /// A stepper that responds to touch exactly like iOS 27's UIStepper.

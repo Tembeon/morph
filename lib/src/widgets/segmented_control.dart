@@ -243,6 +243,63 @@ class MorphSegmentedControlAppearance {
     lightHighContrast: lightHighContrast,
     darkHighContrast: darkHighContrast,
   );
+
+  /// Copies this appearance with the given fields replaced.
+  MorphSegmentedControlAppearance copyWith({
+    double? height,
+    double? inset,
+    Color? trackColor,
+    Color? lensColor,
+    Color? liftedLensColor,
+    Color? lensBorderColor,
+    Color? shadowColor,
+    TextStyle? textStyle,
+    TextStyle? selectedTextStyle,
+    double? contentPadding,
+    double? disabledOpacity,
+  }) => MorphSegmentedControlAppearance(
+    height: height ?? this.height,
+    inset: inset ?? this.inset,
+    trackColor: trackColor ?? this.trackColor,
+    lensColor: lensColor ?? this.lensColor,
+    liftedLensColor: liftedLensColor ?? this.liftedLensColor,
+    lensBorderColor: lensBorderColor ?? this.lensBorderColor,
+    shadowColor: shadowColor ?? this.shadowColor,
+    textStyle: textStyle ?? this.textStyle,
+    selectedTextStyle: selectedTextStyle ?? this.selectedTextStyle,
+    contentPadding: contentPadding ?? this.contentPadding,
+    disabledOpacity: disabledOpacity ?? this.disabledOpacity,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphSegmentedControlAppearance &&
+      other.height == height &&
+      other.inset == inset &&
+      other.trackColor == trackColor &&
+      other.lensColor == lensColor &&
+      other.liftedLensColor == liftedLensColor &&
+      other.lensBorderColor == lensBorderColor &&
+      other.shadowColor == shadowColor &&
+      other.textStyle == textStyle &&
+      other.selectedTextStyle == selectedTextStyle &&
+      other.contentPadding == contentPadding &&
+      other.disabledOpacity == disabledOpacity;
+
+  @override
+  int get hashCode => Object.hash(
+    height,
+    inset,
+    trackColor,
+    lensColor,
+    liftedLensColor,
+    lensBorderColor,
+    shadowColor,
+    textStyle,
+    selectedTextStyle,
+    contentPadding,
+    disabledOpacity,
+  );
 }
 
 class _MorphSegmentedControlState

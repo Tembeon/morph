@@ -37,6 +37,17 @@ class MorphActivityIndicatorAppearance {
     light: light,
     dark: dark,
   );
+
+  /// Copies this appearance with the given fields replaced.
+  MorphActivityIndicatorAppearance copyWith({Color? color}) =>
+      MorphActivityIndicatorAppearance(color: color ?? this.color);
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphActivityIndicatorAppearance && other.color == color;
+
+  @override
+  int get hashCode => color.hashCode;
 }
 
 /// The two sizes of a [MorphActivityIndicator], after

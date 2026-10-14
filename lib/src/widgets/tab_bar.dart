@@ -266,6 +266,30 @@ class MorphTabBarAppearance {
     dark: dark,
     tinted: (table, tint) => table.copyWith(selectedColor: tint),
   );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphTabBarAppearance &&
+      other.barColor == barColor &&
+      other.shadowColor == shadowColor &&
+      other.platterColor == platterColor &&
+      other.liftedLensColor == liftedLensColor &&
+      other.lensBorderColor == lensBorderColor &&
+      other.selectedColor == selectedColor &&
+      other.color == color &&
+      other.blurSigma == blurSigma;
+
+  @override
+  int get hashCode => Object.hash(
+    barColor,
+    shadowColor,
+    platterColor,
+    liftedLensColor,
+    lensBorderColor,
+    selectedColor,
+    color,
+    blurSigma,
+  );
 }
 
 typedef _Geometry = ({double pitch, double lens, double width});

@@ -169,6 +169,29 @@ class MorphScrollEdgeEffectAppearance {
     hardSaturation,
     hardBrightness,
   );
+
+  /// Copies this appearance with the given fields replaced.
+  MorphScrollEdgeEffectAppearance copyWith({
+    Color? backgroundColor,
+    double? fadeOpacity,
+    Color? separatorColor,
+    double? softBlurRadius,
+    double? hardBlurRadius,
+    double? softOverhang,
+    double? softFadeStart,
+    double? hardSaturation,
+    double? hardBrightness,
+  }) => MorphScrollEdgeEffectAppearance(
+    backgroundColor: backgroundColor ?? this.backgroundColor,
+    fadeOpacity: fadeOpacity ?? this.fadeOpacity,
+    separatorColor: separatorColor ?? this.separatorColor,
+    softBlurRadius: softBlurRadius ?? this.softBlurRadius,
+    hardBlurRadius: hardBlurRadius ?? this.hardBlurRadius,
+    softOverhang: softOverhang ?? this.softOverhang,
+    softFadeStart: softFadeStart ?? this.softFadeStart,
+    hardSaturation: hardSaturation ?? this.hardSaturation,
+    hardBrightness: hardBrightness ?? this.hardBrightness,
+  );
 }
 
 /// The iOS 27 scroll edge effect: what replaces a bar's solid background

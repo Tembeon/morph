@@ -287,6 +287,38 @@ class MorphAlertAppearance {
     darkHighContrast: darkHighContrast,
     tinted: (table, tint) => table.copyWith(preferredColor: tint),
   );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphAlertAppearance &&
+      other.platterColor == platterColor &&
+      other.dimmingColor == dimmingColor &&
+      other.shadowColor == shadowColor &&
+      other.titleColor == titleColor &&
+      other.messageColor == messageColor &&
+      other.buttonColor == buttonColor &&
+      other.labelColor == labelColor &&
+      other.destructiveColor == destructiveColor &&
+      other.preferredColor == preferredColor &&
+      other.preferredLabelColor == preferredLabelColor &&
+      other.placeholderColor == placeholderColor &&
+      other.disabledLabelColor == disabledLabelColor;
+
+  @override
+  int get hashCode => Object.hash(
+    platterColor,
+    dimmingColor,
+    shadowColor,
+    titleColor,
+    messageColor,
+    buttonColor,
+    labelColor,
+    destructiveColor,
+    preferredColor,
+    preferredLabelColor,
+    placeholderColor,
+    disabledLabelColor,
+  );
 }
 
 /// Shows an alert that moves like an iOS 27 UIAlertController, and

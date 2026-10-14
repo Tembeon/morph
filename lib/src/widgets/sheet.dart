@@ -75,6 +75,39 @@ class MorphSheetAppearance {
         Brightness.dark => dark,
         Brightness.light => light,
       };
+
+  /// Copies this appearance with the given fields replaced.
+  MorphSheetAppearance copyWith({
+    Color? dockedColor,
+    Color? floatingColor,
+    Color? grabberColor,
+    Color? dimmingColor,
+    Color? textColor,
+  }) => MorphSheetAppearance(
+    dockedColor: dockedColor ?? this.dockedColor,
+    floatingColor: floatingColor ?? this.floatingColor,
+    grabberColor: grabberColor ?? this.grabberColor,
+    dimmingColor: dimmingColor ?? this.dimmingColor,
+    textColor: textColor ?? this.textColor,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphSheetAppearance &&
+      other.dockedColor == dockedColor &&
+      other.floatingColor == floatingColor &&
+      other.grabberColor == grabberColor &&
+      other.dimmingColor == dimmingColor &&
+      other.textColor == textColor;
+
+  @override
+  int get hashCode => Object.hash(
+    dockedColor,
+    floatingColor,
+    grabberColor,
+    dimmingColor,
+    textColor,
+  );
 }
 
 /// Presents [builder]'s content in a sheet that moves like an iOS 27

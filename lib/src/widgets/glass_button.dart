@@ -319,6 +319,34 @@ class MorphGlassButtonAppearance {
     dark: dark,
     tinted: (table, tint) => table.copyWith(prominentColor: tint),
   );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphGlassButtonAppearance &&
+      other.fillColor == fillColor &&
+      other.clearFillColor == clearFillColor &&
+      other.rimColor == rimColor &&
+      other.prominentColor == prominentColor &&
+      other.prominentRimColor == prominentRimColor &&
+      other.foregroundColor == foregroundColor &&
+      other.prominentForegroundColor == prominentForegroundColor &&
+      other.shadowColor == shadowColor &&
+      other.disabledForegroundColor == disabledForegroundColor &&
+      other.disabledTintColor == disabledTintColor;
+
+  @override
+  int get hashCode => Object.hash(
+    fillColor,
+    clearFillColor,
+    rimColor,
+    prominentColor,
+    prominentRimColor,
+    foregroundColor,
+    prominentForegroundColor,
+    shadowColor,
+    disabledForegroundColor,
+    disabledTintColor,
+  );
 }
 
 /// A glass button that responds to touch exactly like iOS 27's

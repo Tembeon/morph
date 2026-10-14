@@ -316,6 +316,48 @@ class MorphDatePickerAppearance {
       todayFillColor: tint.withValues(alpha: table.todayFillColor.a),
     ),
   );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphDatePickerAppearance &&
+      other.labelFillColor == labelFillColor &&
+      other.labelColor == labelColor &&
+      other.accentColor == accentColor &&
+      other.platterColor == platterColor &&
+      other.shadowColor == shadowColor &&
+      other.titleColor == titleColor &&
+      other.weekdayColor == weekdayColor &&
+      other.dayColor == dayColor &&
+      other.todayFillColor == todayFillColor &&
+      other.selectedDayColor == selectedDayColor &&
+      other.selectedDayFillColor == selectedDayFillColor &&
+      other.selectedDayTextColor == selectedDayTextColor &&
+      other.chevronColor == chevronColor &&
+      other.wheelBandColor == wheelBandColor &&
+      other.wheelColor == wheelColor &&
+      other.wheelFadedOpacity == wheelFadedOpacity &&
+      other.unavailableDayOpacity == unavailableDayOpacity;
+
+  @override
+  int get hashCode => Object.hash(
+    labelFillColor,
+    labelColor,
+    accentColor,
+    platterColor,
+    shadowColor,
+    titleColor,
+    weekdayColor,
+    dayColor,
+    todayFillColor,
+    selectedDayColor,
+    selectedDayFillColor,
+    selectedDayTextColor,
+    chevronColor,
+    wheelBandColor,
+    wheelColor,
+    wheelFadedOpacity,
+    unavailableDayOpacity,
+  );
 }
 
 const List<String> _months = [

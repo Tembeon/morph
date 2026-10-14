@@ -102,6 +102,24 @@ class MorphSliderAppearance {
     darkHighContrast: darkHighContrast,
     tinted: (table, tint) => table.copyWith(activeTrackColor: tint),
   );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphSliderAppearance &&
+      other.activeTrackColor == activeTrackColor &&
+      other.inactiveTrackColor == inactiveTrackColor &&
+      other.thumbColor == thumbColor &&
+      other.tickColor == tickColor &&
+      other.disabledOpacity == disabledOpacity;
+
+  @override
+  int get hashCode => Object.hash(
+    activeTrackColor,
+    inactiveTrackColor,
+    thumbColor,
+    tickColor,
+    disabledOpacity,
+  );
 }
 
 /// A slider that moves exactly like iOS 27's UISlider.

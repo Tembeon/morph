@@ -22,6 +22,12 @@ no behaviour or pixel change: every rename keeps what the old name did.
   context menu's preview. A tightly fitting label no longer changes font
   or overflows during the flight. The style follows the source while it
   is mounted and retains its last value after the source disappears.
+- Every `*Appearance` table has `copyWith`, and all of them except
+  `MorphMenuAppearance` have value equality (`==` / `hashCode`). The
+  tables that gained them are the switch, stepper, segmented control,
+  page control, activity indicator, search field, sheet and scroll edge
+  effect; the glass button, tab bar, slider, progress view, alert and
+  date picker tables gained equality.
 - BREAKING: look tables are `*Appearance` and every widget takes its
   table as `appearance:` (UIKit precedent: `UINavigationBarAppearance`);
   `*Style` now names only variant enums, as in UIKit

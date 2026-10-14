@@ -78,6 +78,36 @@ class MorphPageControlAppearance {
     lightHighContrast: lightHighContrast,
     darkHighContrast: darkHighContrast,
   );
+
+  /// Copies this appearance with the given fields replaced.
+  MorphPageControlAppearance copyWith({
+    Color? pageIndicatorColor,
+    Color? currentPageIndicatorColor,
+    Color? platterColor,
+    Color? platterIndicatorColor,
+  }) => MorphPageControlAppearance(
+    pageIndicatorColor: pageIndicatorColor ?? this.pageIndicatorColor,
+    currentPageIndicatorColor:
+        currentPageIndicatorColor ?? this.currentPageIndicatorColor,
+    platterColor: platterColor ?? this.platterColor,
+    platterIndicatorColor: platterIndicatorColor ?? this.platterIndicatorColor,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphPageControlAppearance &&
+      other.pageIndicatorColor == pageIndicatorColor &&
+      other.currentPageIndicatorColor == currentPageIndicatorColor &&
+      other.platterColor == platterColor &&
+      other.platterIndicatorColor == platterIndicatorColor;
+
+  @override
+  int get hashCode => Object.hash(
+    pageIndicatorColor,
+    currentPageIndicatorColor,
+    platterColor,
+    platterIndicatorColor,
+  );
 }
 
 /// When a [MorphPageControl] shows its platter, after
