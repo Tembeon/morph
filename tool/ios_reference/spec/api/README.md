@@ -111,6 +111,32 @@ Cost is S(mall) / M(edium) / L(arge); "meas." means the look or motion must be m
 | lists | No checkmark accessory / selected state | H | S | `accessory: MorphListAccessory?` |
 | scroll edge | `active` is manual; no host that measures a custom bar | H | S-M | drive from a `ScrollController`; `MorphScrollEdgeBar` (`safeAreaBar`) |
 
+## Status after phase 2 (0.8.0)
+
+Implemented: ambient accent (`MorphWidgetsTheme.tint`) and
+`MorphWidgetsThemeScope`; `MorphGlassEffect` and per-surface
+`MorphGlassStyle`; `MorphGlassButton.clear` / `.prominentClear`, prominent
+defaulting to the accent; `MorphNavigationStack.pages` /
+`MorphNavigationPage`; bar item badges (`MorphBadge`), subtitles,
+`backButtonDisplayMode`, `hidesBackButton`,
+`MorphLargeTitleDisplayMode.automatic` + `prefersLargeTitles`; tab bar
+`onReselected`, badges, `selectedIcon`; slider `min` / `max` /
+`onChangeStart`; sheet `onDetentChanged`, `onDismissAttempt` (PopScope
+holds the drag), custom and fitted detents; live alert actions and text
+field options; nullable segmented selection, `MorphSegment.enabled` /
+`width`; list checkmark and detail accessories, `MorphSliverListSection`;
+date picker `minuteInterval` and the reserved `MorphDatePickerStyle`.
+
+Static where no measurement exists (passports say what): badge and
+subtitle geometry, the clear buttons' press, interactive glass, list
+glyphs, the first segmented selection, the dismiss attempt's timing.
+
+Not done: `MorphGlassContainer.spacing` (fusing app glass needs the skin's
+merge law in the container's joined layer, a pixel-changing renderer
+change); slider `trackConfiguration` (neutral value / ranges / custom
+ticks: fill and tick looks unmeasured); date picker `inline` / `wheels`
+drawing; search and menus (another work stream).
+
 ## Overall top 15 (need first, then cost)
 
 1. Ambient accent `MorphWidgetsTheme.tint` + a theme scope that needs no Material `Theme` (cross-cutting; H, S).

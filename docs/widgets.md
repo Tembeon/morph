@@ -229,7 +229,13 @@ One passport each: `MorphSegmentedControl`, `MorphTabBar`,
 (`showMorphSheet` including zoom), alerts and action-sheet popovers,
 `MorphSearchField` / `MorphSearchToolbar`, `MorphDatePicker`,
 `MorphPageControl`, `MorphProgressView`, `MorphActivityIndicator`, the
-inset grouped list (`MorphListSection` / `MorphListRow`).
+inset grouped list (`MorphListSection` / `MorphSliverListSection` /
+`MorphListRow`). `MorphGlassEffect` puts a glass button's resting glass
+(regular or clear, tinted, optionally interactive) behind app content;
+`MorphBadge` marks bar buttons and tabs. Capabilities added without a
+device measurement (badges, subtitles, clear button press, list glyphs,
+first segmented selection, interactive glass) say "not yet measured" in
+their dartdoc and passport.
 `MorphMenuSource` is the one way a widget becomes its own menu: it owns a
 `MorphMenuController` and draws `MorphMenuLayer`, on a tap
 (`MorphMenuTrigger.tap`, primary action) or a hold. `MorphMenuButton` is

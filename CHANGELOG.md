@@ -133,6 +133,10 @@ New capabilities from the API parity audit (phase 2):
   measured) with `MorphListRow.onAccessoryTap`; a checkmarked row reads
   as selected. New `MorphSliverListSection(itemBuilder:, itemCount:)`
   builds a long section's rows lazily in a `CustomScrollView`.
+- Date picker: `minuteInterval` (UIKit `minuteInterval`, rounding to
+  the nearer step as `roundsToMinuteInterval` does); the variant enum
+  `MorphDatePickerStyle { compact, inline, wheels }` is reserved on
+  `MorphDatePicker.style`, only `compact` implemented.
 
 Per-frame work, closer to the native main thread (lifecycle passports,
 tool/ios_reference/spec/lifecycle.md "Closed"):

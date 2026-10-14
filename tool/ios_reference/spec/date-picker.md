@@ -237,9 +237,15 @@ backdrop.
 
 ## API gaps
 
-- `inline` and `wheels` styles as standalone pickers (morph: compact only).
+- `inline` and `wheels` styles as standalone pickers: the variant enum
+  `MorphDatePickerStyle { compact, inline, wheels }` is reserved, only
+  `compact` is drawn (asserted).
 - `countDownTimer` and `yearAndMonth` modes.
-- `minuteInterval` / `roundsToMinuteInterval`.
+- `minuteInterval` exists: the minute wheel holds 60 / interval rows and a
+  time between two multiples shows on the nearer one (UIKit
+  `roundsToMinuteInterval` default); whether UIKit also rounds the label
+  and the reported value before a wheel turns is NOT measured (morph keeps
+  the label and reports multiples only after a turn).
 - `locale` / `calendar` / `timeZone` (non-Gregorian calendars, locale
   week start beyond `firstDayOfWeek`).
 - `setDate:animated:` wheel animation.

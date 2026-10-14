@@ -32,6 +32,21 @@ enum MorphDatePickerMode {
   dateAndTime,
 }
 
+/// How a [MorphDatePicker] shows itself, after UIKit's
+/// `UIDatePickerStyle` (`preferredDatePickerStyle`).
+enum MorphDatePickerStyle {
+  /// Labels that open the calendar or the wheels in an overlay: the one
+  /// style morph draws today.
+  compact,
+
+  /// The calendar in place, without a label. Reserved: not implemented
+  /// yet.
+  inline,
+
+  /// The wheels in place. Reserved: not implemented yet.
+  wheels,
+}
+
 /// The texts and formats of a [MorphDatePicker], in one place as UIKit's
 /// `UIDatePicker.locale`: every field null keeps the measured en_US
 /// labels.
@@ -379,6 +394,8 @@ class MorphDatePicker extends StatefulWidget {
     required this.value,
     required this.onChanged,
     this.mode = MorphDatePickerMode.date,
+    this.style = MorphDatePickerStyle.compact,
+    this.minuteInterval = 1,
     this.minimumDate,
     this.maximumDate,
     this.use24HourFormat,
@@ -388,7 +405,27 @@ class MorphDatePicker extends StatefulWidget {
     this.semanticLabel,
     this.localizations = const MorphDatePickerLocalizations(),
     super.key,
-  });
+  }) : assert(
+         style == MorphDatePickerStyle.compact,
+         'Only MorphDatePickerStyle.compact is implemented.',
+       ),
+       assert(
+         minuteInterval >= 1 &&
+             minuteInterval <= 30 &&
+             60 % minuteInterval == 0,
+         'minuteInterval must divide 60 and lie in 1 to 30.',
+       );
+
+  /// How the picker shows itself (UIKit `preferredDatePickerStyle`);
+  /// only [MorphDatePickerStyle.compact] is implemented.
+  final MorphDatePickerStyle style;
+
+  /// The step of the minute wheel in minutes, a divisor of 60 from 1 to
+  /// 30 (UIKit `minuteInterval`). The wheel shows the multiples of it and
+  /// a time between two of them on the nearer one, as UIKit's
+  /// `roundsToMinuteInterval` does; the picker reports only multiples once
+  /// the user turns a wheel.
+  final int minuteInterval;
 
   /// The picked moment.
   final DateTime value;
@@ -1070,6 +1107,7 @@ class _OverlayViewState extends State<_OverlayView>
             lastDate: _picker.maximumDate,
             localize: _picker.localizations.localize,
             numberFormatter: _picker.localizations.numberFormatter,
+            minuteInterval: _picker.minuteInterval,
             twentyFour: _route.picker._twentyFour,
             style: style,
             onChanged: _pick,
@@ -2392,10 +2430,12 @@ class _TimeWheels extends StatefulWidget {
     required this.onChanged,
     required this.localize,
     required this.numberFormatter,
+    required this.minuteInterval,
   });
 
   final DateTime value;
   final bool twentyFour;
+  final int minuteInterval;
   final DateTime? firstDate;
   final DateTime? lastDate;
   final String Function(String)? localize;
@@ -2414,13 +2454,21 @@ class _TimeWheelsState extends State<_TimeWheels> {
   late final FixedExtentScrollController _hours = FixedExtentScrollController(
     initialItem: _hourIndex,
   );
+  int get _step => widget.minuteInterval;
+  int get _minuteCount => 60 ~/ _step;
   late final FixedExtentScrollController _minutes = FixedExtentScrollController(
-    initialItem: 60 * (_loops ~/ 2) + _minute,
+    initialItem: _minuteCount * (_loops ~/ 2) + _minute ~/ _step,
   );
   late final FixedExtentScrollController _meridiem =
       FixedExtentScrollController(initialItem: _hour < 12 ? 0 : 1);
   late int _hour = _bounded(widget.value).hour;
-  late int _minute = _bounded(widget.value).minute;
+  late int _minute = _rounded(_bounded(widget.value).minute);
+
+  int _rounded(int minute) {
+    final step = widget.minuteInterval;
+    if (step == 1) return minute;
+    return ((minute / step).round() * step) % 60;
+  }
 
   bool get _pm => _hour >= 12;
   bool _syncing = false;
@@ -2452,15 +2500,16 @@ class _TimeWheelsState extends State<_TimeWheels> {
   void _sync(DateTime value, {bool formatChanged = false}) {
     _syncing = true;
     final hourChanged = _hour != value.hour || formatChanged;
-    final minuteChanged = _minute != value.minute;
+    final minute = _rounded(value.minute);
+    final minuteChanged = _minute != minute;
     _hour = value.hour;
-    _minute = value.minute;
+    _minute = minute;
     if (hourChanged && _hours.hasClients) {
       _hourIndex = _hourCount * (_loops ~/ 2) + _hour % _hourCount;
       _hours.jumpToItem(_hourIndex);
     }
     if (minuteChanged && _minutes.hasClients) {
-      _minutes.jumpToItem(60 * (_loops ~/ 2) + _minute);
+      _minutes.jumpToItem(_minuteCount * (_loops ~/ 2) + _minute ~/ _step);
     }
     if (_meridiem.hasClients && _meridiem.selectedItem != (_pm ? 1 : 0)) {
       _meridiem.jumpToItem(_pm ? 1 : 0);
@@ -2582,14 +2631,16 @@ class _TimeWheelsState extends State<_TimeWheels> {
                       geometry: geometry,
                       style: style,
                       controller: _minutes,
-                      count: 60,
-                      text: (value) =>
-                          widget.numberFormatter?.call(value) ?? _two(value),
-                      selected: _minute,
+                      count: _minuteCount,
+                      text: (int i) =>
+                          widget.numberFormatter?.call(i * _step) ??
+                          _two(i * _step),
+                      selected: _minute ~/ _step,
                       label: widget.localize?.call('Minute') ?? 'Minute',
                       onSelected: (int m) {
-                        if (_syncing || m % 60 == _minute) return;
-                        setState(() => _minute = m % 60);
+                        final minute = (m % _minuteCount) * _step;
+                        if (_syncing || minute == _minute) return;
+                        setState(() => _minute = minute);
                         _emit();
                       },
                     ),

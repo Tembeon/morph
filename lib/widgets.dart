@@ -56,7 +56,8 @@ export 'src/widgets/date_picker.dart'
         MorphDatePicker,
         MorphDatePickerAppearance,
         MorphDatePickerLocalizations,
-        MorphDatePickerMode;
+        MorphDatePickerMode,
+        MorphDatePickerStyle;
 export 'src/widgets/glass.dart' show MorphGlassPainter, MorphGlassScope;
 export 'src/widgets/glass_button.dart'
     show MorphGlassButton, MorphGlassButtonAppearance;
