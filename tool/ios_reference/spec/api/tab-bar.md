@@ -5,8 +5,11 @@ Native: `UITabBarController` (+ `UITabBarControllerDelegate`), `UITab`, `UITabGr
 `TabRole`, `TabSection`, `tabViewStyle`, `tabBarMinimizeBehavior`, `tabViewBottomAccessory`,
 `TabViewBottomAccessoryPlacement`, `badge`, `tabViewSearchActivation`, `defaultVisibility`,
 `customizationID`. morph: `MorphTabBar`, `MorphTabItem`, `MorphTabBarStyle`, `MorphSearchTabBar`,
-`MorphLensMotion`, `MorphLensSlot`, `MorphLensTuning`, `MorphTouchGlowMotion`, `MorphWidgetsTheme.tabBar`.
-Passports: [../tab-bar.md](../tab-bar.md), [../search-tab-bar.md](../search-tab-bar.md).
+`MorphLensMotion`, `MorphLensSlot`, `MorphLensTuning`, `MorphTouchGlowMotion`, `MorphWidgetsTheme.tabBar`,
+`MorphTabBarMinimizeBehavior`, `MorphContentScroll`, `MorphContentScrollScope`, `MorphTabAccessoryEnvironment`,
+`MorphScrollAway`, `MorphTabBarMinimizeMotion`, `MorphTabBarMinimizeTuning`.
+Passports: [../tab-bar.md](../tab-bar.md), [../search-tab-bar.md](../search-tab-bar.md),
+[../tab-bar-minimize.md](../tab-bar-minimize.md).
 
 Shape difference: UIKit's tab bar is owned by a container controller that also owns the pages
 (`tabs`, `viewControllerProvider`). `MorphTabBar` is a bare control (items + index + callback); the
@@ -23,9 +26,9 @@ app owns the pages (IndexedStack or similar). That is the Flutter idiom (`Naviga
 | `UITabBarControllerDelegate.tabBarController(_:shouldSelectTab:)` (iOS 18) | veto a selection | `MorphTabBar.onChanged` + controlled `selected` (the lens reconciles back when the parent keeps the old index) | - | keep |
 | `UITabBarControllerDelegate.tabBarController(_:didSelectTab:previousTab:)` (iOS 18) | selection notification, including a tap on the already selected tab | `MorphTabBar.onChanged` (only fires when the index changes) | no callback for a re-tap of the selected tab (UIKit apps scroll to top / pop to root) | add `MorphTabBar.onReselected` (`VoidCallback`/`ValueChanged<int>`) |
 | `UITabBarController.mode` `.automatic/.tabBar/.tabSidebar` (iOS 18) | bar vs iPad sidebar | none | bar only | skip (see Sidebar below) |
-| `UITabBarController.tabBarMinimizeBehavior` `.automatic/.never/.onScrollDown/.onScrollUp` (iOS 26, NEW) | bar collapses to the selected tab while scrolling | none | missing; probe can set it (`w2search`, `PROBE_MINIMIZE=1`), unmeasured | add `MorphTabBar.minimizeBehavior` (`MorphTabBarMinimizeBehavior.{automatic, never, onScrollDown, onScrollUp}`) after measurement |
-| `UITabBarController.bottomAccessory` / `setBottomAccessory(_:animated:)`, `UITabAccessory(contentView:)` (iOS 26, NEW) | glass accessory above the bar (mini player), merges inline when minimized | none | missing, unmeasured | add `MorphTabBar.bottomAccessory` (Widget) |
-| `UITabAccessory.Environment` `.unspecified/.none/.regular/.inline`, `UITraitTabAccessoryEnvironment` (iOS 26, NEW) | accessory layout it is in | none | needed by accessory content | add `MorphTabAccessoryPlacement.{expanded, inline}` via an InheritedWidget (`MorphTabAccessory.placementOf(context)`) |
+| `UITabBarController.tabBarMinimizeBehavior` `.automatic/.never/.onScrollDown/.onScrollUp` (iOS 26, NEW) | bar collapses to the selected tab while scrolling | `MorphTabBar.minimizeBehavior` / `MorphSearchTabBar.minimizeBehavior` (`MorphTabBarMinimizeBehavior`), scrolls through `contentScroll` (`MorphContentScroll`) or `MorphContentScrollScope` (UIKit observes the content scroll view itself) | ported from UIKit's code, not yet recorded (tab-bar-minimize.md); `automatic` resolves to `never` | done |
+| `UITabBarController.bottomAccessory` / `setBottomAccessory(_:animated:)`, `UITabAccessory(contentView:)` (iOS 26, NEW) | glass accessory above the bar (mini player), merges inline when minimized | `MorphTabBar.bottomAccessory` / `MorphSearchTabBar.bottomAccessory` (Widget) | geometry approximated, no insertion animation | done |
+| `UITabAccessory.Environment` `.unspecified/.none/.regular/.inline`, `UITraitTabAccessoryEnvironment` (iOS 26, NEW) | accessory layout it is in | `MorphTabAccessoryEnvironment.{none, regular, inline}`, `MorphTabAccessoryEnvironment.of(context)` | UIKit case names (the SwiftUI `.expanded` is `regular`) | done |
 | `UITabBarController.contentLayoutGuide` (iOS 26, NEW) | area content should avoid | none public (`MorphTabBarMetrics` is `@internal`) | app must hard-code 62 + 21 + safe area to pad lists | add `MorphTabBar.extentFor(...)` like `MorphToolbar.extentFor` |
 | `UITabBarController.isTabBarHidden` / `setTabBarHidden(_:animated:)` (iOS 18) | hide the bar | none (app removes the widget, no motion) | no animated hide | add `MorphTabBar.hidden` (animated) - unmeasured |
 | `UITabBarController.prominentTabIdentifier` / `setProminentTabIdentifier(_:animated:)` (iOS 27, NEW) | one tab drawn prominent | none | missing, look unmeasured | add `MorphTabItem.prominent` (bool) after capture |
@@ -61,10 +64,10 @@ app owns the pages (IndexedStack or similar). That is the Flutter idiom (`Naviga
 | `tabViewSearchActivation(.automatic/.searchTabSelection)` (iOS 26, NEW) | = `automaticallyActivatesSearch` | `MorphSearchTabBar` | - | same as UIKit row |
 | `TabSection` (iOS 18), `sectionActions`, `defaultSectionExpansion` | sidebar sections | none | sidebar | skip |
 | `tabViewStyle(.sidebarAdaptable / .tabBarOnly)` (iOS 18) | = `mode` | none | bar only | skip |
-| `tabBarMinimizeBehavior(_:)` `TabBarMinimizeBehavior.automatic/onScrollDown/onScrollUp/never` (iOS 26, NEW) | = UIKit | none | - | same as UIKit row |
-| `toolbarMinimizationBehavior(_:for:)`, `toolbarMinimizationSafeAreaAdjustment`, `toolbarMinimizationRestoration` (iOS 27, NEW; UIKit `UIBarMinimization`, nav bar only) | generalised bar minimisation with safe-area reflow and restore-at-edge | none | iOS 27 extends minimisation to the nav bar (bars family); a tab bar enum should leave room for `restoration` | when adding minimise, model `MorphBarMinimization{behavior, restoration}` once for both bars |
-| `tabViewBottomAccessory(content:)` (iOS 26, NEW), `tabViewBottomAccessory(isEnabled:content:)` (iOS 26.1) | = `bottomAccessory` | none | - | same as UIKit row; `isEnabled` = null Widget in Flutter |
-| `EnvironmentValues.tabViewBottomAccessoryPlacement` `.inline/.expanded` (iOS 26, NEW) | = `UITabAccessory.Environment` | none | SwiftUI case names are the better Dart names | add `MorphTabAccessoryPlacement.{inline, expanded}` |
+| `tabBarMinimizeBehavior(_:)` `TabBarMinimizeBehavior.automatic/onScrollDown/onScrollUp/never` (iOS 26, NEW) | = UIKit | `MorphTabBarMinimizeBehavior` | - | same as UIKit row |
+| `toolbarMinimizationBehavior(_:for:)`, `toolbarMinimizationSafeAreaAdjustment`, `toolbarMinimizationRestoration` (iOS 27, NEW; UIKit `UIBarMinimization`, nav bar only) | generalised bar minimisation with safe-area reflow and restore-at-edge | none | iOS 27 extends minimisation to the nav bar (bars family) | the tab bar keeps UIKit's own `MorphTabBarMinimizeBehavior` (as `UITabBarController` does); `MorphScrollAway` is the shared interaction a nav bar minimization can reuse |
+| `tabViewBottomAccessory(content:)` (iOS 26, NEW), `tabViewBottomAccessory(isEnabled:content:)` (iOS 26.1) | = `bottomAccessory` | `bottomAccessory` | - | same as UIKit row; `isEnabled` = null Widget in Flutter |
+| `EnvironmentValues.tabViewBottomAccessoryPlacement` `.inline/.expanded` (iOS 26, NEW) | = `UITabAccessory.Environment` | `MorphTabAccessoryEnvironment.of(context)` | UIKit names kept (`regular` = `.expanded`) | done |
 | `badge(_: Int / Text / String)` on Tab (iOS 18) | badge | none | count or text | same as UIKit `badgeValue` row (`String?`; app formats counts) |
 | `TabContent.disabled(_:)` (iOS 18) | disabled tab | `MorphTabItem.enabled` | - | keep |
 | `TabContent.hidden(_:)`, `defaultVisibility(_:for:)`, `customizationID`, `tabViewCustomization` (iOS 18) | user customisation / visibility | none | - | skip (declarative list) |
@@ -93,8 +96,8 @@ app owns the pages (IndexedStack or similar). That is the Flutter idiom (`Naviga
 | 3 | selected glyph variant | med-high | S | add `MorphTabItem.selectedIcon` |
 | 4 | bar extent for content padding | med-high | S | add `MorphTabBar.extentFor(...)` (mirror `MorphToolbar.extentFor`) |
 | 5 | non-IconData icons (SVG, images) | med | M (selected copy draws glyph as text) | add Widget icon path tinted via `IconTheme` |
-| 6 | `tabBarMinimizeBehavior` | med (iOS 26 hallmark) | L (measure, scroll coupling) | add `MorphTabBar.minimizeBehavior` |
-| 7 | `bottomAccessory` + placement env | med (media apps) | L (measure, inline merge) | add `MorphTabBar.bottomAccessory`, `MorphTabAccessoryPlacement` |
+| 6 | `tabBarMinimizeBehavior` | med (iOS 26 hallmark) | L (measure, scroll coupling) | done (0.8.0), recording pending |
+| 7 | `bottomAccessory` + placement env | med (media apps) | L (measure, inline merge) | done (0.8.0), recording pending |
 | 8 | animated hide | low-med | M | add `MorphTabBar.hidden` |
 | 9 | prominent tab (iOS 27) | low (new, look unknown) | M | add `MorphTabItem.prominent` after capture |
 | 10 | sidebar / groups / customisation | low on iPhone | L | skip |

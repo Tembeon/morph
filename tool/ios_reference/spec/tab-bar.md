@@ -195,8 +195,9 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
   measured; `selectedImage` exists (`selectedIcon`, drawn inside the lens);
   reselection (`onReselected`) fires on release, its timing not measured.
   Subtitles, tab groups, hidden tabs.
-- `tabBarMinimizeBehavior` (bar collapsing on scroll) - not measured; the probe can already set it (`w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
-- `bottomAccessory` (mini player above the bar) - not measured.
+- `tabBarMinimizeBehavior` and `bottomAccessory`: ported from UIKit's
+  code, not yet recorded; passport [tab-bar-minimize.md](tab-bar-minimize.md)
+  (the probe sets it: `w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
 - `prominentTabIdentifier`, leading/trailing accessory views.
 - Sidebar mode (iPad), `setTabBarHidden:animated:`.
 

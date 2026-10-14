@@ -101,6 +101,33 @@ New capabilities from the API parity audit (phase 2):
   (scroll to top, pop to root); `MorphTabItem.selectedIcon` (UIKit
   `selectedImage`) shows inside the lens; `MorphTabItem.badge`
   (`badgeValue`) takes a `MorphBadge` (geometry not yet measured).
+- Tab bar minimize (UIKit `tabBarMinimizeBehavior`): `minimizeBehavior`
+  (`MorphTabBarMinimizeBehavior.automatic / never / onScrollDown /
+  onScrollUp`) on `MorphTabBar` and `MorphSearchTabBar`. The bar follows
+  the content's scrolls through `contentScroll` (`MorphContentScroll`, a
+  `ScrollNotification` handler) or the nearest `MorphContentScrollScope`:
+  a user's scroll shrinks the bar group by up to 5 percent as it goes and,
+  after 64 points, collapses the bar into its selected tab's 48 point
+  circle (with the search circle on a search tab bar); a tap on the
+  circle, a scroll to the top or pushing past the far end expands it.
+  Thresholds, the hint and the collapse / expand springs are read from
+  UIKit (notes private); the geometry is UIKit's default layout matched
+  to the measured search circle; the reverse scroll that expands, the
+  stage assignment of the springs and `automatic` (resolved to never) are
+  approximations awaiting a device recording. Pure motion:
+  `MorphScrollAway`, `MorphTabBarMinimizeMotion`,
+  `MorphTabBarMinimizeTuning` (motion.dart). With either new option the
+  bar lays itself out across the width it is given (place it with
+  `Positioned(left: 0, right: 0, bottom: 21)`).
+- Bottom accessory (UIKit `bottomAccessory`, SwiftUI
+  `tabViewBottomAccessory`): `bottomAccessory` on both bars floats the
+  app's widget in glass 8 points above the bar and moves it inline
+  between the minimized circles; `MorphTabAccessoryEnvironment.of(context)`
+  (`UITabAccessory.Environment`: none, regular, inline) lets the content
+  adapt. Its 48 point height and spacing are not yet measured.
+- Passport tool/ios_reference/spec/tab-bar-minimize.md; gallery page
+  "Tab bar minimize"; lifecycle scene `tabbar-minimize` and perf scene
+  `tab-bar-minimize` pinned.
 - Slider: `min` / `max` (UIKit `minimumValue` / `maximumValue`; the
   measured motion runs in the track's 0 to 1 and the widget maps) and
   `onChangeStart` (on the thumb's touch down and before a keyboard or

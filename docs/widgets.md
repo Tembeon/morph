@@ -222,7 +222,9 @@ render.
 ## Public controls
 
 One passport each: `MorphSegmentedControl`, `MorphTabBar`,
-`MorphSearchTabBar`, `MorphSwitch`, `MorphSlider`, `MorphStepper`,
+`MorphSearchTabBar` (their minimizing and bottom accessory:
+tab-bar-minimize.md; `MorphTabBarChrome` wraps the bar's cached build, so
+a parent's new accessory rebuilds the group, not the bar), `MorphSwitch`, `MorphSlider`, `MorphStepper`,
 `MorphGlassButton`, `MorphMenuButton`, `MorphContextMenuRegion` /
 `MorphSatellite`, the bars (`MorphNavigationBar`, `MorphToolbar`,
 `MorphNavigationStack`, `MorphScrollEdgeEffect`, push zoom), sheets
