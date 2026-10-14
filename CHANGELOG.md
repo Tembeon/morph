@@ -40,6 +40,23 @@ no behaviour or pixel change: every rename keeps what the old name did.
   `titleExitShift` are `@internal`: the stack's interactive pop drives
   them.
 
+Per-frame work, closer to the native main thread (lifecycle passports,
+tool/ios_reference/spec/lifecycle.md "Closed"):
+
+- Motions settle at a visible rest: once every spring's remaining swing
+  is under 0.1 pt (an opacity under half an 8-bit step) they snap onto
+  their targets and the ticker sleeps (NEAR, invisible). Tails end
+  0.2-0.4 s earlier; a held glass button sleeps until the finger moves or
+  lifts. The motion objects in `motion.dart` gain `settle()`
+  (`MorphLensMotion`, `MorphSwitchMotion`, `MorphSmallLens`,
+  `MorphGlassButtonMotion`, `MorphBarMotion`,
+  `MorphNavigationTitleMotion`), and `isSettled` means that rest;
+  `MorphGlassButtonMotion.isAtRest` is a settled button without a finger.
+- A tab bar's lens that travels repaints only itself; the segmented
+  control and the switch repaint apart from the page; a navigation slide
+  builds 2 elements a frame instead of 6 and its bars repaint on their
+  own; a spinning activity indicator takes one frame per image.
+
 Migration, old -> new:
 
 | old | new |
