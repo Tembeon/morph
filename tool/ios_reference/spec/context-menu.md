@@ -74,6 +74,136 @@ release 1.41 s to 0.37 s and 54 to 30 paints a frame. Still per frame:
 the vessel follows the morph by layout (19 layouts: the engine's
 shuttle chain).
 
+## How UIKit renders it [simulator 2026-10-14 + device lifecycle runs]
+
+Read from UIKit, notes private. Same capture as menu-button.md "How UIKit renders it"
+(iOS 27.0 simulator, a 200 x 120 view with a context menu interaction, held 1.2 s, and
+held 0.95 s then slid onto a row; device lifecycle-menu-005 for the counts).
+
+- It IS the button menu. The context menu and the button menu are one implementation:
+  the same menu view, list, rows, highlight platter, flex, hold-then-slide selection,
+  liquid morph container and glass; a per-presentation style decides the differences
+  (preview or none, attachment edge, background dim, stacked submenus). The button menu
+  is the context menu without a preview.
+- Hold. ~0.17 s after the touch the held view is mirrored into a preview platter (the
+  original hidden) and the platter grows from the main thread every frame (1 layout a
+  frame; device: 9 layouts + 11 creations at 0.17 s, then 1 a frame), its shadow fading
+  in. The preview haptic plays at the commit point (~0.42 - 0.45 s).
+- Open (at the hold, 0.78 s): the whole menu, morph container and both glass layers are
+  built in one frame (device 202 layouts + 298 creations), then nothing per frame on the
+  main thread: the motion is written from the background thread as for the button menu.
+- Two morphs, two glass layers. The preview is its own morph (mirror of the held view,
+  lifted to `measuredPreviewScale`: 200 x 120 -> 226 x 135.67) with its own glass layer
+  (background at full resolution, its fill invisible); the menu grows out of a blob
+  0.4 x the held view at its center (80 x 48) to 250 x 272, 16 pt below the lifted
+  preview, on its own glass. Separate glass layers: the menu never fuses with the preview.
+- Dim: a full-screen black layer whose opacity alone animates (0.2 light), also written
+  from the background thread; the button menu keeps it at 0.
+- The preview is not rasterized: it is a live mirror (no rasterized layer anywhere in the
+  open tree); text in it is the held view's own bitmaps, scaled.
+- Hold then slide: identical to the button menu (the highlight platter follows the
+  finger, the release on a row fires its action ~10 - 20 ms after the lift, then the
+  close).
+- Close: the preview morphs back onto the held view (natural size at ~0.45 s), the menu
+  retracts into the 0.4 blob, the dim fades, the views are removed after it.
+
+### morph against it
+
+morph's region is a separate machine: an engine flight on a transparent vessel whose
+column (`above`, hero, `below`) the app fills with `MorphSatellite` widgets, moved by
+layout (19 layouts a frame), with its own retract blob, its own live extents and its own
+geometry. None of the button menu's card, rows, highlight, flex, slide-to-select, row
+haptics, submenus, scrolling or keyboard handling is used. The hold (growth, commit,
+haptic, lift), the preview lift and the dim are measured and stay.
+
+Optimizations (ranked): (1) the unification below, which removes the layout-driven column
+and gives the context menu every measured behaviour of the button menu; (2) the preview as a
+composite-only layer (paint-time transform of the held child, no vessel layout per frame);
+(3) the button menu's list (menu-button.md "Optimizations to adopt") then applies to both.
+
+## Unification design (proposal, not implemented)
+
+One menu implementation - the `MorphMenuSource` path: `MorphMenuController` (gesture,
+motion, content, flight), `MorphMenuMotion` / `MorphMenuTuning`, `MorphMenuLayer` (card,
+rows, highlight, flex, submenu cards, scrolling, keyboard, semantics) - serves the
+button, the bar item and the context menu. `MorphContextMenuRegion` becomes a trigger and
+a preview layer on top of it.
+
+API (mirrors `UIContextMenuInteraction` + `UIContextMenuConfiguration` and SwiftUI
+`contextMenu(menuItems:preview:)`):
+
+```dart
+MorphContextMenuRegion(
+  menu: <MorphMenuEntry>[...],   // menuItems / actionProvider; the shared entries
+  preview: (context) => ...,      // preview: / previewProvider; null previews child
+  accessory: MorphSatellite(...), // morph-only: the slot above (reactions capsule)
+  order: MorphMenuOrder.automatic,// preferredMenuElementOrder
+  dismissOnSelect: null,          // menuActionDismissBehavior
+  appearance: ...,                // MorphMenuAppearance
+  onPreviewTap: ...,              // willPerformPreviewAction (commit)
+  onOpen: ..., onClose: ...,      // willDisplay / willEnd
+  // kept: child, replica, holdDuration, lifts, enabled, opensOnSecondaryTap, tagId,
+  // scrim and shadow settings, overlay, semanticLabel, onHold
+)
+MorphContextMenuRegion.open(context); MorphContextMenuRegion.close(context);
+```
+
+How it works:
+- The region keeps its gesture (hold growth, commit point, preview haptic, secondary click,
+  `open`), the preview lift and the dim. At the hold it opens a `MorphMenuController`
+  whose source is the preview's blob (0.4 of the held view at its center) instead of a
+  button, with a context morph spec (`MorphMenuMorphSpec.context`: the measured
+  0.284 / 0.81 spring both ways, no button kicks, no fusion with the preview).
+- Placement: the controller's layout, attached 16 pt below the lifted preview (above
+  when it does not fit, entries reversed as for an upward button menu), the preview and
+  menu shifting together to stay in the safe area (today's column shift).
+- After the hold the region hands the pointer to the controller's `menuPointerMove` /
+  `menuPointerUp`, as `MorphBarButton` does: hold, slide onto a row, release to choose,
+  with the row haptic and the highlight of the button menu. A release on the preview
+  without moving keeps the menu open.
+- `accessory` rides the preview (UIKit's accessory views) on the preview's morph; the
+  rows are always the shared menu card. A free-form block below the preview becomes a
+  `MorphMenuWidget` entry.
+- A menu without a preview is `MorphMenuSource(trigger: MorphMenuTrigger.hold)`, as in
+  UIKit (`menuAppearance` compact).
+
+Code that goes away (morph_context_menu.dart): `_MenuColumn`, `_Retract`, `_MenuTarget`,
+`_LiveExtent`, `_MenuGeometry` (the column, its content-alignment formula, the per-extent
+springs, the satellite measurement), the `below` satellite and the transparent-vessel
+column flight - roughly lines 914 - 1495 of 1507, plus the satellite paths of the region
+state. Kept: the gesture and growth (`_MotionHoldRecognizer`, growth clock, commit),
+`measured*` constants, the dim (`measuredDim`), the preview lift and its text-style copies.
+
+Public API migration (before the first release, so a break with CHANGELOG notes, no
+deprecation): `below: MorphSatellite(...)` -> `menu: [MorphMenuItem(...)]` (free-form
+content -> `MorphMenuWidget`); `above:` -> `accessory:`; `width` -> the menu's own width
+(`MorphMenuTuning.menuWidth`); `gap` and `alignment` -> the menu layout (16 pt,
+attachment edge); `margin` -> the menu's safe-area rules; `motion` -> the context morph
+spec; `onOpen` keeps handing out the flight; new `preview`, `onPreviewTap`, `onClose`,
+`order`, `dismissOnSelect`, `appearance`, `close`.
+
+Tests and passports: morph_context_menu_test keeps every device group (morph.json,
+preview.json, growth.json, holds.json, dim.json), re-targeted from the vessel column to
+the controller's card and the preview layer, with the same tolerances; the satellite
+live-column tests become accessory tests; new tests for slide-to-select, row haptics and
+keyboard in the context menu (reuse menu_button_test helpers); context_menu_text_style_test
+stays for the preview copies; lifecycle_counts_test gets the context release budget of the
+button menu; haptics_test, accessibility_test (role menu), presentation_boundary_test,
+glass_carry_test, controls_scroll_test, overlay_text_style_test, menu_host_test and the
+gallery (example/lib/gallery/menu_page.dart, integration control_matrix,
+backdrop_overlay_test) follow the API. Passports: this file ("Not reproduced": app-built
+satellites goes), menu-api.md and api/menus.md (the `UIContextMenuInteraction`,
+`previewProvider` and `contextMenu(menuItems:preview:)` gaps close), docs/widgets.md.
+
+Phases: (1) `MorphMenuMorphSpec.context` and a blob source in `MorphMenuMotion`, replayed
+against morph.json at today's error; (2) `menu:` on the region through
+`MorphMenuController`, the preview still on today's engine flight, pointer hand-off after
+the hold; (3) `accessory`, removal of the column code, API break, test and passport
+moves; (4) the preview as a composite-only layer (closes the 19 layouts a frame); (5)
+`preview:` builder and `onPreviewTap`. Each phase: the replays at their current errors,
+lifecycle counts no worse, device parity run and the owner's eye on the iPhone for (2)
+and (4).
+
 ## Not reproduced / open
 
 - Satellites are app-built columns, not UIMenu rows (no row styling
