@@ -342,8 +342,12 @@ class MorphLensMotion {
   /// How many pixels the whole control is widened by the press.
   double get chromeGrowth => tuning.chromeGrowth * _chrome.value(_now);
 
-  /// How many pixels the press widens the control once [chromeSteady].
-  double get chromeTarget => tuning.chromeGrowth * _chrome.target;
+  /// The widening to draw: [chromeGrowth] while it moves, its target once
+  /// [chromeSteady] (NEAR, at most [MorphRest] off). A held swell then
+  /// scales what it widens by one constant, the same on every press.
+  double get chromeShown => chromeSteady
+      ? tuning.chromeGrowth * _chrome.target
+      : tuning.chromeGrowth * _chrome.value(_now);
 
   /// Whether the press's widening rests, swollen or not: its remaining
   /// swing is under [MorphRest].

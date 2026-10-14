@@ -323,12 +323,15 @@ void main() {
   // Before the tab bar's labels aligned, strike frames (glyph keys new in
   // each run): tap flat 16 (192 / 33 / 22), drag flat 39 (492 / 56 / 13),
   // tap liquid 124 (1369 / 612 / 235), drag liquid 161 (1783 / 559 / 223),
-  // the liquid tier's mostly its lens copy's.
+  // the liquid tier's mostly its lens copy's. The drag's bar held swollen
+  // draws at its target swell, a scale of its own struck once in the first
+  // run (6 -> 7, 36 -> 37): its labels then stay repaint boundaries, 18
+  // paints a frame of the drag instead of 100 (lifecycle.md, touch rows).
   const ceilings = {
     ('tap', MorphGlassTier.flat): 4,
-    ('drag', MorphGlassTier.flat): 6,
+    ('drag', MorphGlassTier.flat): 7,
     ('tap', MorphGlassTier.liquid): 39,
-    ('drag', MorphGlassTier.liquid): 36,
+    ('drag', MorphGlassTier.liquid): 37,
   };
   for (final MapEntry(key: (cell, tier), value: ceiling) in ceilings.entries) {
     testWidgets('tab-bar/$cell/${tier.name} strikes mostly its first visits', (

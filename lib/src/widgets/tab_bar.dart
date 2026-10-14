@@ -522,10 +522,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
 
   late final Listenable _rowChanges = MorphChanges<(double, bool)>(
     frames,
-    () => (
-      motion.chromeSteady ? motion.chromeTarget : motion.chromeGrowth,
-      _rowsApart,
-    ),
+    () => (motion.chromeShown, _rowsApart),
   );
 
   // A row is a repaint boundary of its own while neither the bar's swell
@@ -534,8 +531,9 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
   // lens (the copy replays the content's pictures): then a lens that
   // travels only moves the clips over the rows, and the rows are
   // composited again. A swell whose remaining swing is under [MorphRest]
-  // counts as still: the rows keep the glyphs they snapped at most 0.1 pt
-  // away (NEAR, invisible), so a bar held swollen repaints no label.
+  // counts as still: the bar is drawn at its target swell
+  // ([MorphLensMotion.chromeShown], NEAR, at most 0.1 pt off), so a bar
+  // held swollen repaints no label.
   bool get _rowsApart =>
       motion.chromeSteady &&
       (morphGlassKeepsContentLive(_glass) ||
@@ -697,8 +695,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
         child: MorphLiveTransform(
           live: frames,
           writeInto: (Matrix4 into) {
-            final grow =
-                (geometry.width + motion.chromeGrowth) / geometry.width;
+            final grow = (geometry.width + motion.chromeShown) / geometry.width;
             into.scaleByDouble(grow, grow, 1.0, 1.0);
           },
           child: MorphFocusRing(
