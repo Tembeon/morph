@@ -85,6 +85,8 @@ different); times are the last frame with any work.
 | 13 | glass button held | 12-21 paints every frame while held (2.6 s+) | 16 paints a frame for the 0.45 s lift, then asleep until the finger moves or lifts | a held press settles |
 | 14 | activity indicator | a frame scheduled for nothing between images (31 frames/s) | one frame per image (20 frames/s) | the doze wakes for the image's own frame |
 | 4 | scroll edge tail (side effect) | 0/0/30 for 0.5-1 s | 0/0/1 | the edge effect's bar is a repaint boundary (nav stack bars) |
+| 8 | sheet detent change, first frame | 118-123 builds (the whole content) | 19-20 | the scope gets the new detent over the same content; `scrollControllerOf` ignores the detent |
+| 12 | alert dismiss, first frame | 115 builds (100 action sheet) | 76 (74), the rest the navigator's pop | the card built before is handed back |
 
 Rest thresholds (cross-cutting): every motion above settles once every spring's
 remaining swing is under `MorphRest` (0.1 pt, 0.3 device px at 3x; scales over their
@@ -94,7 +96,11 @@ invisible, NEAR (lens-and-flex.md "Rest").
 Still open: the 2 builds a frame of the navigation slide are the framework's own
 route-scope builders; the bar items whose scale or presence changes repaint every frame
 (their content under a live transform); the lens and the switch knob move by layout (2
-layouts a frame: a live stack and its fill); gaps 3, 6-9, 11, 12, 15.
+layouts a frame: a live stack and its fill); the sheet content is laid out on every frame
+of a detent spring (laying it out once at the target is a pixel trade, sheets.md); the
+alert's 18-25 paints a frame; the menu's second heavy frame (it opens after the measured
+delay; building it in the tap's frame only moves the work) and its 10-16 layouts a frame;
+gaps 3, 6, 7, 9, 11, 15.
 
 ## Port suggestions, by gap
 
