@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/small_lens.dart';
 import 'package:morph/src/widgets/switch_motion.dart';
@@ -44,8 +45,25 @@ class MorphSwitchAppearance {
     inactiveTrackColor: Color(0x52787880),
   );
 
+  /// The light appearance under Increase Contrast: systemGreen's
+  /// increased-contrast variant and UISwitch's own off color, which turns
+  /// from 16 to 78 percent of 0x787880 (read from UIKit's color tables,
+  /// notes private; unrendered on the device yet).
+  static const lightHighContrast = MorphSwitchAppearance(
+    activeTrackColor: Color(0xFF008932),
+    inactiveTrackColor: Color(0xC7787880),
+  );
+
+  /// The dark appearance under Increase Contrast: the off color turns
+  /// from 32 to 90 percent (read from UIKit's color tables, notes
+  /// private).
+  static const darkHighContrast = MorphSwitchAppearance(
+    activeTrackColor: Color(0xFF4AD968),
+    inactiveTrackColor: Color(0xE5787880),
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness and contrast.
   static MorphSwitchAppearance resolve(
     BuildContext context,
     MorphSwitchAppearance? explicit,
@@ -55,6 +73,8 @@ class MorphSwitchAppearance {
     themed: (theme) => theme.switchAppearance,
     light: light,
     dark: dark,
+    lightHighContrast: lightHighContrast,
+    darkHighContrast: darkHighContrast,
   );
 }
 
@@ -66,8 +86,10 @@ class MorphSwitchAppearance {
 /// right-to-left context the switch is mirrored: on is to the left.
 ///
 /// The switch is focusable; Space and Enter toggle it. With the
-/// platform's reduced motion on, the knob travels without lifting or
-/// stretching.
+/// platform's reduced motion on, the knob travels without lifting,
+/// growing or rubber-banding, as UIKit's does (the knob's stretch staying
+/// off is an approximation). A toggle by touch plays UIKit's light impact
+/// ([MorphWidgetsTheme.haptics]).
 class MorphSwitch extends StatefulWidget {
   /// Creates a switch.
   const MorphSwitch({
@@ -119,6 +141,7 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
       frameRate: motionFrameRate,
     );
     motion.onChanged = _changed;
+    motion.onDisplayedChanged = _displayed;
     return motion;
   }
 
@@ -129,6 +152,10 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
       _motion.setValue(clock, value: widget.value);
       return true;
     });
+  }
+
+  void _displayed(bool on) {
+    if (mounted) morphPlayHaptic(context, MorphHaptic.impact);
   }
 
   @override
@@ -250,7 +277,7 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
     _style = MorphSwitchAppearance.resolve(context, widget.appearance);
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;
-    _motion.lens.reducedMotion = morphReducedMotionOf(context);
+    _motion.reducedMotion = morphReducedMotionOf(context);
     final glass = MorphGlassScope.maybeOf(context);
     return RepaintBoundary(
       child: MorphDisabled(
