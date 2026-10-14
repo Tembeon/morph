@@ -913,12 +913,17 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
             state: this,
             child: MorphMenuLayer(host: controller, flight: flight),
           ),
-        _PreviewLayer(
-          flight: flight,
-          placement: placement,
-          child: _RegionScope(
-            state: this,
-            child: flight.sourceThemes.wrapText(widget.replica ?? widget.child),
+        // A frame of the flight repaints the preview's transform alone.
+        RepaintBoundary(
+          child: _PreviewLayer(
+            flight: flight,
+            placement: placement,
+            child: _RegionScope(
+              state: this,
+              child: flight.sourceThemes.wrapText(
+                widget.replica ?? widget.child,
+              ),
+            ),
           ),
         ),
         if (accessory != null)
@@ -994,11 +999,23 @@ class _Placement {
   final Rect preview;
 }
 
-/// The preview in the open menu: a copy of the held view, laid out at its
-/// natural size and shown on the rect the flight carries it on - from the
-/// grown held view to the lifted preview on the open, home on the close,
-/// a straight line on the flight's value (overshoot included), as UIKit
+/// The rect the flight carries the preview on at its current value: from
+/// the grown held view to the lifted preview on the open, home on the
+/// close, a straight line on the value (overshoot included), as UIKit
 /// resizes its preview about the held view's center.
+Rect _previewNow(MorphFlight flight, _Placement placement) =>
+    Rect.lerp(flight.sourceRect, placement.preview, flight.controller.value) ??
+    placement.preview;
+
+/// The preview in the open menu: a copy of the held view, laid out once at
+/// its natural size and painted on the rect the flight carries it on by a
+/// transform alone. A frame of the flight lays nothing out and paints only
+/// the transform: the copy is a repaint boundary whose layer is moved and
+/// scaled, as UIKit scales its preview's bitmaps.
+///
+/// Fidelity: identical geometry to the copy laid out at the flight's rect
+/// and scaled from its top left; text is resampled from one raster instead
+/// of being painted again each frame (NEAR).
 class _PreviewLayer extends StatelessWidget {
   const _PreviewLayer({
     required this.flight,
@@ -1010,47 +1027,37 @@ class _PreviewLayer extends StatelessWidget {
   final _Placement placement;
   final Widget child;
 
-  Rect _rect() =>
-      Rect.lerp(
-        flight.sourceRect,
-        placement.preview,
-        flight.controller.value,
-      ) ??
-      placement.preview;
-
   @override
   Widget build(BuildContext context) {
     final Size natural = placement.held.size;
     return Stack(
       clipBehavior: Clip.none,
       children: <Widget>[
-        MorphLivePositionedTemplate(
-          live: flight.frameTicks,
-          template: () {
-            final Rect rect = _rect();
-            return Positioned(
-              left: rect.left,
-              top: rect.top,
-              width: rect.width,
-              height: rect.height,
-              child: morphLiveSlot,
-            );
-          },
+        Positioned(
+          left: 0,
+          top: 0,
+          width: natural.width,
+          height: natural.height,
           child: IgnorePointer(
-            child: MorphLiveTemplate(
+            child: MorphLiveTransform.matrix(
               live: flight.frameTicks,
-              template: () => Transform.scale(
-                scale: natural.width <= 0 ? 1 : _rect().width / natural.width,
-                alignment: Alignment.topLeft,
-              ),
-              child: OverflowBox(
-                alignment: Alignment.topLeft,
-                minWidth: natural.width,
-                maxWidth: natural.width,
-                minHeight: natural.height,
-                maxHeight: natural.height,
-                child: MorphChromeBackdrop(child: child),
-              ),
+              alignment: null,
+              matrixOf: () {
+                final Rect rect = _previewNow(flight, placement);
+                final Matrix4 matrix = Matrix4.translationValues(
+                  rect.left,
+                  rect.top,
+                  0,
+                );
+                matrix.scaleByDouble(
+                  natural.width <= 0 ? 1 : rect.width / natural.width,
+                  natural.height <= 0 ? 1 : rect.height / natural.height,
+                  1,
+                  1,
+                );
+                return matrix;
+              },
+              child: RepaintBoundary(child: MorphChromeBackdrop(child: child)),
             ),
           ),
         ),
@@ -1059,10 +1066,11 @@ class _PreviewLayer extends StatelessWidget {
   }
 }
 
-/// The accessory above the preview: centered on the preview inside the
-/// overlay's margins, its bottom [MorphContextMenuRegion.measuredMenuGap]
-/// above the preview's top, unfolding out of that edge on the flight's
-/// value (opacity and scale about its bottom center).
+/// The accessory above the preview: laid out once, centered on the open
+/// preview inside the overlay's margins with its bottom
+/// [MorphContextMenuRegion.measuredMenuGap] above the preview's top, and
+/// carried with the preview by a transform while it unfolds out of that
+/// edge on the flight's value (opacity and scale about its bottom center).
 ///
 /// Fidelity: approximation - UIKit's accessory views are not measured;
 /// they ride the preview and fade with it.
@@ -1079,40 +1087,38 @@ class _AccessoryLayer extends StatelessWidget {
   final ValueChanged<double> onHeight;
   final Widget child;
 
-  Rect _preview() =>
-      Rect.lerp(
-        flight.sourceRect,
-        placement.preview,
-        flight.controller.value,
-      ) ??
-      placement.preview;
+  double get _unfold => flight.controller.value.clamp(0.0, 1.0);
 
   @override
   Widget build(BuildContext context) {
     return CustomSingleChildLayout(
       delegate: _AccessoryLayout(
-        preview: _preview,
-        repaint: flight.frameTicks,
+        preview: placement.preview,
         onHeight: onHeight,
       ),
       child: MorphLiveTemplate(
         live: flight.frameTicks,
-        template: () {
-          final double unfold = flight.controller.value.clamp(0.0, 1.0);
-          return Opacity(opacity: unfold);
-        },
-        child: MorphLiveTemplate(
+        template: () => Opacity(opacity: _unfold),
+        child: MorphLiveTransform.sized(
           live: flight.frameTicks,
-          template: () {
-            final double unfold = flight.controller.value.clamp(0.0, 1.0);
-            return Transform.scale(
-              scale:
-                  MorphMenuAttachment.measuredBlobScale +
-                  (1 - MorphMenuAttachment.measuredBlobScale) * unfold,
-              alignment: Alignment.bottomCenter,
+          writeSizedInto: (Matrix4 into, Size size) {
+            final Rect now = _previewNow(flight, placement);
+            final Rect open = placement.preview;
+            final double scale =
+                MorphMenuAttachment.measuredBlobScale +
+                (1 - MorphMenuAttachment.measuredBlobScale) * _unfold;
+            // About the child's center (the transform's alignment): the
+            // bottom center rides the preview's top edge, the box scales
+            // about it.
+            into.translateByDouble(
+              now.center.dx - open.center.dx,
+              now.top - open.top + size.height / 2 * (1 - scale),
+              0,
+              1,
             );
+            into.scaleByDouble(scale, scale, 1, 1);
           },
-          child: child,
+          child: RepaintBoundary(child: child),
         ),
       ),
     );
@@ -1120,13 +1126,9 @@ class _AccessoryLayer extends StatelessWidget {
 }
 
 class _AccessoryLayout extends SingleChildLayoutDelegate {
-  _AccessoryLayout({
-    required this.preview,
-    required Listenable repaint,
-    required this.onHeight,
-  }) : super(relayout: repaint);
+  _AccessoryLayout({required this.preview, required this.onHeight});
 
-  final Rect Function() preview;
+  final Rect preview;
   final ValueChanged<double> onHeight;
 
   @override
@@ -1141,8 +1143,7 @@ class _AccessoryLayout extends SingleChildLayoutDelegate {
   @override
   Offset getPositionForChild(Size size, Size childSize) {
     onHeight(childSize.height);
-    final Rect rect = preview();
-    final double left = (rect.center.dx - childSize.width / 2).clamp(
+    final double left = (preview.center.dx - childSize.width / 2).clamp(
       MorphMenuTuning.contextMargin,
       math.max(
         MorphMenuTuning.contextMargin,
@@ -1151,12 +1152,13 @@ class _AccessoryLayout extends SingleChildLayoutDelegate {
     );
     return Offset(
       left,
-      rect.top - MorphContextMenuRegion.measuredMenuGap - childSize.height,
+      preview.top - MorphContextMenuRegion.measuredMenuGap - childSize.height,
     );
   }
 
   @override
-  bool shouldRelayout(_AccessoryLayout oldDelegate) => true;
+  bool shouldRelayout(_AccessoryLayout oldDelegate) =>
+      oldDelegate.preview != preview;
 }
 
 /// The identity transport behind [MorphContextMenuRegion.open] and

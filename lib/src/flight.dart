@@ -1655,11 +1655,15 @@ class _MorphShuttleState extends State<_MorphShuttle> {
               ignoring: flight.controller.target < 1,
               // The scrim's opacity rides its own springs: the frame ticks
               // repaint the scrim's box, so the vessel's chain does not
-              // build on every frame of the dim.
-              child: _ShuttleScrim(
-                flight: flight,
-                live: _frameTicks,
-                opacityOf: () => flight.scrimOpacity,
+              // build on every frame of the dim,
+              // and in a repaint boundary of its own the dim repaints
+              // alone, not the overlay it lies in.
+              child: RepaintBoundary(
+                child: _ShuttleScrim(
+                  flight: flight,
+                  live: _frameTicks,
+                  opacityOf: () => flight.scrimOpacity,
+                ),
               ),
             ),
           ),

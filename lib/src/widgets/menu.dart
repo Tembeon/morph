@@ -1124,6 +1124,7 @@ class _MenuShapes extends StatelessWidget {
     this.content,
     this.menuBlur,
     this.still = false,
+    this.sourced = true,
   });
 
   final MorphMenuAppearance style;
@@ -1136,6 +1137,10 @@ class _MenuShapes extends StatelessWidget {
   final Widget? content;
   final double? menuBlur;
   final bool still;
+
+  /// Whether the morph has a source shape whose look is drawn inside it;
+  /// a context menu grows out of a blob without one.
+  final bool sourced;
 
   @override
   Widget build(BuildContext context) {
@@ -1219,27 +1224,28 @@ class _MenuShapes extends StatelessWidget {
       children: [
         Positioned.fill(child: surfaces),
         ?content,
-        Positioned.fill(
-          child: MorphLiveCenter(
-            live: frames,
-            rectOf: () => shapes().sourceRect,
-            // The glyph is laid out in the source's box of the frame,
-            // centered, but again only when that can change it; the
-            // ellipsis is the same box in any box as large.
-            fixedSize: this.glyph is _Ellipsis
-                ? const Size.square(MorphMenuTuning.ellipsisSize)
-                : null,
-            hiddenOf: look ? () => shapes().look.opacity <= 0 : null,
-            ignoring: true,
-            child: look
-                ? _Faded(
-                    frames: frames,
-                    look: () => shapes().look,
-                    child: glyph,
-                  )
-                : glyph,
+        if (sourced)
+          Positioned.fill(
+            child: MorphLiveCenter(
+              live: frames,
+              rectOf: () => shapes().sourceRect,
+              // The glyph is laid out in the source's box of the frame,
+              // centered, but again only when that can change it; the
+              // ellipsis is the same box in any box as large.
+              fixedSize: this.glyph is _Ellipsis
+                  ? const Size.square(MorphMenuTuning.ellipsisSize)
+                  : null,
+              hiddenOf: look ? () => shapes().look.opacity <= 0 : null,
+              ignoring: true,
+              child: look
+                  ? _Faded(
+                      frames: frames,
+                      look: () => shapes().look,
+                      child: glyph,
+                    )
+                  : glyph,
+            ),
           ),
-        ),
       ],
     );
   }
@@ -1555,6 +1561,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             surface: structure.surface,
             menu: true,
             look: true,
+            sourced: motion.drawsSource,
             menuBlur: motion.tuning.cardBlur,
             content: Positioned.fill(
               child: MorphLiveWindow(

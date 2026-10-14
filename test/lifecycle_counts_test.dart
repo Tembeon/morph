@@ -346,30 +346,39 @@ const _ceilings = <String, _Ceiling>{
     layouts: 37,
     paints: 39,
   ),
-  // The context menu is the button menu's card (unification, phase 3):
-  // the finger lifting off the preview clears the menu's glow and
-  // highlight (one build of the menu layer); the preview still moves by
-  // layout.
+  // The context menu is the button menu's card on one vessel flight
+  // (context-menu.md, unification): the lift off the preview clears the
+  // menu's glow and highlight (one build of the menu layer); every other
+  // frame moves the preview by its transform alone and lays out the
+  // menu's window, as the button menu's open does (menu/flat open-inline
+  // 0/1/22). Before: release 0/19/30, close 0/0/21 with 72 first builds.
   'context-menu/flat release': (
-    first: 16,
+    first: 14,
     ms: 432,
     builds: 0,
-    layouts: 5,
-    paints: 30,
+    layouts: 1,
+    paints: 23,
   ),
   'context-menu/flat close': (
     first: 0,
     ms: 720,
     builds: 0,
-    layouts: 11,
+    layouts: 1,
     paints: 21,
   ),
   'context-menu/liquid release': (
-    first: 16,
+    first: 14,
     ms: 432,
     builds: 0,
-    layouts: 8,
-    paints: 35,
+    layouts: 4,
+    paints: 28,
+  ),
+  'context-menu/liquid close': (
+    first: 0,
+    ms: 720,
+    builds: 0,
+    layouts: 4,
+    paints: 26,
   ),
   'alert/flat show': (first: 130, ms: 416, builds: 0, layouts: 0, paints: 18),
   'alert/liquid show': (first: 137, ms: 416, builds: 0, layouts: 0, paints: 22),
