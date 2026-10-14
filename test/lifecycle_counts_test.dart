@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
@@ -393,7 +394,14 @@ class _Env {
 
 /// One programmatic interaction, recorded in its own window.
 class _Step {
-  const _Step(this.name, this.action, {this.frames});
+  const _Step(this.name, this.action, {this.frames}) : touch = null;
+
+  /// A touch: the finger goes down at [_Touch.at] before the first
+  /// recorded frame, follows the legs one frame at a time and lifts after
+  /// the last; the window then records until the motion settles.
+  const _Step.touch(this.name, _Touch this.touch)
+    : action = _idle,
+      frames = null;
 
   final String name;
 
@@ -403,7 +411,52 @@ class _Step {
   /// A fixed window in frames, for a motion that never settles; null
   /// records until no frame is scheduled.
   final int? frames;
+
+  final _Touch? touch;
 }
+
+/// One finger's path: where it goes down and the legs it follows, a frame
+/// at a time, before it lifts.
+class _Touch {
+  /// The native scenario's gesture: down at [at], held for [pre] seconds,
+  /// each move `(dx, dy, seconds)` in turn, held for [post] seconds, up.
+  /// A tap is a 0.1 s hold, as XCUITest taps.
+  _Touch(
+    this.at, {
+    double pre = 0.1,
+    List<(double, double, double)> moves = const [],
+    double post = 0,
+  }) : legs = [
+         (frames: _frames(pre), by: Offset.zero),
+         for (final (dx, dy, s) in moves)
+           (frames: _frames(s), by: Offset(dx, dy)),
+         if (post > 0) (frames: _frames(post), by: Offset.zero),
+       ];
+
+  static int _frames(double seconds) =>
+      math.max(1, (seconds * 1000 / _frame.inMilliseconds).round());
+
+  final Offset Function(WidgetTester tester) at;
+  final List<_Leg> legs;
+}
+
+/// A point inside the first widget [finder] finds, at the fractions [x]
+/// and [y] of its box (the native scenarios' anchors).
+Offset Function(WidgetTester) _anchor(
+  Finder finder, [
+  double x = 0.5,
+  double y = 0.5,
+]) => (WidgetTester tester) {
+  final box = tester.getRect(finder.first);
+  return Offset(box.left + box.width * x, box.top + box.height * y);
+};
+
+Offset Function(WidgetTester) _point(double x, double y) =>
+    (_) => Offset(x, y);
+
+/// A stretch of a touch: [frames] frames over which the finger moves by
+/// [by] in equal steps (held still for a zero offset).
+typedef _Leg = ({int frames, Offset by});
 
 class _Setup {
   const _Setup(this.home, this.steps, {this.end});
@@ -456,6 +509,9 @@ class _Recorder {
 
   final WidgetTester tester;
   _Counts _now = _Counts();
+
+  /// The pointer clock: velocity trackers read the event time stamps.
+  Duration _time = Duration.zero;
   final Map<String, int> _builders = {};
   final Map<String, int> _layouts = {};
   final Map<String, int> _paints = {};
@@ -560,11 +616,37 @@ class _Recorder {
       print(message, wrapWidth: wrapWidth);
     };
     final frames = <_Counts>[];
+    final touch = step.touch;
+    TestGesture? finger;
+    var leg = 0;
+    var inLeg = 0;
+    int? up;
     try {
       await step.action(tester);
+      if (touch != null) {
+        finger = await tester.createGesture();
+        await finger.down(touch.at(tester), timeStamp: _time);
+      }
       final cap = step.frames ?? _maxFrames;
       for (var i = 0; i < cap; i++) {
+        if (finger != null && touch != null) {
+          if (leg < touch.legs.length) {
+            final (:frames, :by) = touch.legs[leg];
+            if (by != Offset.zero) {
+              await finger.moveBy(by / frames.toDouble(), timeStamp: _time);
+            }
+            if (++inLeg >= frames) {
+              leg++;
+              inLeg = 0;
+            }
+          } else {
+            await finger.up(timeStamp: _time);
+            finger = null;
+            up = i;
+          }
+        }
         await tester.pump(_frame);
+        _time += _frame;
         final now = _tree();
         _now.mounts = now.where((e) => !_elements.contains(e)).length;
         _now.unmounts = _elements.where((e) => !now.contains(e)).length;
@@ -580,6 +662,7 @@ class _Recorder {
         _built.clear();
         _now = _Counts();
         if (step.frames == null &&
+            finger == null &&
             i >= 3 &&
             !tester.binding.hasScheduledFrame) {
           break;
@@ -595,6 +678,7 @@ class _Recorder {
       step.name,
       frames,
       settled: !tester.binding.hasScheduledFrame,
+      up: up,
       builders: Map.of(_builders),
       layouts: Map.of(_layouts),
       paints: Map.of(_paints),
@@ -607,6 +691,7 @@ class _Result {
     this.name,
     this.frames, {
     required this.settled,
+    required this.up,
     required this.builders,
     required this.layouts,
     required this.paints,
@@ -615,26 +700,28 @@ class _Result {
   final String name;
   final List<_Counts> frames;
   final bool settled;
+
+  /// The frame in which the finger lifted, for a touch.
+  final int? up;
   final Map<String, int> builders;
   final Map<String, int> layouts;
   final Map<String, int> paints;
 
   String _timeline() {
     final out = <String>[];
-    var zeros = 0;
+    String? token;
+    var run = 0;
     void flush() {
-      if (zeros == 1) out.add('0');
-      if (zeros > 1) out.add('0x$zeros');
-      zeros = 0;
+      if (token != null) out.add(run == 1 ? token : '${token}x$run');
+      run = 0;
     }
 
     for (final f in frames) {
-      if (f.idle) {
-        zeros++;
-        continue;
+      if (f.token != token) {
+        flush();
+        token = f.token;
       }
-      flush();
-      out.add(f.token);
+      run++;
     }
     flush();
     return out.join(' ');
@@ -659,7 +746,12 @@ class _Result {
     return (last + 1) * 16;
   }
 
+  /// The frames after the first up to the last active one; for a touch,
+  /// the frames while the finger is down after the touch-down frame.
   List<_Counts> get _body {
+    if (up case final up?) {
+      return up > 1 ? frames.sublist(1, up) : const [];
+    }
     var last = -1;
     for (final (i, f) in frames.indexed) {
       if (!f.idle) last = i;
@@ -709,16 +801,25 @@ class _Result {
         if (!f.idle) i,
     ];
     final last = active.isEmpty ? -1 : active.last;
-    final body = last > 1 ? frames.sublist(1, last) : <_Counts>[];
+    final body = _body;
+    final after = switch (up) {
+      final up? when last >= up => frames.sublist(up, last + 1),
+      _ => <_Counts>[],
+    };
     int sum(int Function(_Counts) of) => frames.fold(0, (a, f) => a + of(f));
     final head =
         '[$scene] $name: ${frames.length} frames, ${active.length} active, '
-        'last active ${(last + 1) * 16} ms${settled ? '' : ' (not settled)'}';
+        'last active ${(last + 1) * 16} ms${settled ? '' : ' (not settled)'}'
+        '${up == null ? '' : ', up at ${up! * 16} ms'}';
     final summary =
         '  first ${frames.isEmpty ? '-' : frames.first.token}'
-        '  body med/max b ${_spread([for (final f in body) f.builds])}'
+        '  ${up == null ? 'body' : 'held'} med/max'
+        ' b ${_spread([for (final f in body) f.builds])}'
         ' l ${_spread([for (final f in body) f.layouts])}'
         ' p ${_spread([for (final f in body) f.paints])}'
+        '${up == null ? '' : '  after up b ${_spread([for (final f in after) f.builds])}'
+                  ' l ${_spread([for (final f in after) f.layouts])}'
+                  ' p ${_spread([for (final f in after) f.paints])}'}'
         '  total b ${sum((f) => f.builds)} l ${sum((f) => f.layouts)}'
         ' p ${sum((f) => f.paints)} +${sum((f) => f.mounts)}m'
         ' -${sum((f) => f.unmounts)}u g${sum((f) => f.glass)}';
@@ -1463,6 +1564,484 @@ final _scenes = <_Scene>[
           (tester) =>
               Navigator.of(tester.element(find.text('Message 0'))).pop(),
         ),
+      ],
+    );
+  }),
+  ..._touchScenes,
+];
+
+/// The native touch windows (`lifecycle-<family>-005`), gesture for gesture:
+/// the anchors, holds and moves of the lab's XCUITest scenarios.
+final _touchScenes = <_Scene>[
+  _Scene('segmented-touch', (env) {
+    final index = _notifier(0);
+    final seg = find.byType(MorphSegmentedControl);
+    return _Setup(
+      _page(
+        _parent(
+          index,
+          (int i) => SizedBox(
+            width: 340,
+            child: MorphSegmentedControl(
+              segments: const [
+                MorphSegment('One'),
+                MorphSegment('Two'),
+                MorphSegment('Three'),
+                MorphSegment('Four'),
+              ],
+              selectedIndex: i,
+              onChanged: (int v) => index.value = v,
+            ),
+          ),
+        ),
+      ),
+      [
+        _Step.touch('tap-seg2', _Touch(_anchor(seg, 0.625))),
+        _Step.touch('tap-seg0', _Touch(_anchor(seg, 0.125))),
+        _Step.touch(
+          'drag-lens-0-to-3',
+          _Touch(
+            _anchor(seg, 0.125),
+            pre: 0.25,
+            moves: [(255, 0, 0.9)],
+            post: 0.15,
+          ),
+        ),
+        _Step.touch(
+          'drag-lens-3-to-0',
+          _Touch(
+            _anchor(seg, 0.875),
+            pre: 0.25,
+            moves: [(-255, 0, 0.9)],
+            post: 0.15,
+          ),
+        ),
+        _Step.touch(
+          'press-hold-selected',
+          _Touch(_anchor(seg, 0.125), pre: 0.9),
+        ),
+        _Step.touch('press-hold-other', _Touch(_anchor(seg, 0.625), pre: 0.9)),
+      ],
+    );
+  }),
+  _Scene('tabbar-touch', (env) {
+    final index = _notifier(0);
+    return _Setup(
+      _parent(
+        index,
+        (int i) => _page(
+          Text('Tab $i'),
+          bottom: MorphTabBar(
+            items: _tabs,
+            selected: i,
+            onChanged: (int v) => index.value = v,
+          ),
+        ),
+      ),
+      [
+        _Step.touch('tap-library', _Touch(_anchor(find.text('Browse')))),
+        _Step.touch('tap-home', _Touch(_anchor(find.text('Home')))),
+        _Step.touch(
+          'drag-lens-home-to-profile',
+          _Touch(
+            _anchor(find.text('Home')),
+            pre: 0.3,
+            moves: [(270, 0, 0.9)],
+            post: 0.2,
+          ),
+        ),
+        _Step.touch(
+          'drag-lens-profile-to-home',
+          _Touch(
+            _anchor(find.text('Profile')),
+            pre: 0.3,
+            moves: [(-270, 0, 0.9)],
+            post: 0.2,
+          ),
+        ),
+        _Step.touch(
+          'press-hold-home',
+          _Touch(_anchor(find.text('Home')), pre: 0.9),
+        ),
+      ],
+    );
+  }),
+  _Scene('switch-touch', (env) {
+    final on = _notifier(false);
+    final control = find.byType(MorphSwitch);
+    return _Setup(
+      _page(
+        _parent(
+          on,
+          (bool v) =>
+              MorphSwitch(value: v, onChanged: (bool v) => on.value = v),
+        ),
+      ),
+      [
+        _Step.touch('tap-on', _Touch(_anchor(control))),
+        _Step.touch('tap-off', _Touch(_anchor(control))),
+        _Step.touch(
+          'drag-on',
+          _Touch(
+            _anchor(control, 0.3),
+            pre: 0.15,
+            moves: [(28, 0, 0.35)],
+            post: 0.1,
+          ),
+        ),
+        _Step.touch(
+          'drag-off',
+          _Touch(
+            _anchor(control, 0.7),
+            pre: 0.15,
+            moves: [(-28, 0, 0.35)],
+            post: 0.1,
+          ),
+        ),
+        _Step.touch('press-hold', _Touch(_anchor(control), pre: 1)),
+      ],
+    );
+  }),
+  _Scene('slider-touch', (env) {
+    final value = _notifier(0.3);
+    final control = find.byType(MorphSlider);
+    void reset(WidgetTester _) => value.value = 0.3;
+    return _Setup(
+      _page(
+        _parent(
+          value,
+          (double v) => SizedBox(
+            width: 354,
+            child: MorphSlider(
+              value: v,
+              onChanged: (double v) => value.value = v,
+            ),
+          ),
+        ),
+      ),
+      [
+        _Step.touch(
+          'drag-thumb',
+          _Touch(
+            _anchor(control, 0.32),
+            pre: 0.15,
+            moves: [(120, 0, 0.8)],
+            post: 0.2,
+          ),
+        ),
+        _Step('reset', reset),
+        _Step.touch(
+          'drag-reverse',
+          _Touch(
+            _anchor(control, 0.32),
+            moves: [(100, 0, 0.5), (-160, 0, 0.9)],
+            post: 0.1,
+          ),
+        ),
+        _Step('reset-2', reset),
+        _Step.touch('tap-track', _Touch(_anchor(control, 0.85))),
+        _Step('reset-3', reset),
+        _Step.touch('press-hold-thumb', _Touch(_anchor(control, 0.32), pre: 1)),
+      ],
+    );
+  }),
+  _Scene('stepper-touch', (env) {
+    final value = _notifier(0.0);
+    final control = find.byType(MorphStepper);
+    return _Setup(
+      _page(
+        _parent(
+          value,
+          (double v) => MorphStepper(
+            value: v,
+            max: 10,
+            onChanged: (double v) => value.value = v,
+          ),
+        ),
+      ),
+      [
+        _Step.touch('tap-plus', _Touch(_anchor(control, 0.75))),
+        _Step.touch('tap-plus-2', _Touch(_anchor(control, 0.75))),
+        _Step.touch('tap-minus', _Touch(_anchor(control, 0.25))),
+        _Step.touch(
+          'hold-plus-repeat',
+          _Touch(_anchor(control, 0.75), pre: 2.5),
+        ),
+      ],
+    );
+  }),
+  _Scene('button-touch', (env) {
+    final button = find.byType(MorphGlassButton);
+    return _Setup(
+      _page(MorphGlassButton(onPressed: () {}, child: const Text('Glass'))),
+      [
+        _Step.touch('tap', _Touch(_anchor(button))),
+        _Step.touch('press-hold', _Touch(_anchor(button), pre: 1)),
+        _Step.touch(
+          'press-drag-out',
+          _Touch(_anchor(button), pre: 0.3, moves: [(0, 160, 0.5)], post: 0.3),
+        ),
+        _Step.touch(
+          'press-drag-out-and-back',
+          _Touch(
+            _anchor(button),
+            pre: 0.3,
+            moves: [(0, 160, 0.5), (0, -160, 0.5)],
+            post: 0.2,
+          ),
+        ),
+      ],
+    );
+  }),
+  _Scene('merge-touch', (env) {
+    final left = _notifier(270.0);
+    return _Setup(
+      _page(
+        SizedBox(
+          width: 402,
+          height: 120,
+          child: MorphGlassContainer(
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 100,
+                  top: 38,
+                  width: 80,
+                  height: 44,
+                  child: MorphGlassButton(
+                    onPressed: () {},
+                    child: const Text('A'),
+                  ),
+                ),
+                _parent(
+                  left,
+                  (double x) => Positioned(
+                    left: x,
+                    top: 38,
+                    width: 80,
+                    height: 44,
+                    child: Listener(
+                      onPointerMove: (PointerMoveEvent e) =>
+                          left.value += e.delta.dx,
+                      child: MorphGlassButton(
+                        onPressed: () {},
+                        child: const Text('B'),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      [
+        _Step.touch(
+          'drag-together',
+          _Touch(
+            _anchor(find.text('B')),
+            pre: 0.2,
+            moves: [(-80, 0, 1.2)],
+            post: 0.3,
+          ),
+        ),
+        _Step.touch(
+          'drag-apart',
+          _Touch(
+            _anchor(find.text('B')),
+            pre: 0.2,
+            moves: [(80, 0, 1.2)],
+            post: 0.3,
+          ),
+        ),
+      ],
+    );
+  }),
+  _Scene('sheet-touch', (env) {
+    void present() => unawaited(
+      showMorphSheet<void>(
+        env.context,
+        detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+        builder: (BuildContext context) => ListView(
+          controller: MorphSheet.scrollControllerOf(context),
+          children: [
+            for (var i = 0; i < 16; i++)
+              SizedBox(height: 44, child: Text('Row $i')),
+          ],
+        ),
+      ),
+    );
+    final top = find.text('Row 0');
+    return _Setup(_page(const Text('Host')), [
+      _Step('present', (_) => present()),
+      _Step.touch(
+        'drag-up-large',
+        _Touch(_anchor(top), moves: [(0, -350, 0.5)], post: 0.1),
+      ),
+      _Step.touch(
+        'drag-down-medium',
+        _Touch(_anchor(top), moves: [(0, 350, 0.5)], post: 0.1),
+      ),
+      _Step.touch(
+        'swipe-dismiss',
+        _Touch(_anchor(top), pre: 0.05, moves: [(0, 500, 0.18)]),
+      ),
+      _Step('present-2', (_) => present()),
+      _Step.touch('tap-dimmed-dismiss', _Touch(_point(201, 150))),
+    ]);
+  }),
+  _Scene('alert-touch', (env) {
+    void show() => unawaited(
+      showMorphAlert(
+        env.context,
+        title: 'Title',
+        message: 'A message.',
+        actions: const [
+          MorphAlertAction(title: 'OK'),
+          MorphAlertAction(
+            title: 'Cancel',
+            style: MorphAlertActionStyle.cancel,
+          ),
+        ],
+      ),
+    );
+    return _Setup(_page(const Text('Host')), [
+      _Step('show', (_) => show()),
+      _Step.touch('tap-cancel', _Touch(_anchor(find.text('Cancel')))),
+      _Step('show-2', (_) => show()),
+      _Step.touch(
+        'press-slide-ok',
+        _Touch(
+          _anchor(find.text('OK')),
+          pre: 0.3,
+          moves: [(0, 50, 0.3), (0, -50, 0.3)],
+          post: 0.2,
+        ),
+      ),
+    ]);
+  }),
+  _Scene('scrolledge-touch', (env) {
+    final list = find.byType(CustomScrollView);
+    return _Setup(
+      MorphNavigationStack(
+        home: MorphNavigationScaffold(
+          title: 'Bars',
+          largeTitleDisplayMode: MorphLargeTitleDisplayMode.always,
+          slivers: [
+            SliverList.builder(
+              itemCount: 120,
+              itemBuilder: (BuildContext context, int i) => SizedBox(
+                height: 44,
+                child: ColoredBox(
+                  color: Color(0xFF000000 | ((i * 0x2A3F1B) & 0xFFFFFF)),
+                  child: Text('Row $i'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      [
+        _Step.touch(
+          'swipe-up-slow',
+          _Touch(
+            _anchor(list, 0.5, 0.7),
+            pre: 0.05,
+            moves: [(0, -300, 1)],
+            post: 0.2,
+          ),
+        ),
+        _Step.touch(
+          'fling-up',
+          _Touch(_anchor(list, 0.5, 0.8), pre: 0.03, moves: [(0, -400, 0.12)]),
+        ),
+        _Step.touch(
+          'fling-down',
+          _Touch(_anchor(list, 0.5, 0.3), pre: 0.03, moves: [(0, 450, 0.12)]),
+        ),
+      ],
+    );
+  }),
+  _Scene('pagecontrol-touch', (env) {
+    final page = _notifier(0);
+    final control = find.byType(MorphPageControl);
+    return _Setup(
+      _page(
+        _parent(
+          page,
+          (int p) => MorphPageControl(
+            count: 5,
+            page: p,
+            onChanged: (int p) => page.value = p,
+          ),
+        ),
+      ),
+      [
+        _Step.touch('tap-next', _Touch(_anchor(control, 0.9))),
+        _Step.touch('tap-next-2', _Touch(_anchor(control, 0.9))),
+        _Step.touch('tap-prev', _Touch(_anchor(control, 0.1))),
+        _Step.touch(
+          'scrub',
+          _Touch(
+            _anchor(control, 0.15),
+            pre: 0.8,
+            moves: [(80, 0, 1)],
+            post: 0.2,
+          ),
+        ),
+      ],
+    );
+  }),
+  _Scene('datepicker-touch', (env) {
+    final day = DateTime(2026, 10, 12);
+    final date = _notifier(day);
+    final time = _notifier(DateTime(2026, 10, 12, 9, 41));
+    final picker = find.byKey(const ValueKey<String>('date'));
+    return _Setup(
+      _page(
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _parent(
+              date,
+              (DateTime v) => MorphDatePicker(
+                key: const ValueKey<String>('date'),
+                value: v,
+                today: day,
+                onChanged: (DateTime v) => date.value = v,
+              ),
+            ),
+            const SizedBox(height: 40),
+            _parent(
+              time,
+              (DateTime v) => MorphDatePicker(
+                key: const ValueKey<String>('time'),
+                mode: MorphDatePickerMode.time,
+                value: v,
+                today: day,
+                onChanged: (DateTime v) => time.value = v,
+              ),
+            ),
+          ],
+        ),
+      ),
+      [
+        _Step.touch('tap-compact-date', _Touch(_anchor(picker))),
+        _Step.touch('tap-day', _Touch(_anchor(find.text('20').last))),
+        _Step.touch('tap-outside-close', _Touch(_point(30, 840))),
+        _Step(
+          'wheels-open',
+          (t) => t.tap(find.byKey(const ValueKey<String>('time'))),
+        ),
+        _Step.touch(
+          'swipe-wheel',
+          _Touch(
+            _anchor(find.text('9').last),
+            pre: 0.03,
+            moves: [(0, -70, 0.25)],
+          ),
+        ),
+        const _Step('wheels-close', _tapAway),
       ],
     );
   }),
