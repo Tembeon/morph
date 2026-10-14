@@ -146,6 +146,74 @@ final class Widgets2UITests: XCTestCase {
         capture("sheet-fd-lift-mid", scene: "w2sheet") { open(); path(p(201, 700), pressFor: 0.1, [(p(201, 712), 0.03, 0), (p(201, 712 + 130), 0.12, 0)]); pause(1.2) }
     }
 
+    /// Device plan 2026-10-14 (background switch, shortfall, stretch room, keyboard, scroll
+    /// expansion off, native table background). The grab point is read from the presented
+    /// content's frame so every detent set is grabbed 20 pt below its top.
+    func testW2SheetPlan() {
+        let present = p(201, 300)
+        let track = "DropShadow|Dimming|Grabber|_UIGlass|Glass|^UITableView$|Keyboard"
+        func open() { tap(present); pause(1.4) }
+        func top() -> CGFloat {
+            let content = app.otherElements["sheetContent"].firstMatch
+            return content.exists ? content.frame.minY : 415
+        }
+        let h = 874.0
+        let up = h * 0.4
+        for run in 1...2 {
+            capture("plan-bg-ml-\(run)", scene: "w2sheet", extra: ["PROBE_DETENTS": "ml", "PROBE_W2TRACK": track], settle: 2.0) {
+                open()
+                let g = p(201, top() + 20)
+                path(g, pressFor: 0.15, [(p(201, g.y - up), 2.5, 1.0), (g, 2.5, 0.3)])
+            }
+        }
+        capture("plan-bg-ml-native", scene: "w2sheet", extra: ["PROBE_DETENTS": "ml", "PROBE_TABLEBG": "native", "PROBE_W2TRACK": track], settle: 2.0) {
+            open()
+            let g = p(201, top() + 20)
+            path(g, pressFor: 0.15, [(p(201, g.y - up), 2.5, 1.0), (g, 2.5, 0.3)])
+        }
+        for (name, detents) in [("m", "m"), ("h", "h")] {
+            capture("plan-stretch-\(name)", scene: "w2sheet", extra: ["PROBE_DETENTS": detents, "PROBE_W2TRACK": track]) {
+                open()
+                let g = p(201, top() + 20)
+                path(g, pressFor: 0.15, [(p(201, g.y - 240), 2.0, 0.8)])
+            }
+        }
+        capture("plan-stretch-s-modal", scene: "w2sheet", extra: ["PROBE_DETENTS": "s", "PROBE_MODAL": "1", "PROBE_W2TRACK": track]) {
+            open()
+            let g = p(201, top() + 20)
+            path(g, pressFor: 0.15, [(p(201, g.y + 150), 1.5, 0.8)])
+        }
+        for detents in ["m", "ml", "sml"] {
+            capture("plan-kb-\(detents)", scene: "w2sheet", extra: ["PROBE_DETENTS": detents, "PROBE_FIELD": "1", "PROBE_SCRIPT": "present@0.5;kb@3;kbOff@6", "PROBE_W2TRACK": track], settle: 0.5) {
+                pause(7.5)
+            }
+        }
+        capture("plan-se0-up", scene: "w2sheet", extra: ["PROBE_SCROLLEXPAND": "0", "PROBE_W2TRACK": track]) {
+            open()
+            path(p(201, 750), pressFor: 0.1, [(p(201, 500), 1.2, 0.5)])
+        }
+        capture("plan-se0-down", scene: "w2sheet", extra: ["PROBE_SCROLLEXPAND": "0", "PROBE_W2TRACK": track]) {
+            open()
+            path(p(201, 550), pressFor: 0.1, [(p(201, 750), 1.2, 0.5)])
+        }
+        capture("plan-se0-updown", scene: "w2sheet", extra: ["PROBE_SCROLLEXPAND": "0", "PROBE_W2TRACK": track]) {
+            open()
+            path(p(201, 750), pressFor: 0.1, [(p(201, 500), 1.0, 0.3), (p(201, 800), 1.4, 0.5)])
+        }
+        capture("plan-tablebg", scene: "w2sheet", extra: ["PROBE_DETENTS": "ml", "PROBE_TABLEBG": "native", "PROBE_SCRIPT": "present@0.5;tree-medium@2.5;large@3.5;tree-large@5.5", "PROBE_W2TRACK": track], settle: 0.5) {
+            pause(2.4)
+            let a = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            a.name = "tablebg-medium"
+            a.lifetime = .keepAlways
+            add(a)
+            pause(3.2)
+            let b = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            b.name = "tablebg-large"
+            b.lifetime = .keepAlways
+            add(b)
+        }
+    }
+
     // MARK: context menu (card 120 x 80 at 201, 300)
 
     func testW2Ctx() {
