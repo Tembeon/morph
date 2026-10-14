@@ -250,6 +250,17 @@ action".
   along the screen edge made Impeller blur the whole pass at full
   resolution: 7.6 -> 2.8 ms GPU a scrolling frame, the same blur within
   1 - 2 channel steps (glass-renderer.md "Small blurs").
+- Cost, 2026-10-14: a blur just under Impeller's half resolution
+  threshold is raised to it by at most 12 percent (hard 2 -> 2.17 pt at
+  2.625 dpr; unchanged at 3x and for soft at 2x - 3x): NEAR, host
+  Impeller median 4 / max 19 channel steps on sharp edges under the
+  fade, harness stripes 12 - 20 (`MORPH_EDGE_HALF_RESOLUTION=false`
+  restores the measured radius). A fading hard effect folds its presence
+  into the saturation matrix: one color pass after the blur instead of
+  two, within 1 step (`MORPH_EDGE_FOLDED_FADE=false`). Pixel GPU and
+  energy pending. Only the top edge exists in morph (nothing under a
+  floating toolbar, as on iOS), so there is no second band to share a
+  backdrop copy with.
 
 ## Disabled items [device, light + dark, 2026-10-03, scene x4disbars]
 

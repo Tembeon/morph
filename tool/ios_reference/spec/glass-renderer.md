@@ -2397,6 +2397,19 @@ controls 623 -> 616 mW; the CPU rails do not rise (home-scroll big / mid
 A/B switches: `debugMorphEdgeEffectBoundsBlur`,
 `debugMorphHalfResolutionBlur`; the audit's `AUDIT_LEGACY_BLURS=true`.
 
+2026-10-14, the edge effect raised too: the raise kept off above (seeded
+3.70 -> seeded + raised 3.10 ms on the flat bench) now applies to the
+edge effect's blur as an invisible NEAR trade, under the owner's standing
+approval of invisible near trades (eye check on the iPhone pending; at 3x
+nothing changes there). Hard 2 -> 2.17 pt at 2.625; soft 1.5 pt only from
+3.5x. Host Impeller against the exact seeded blur: list rows with Ahem
+text under a hard band, light / dark, median 4, max 19 / 15 steps on the
+glyph and swatch edges; harness stripes max 16 / 20 / 12 (top / bottom /
+faded), against the old 1 - 2. A fading hard effect folds its presence
+alpha into the saturation matrix (one color pass after the blur, within 1
+step). `MORPH_EDGE_HALF_RESOLUTION=false`, `MORPH_EDGE_FOLDED_FADE=false`
+restore the previous filters. The blur harness's hard edge bound is 24.
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of

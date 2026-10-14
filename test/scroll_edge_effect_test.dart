@@ -92,6 +92,69 @@ void main() {
     }
   });
 
+  testWidgets('a blur just under half resolution is raised to it, and a '
+      'faded hard blur carries one color matrix', (tester) async {
+    addTearDown(tester.view.reset);
+    final opacity = ValueNotifier<double>(0.5);
+    addTearDown(opacity.dispose);
+    List<String> blurs() {
+      final out = <String>[];
+      void visit(Layer layer) {
+        if (layer is BackdropFilterLayer &&
+            layer.filter.toString().contains('blur')) {
+          out.add(layer.filter.toString());
+        }
+        if (layer is ContainerLayer) {
+          for (var c = layer.firstChild; c != null; c = c.nextSibling) {
+            visit(c);
+          }
+        }
+      }
+
+      visit(tester.binding.renderViews.first.debugLayer!);
+      return out;
+    }
+
+    for (final (dpr, style, sigma) in const [
+      (2.625, MorphScrollEdgeEffectStyle.hard, '2.17'),
+      (3.0, MorphScrollEdgeEffectStyle.hard, '2.0'),
+      (2.625, MorphScrollEdgeEffectStyle.soft, '1.5'),
+    ]) {
+      tester.view.devicePixelRatio = dpr;
+      tester.view.physicalSize = const Size(402, 874) * dpr;
+      for (final presence in [1.0, 0.5]) {
+        opacity.value = presence;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MorphGlassScope(
+              painter: const MorphGlassRenderer(tier: MorphGlassTier.fake),
+              child: Stack(
+                children: [
+                  const Positioned.fill(child: ColoredBox(color: Colors.red)),
+                  // ignore: invalid_use_of_internal_member
+                  MorphScrollEdgeEffect.driven(
+                    extent: 116,
+                    style: style,
+                    opacity: () => opacity.value,
+                    repaint: opacity,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        final filter = blurs().single;
+        expect(filter, contains('blur($sigma'));
+        final matrices = 'ColorFilter.matrix'.allMatches(filter).length;
+        expect(matrices, switch ((style, presence)) {
+          (MorphScrollEdgeEffectStyle.hard, _) => 1,
+          (_, 1.0) => 0,
+          _ => 1,
+        }, reason: filter);
+      }
+    }
+  });
+
   group('scroll edge effect against the device layers', () {
     test('hard: blur, saturation and brightness, uniform fade, hairline', () {
       final states = _states('hard-light');

@@ -35,6 +35,11 @@ no behaviour or pixel change: every rename keeps what the old name did.
   `MorphDatePickerLocalizations`; `MorphListSection` takes widgets as
   header and footer and draws them in the measured text style;
   `MorphSegmentedControl` takes `MorphSegment`s.
+- The scroll edge effect's hard blur is raised to Impeller's half
+  resolution where that takes at most 12 percent (2 -> 2.17 pt at
+  2.625x), and a fading hard effect needs one color pass instead of two.
+  The navigation bar's inline title paints in its own layer, so its
+  spring no longer repaints the bar.
 - `MorphScrollEdgeEffect.edge` asserts a vertical edge, the only ones it
   draws. `MorphNavigationBarDrift` and the bar's `drift` /
   `titleExitShift` are `@internal`: the stack's interactive pop drives
