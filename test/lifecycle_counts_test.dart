@@ -118,6 +118,36 @@ const _ceilings = <String, _Ceiling>{
     layouts: 2,
     paints: 9,
   ),
+  // A fling that minimizes the bar: the list's own deceleration runs
+  // past the morph to 2.7 s (0/3/23 a frame, the scroll's cost).
+  'tabbar-minimize/flat minimize': (
+    first: 83,
+    ms: 2736,
+    builds: 0,
+    layouts: 3,
+    paints: 23,
+  ),
+  'tabbar-minimize/liquid minimize': (
+    first: 99,
+    ms: 2736,
+    builds: 0,
+    layouts: 3,
+    paints: 23,
+  ),
+  'tabbar-minimize/flat expand': (
+    first: 14,
+    ms: 768,
+    builds: 0,
+    layouts: 18,
+    paints: 25,
+  ),
+  'tabbar-minimize/liquid expand': (
+    first: 14,
+    ms: 768,
+    builds: 0,
+    layouts: 20,
+    paints: 30,
+  ),
   'tabbar/flat select-1': (
     first: 41,
     ms: 1328,
@@ -804,6 +834,61 @@ final _scenes = <_Scene>[
         _set('select-1', index, 1),
         _set('select-3', index, 3),
         _set('select-0', index, 0),
+      ],
+    );
+  }),
+  _Scene('tabbar-minimize', (env) {
+    final scroll = ScrollController();
+    addTearDown(scroll.dispose);
+    return _Setup(
+      MorphContentScrollScope(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ListView.builder(
+                controller: scroll,
+                itemCount: 120,
+                itemBuilder: (BuildContext context, int i) => SizedBox(
+                  height: 44,
+                  child: ColoredBox(
+                    color: Color(0xFF000000 | ((i * 0x2A3F1B) & 0xFFFFFF)),
+                    child: Text('Row $i'),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 21,
+              child: MorphTabBar(
+                items: _tabs,
+                selected: 0,
+                onChanged: (_) {},
+                minimizeBehavior: MorphTabBarMinimizeBehavior.onScrollDown,
+                bottomAccessory: const Center(child: Text('Now playing')),
+              ),
+            ),
+          ],
+        ),
+      ),
+      [
+        _Step(
+          'minimize',
+          (tester) =>
+              tester.fling(find.byType(ListView), const Offset(0, -300), 1500),
+        ),
+        _Step('expand', (tester) => tester.tapAt(const Offset(52, 874 - 52))),
+        _Step(
+          'scroll-top',
+          (_) => unawaited(
+            scroll.animateTo(
+              0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
+          ),
+        ),
       ],
     );
   }),

@@ -595,6 +595,8 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
             ),
           ),
         ),
+      // Hidden while it collapses, but kept: the expanded bar returns at
+      // the end of the morph without building again.
       Positioned.fromRect(
         key: const ValueKey<String>('bar'),
         rect: geometry.bar,

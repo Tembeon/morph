@@ -374,6 +374,51 @@ final glassScenes = <GlassScene>[
     },
   ),
   GlassScene(
+    'tab-bar-minimize',
+    () => Scaffold(
+      backgroundColor: const Color(0xFFF2F2F7),
+      body: MorphContentScrollScope(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ListView.builder(
+                itemCount: 80,
+                itemBuilder: (BuildContext context, int i) => Container(
+                  height: 60,
+                  color: Color(0xFF000000 | ((i * 0x153F7B) & 0xFFFFFF)),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 21,
+              child: MorphTabBar(
+                items: const [
+                  MorphTabItem(icon: Icons.home, label: 'Home'),
+                  MorphTabItem(icon: Icons.search, label: 'Search'),
+                  MorphTabItem(icon: Icons.radio, label: 'Radio'),
+                ],
+                selected: 0,
+                onChanged: (_) {},
+                minimizeBehavior: MorphTabBarMinimizeBehavior.onScrollDown,
+                bottomAccessory: const SizedBox.expand(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+    (tester) async {
+      const from = Offset(201, 400);
+      await _drag(tester, from, _line(from, const Offset(201, 200), 25));
+      await tester.tapAt(const Offset(52, 874 - 52));
+      for (var i = 0; i < 120; i++) {
+        await tester.pump(const Duration(milliseconds: 8));
+      }
+    },
+  ),
+  GlassScene(
     'switch',
     () => _page(
       _Controlled(

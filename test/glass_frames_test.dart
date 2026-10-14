@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
+import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/widgets.dart';
 
@@ -32,6 +33,9 @@ void main() {
       ShaderKeys.fakeGlassSurface,
       ...ShaderKeys.liquidGlassRenders,
     ]);
+    // A flat container body that fuses fills its traced outline until
+    // this loads: the first scene to fuse would differ from a later one.
+    await MorphFlatBodyShader.precache();
   });
   tearDownAll(() {
     isLocalTest = false;
