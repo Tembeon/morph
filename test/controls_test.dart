@@ -578,11 +578,40 @@ void main() {
       );
     });
 
-    test('a stepped slider snaps on the device S-curve', () {
+    // The detent curve has no tuning to fit: the residual is the finger
+    // mapping near a midpoint, where a point of finger moves the thumb up
+    // to four, and the feed's touch-to-frame latency.
+    test('a stepped slider follows the device detent curve', () {
       final e = _ticksReplay('slider-ticks5-video-dark.jsonl');
       expect(e.stops, lessThan(1e-6));
-      expect(e.fill, lessThan(1.7));
-      expect(e.thumb, lessThan(1.4));
+      expect(e.fill, lessThan(2.3));
+      expect(e.thumb, lessThan(2.4));
+    });
+
+    test('device stepped thumbs undo the detent curve onto touch pixels', () {
+      for (final file in const [
+        'slider-ticks5-video-dark.jsonl',
+        'slider-ticks5-drag.jsonl',
+      ]) {
+        final trace = Trace.load('$_deviceDir/$file');
+        const left = _deviceControlX - 150;
+        const travel = 300 - 37.0;
+        const half = 0.125;
+        final off = <double>[];
+        for (final f in trace.frames) {
+          final place = f.x - ((f.raw['tx'] as num?)?.toDouble() ?? 0);
+          final v = (place - left - 18.5) / travel;
+          final stop = (v * 4).round().clamp(0, 4) / 4;
+          final d = (v - stop) / half;
+          if ((d * half * travel).abs() < 0.5 || d.abs() > 0.98) continue;
+          final u = math.pow(d.abs(), 1 / MorphSliderMotion.tickExponent);
+          final px = (stop + d.sign * u * half) * 300 * 3;
+          off.add((px - px.roundToDouble()).abs() / 3);
+        }
+        off.sort();
+        expect(off.length, greaterThan(50), reason: file);
+        expect(off[off.length ~/ 2], lessThan(0.01), reason: file);
+      }
     });
 
     test('stepped slider ticks sit where the device draws them', () {

@@ -30,9 +30,17 @@ import 'package:morph/src/widgets/timeline.dart';
 ///
 /// With [ticks] (two or more) the value snaps to evenly spaced stops: the
 /// reported value is the stop nearest to where the finger maps, and the
-/// thumb sits still near a stop and slides over to the next one on an
-/// S-curve of the finger's distance from the stop ([tickCurve]); after a
-/// release it springs onto the stop, without a glide.
+/// thumb and fill show that place through a detent curve: at a fraction u
+/// of the way from the stop to the midpoint between two stops they have
+/// left the stop by u to the power [tickExponent] of that way, so the
+/// thumb sits near a stop and moves over to the next one only close to the
+/// midpoint, with no smoothing and no dependence on the finger's speed. A
+/// fast finger crosses that band within a frame or two and the thumb seems
+/// to jump stop to stop; a slow one shows it between. After a release the
+/// place springs ([tickReleaseSpring], from the release speed) onto the
+/// stop nearest to where the release speed projects it ([tickProjection],
+/// when that is at least [tickProjectionThreshold]), seen through the same
+/// curve, without a glide.
 ///
 /// Times are seconds and positions pixels from the track's left end.
 class MorphSliderMotion {
@@ -103,24 +111,23 @@ class MorphSliderMotion {
   /// thumb center to the track end.
   static const double fillRamp = 0.0198;
 
-  /// The exponent of the stepped slider's S-curve: at a fraction f of the
-  /// way from a stop to the midpoint between two stops, the thumb has left
-  /// the stop by f to this power of that way.
-  static const double tickCurve = 4.5;
+  /// The exponent of the stepped slider's detent curve: at a fraction u of
+  /// the way from a stop to the midpoint between two stops, the thumb has
+  /// left the stop by u to this power of that way. Read from UIKit, notes
+  /// private.
+  static const double tickExponent = 5;
 
-  /// The farthest a stepped slider's thumb leaves its stop, as a fraction
-  /// of the way to the midpoint between two stops.
-  static const double tickHold = 0.72;
+  /// The spring a released stepped slider moves onto its stop on,
+  /// starting from the release speed. Read from UIKit, notes private.
+  static const tickReleaseSpring = MorphSpring(0.4, 1);
 
-  /// The spring a dragged stepped slider's thumb follows its place on the
-  /// S-curve with.
-  static const tickFollowSpring = MorphSpring(0.03, 1);
+  /// Seconds of release speed a released stepped slider projects ahead to
+  /// pick its stop. Read from UIKit, notes private.
+  static const double tickProjection = 0.099;
 
-  /// The spring a released stepped slider settles onto its stop on.
-  static const tickReleaseSpring = MorphSpring(0.115, 1);
-
-  /// Seconds between the release and the settle of a stepped slider.
-  static const double tickReleaseDelay = 0.035;
+  /// The shortest projection, in pixels, that picks a stop other than the
+  /// one the finger left the thumb at. Read from UIKit, notes private.
+  static const double tickProjectionThreshold = 10;
 
   /// The diameter of a tick mark.
   static const double tickSize = 3;
@@ -147,6 +154,7 @@ class MorphSliderMotion {
     _ticks = value;
     if (wasStepped || !_stepped) return;
     _settle.snap(_now, this.value);
+    _detented = false;
     lens.resetFlex(_now, _thumbAt(_now));
   }
 
@@ -168,6 +176,10 @@ class MorphSliderMotion {
   final MorphSpringState _stretch = MorphSpringState(releaseSpring, 0);
   _Glide? _glide;
   final MorphSpringState _settle;
+
+  /// Whether a stepped slider shows its place through the detent curve:
+  /// from a drag on, until the value is set from outside.
+  bool _detented = false;
 
   /// The thumb's lens.
   final MorphSmallLens lens;
@@ -210,7 +222,7 @@ class MorphSliderMotion {
   double get thumbCenter => _thumbAt(_now);
 
   /// Where the thumb shows the value, 0 to 1: the value itself, or for a
-  /// stepped slider the thumb's place on its S-curve or settle.
+  /// stepped slider its place seen through the detent curve.
   double get position => _positionAt(_now);
 
   /// The right end of the fill, stretch included: under the thumb center,
@@ -252,11 +264,14 @@ class MorphSliderMotion {
       _glide == null &&
       _timeline.isEmpty &&
       _stretch.isAtRest(_now, 0.01) &&
-      _settle.isAtRest(_now, 1e-4) &&
+      _settleAtRest &&
       lens.isSettled(_now);
 
   /// Puts a settled thumb lens onto its targets.
-  void settle() => lens.settle(_now, _thumbAt(_now));
+  void settle() {
+    if (_stepped && _press == null) _settle.settle(_now);
+    lens.settle(_now, _thumbAt(_now));
+  }
 
   /// Whether a press at [x] grabs the thumb.
   bool hitsThumb(double x) =>
@@ -281,7 +296,7 @@ class MorphSliderMotion {
       if ((x - press.downX).abs() <= panSlop) return;
       press.dragging = true;
       press.anchor = x;
-      press.from = _value;
+      press.from = _stepped ? _positionAt(t) : _value;
       press.sample(t, x);
       return;
     }
@@ -293,17 +308,9 @@ class MorphSliderMotion {
       _set(clamped);
       return;
     }
-    final steps = ticks - 1;
-    final stop = (clamped * steps).round() / steps;
-    final half = 0.5 / steps;
-    final f = ((clamped - stop).abs() / half).clamp(0.0, 1.0);
-    final detent =
-        stop +
-        (clamped - stop).sign *
-            half *
-            math.min(tickHold, math.pow(f, tickCurve));
-    _settle.retarget(t, detent, spring: tickFollowSpring);
-    _set(stop);
+    _detented = true;
+    _settle.snap(t, clamped);
+    _set(_stopNear(clamped));
   }
 
   /// The finger left the slider at [x].
@@ -321,12 +328,12 @@ class MorphSliderMotion {
     if (!press.dragging) return;
     final stretched = _stretch.target != 0;
     _releaseStretch(t);
+    final speed = velocity ?? _velocity(press.samples);
     if (_stepped) {
-      _settleOnStop(t);
+      _settleOnStop(t, speed);
       onChangeEnd?.call(_value);
       return;
     }
-    final speed = velocity ?? _velocity(press.samples);
     if (speed == 0 || stretched) {
       onChangeEnd?.call(_value);
       return;
@@ -346,19 +353,64 @@ class MorphSliderMotion {
     if (!press.dragging) return;
     if (revert) {
       _stretch.snap(t, 0);
-      _set(press.from);
+      _set(_stepped ? _stopNear(press.from) : press.from);
       _settle.snap(t, press.from);
     }
     _releaseStretch(t);
-    if (_stepped && !revert) _settleOnStop(t);
+    if (_stepped && !revert) _settleOnStop(t, _velocity(press.samples));
     onChangeEnd?.call(_value);
   }
 
-  void _settleOnStop(double t) {
-    _timeline.at(
-      t + tickReleaseDelay,
-      (s) => _settle.retarget(s, _value, spring: tickReleaseSpring),
-    );
+  /// Sends a released stepped slider's place, moving at [speed] pixels per
+  /// second, to the stop its projection picks.
+  void _settleOnStop(double t, double speed) {
+    final from = _settle.value(t);
+    final v = width > 0 ? speed / width : 0.0;
+    final ahead = tickProjection * v;
+    final far = (ahead * width).abs() >= tickProjectionThreshold;
+    final stop = _stopNear(far ? from + ahead : from);
+    _settle.setState(t, from, v);
+    _settle.retarget(t, stop, spring: tickReleaseSpring);
+    _set(stop);
+  }
+
+  /// The index of the stop nearest to [x]; a tie goes to the lower one.
+  int _stopIndex(double x) {
+    final steps = ticks - 1;
+    return (x.clamp(0.0, 1.0) * steps - 0.5).ceil().clamp(0, steps);
+  }
+
+  double _stopNear(double x) => _stopIndex(x) / (ticks - 1);
+
+  /// Where a stepped slider shows place [p]: the nearest stop plus the
+  /// way to the midpoint on that side times its fraction to the power
+  /// [tickExponent]. Beyond the outer stops the place shows as it is, held
+  /// on the track (UIKit rubber-bands a release overshoot there).
+  double _detent(double p) {
+    final steps = ticks - 1;
+    final i = _stopIndex(p);
+    final stop = i / steps;
+    final half = 0.5 / steps;
+    final low = i == 0 ? stop : stop - half;
+    final high = i == steps ? stop : stop + half;
+    final edge = p <= stop ? low : high;
+    if (edge == stop) return p.clamp(0.0, 1.0);
+    final u = (p.clamp(low, high) - stop) / half;
+    return stop + half * u * u * u * u * u;
+  }
+
+  /// Whether the stepped slider's settle no longer shows: its remaining
+  /// swing, seen through the detent curve, moves the thumb less than
+  /// [MorphRest.length].
+  bool get _settleAtRest {
+    if (!_stepped || !_detented) return _settle.isAtRest(_now, 1e-4);
+    if (_press != null) return false;
+    final half = 0.5 / (ticks - 1);
+    final reach = _settle.reach(_now);
+    final shown = reach >= half
+        ? reach
+        : half * math.pow(reach / half, tickExponent);
+    return shown * travel < MorphRest.length;
   }
 
   /// Sets the value without a touch; the thumb jumps there.
@@ -369,6 +421,7 @@ class MorphSliderMotion {
     _value = value.clamp(0.0, 1.0);
     _reported = _value;
     _settle.snap(t, _value);
+    _detented = false;
     _stretch.snap(t, 0);
     lens.resetFlex(t, _thumbAt(t));
   }
@@ -439,7 +492,8 @@ class MorphSliderMotion {
 
   double _positionAt(double t) {
     if (!_stepped) return _valueAt(t);
-    return _settle.value(t);
+    final p = _settle.value(t);
+    return _detented ? _detent(p) : p;
   }
 
   double _thumbAt(double t) =>

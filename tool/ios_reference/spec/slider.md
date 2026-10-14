@@ -41,13 +41,33 @@ thumbless), `trackConfiguration` (`UISliderTrackConfiguration`:
   max) - full = whole track, empty = nothing. Mid-track the fill presentation
   trails a fast value by one frame.
 - Ticks (`numberOfTicks`): dots 3 pt at 18 + i travel / (n - 1), 8.5 below
-  the center, static under the stretch, colors 0xC6C6C8 / 0x38383A; value =
-  nearest stop of the finger-mapped value; thumb AND fill show
-  stop + sign h min(0.72, f^4.5) (f = distance to stop / half step h) on a
-  0.03 crit follow spring; settle 0.035 s after release on 0.115 crit; no
-  glide. Replay rms fill 1.6 / thumb 1.3 pt (probe rows show the PREVIOUS
-  frame - feed touches one frame early). 0.72 hold is a compromise (moving
-  frames reach 0.8 h, still finger 0.71).
+  the center, static under the stretch, colors 0xC6C6C8 / 0x38383A.
+- Ticks motion [read from UIKit 27.0.1, notes private; device-checked]: the
+  glass slider drags with UIKit's elastic fluid-slider driver. Place p =
+  finger-mapped value, applied at once (no smoothing). Thumb AND fill show
+  T + D u^5, T = nearest stop (a tie keeps the lower), u = (p - T) / D,
+  D = half the gap to the neighbour on p's side (0 beyond the outer stops:
+  p shows as is). No cap, no velocity term: speed only decides how long the
+  finger dwells in the steep band near the midpoint (u^5 < 0.03 for
+  u < 0.5), so a fast drag jumps stop to stop and a slow one shows the thumb
+  between. Value = nearest stop. Release: target = nearest stop of
+  p + 0.099 s x release speed when that projection is 10 pt or more, else
+  of p; p springs there on 1.0 / 0.4 s from the release speed, shown
+  through the same curve; no glide. Detent haptic when the nearest inner
+  stop changes (not ported). Device check: every off-stop device thumb of
+  ticks5-video-dark and ticks5-drag (x - tx) inverted through u^5 lands on
+  the 1/3 pt touch grid (median 0.002 / 0.008 pt; exponent 4.5 gives 0.065).
+  Timing replay rms fill 2.2 / thumb 2.3 pt (fitted law before: 1.6 / 1.3):
+  the residual is input, not the curve - the device counts the drag from
+  10 pt of travel where morph anchors at the first touch past `panSlop` 11
+  (1.33 pt finger offset, up to 4 pt of thumb near a midpoint), and its
+  touch-to-frame latency is about 3 frames, not the feed's 1; with both the
+  replay gives 1.8 / 1.5 (place without lens drift 1.2). Not ported: the
+  10 pt anchor (continuous replays fail with it), the over-shoot of p past
+  an outer stop on release (clamped; UIKit rubber-bands it).
+- `allowsTickValuesOnly = NO` [read, not ported]: D = 0.05 of the track
+  around each stop, only within 0.05 of one (free tracking elsewhere);
+  value and release target snap only inside that zone.
 - Lifted thumb: shrink 0 (track unchanged inside).
 
 ## Disabled [device, light + dark, 2026-10-03]
@@ -82,8 +102,8 @@ example/integration_test/slider_video_test.dart.
 controls_test, controls_scroll_test (a drag taken over by the list returns
 to its start value), slider_ticks_rest_test and
 slider_ticks_device_clock_test (a stepped thumb leans off its stop only
-while the finger is down - the measured hold, device recording 0.68 h at a
-still finger - and rests on the stop after every release, tap, fling,
+while the finger is down - by the detent curve - and rests on the stop
+after every release, tap, fling,
 cancel, loss to a list, disable, parent change and keyboard step; touches
 stamped as the device delivers them). A keyboard or screen reader step of a
 stepped slider goes to the next stop on that side, so a value set between

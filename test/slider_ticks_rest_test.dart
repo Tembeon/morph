@@ -105,10 +105,17 @@ void main() {
         }
         await tester.pump(const Duration(milliseconds: 300));
         final held = s.thumbCenter - (18.5 + s.value * _travel);
+        double lean(double dx) {
+          final u = ((0.5 + dx / _width - s.value) * 8).clamp(-1.0, 1.0);
+          return u * u * u * u * u * _travel / 8;
+        }
+
         expect(
-          held.abs(),
-          lessThanOrEqualTo(MorphSliderMotion.tickHold * _travel / 8 + 0.01),
-          reason: 'a held finger leans the thumb at most the measured hold',
+          held,
+          inInclusiveRange(lean(offset - 0.5) - 3, lean(offset + 0.5) + 3),
+          reason:
+              'a held finger leans the thumb by the detent curve, give or '
+              'take the lens drift after the jump',
         );
         await gesture.up();
         await tester.pumpAndSettle();

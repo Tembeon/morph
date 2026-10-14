@@ -178,6 +178,17 @@ tool/ios_reference/spec/lifecycle.md "Closed"):
 - Fixed: an arrow key or screen reader step on a stepped `MorphSlider`
   whose value sat between stops moved it by a step's length and left the
   thumb between stops; it now goes to the next stop on that side.
+- BREAKING: a stepped `MorphSlider` moves as UIKit's own detent code (read
+  from UIKit; device thumbs invert through it onto the touch pixel grid):
+  thumb and fill show stop + h u^5 (u = the finger's fraction of the way
+  to the midpoint, h the half step) with no cap and no follow spring, so a
+  fast finger jumps stop to stop and a slow one shows the thumb between.
+  A release projects the place 0.099 s of release speed ahead (when that
+  is 10 pt or more), picks the nearest stop and springs there (0.4 s,
+  critical) from the release speed through the same curve. `tickCurve`,
+  `tickHold`, `tickFollowSpring` and `tickReleaseDelay` give way to
+  `tickExponent` 5, `tickProjection` and `tickProjectionThreshold`;
+  `tickReleaseSpring` is 0.4 / 1.
 
 Migration, old -> new:
 
