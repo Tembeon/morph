@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
@@ -545,5 +546,81 @@ void main() {
       MediaQuery.viewInsetsOf(tester.element(find.byKey(_contentKey))),
       EdgeInsets.zero,
     );
+  });
+
+  testWidgets('the sheet clips with continuous corners', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(402, 874) * 3;
+    tester.view.devicePixelRatio = 3;
+    tester.view.padding = const FakeViewPadding(top: 62 * 3, bottom: 34 * 3);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium],
+          builder: _content,
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    final clips = tester.layers.whereType<ClipRSuperellipseLayer>().where(
+      (ClipRSuperellipseLayer l) => l.clipRSuperellipse!.tlRadiusX == 38,
+    );
+    expect(clips, hasLength(1));
+    expect(clips.single.clipRSuperellipse!.blRadiusX, 54);
+  });
+
+  testWidgets('a drag past the docking midpoint turns the fill opaque', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(402, 874) * 3;
+    tester.view.devicePixelRatio = 3;
+    tester.view.padding = const FakeViewPadding(top: 62 * 3, bottom: 34 * 3);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+          builder: _content,
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    bool opaque() => tester
+        .widgetList<ColoredBox>(find.byType(ColoredBox))
+        .any(
+          (ColoredBox b) => b.color == MorphSheetAppearance.light.dockedColor,
+        );
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('sheet')),
+    );
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(0, -10));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await _settle(tester);
+    expect(opaque(), isFalse);
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveBy(const Offset(0, -10));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await _settle(tester);
+    expect(opaque(), isTrue);
+    expect(
+      tester
+          .widgetList<ColoredBox>(find.byType(ColoredBox))
+          .any(
+            (ColoredBox b) =>
+                b.color == MorphSheetAppearance.light.floatingColor,
+          ),
+      isFalse,
+    );
+    await gesture.up();
+    await _settle(tester);
   });
 }

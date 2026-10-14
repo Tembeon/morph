@@ -35,7 +35,8 @@ class MorphSheetAppearance {
   });
 
   /// The opaque fill of a sheet docked at the large detent:
-  /// systemBackground, as rendered.
+  /// systemBackground, as rendered (simulator capture: white in light,
+  /// 28, 28, 30 in dark).
   final Color dockedColor;
 
   /// The flat stand-in for the glass of a floating sheet when no
@@ -57,7 +58,7 @@ class MorphSheetAppearance {
 
   /// The dark appearance: the docked fill as the simulator renders it.
   static const dark = MorphSheetAppearance(
-    dockedColor: Color(0xFF2C2C2E),
+    dockedColor: Color(0xFF1C1C1E),
     floatingColor: Color(0xF2232325),
     grabberColor: Color(0x4DEBEBF5),
     textColor: Color(0xFFFFFFFF),
@@ -390,8 +391,8 @@ class _SheetViewState extends State<_SheetView>
     zooming: false,
     zoomOpening: false,
     gateOpen: false,
-    docked: false,
-    docking: false,
+    opaque: false,
+    filling: false,
     dimmed: false,
   ));
 
@@ -413,8 +414,8 @@ class _SheetViewState extends State<_SheetView>
       zooming: _zooming,
       zoomOpening: _zoom?.isOpening ?? false,
       gateOpen: frame.gateOpen,
-      docked: frame.docked,
-      docking: frame.docking,
+      opaque: frame.opaque,
+      filling: frame.filling,
       dimmed: frame.dimmed,
     );
     _route.backdropCache.overlay = _style.dimmingColor.withValues(
@@ -577,6 +578,7 @@ class _SheetViewState extends State<_SheetView>
     _size = size;
     _padding = padding;
     final maximum = _maximum(size, padding);
+    final full = maximum + padding.bottom;
     final values = [
       for (final d in detents)
         d.resolve(maximum, fittedHeight: _fitted) + padding.bottom,
@@ -596,6 +598,7 @@ class _SheetViewState extends State<_SheetView>
         heights: heights,
         width: size.width,
         initial: order.indexOf(_index),
+        fullHeight: full,
         dockedIndex: dockedAt < 0 ? null : dockedAt,
         undimmedIndex: undimmedAt == null || undimmedAt < 0 ? null : undimmedAt,
         dismissible: _route.dismissible,
@@ -621,7 +624,7 @@ class _SheetViewState extends State<_SheetView>
       _motion = created;
       wake();
     } else {
-      motion.relayout(clock, heights, size.width);
+      motion.relayout(clock, heights, size.width, fullHeight: full);
       wake();
     }
   }
@@ -884,9 +887,9 @@ class _SheetViewState extends State<_SheetView>
                 ) {
                   final sheet = _SheetBody(
                     frames: frames,
-                    dock: () => motion.dock(motion.time),
-                    docked: structure.docked,
-                    docking: structure.docking,
+                    fill: () => motion.fill(motion.time),
+                    opaque: structure.opaque,
+                    filling: structure.filling,
                     clipped: structure.zooming,
                     style: style,
                     glass: glass,
@@ -933,6 +936,7 @@ class _SheetViewState extends State<_SheetView>
                           size: () => Size(size.width, _frame(size).height),
                           transform: () => _frame(size).transform,
                           clip: () => _frame(size).bodyShape,
+                          continuous: true,
                           child: Semantics(
                             scopesRoute: true,
                             namesRoute: _route.semanticLabel != null,
@@ -979,13 +983,13 @@ class _SheetViewState extends State<_SheetView>
     final motion = _motion!;
     final t = motion.time;
     final h = motion.height(t);
-    final dock = motion.dock(t);
     final s = motion.scale(t);
     final dim = motion.dimming(t);
+    final fill = motion.fill(t);
     final floating = _floatingRadius;
     final bottomRadius = math.max(
       0.0,
-      floating + (_dockedRadius - floating) * dock,
+      floating + (_dockedRadius - floating) * motion.cornerBlend(t),
     );
     final dimOpacity =
         _style.dimmingColor.a * MorphSheetTuning.dimmingOpacity * dim;
@@ -1017,8 +1021,8 @@ class _SheetViewState extends State<_SheetView>
         bottomRight: Radius.circular(bottomRadius),
       ),
       gateOpen: !_zooming && scrub == null && s == 1 && !stretched,
-      docked: dock >= 1,
-      docking: dock > 0,
+      opaque: fill >= 1,
+      filling: fill > 0,
     );
     return frame;
   }
@@ -1029,8 +1033,8 @@ typedef _SheetStructure = ({
   bool zooming,
   bool zoomOpening,
   bool gateOpen,
-  bool docked,
-  bool docking,
+  bool opaque,
+  bool filling,
   bool dimmed,
 });
 
@@ -1045,8 +1049,8 @@ class _SheetFrame {
     required this.transform,
     required this.bodyShape,
     required this.gateOpen,
-    required this.docked,
-    required this.docking,
+    required this.opaque,
+    required this.filling,
   });
 
   final double height;
@@ -1057,8 +1061,8 @@ class _SheetFrame {
   final Matrix4 transform;
   final RRect bodyShape;
   final bool gateOpen;
-  final bool docked;
-  final bool docking;
+  final bool opaque;
+  final bool filling;
 }
 
 /// The zoom's geometry at one time.
@@ -1292,9 +1296,9 @@ class _SheetBody extends StatelessWidget {
   const _SheetBody({
     required this.frames,
     required this.shape,
-    required this.dock,
-    required this.docked,
-    required this.docking,
+    required this.fill,
+    required this.opaque,
+    required this.filling,
     required this.clipped,
     required this.style,
     required this.glass,
@@ -1309,15 +1313,14 @@ class _SheetBody extends StatelessWidget {
   /// The body's shape now, in its own coordinates.
   final RRect Function() shape;
 
-  /// How docked the sheet is now, 0 to 1.
-  final double Function() dock;
+  /// The opacity of the docked fill now, 0 to 1.
+  final double Function() fill;
 
-  /// Whether the sheet is fully docked: the glass gives way to the docked
-  /// fill.
-  final bool docked;
+  /// Whether the docked fill is opaque: the glass under it is not drawn.
+  final bool opaque;
 
-  /// Whether the sheet is docking: the docked fill fades in over the glass.
-  final bool docking;
+  /// Whether the docked fill shows at all, over the glass.
+  final bool filling;
 
   /// Whether the body clips itself to [shape]; a frame box above it clips
   /// otherwise.
@@ -1335,7 +1338,7 @@ class _SheetBody extends StatelessWidget {
     final body = Stack(
       fit: StackFit.expand,
       children: [
-        if (painter != null && !docked)
+        if (painter != null && !opaque)
           MorphGlassHost(
             painter: painter,
             mode: MorphGlassMode.surface,
@@ -1349,16 +1352,16 @@ class _SheetBody extends StatelessWidget {
               ),
             ]),
           )
-        else if (!docked)
+        else if (!opaque)
           ColoredBox(color: style.floatingColor),
-        if (docked)
+        if (opaque)
           ColoredBox(color: style.dockedColor)
-        else if (docking)
+        else if (filling)
           RepaintBoundary(
             child: MorphLiveColoredBox(
               live: frames,
               colorOf: () => style.dockedColor.withValues(
-                alpha: style.dockedColor.a * dock(),
+                alpha: style.dockedColor.a * fill(),
               ),
             ),
           ),

@@ -10,6 +10,28 @@ release, following the API parity audit
 and option names, written in Flutter idioms. BREAKING throughout, with
 no behaviour or pixel change: every rename keeps what the old name did.
 
+- Sheets follow a new simulator capture of UISheetPresentationController
+  (pixel changes, declared in the sheets passport):
+  - a floating sheet dragged above its largest detent rubber-bands toward
+    the maximum height (room capped at 100 points); a docked sheet still
+    holds. A sheet that cannot be dismissed rubber-bands its pull down
+    with 200 points instead of 40.
+  - the opaque fill of the large detent rides its own sheet spring toward
+    the background of the nearest detent: during a drag it switches where
+    the docking progress crosses one half, and the glass goes once the
+    fill is opaque, instead of fading in along the drag. Programmatic
+    changes and settles look as before.
+  - a drag docks fully 10 points below the large detent; the bottom
+    corners follow the docking as `1 - (1 - p)^2` during a drag.
+  - the sheet clips with continuous corners (rounded superellipse), as
+    the glass and UIKit draw them; the docked bottom corners now match
+    the display's.
+  - the dark docked fill is systemBackground as rendered, 0xFF1C1C1E
+    (was 0xFF2C2C2E).
+  - `MorphSheetMotion` takes `fullHeight` and exposes `fill` and
+    `cornerBlend`; `MorphSheetTuning` gains `stretchLimit`,
+    `dragDockShortfall` and `backgroundSwitch`.
+
 - Accessibility read from UIKit: Reduce Motion branches for the switch,
   slider, segmented control, tab bar, alert, popover, navigation
   (cross-fade), context menu hold and date picker overlay; Increase

@@ -1066,6 +1066,7 @@ class MorphLiveBox extends SingleChildRenderObjectWidget {
     this.transform,
     this.opacity,
     this.clip,
+    this.continuous = false,
     Widget? child,
     super.key,
   }) : super(child: child == null ? null : RepaintBoundary(child: child));
@@ -1092,6 +1093,11 @@ class MorphLiveBox extends SingleChildRenderObjectWidget {
   /// null for no clip.
   final RRect Function()? clip;
 
+  /// Whether [clip]'s corners are continuous: the rounded superellipse with
+  /// the same radii, as UIKit's `cornerCurve = .continuous`, instead of
+  /// circular arcs.
+  final bool continuous;
+
   @override
   RenderMorphLiveBox createRenderObject(BuildContext context) =>
       RenderMorphLiveBox(
@@ -1101,6 +1107,7 @@ class MorphLiveBox extends SingleChildRenderObjectWidget {
         transform: transform,
         opacity: opacity,
         clip: clip,
+        continuous: continuous,
       );
 
   @override
@@ -1114,6 +1121,7 @@ class MorphLiveBox extends SingleChildRenderObjectWidget {
     renderObject.transformOf = transform;
     renderObject.opacityOf = opacity;
     renderObject.clipOf = clip;
+    renderObject.continuous = continuous;
   }
 }
 
@@ -1128,6 +1136,7 @@ class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
     Matrix4 Function()? transform,
     double Function()? opacity,
     RRect Function()? clip,
+    this._continuous = false,
   }) : _sizeOf = size,
        _offsetOf = offset,
        _transformOf = transform,
@@ -1186,6 +1195,18 @@ class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
     markNeedsPaint();
   }
 
+  bool _continuous;
+
+  /// See [MorphLiveBox.continuous].
+  bool get continuous => _continuous;
+  set continuous(bool value) {
+    if (value == _continuous) return;
+    _continuous = value;
+    _clipLayer.layer = null;
+    _continuousLayer.layer = null;
+    markNeedsPaint();
+  }
+
   Size? _laidOut;
   bool? _shown;
 
@@ -1213,6 +1234,7 @@ class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
     _opacityLayer.layer = null;
     _transformLayer.layer = null;
     _clipLayer.layer = null;
+    _continuousLayer.layer = null;
     super.dispose();
   }
 
@@ -1252,6 +1274,7 @@ class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
   final _opacityLayer = LayerHandle<OpacityLayer>();
   final _transformLayer = LayerHandle<TransformLayer>();
   final _clipLayer = LayerHandle<ClipRRectLayer>();
+  final _continuousLayer = LayerHandle<ClipRSuperellipseLayer>();
 
   @override
   void paint(PaintingContext context, Offset offset) {
@@ -1262,13 +1285,36 @@ class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
       _opacityLayer.layer = null;
       _transformLayer.layer = null;
       _clipLayer.layer = null;
+      _continuousLayer.layer = null;
       return;
     }
     void clipped(PaintingContext context, Offset offset) {
       final clip = _clipOf?.call();
       if (clip == null) {
         _clipLayer.layer = null;
+        _continuousLayer.layer = null;
         context.paintChild(child, offset);
+        return;
+      }
+      if (_continuous) {
+        _continuousLayer.layer = context.pushClipRSuperellipse(
+          true,
+          offset,
+          clip.outerRect,
+          RSuperellipse.fromLTRBAndCorners(
+            clip.left,
+            clip.top,
+            clip.right,
+            clip.bottom,
+            topLeft: clip.tlRadius,
+            topRight: clip.trRadius,
+            bottomLeft: clip.blRadius,
+            bottomRight: clip.brRadius,
+          ),
+          (PaintingContext context, Offset offset) =>
+              context.paintChild(child, offset),
+          oldLayer: _continuousLayer.layer,
+        );
         return;
       }
       _clipLayer.layer = context.pushClipRRect(

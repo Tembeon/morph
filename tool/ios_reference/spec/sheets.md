@@ -1,8 +1,10 @@
 # Sheets passport (detents, drag rules, zoom, scrub)
 
 Status: measured simulator (iPhone 16 Pro geometry) + device recapture
-(every drag rule held unchanged); zoom from device film; ported; replayed
-(sheet_test, sheet_drag_test, sheet_zoom_test, sheet_widget_test).
+(every drag rule held unchanged); zoom from device film; background,
+corners and stretch above the largest detent from an iPhone 17 Pro
+simulator capture (2026-10-14); ported; replayed (sheet_test,
+sheet_drag_test, sheet_native_test, sheet_zoom_test, sheet_widget_test).
 
 ## Native
 
@@ -31,11 +33,14 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   PER TRANSITION (height fraction between the transition's start and the
   large detent, or back to the floating detent it heads to; between two
   floating detents it stays floating); during a drag the fraction above the
-  largest floating detent. systemBackground fades in by the same fraction.
+  largest floating detent of the way to 10 pt below the large detent
+  (`dragDockShortfall`; 768 of 778 in every simulator row).
+  The opaque fill: see "Spec - background".
 - Dimming black 0.2, scaled by progress past an undimmed detent.
 - Touch: floating sheet swells 1.00854 on 0.2835/0.70 after 28 ms.
-- Drag moves the height point for point (nothing above the largest detent,
-  a slide below the smallest).
+- Drag moves the height point for point between the detents, a slide below
+  the smallest; above the largest see "Spec - stretch above the largest
+  detent".
 - STRETCH [device, 18 drags/flicks]: a sheet floating when the drag
   begins stretches along the drag, up or down alike, keeping its area
   (sqrt(sx sy) holds the swell to 1e-4) about its BOTTOM edge (held still,
@@ -61,6 +66,54 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
 - Grabber tap cycles detents 50 ms after the lift.
 - A scrollable with `MorphSheet.scrollControllerOf` expands the sheet before
   it scrolls and moves it down from its top.
+
+## Spec - background [sim 2026-10-14, read from UIKit, notes private]
+
+- Floating: glass (a glass group under the content, no fill). Docked: the
+  glass is removed and the sheet's own layer is systemBackground, light
+  white, dark rendered 28, 28, 30 (0xFF1C1C1E, the old 0xFF2C2C2E table
+  was wrong). No shadow (its view sits at opacity 0).
+- UIKit takes the background of the detent NEAREST the sheet and animates
+  every change of it on the sheet spring (bg alpha after the flip 0.146,
+  0.256, 0.364, 0.468, 0.574 ... a frame apart = the 0.344 crit spring one
+  frame late). A programmatic change or a settle changes it with the frame,
+  so it equals the docking fraction (morph as before). A drag flips it
+  where the drag's docking progress crosses 0.5 (both ways between 600.0
+  and 602.7 pt of value, no hysteresis), so the glass gives way to white
+  over 0.3 s at one point of the drag and, once white is opaque, the glass
+  is removed while the finger still holds the sheet below the top. This
+  is the "line" seen on the phone. `MorphSheetMotion.fill`,
+  `backgroundSwitch`.
+- Content: an insetGrouped table in the sheet is clear while floating and
+  systemGroupedBackground when docked (UIKit switches it; morph does not
+  touch the app's content - see gaps).
+
+## Spec - corners [sim 2026-10-14]
+
+- Continuous corners (cornerCurve continuous) on the sheet's clip: morph
+  clips with the rounded superellipse of the same radii (`MorphLiveBox`
+  `continuous`); the glass already drew one.
+- Unscaled radii: top 38; bottom floating display - 8 = 54 (drawn 51.85
+  at the floating scale), docked = the display radius (UIKit stores
+  infinity, the environment radius 62 on this screen).
+- During a drag the bottom radius is display - inset (1 - p) with the
+  inset 8 (1 - p) rounded up to a pixel: `1 - (1 - p)^2` of the way
+  (`cornerBlend`; 58.44 at p 0.333 measured, 58.29 modelled without the
+  pixel rounding). Programmatic and settle: from where it was to the end
+  on the spring.
+
+## Spec - stretch above the largest detent [sim 2026-10-14]
+
+- A floating largest detent rubber-bands upward (coefficient 0.55) with
+  a dimension of clamp(maximum - detent, 0, 100): a medium-only sheet 100
+  (0.2 pt rms over 240 pt of travel, slop 7), a 700 pt detent 78 (0.5 pt
+  rms). A docked sheet (largest detent = large) does not move up at all
+  (value 778 fixed for 200 pt of travel). `stretchLimit`.
+- Not dismissible (isModalInPresentation): the pull below the smallest
+  detent rubber-bands with 200 (a 200 pt detent pulled 134 pt fits 200 at
+  0.3 pt rms); UIKit takes a quarter of the sheet height capped at 200
+  (notes private). `refusedPullExtent` 200 (was an unmeasured 40).
+- The area-keeping stretch above rides on top of both.
 
 ## Spec - zoom from a source [film, device; invisible to layer sampling]
 
@@ -118,6 +171,18 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
 
 ## Not reproduced / open
 
+- Grouped list content does not switch its background with the sheet
+  (UIKit clears an insetGrouped table while floating); `MorphListSection`
+  in a sheet keeps its appearance's background.
+- The zoom container clips with circular corners (the source may be any
+  shape); the sheet itself clips continuous.
+- The bottom radius during a drag rounds the inset to a pixel in UIKit
+  (steps of a third of a point); morph is smooth.
+- Measured on the simulator only (background flip, corners, stretch room):
+  confirm on the iPhone with the probe scene before calling them device
+  truth; the 10 pt docking shortfall and the 100 / 200 pt caps may depend
+  on the screen.
+
 - The present's 8 pt horizontal drift (first-frame artifact).
 - One frame per docking reading the sheet at y 0.
 - The touch swell holds through a drag (sqrt(sx sy) stays 1.00854 x the
@@ -146,9 +211,9 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
   attempt (async, next main-queue turn) only when the pull beyond the edge
   exceeds a quarter of the rubber-band extent, whatever the velocity [read
   from UIKit, notes private; ported: `dismissAttemptShare` 0.25 of
-  `refusedPullExtent`]. The extent itself (morph 40, rubber band c 0.55) is
-  NOT measured: UIKit derives it from the sheet's height or detent with
-  caps of 200 / 100 pt, which branch applies to the bottom edge is open.
+  `refusedPullExtent`]. The extent is 200 at the bottom edge and the 100
+  pt cap applies above the largest detent (simulator capture, see the
+  stretch section).
 - Full-screen / form-sheet presentation styles.
 
 ## Implementation notes (morph side, moved from CLAUDE.md)
