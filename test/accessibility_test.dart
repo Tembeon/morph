@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/switch_motion.dart';
 
@@ -129,6 +130,27 @@ void main() {
     });
   });
 
+  group('alert and popover, Reduce Motion', () {
+    test('the alert fades in at its size on the same spring', () {
+      final reduced = MorphAlertMotion();
+      reduced.reducedMotion = true;
+      final normal = MorphAlertMotion();
+      reduced.present(0);
+      normal.present(0);
+      expect(reduced.scale(0), 1);
+      expect(normal.scale(0), MorphAlertTuning.presentScale);
+      expect(reduced.opacity(0.1), normal.opacity(0.1));
+    });
+
+    test('the popover keeps its size', () {
+      final popover = MorphPopoverMotion();
+      popover.reducedMotion = true;
+      popover.present(0);
+      expect(popover.scale(0), 1);
+      expect(popover.opacity(0), 0);
+    });
+  });
+
   group('Increase Contrast tables', () {
     testWidgets('switch', (tester) async {
       expect(
@@ -155,6 +177,18 @@ void main() {
           highContrast: false,
         ),
         same(MorphSwitchAppearance.light),
+      );
+    });
+
+    testWidgets('alert', (tester) async {
+      expect(
+        await _resolve(
+          tester,
+          (c) => MorphAlertAppearance.resolve(c, null),
+          highContrast: true,
+          brightness: Brightness.dark,
+        ),
+        same(MorphAlertAppearance.darkHighContrast),
       );
     });
   });

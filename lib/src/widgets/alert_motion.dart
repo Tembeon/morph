@@ -112,6 +112,11 @@ abstract final class MorphAlertTuning {
 /// and a dismissal in the middle of the presentation reverses from where
 /// the alert stands, velocity included.
 ///
+/// For Reduce Motion ([reducedMotion]) the alert does not shrink: it
+/// fades in at its size on the same spring. Read from UIKit, notes
+/// private: UIAlertController starts the presentation at scale 1 instead
+/// of 1.2 under Reduce Motion and keeps the timing.
+///
 /// Times are seconds on the caller's clock.
 class MorphAlertMotion {
   /// Creates the motion of an alert that is not shown yet.
@@ -131,6 +136,9 @@ class MorphAlertMotion {
   final MorphSpringState _scale;
   double _now = 0;
   bool _dismissing = false;
+
+  /// Whether the alert presents for Reduce Motion, at its size.
+  bool reducedMotion = false;
 
   /// The time the motion was last advanced to.
   double get time => _now;
@@ -189,7 +197,7 @@ class MorphAlertMotion {
   double dimming(double t) => _progress.value(t).clamp(0.0, 1.0);
 
   /// The scale of the alert at time [t].
-  double scale(double t) => _scale.value(t);
+  double scale(double t) => reducedMotion ? 1 : _scale.value(t);
 }
 
 /// The edge of a popover that points at its source.
@@ -306,6 +314,11 @@ abstract final class MorphPopoverTuning {
 /// about its arrow tip from [MorphPopoverTuning.hiddenScale] and fades it
 /// in on [MorphPopoverTuning.presentSpring], and shrinks and fades it back
 /// on [MorphPopoverTuning.dismissSpring].
+///
+/// For Reduce Motion ([reducedMotion]) the popover keeps its size and only
+/// fades, on the same springs. Read from UIKit, notes private: UIKit's
+/// popover animation uses the identity transform instead of its shrink
+/// under Reduce Motion.
 class MorphPopoverMotion {
   /// Creates the motion of a popover that is not shown yet.
   MorphPopoverMotion({
@@ -326,6 +339,9 @@ class MorphPopoverMotion {
   final MorphSpringState _progress;
   double _now = 0;
   bool _dismissing = false;
+
+  /// Whether the popover moves for Reduce Motion, at its size.
+  bool reducedMotion = false;
 
   /// The time the motion was last advanced to.
   double get time => _now;
@@ -362,8 +378,9 @@ class MorphPopoverMotion {
   double progress(double t) => _progress.value(t);
 
   /// The scale of the popover about its arrow tip at time [t].
-  double scale(double t) =>
-      math.max(0, hiddenScale + (1 - hiddenScale) * _progress.value(t));
+  double scale(double t) => reducedMotion
+      ? 1
+      : math.max(0, hiddenScale + (1 - hiddenScale) * _progress.value(t));
 
   /// The opacity of the popover at time [t].
   double opacity(double t) => _progress.value(t).clamp(0.0, 1.0);
