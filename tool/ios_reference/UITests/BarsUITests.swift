@@ -271,4 +271,99 @@ final class BarsUITests: XCTestCase {
             }
         }
     }
+
+    /// The pages under an interactive pop (navigation-pages.md "Card and dim", "Commit rule",
+    /// "Content swipe"), scene `nav` with PROBE_PAGES (the transition container's views every
+    /// tick, the pop recognizers' states): programmatic push and pop, edge drags held still at
+    /// fractions of the width, releases at several speeds, drags from inside the content at
+    /// several angles and over a horizontal scroll view (PROBE_HSCROLL). PROBE_ONLY picks
+    /// captures; PROBE_DARK=1 runs the dark set.
+    func testNavPages() {
+        let pages = ["PROBE_PAGES": "4", "PROBE_HSCROLL": "1"]
+        func with(_ extra: [String: String]) -> [String: String] { pages.merging(extra) { $1 } }
+        capture("pages-auto", extra: with(["PROBE_AUTO": "push"])) { pause(6.0) }
+        capture("pages-auto-dark", extra: with(["PROBE_AUTO": "push", "PROBE_DARK": "1"])) { pause(6.0) }
+        for frac in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.85] {
+            capture("pages-hold\(Int(frac * 100))", extra: pages) {
+                pushByRow()
+                pause(1.6)
+                let y = size.height * 0.75
+                synth([path(start: CGPoint(x: 3, y: y), pressFor: 0.05, legs: [(CGPoint(x: 3 + size.width * frac, y: y), 0.8, 1.0)])], name: "hold")
+                pause(1.8)
+            }
+        }
+        capture("pages-hold40-dark", extra: with(["PROBE_DARK": "1"])) {
+            pushByRow()
+            pause(1.6)
+            let y = size.height * 0.75
+            synth([path(start: CGPoint(x: 3, y: y), pressFor: 0.05, legs: [(CGPoint(x: 3 + size.width * 0.4, y: y), 0.8, 1.0)])], name: "hold")
+            pause(1.8)
+        }
+        for frac in [0.35, 0.4, 0.45, 0.5, 0.57] {
+            for dur in [0.25, 0.6] {
+                capture("pages-rel\(Int(frac * 100))-\(Int(dur * 100))", extra: pages) {
+                    pushByRow()
+                    pause(1.6)
+                    let y = size.height * 0.75
+                    synth([path(start: CGPoint(x: 3, y: y), pressFor: 0.05, legs: [(CGPoint(x: 3 + size.width * frac, y: y), dur, 0.6)])], name: "rel")
+                    pause(1.8)
+                }
+            }
+        }
+        for pressFor in [0.3, 0.6] {
+            capture("pages-xcdrag\(Int(pressFor * 10))", extra: pages) {
+                pushByRow()
+                pause(1.6)
+                let w = app.windows.firstMatch
+                let y = size.height * 0.75
+                let a = w.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 3, dy: y))
+                let b = w.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 230, dy: y))
+                a.press(forDuration: pressFor, thenDragTo: b, withVelocity: XCUIGestureVelocity(300), thenHoldForDuration: 0.6)
+                pause(1.8)
+            }
+        }
+        let cy = 0.8
+        for (name, angle) in [("c0", 0.0), ("c20", 20.0), ("c30", 30.0), ("c40", 40.0), ("c50", 50.0), ("c60", 60.0)] {
+            capture("pages-\(name)", extra: pages) {
+                pushByRow()
+                pause(1.6)
+                let y = size.height * cy
+                let r = angle * Double.pi / 180
+                let d = 200.0
+                synth([path(start: CGPoint(x: 120, y: y), pressFor: 0.05, legs: [(CGPoint(x: 120 + d * cos(r), y: y - d * sin(r)), 0.5, 0.6)])], name: name)
+                pause(1.8)
+            }
+        }
+        capture("pages-cleft", extra: pages) {
+            pushByRow()
+            pause(1.6)
+            let y = size.height * cy
+            synth([path(start: CGPoint(x: 300, y: y), pressFor: 0.05, legs: [(CGPoint(x: 100, y: y), 0.5, 0.6)])], name: "cleft")
+            pause(1.8)
+        }
+        capture("pages-cslow", extra: pages) {
+            pushByRow()
+            pause(1.6)
+            let y = size.height * cy
+            synth([path(start: CGPoint(x: 120, y: y), pressFor: 0.05, legs: [(CGPoint(x: 200, y: y), 1.6, 0.6)])], name: "cslow")
+            pause(1.8)
+        }
+        capture("pages-chold40", extra: pages) {
+            pushByRow()
+            pause(1.6)
+            let y = size.height * cy
+            synth([path(start: CGPoint(x: 120, y: y), pressFor: 0.05, legs: [(CGPoint(x: 120 + size.width * 0.4, y: y), 0.8, 1.0)])], name: "chold")
+            pause(1.8)
+        }
+        for (name, extra, dx) in [("h0", [String: String](), 200.0), ("h0nb", ["PROBE_HBOUNCE": "0"], 200.0), ("h300", ["PROBE_HSTART": "300"], 200.0),
+                                  ("h300l", ["PROBE_HSTART": "300"], -200.0), ("h0pg", ["PROBE_HPAGING": "1"], 200.0), ("h804", ["PROBE_HSTART": "804"], 200.0)] {
+            capture("pages-\(name)", extra: with(extra)) {
+                pushByRow()
+                pause(1.6)
+                let x = dx > 0 ? 100.0 : 300.0
+                synth([path(start: CGPoint(x: x, y: 480), pressFor: 0.05, legs: [(CGPoint(x: x + dx, y: 480), 0.5, 0.6)])], name: name)
+                pause(1.8)
+            }
+        }
+    }
 }

@@ -247,6 +247,7 @@ class MorphNavigationStack extends StatefulWidget {
     this.navigatorKey,
     this.observers = const [],
     this.prefersLargeTitles = false,
+    this.contentPopGestureEnabled = true,
     super.key,
   }) : pages = null,
        onDidRemovePage = null;
@@ -271,6 +272,7 @@ class MorphNavigationStack extends StatefulWidget {
     this.navigatorKey,
     this.observers = const [],
     this.prefersLargeTitles = false,
+    this.contentPopGestureEnabled = true,
     super.key,
   }) : home = null;
 
@@ -291,6 +293,18 @@ class MorphNavigationStack extends StatefulWidget {
   /// `UINavigationBar.prefersLargeTitles`); later automatic screens take
   /// the mode of the screen below.
   final bool prefersLargeTitles;
+
+  /// Whether a horizontal drag toward the trailing side from anywhere in
+  /// a pushed page's content pops it interactively, as UIKit's
+  /// `interactiveContentPopGestureRecognizer` (iOS 26, on by default);
+  /// false leaves only the swipe from the leading edge.
+  ///
+  /// The content swipe moves and releases the page exactly as the edge
+  /// swipe does. A horizontal scrollable, slider or other horizontal drag
+  /// under the finger keeps its drag; a drag toward the leading side never
+  /// starts the swipe. Where UIKit hands such a drag to the pop gesture
+  /// instead (a scroll view already at its leading end) is not measured.
+  final bool contentPopGestureEnabled;
 
   /// The look of the bars; null resolves it from the theme.
   final MorphBarAppearance? appearance;
@@ -642,8 +656,17 @@ class _Observer extends NavigatorObserver {
 /// or the finger flicks out, and settles on
 /// [MorphNavigationTuning.interactiveSpring]: a popping page from
 /// rest, a returning one carrying the release speed scaled by
-/// [MorphNavigationTuning.cancelVelocityScale]. Right-to-left text
-/// mirrors everything.
+/// [MorphNavigationTuning.cancelVelocityScale]. Inside a
+/// [MorphNavigationStack] whose
+/// [MorphNavigationStack.contentPopGestureEnabled] is on (and outside
+/// any stack) a drag toward the trailing side from anywhere in the page
+/// does the same. Right-to-left text mirrors everything.
+///
+/// While the page slides it is a card with the display's continuous
+/// corners ([MediaQueryData.displayCornerRadii], else
+/// [MorphNavigationTuning.fallbackCardRadius]), and the page underneath
+/// dims with black up to [MorphNavigationTuning.underDimOpacity] as the
+/// page on top covers it (APPROXIMATION, see that constant).
 ///
 /// With a [from] the page instead zooms out of that tag, as a UIKit
 /// page pushed with `preferredTransition = .zoom`: the source hides, a
@@ -870,6 +893,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
             Directionality.maybeOf(context),
             _crossFades(context),
             MorphNavigationSnapshot.enabled,
+            _cardRadiusOf(context),
           );
     final kept = _transition;
     if (inputs != null && kept != null && inputs == _transitionInputs) {
@@ -912,10 +936,12 @@ class MorphNavigationRoute<T> extends PageRoute<T>
             child: page,
           )
         : page;
+    final radius = Radius.circular(_cardRadiusOf(context));
+    final slide = _slideOf(animation, secondaryAnimation);
     // The page's own width, the unit the edge swipe measures the finger
     // in, so a stack narrower than the screen still tracks it 1:1.
     return MorphLiveTransform.sized(
-      live: _slideOf(animation, secondaryAnimation),
+      live: slide,
       writeSizedInto: (Matrix4 into, Size size) {
         final x =
             size.width *
@@ -923,9 +949,41 @@ class MorphNavigationRoute<T> extends PageRoute<T>
                 MorphNavigationTuning.parallax * secondaryAnimation.value);
         into.setTranslationRaw(rtl ? -x : x, 0, 0);
       },
-      child: slid,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final bounds = Offset.zero & constraints.biggest;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              MorphLiveBox(
+                live: animation,
+                clip: () => animation.isAnimating
+                    ? RRect.fromRectAndRadius(bounds, radius)
+                    : null,
+                continuous: true,
+                child: slid,
+              ),
+              IgnorePointer(
+                child: MorphLiveBox(
+                  live: secondaryAnimation,
+                  opacity: () =>
+                      MorphNavigationTuning.underDimOpacity *
+                      secondaryAnimation.value,
+                  child: const ColoredBox(color: Color(0xFF000000)),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
+
+  /// The radius of the moving page's card: the display's own corner
+  /// radius where the platform reports one.
+  static double _cardRadiusOf(BuildContext context) =>
+      MediaQuery.maybeDisplayCornerRadiiOf(context)?.topLeft.x ??
+      MorphNavigationTuning.fallbackCardRadius;
 }
 
 /// Pushes the page [builder] builds onto the navigator around [context],
@@ -1046,6 +1104,15 @@ class _EdgePop extends StatefulWidget {
 
 class _EdgePopState extends State<_EdgePop> {
   HorizontalDragGestureRecognizer? _drag;
+  _ContentPopDrag? _content;
+
+  bool get _contentPopEnabled =>
+      context
+          .getInheritedWidgetOfExactType<_StackScope>()
+          ?.state
+          .widget
+          .contentPopGestureEnabled ??
+      true;
   bool _active = false;
   _MorphNavigationStackState? _stack;
   NavigatorState? _navigator;
@@ -1054,6 +1121,7 @@ class _EdgePopState extends State<_EdgePop> {
   @override
   void dispose() {
     _drag?.dispose();
+    _content?.dispose();
     _detach?.call();
     _detach = null;
     if (_navigator != null) {
@@ -1083,8 +1151,16 @@ class _EdgePopState extends State<_EdgePop> {
     final edge = _rtl
         ? _width - event.localPosition.dx
         : event.localPosition.dx;
-    if (edge > MorphNavigationTuning.edgeWidth) return;
-    final drag = _drag ??= HorizontalDragGestureRecognizer(debugOwner: this);
+    final HorizontalDragGestureRecognizer drag;
+    if (edge <= MorphNavigationTuning.edgeWidth) {
+      drag = _drag ??= HorizontalDragGestureRecognizer(debugOwner: this);
+    } else if (_contentPopEnabled) {
+      final content = _content ??= _ContentPopDrag(debugOwner: this);
+      content.forward = _rtl ? -1 : 1;
+      drag = content;
+    } else {
+      return;
+    }
     drag.onStart = _start;
     drag.onUpdate = _update;
     drag.onEnd = _end;
@@ -1191,6 +1267,42 @@ class _EdgePopState extends State<_EdgePop> {
     behavior: HitTestBehavior.translucent,
     child: widget.child,
   );
+}
+
+/// The back swipe from inside a page's content: a horizontal drag that
+/// claims the pointer only once it has travelled the pan slop toward the
+/// trailing side ([forward] is 1 left to right, -1 right to left), so a
+/// drag the other way stays with whatever else wants it. A horizontal
+/// scrollable, pan or scale recognizer under the finger sits deeper in
+/// the hit test and reaches its own slop no later, so it keeps its drags.
+class _ContentPopDrag extends HorizontalDragGestureRecognizer {
+  _ContentPopDrag({super.debugOwner});
+
+  double forward = 1;
+  double _travel = 0;
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    _travel = 0;
+    super.addAllowedPointer(event);
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event is PointerMoveEvent) _travel += event.delta.dx * forward;
+    super.handleEvent(event);
+  }
+
+  @override
+  bool hasSufficientGlobalDistanceToAccept(
+    PointerDeviceKind pointerDeviceKind,
+    double? deviceTouchSlop,
+  ) =>
+      _travel > computePanSlop(pointerDeviceKind, gestureSettings) &&
+      super.hasSufficientGlobalDistanceToAccept(
+        pointerDeviceKind,
+        deviceTouchSlop,
+      );
 }
 
 /// When a [MorphNavigationScaffold] shows its title large, after UIKit's

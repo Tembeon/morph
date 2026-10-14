@@ -170,6 +170,10 @@ final class BarsDetailScene: UIViewController {
             stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor),
         ])
         for i in 0..<40 {
+            if i == 6, BarsEnv.env["PROBE_HSCROLL"] == "1" {
+                stack.addArrangedSubview(BarsDetailScene.strip())
+                continue
+            }
             let v = UIView()
             v.backgroundColor = BarsListScene.palette[(i * 3) % BarsListScene.palette.count]
             v.heightAnchor.constraint(equalToConstant: 44).isActive = true
@@ -186,6 +190,29 @@ final class BarsDetailScene: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         BarsRecorder.shared.scroll = scroll
+    }
+
+    /// PROBE_HSCROLL=1: a 200 pt horizontal scroll view (three screens of tiles, at the
+    /// top of the content, y ~ 380 - 580 in the window) whose offset BarsRecorder logs:
+    /// which of it and the content pop gesture takes a horizontal drag.
+    /// PROBE_HSTART=<pt> starts it scrolled that far.
+    static func strip() -> UIScrollView {
+        let h = UIScrollView()
+        h.accessibilityIdentifier = "hstrip"
+        h.showsHorizontalScrollIndicator = true
+        h.alwaysBounceHorizontal = BarsEnv.env["PROBE_HBOUNCE"] != "0"
+        h.isPagingEnabled = BarsEnv.env["PROBE_HPAGING"] == "1"
+        h.heightAnchor.constraint(equalToConstant: 200).isActive = true
+        let w = UIScreen.main.bounds.width
+        for i in 0..<9 {
+            let tile = UIView(frame: CGRect(x: CGFloat(i) * w / 3, y: 0, width: w / 3 - 4, height: 200))
+            tile.backgroundColor = BarsListScene.palette[i % BarsListScene.palette.count]
+            h.addSubview(tile)
+        }
+        h.contentSize = CGSize(width: w * 3, height: 200)
+        if let x = Double(BarsEnv.env["PROBE_HSTART"] ?? "") { h.contentOffset = CGPoint(x: x, y: 0) }
+        BarsRecorder.shared.hscroll = h
+        return h
     }
 }
 
@@ -384,6 +411,49 @@ final class BarsRecorder: NSObject {
             guard let wp = root.window?.layer.presentation() else { continue }
             walk(root, path: NSStringFromClass(type(of: root)), wp: wp, now: now, depth: 0)
         }
+        if let depth = Int(BarsEnv.env["PROBE_PAGES"] ?? "") { walkPages(depth: depth, now: now) }
+    }
+
+    private var lastGr = ""
+    private var lastHs = ""
+    weak var hscroll: UIScrollView?
+
+    /// PROBE_PAGES=<depth>: the navigation controller's own view tree to that depth (the
+    /// transition's page containers, dimming and shadow views), scroll views logged but not
+    /// entered; the pop recognizers' states and the detail page's horizontal strip offset.
+    private func walkPages(depth: Int, now: CFTimeInterval) {
+        guard let nav = windows().compactMap({ $0.rootViewController as? UINavigationController }).first,
+              let wp = nav.view.window?.layer.presentation() else { return }
+        func pages(_ v: UIView, _ path: String, _ d: Int) {
+            logLayer(v.layer, view: v, path: path, wp: wp, now: now)
+            if let m = v.layer.mask { logLayer(m, view: nil, path: path + "/M", wp: wp, now: now) }
+            if d >= depth || v is UIScrollView || v is UINavigationBar || v is UIToolbar || v.isHidden { return }
+            for (i, s) in v.subviews.enumerated() { pages(s, path + "/P" + String(i), d + 1) }
+            for (i, l) in (v.layer.sublayers ?? []).enumerated() where !(l.delegate is UIView) {
+                logLayer(l, view: nil, path: path + "/PL" + String(i), wp: wp, now: now)
+            }
+        }
+        pages(nav.view, "nav", 0)
+        func st(_ g: UIGestureRecognizer?) -> Int { g.map { $0.state.rawValue } ?? -1 }
+        let edge = nav.interactivePopGestureRecognizer
+        let content = nav.interactiveContentPopGestureRecognizer
+        var gr = "\(st(edge))|\(st(content))"
+        var row: [String: Any] = ["k": "gr", "t": now, "edge": st(edge), "content": st(content), "ce": content?.isEnabled ?? false]
+        if let pan = content as? UIPanGestureRecognizer, pan.state == .began || pan.state == .changed {
+            let tr = pan.translation(in: nav.view)
+            row["ctx"] = r2(tr.x); row["cty"] = r2(tr.y)
+            gr += "|\(r2(tr.x))"
+        }
+        if let pan = edge as? UIPanGestureRecognizer, pan.state == .began || pan.state == .changed {
+            let tr = pan.translation(in: nav.view)
+            row["etx"] = r2(tr.x)
+            gr += "|e\(r2(tr.x))"
+        }
+        if gr != lastGr { lastGr = gr; Recorder.shared.log(row) }
+        if let h = hscroll {
+            let hs = "\(r2(h.contentOffset.x))|\(h.isTracking)|\(h.isDragging)"
+            if hs != lastHs { lastHs = hs; Recorder.shared.log(["k": "hs", "t": now, "ox": r2(h.contentOffset.x), "tr": h.isTracking, "drag": h.isDragging]) }
+        }
     }
 
     private func walk(_ v: UIView, path: String, wp: CALayer, now: CFTimeInterval, depth: Int) {
@@ -414,6 +484,16 @@ final class BarsRecorder: NSObject {
             "bw": r2(p.bounds.width), "bh": r2(p.bounds.height), "a": r4(CGFloat(p.opacity)),
             "sx": r4(tf.m11), "sy": r4(tf.m22), "tx": r2(tf.m41), "ty": r2(tf.m42), "cr": r2(p.cornerRadius),
         ]
+        if p.cornerRadius > 0 {
+            row["cc"] = p.cornerCurve.rawValue
+            row["mc"] = Int(p.maskedCorners.rawValue)
+            row["mtb"] = p.masksToBounds
+        }
+        if p.shadowOpacity > 0 {
+            row["so"] = r4(CGFloat(p.shadowOpacity)); row["sr"] = r2(p.shadowRadius)
+            row["sof"] = [r2(p.shadowOffset.width), r2(p.shadowOffset.height)]
+            if let sc = rgba(p.shadowColor) { row["sc"] = sc }
+        }
         if let view {
             row["view"] = NSStringFromClass(type(of: view))
             if view.alpha != 1 { row["va"] = r4(view.alpha) }
