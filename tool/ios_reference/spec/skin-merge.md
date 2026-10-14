@@ -53,5 +53,10 @@ liquid_regression_test, liquid_geometry_golden_test, liquid_fuzz_test.
 
 ## Open
 
-- 3+ masses: normals mixed by the smin weight (natural fold, unmeasured).
+- 3+ masses: normals mixed by the smin weight (natural fold, unmeasured;
+  the native mix lives in the glass renderer's shader, not reachable from
+  layer reads - still open after the 2026-10-14 simulator pass).
+- A glass element entering or leaving with `.materialize` keeps its own
+  shape and does not fuse while it fades [sim 2026-10-14]; see
+  api/glass.md.
 - Dynamic necks during drags vs the static law: see dynamic.json.

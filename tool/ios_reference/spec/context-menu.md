@@ -43,8 +43,8 @@ Internals: `_UIContextMenuView`, the morph container carrying it, the dim
 - DIM (dim.json): black, alpha only, no blur filter; 0.2 light / 0.48 dark
   (`measuredDimOpacity`); opens on 0.32/0.80, closes on 0.35/0.85, 14.5 ms
   and 12.5 ms after the geometry (`measuredDim`, engine scrimMotion). The
-  menu view's own alpha/scale model also closes on 0.35/0.85 (whether the
-  portal shows that fade is unverified).
+  menu view's own alpha/scale model also closes on 0.35/0.85, and that
+  fade is visible (simulator, see Not reproduced / open).
 
 ## Fixtures
 
@@ -78,7 +78,14 @@ shuttle chain).
 
 - Satellites are app-built columns, not UIMenu rows (no row styling
   measured for context menus specifically).
-- Whether the menu view's own 0.35/0.85 fade is visible.
+- The menu view's own fade IS visible [sim 2026-10-14, menu without a
+  preview provider, dismissed with `dismissMenu`, layer tree and per-frame
+  presentation read live]: `_UIContextMenuView` is a direct child of the
+  container, not a portal source (the portals show the held source view,
+  `hidesSourceLayer` on); on dismiss its opacity goes 1 -> 0 with its scale
+  1 -> 0.195, the opacity fitting a 0.344 / 0.86 spring (rms 0.0025) = the
+  0.35 / 0.85 model. Whether morph's satellites show the same fade is
+  not checked here.
 
 ## API gaps
 

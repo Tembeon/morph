@@ -45,7 +45,7 @@ flat color, not glass.
 | `GlassEffectContainer(spacing:content:)` iOS 26 (NEW), spacing nil = system default | fuse + share sampling | `MorphGlassContainer` (no spacing); `MorphSkinStyle.subtle` = default spacing 8 | same as UIKit container row | same as UIKit; default spacing 8 (`MorphSkinStyle.subtle.blend`) when null |
 | `View.glassEffectID(_:in:)` iOS 26 (NEW) | identity for births / matched shapes across layout changes | `MorphPiece.id` + `MorphPieceChannel.birthScale` / `birthSpring` (flat skin); `MorphTag` for flights | measured birth law exists, but only for the flat skin and internal bar capsules | add `MorphGlassEffect.id` inside a fusing `MorphGlassContainer` reusing the birth law |
 | `View.glassEffectUnion(id:namespace:)` iOS 26 (NEW) | several glass views drawn as one shape regardless of distance | nearest `MorphLink` (explicit neck between two pieces, flat skin) | no union for glass | add `MorphGlassEffect.unionId` (low priority) |
-| `GlassEffectTransition.matchedGeometry` / `.materialize` / `.identity`, `glassEffectTransition(_:)` iOS 26 (NEW) | how glass enters/leaves a container | matchedGeometry ~ birth law (internal); materialize unmeasured | no public choice | add `MorphGlassEffect.transition` after a materialize capture |
+| `GlassEffectTransition.matchedGeometry` / `.materialize` / `.identity`, `glassEffectTransition(_:)` iOS 26 (NEW) | how glass enters/leaves a container | matchedGeometry ~ birth law (internal); materialize measured [sim 2026-10-14]: the element's opacity p, scale 1.2 - 0.2 p, gaussian blur 10 (1 - p) pt, all linear in the driving animation's progress p, removal the reverse; it keeps its own glass shape (no fusion) while it materializes | no public choice | add `MorphGlassEffect.transition` with that law |
 | `backgroundExtensionEffect()` iOS 26 (NEW) | same as `UIBackgroundExtensionView` | none | - | skip (as UIKit) |
 | `ConcentricRectangle`, `Edge.Corner.Style.concentric(minimum:)` / `.fixed`, `containerShape(_:)` iOS 26 (NEW) | concentric shape resolved against the container shape | none | same as UIKit concentric row | `MorphConcentricBorder` + an inherited container shape (`MorphContainerShape`) |
 
@@ -73,7 +73,7 @@ flat color, not glass.
 | 4 | Interactive glass on arbitrary shapes (`Glass.interactive()`, `UIGlassEffect.isInteractive`) | med | M (flex machine exists in `MorphGlassButton`) | `MorphGlassEffect.interactive` with `onPressed`-less lift/glow |
 | 5 | Tinted glass on arbitrary surfaces (`tintColor`, `Glass.tint`) | med | S once #1 exists | `MorphGlassEffect.tint` |
 | 6 | Concentric corners (`containerConcentric`, `ConcentricRectangle`) | med | S-M | `MorphConcentricBorder` |
-| 7 | `GlassEffectTransition` / animated `effect` (materialize) | low | M (needs a capture) | after a materialize recording |
+| 7 | `GlassEffectTransition` / animated `effect` (materialize) | low | M (law measured on the simulator 2026-10-14; UIKit's animated `UIVisualEffectView.effect` not captured) | `MorphGlassEffect.transition` |
 | 8 | `glassEffectUnion` | low | M | later |
 | 9 | `backgroundExtensionEffect` | low | M | skip on phone |
 
