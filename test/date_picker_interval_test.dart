@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/date_picker.dart';
-import 'package:morph/widgets.dart';
 
 void main() {
   testWidgets('the minute wheel steps by the minute interval', (tester) async {
