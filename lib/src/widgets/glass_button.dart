@@ -36,7 +36,7 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// Times are seconds and positions pixels in the button's own space.
 ///
 /// The button settles once every part's remaining swing is below
-/// [MorphRest] (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
+/// `MorphRest` (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
 /// step) and snaps onto its targets: invisible, NEAR.
 /// A finger held still counts: a held button stops ticking once its lift
 /// and glow are in place and wakes on the finger's next move or its lift.
@@ -153,7 +153,7 @@ class MorphGlassButtonMotion {
   }
 
   /// Whether what remains of the button's motion is invisible
-  /// ([MorphRest], NEAR); a button held still under a finger settles too
+  /// (`MorphRest`, NEAR); a button held still under a finger settles too
   /// and wakes on the finger's next move or its lift.
   bool get isSettled => _flex.isSettled(_now);
 

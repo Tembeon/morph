@@ -128,9 +128,9 @@ class MorphTabBar extends StatefulWidget {
   });
 
   /// When the bar minimizes to its selected tab as the content scrolls
-  /// (UIKit `tabBarMinimizeBehavior`); [MorphTabBarMinimizeBehavior
-  /// .automatic] does not minimize, as an iPhone tab bar that does not opt
-  /// in.
+  /// (UIKit `tabBarMinimizeBehavior`);
+  /// [MorphTabBarMinimizeBehavior.automatic] does not minimize, as an
+  /// iPhone tab bar that does not opt in.
   final MorphTabBarMinimizeBehavior minimizeBehavior;
 
   /// The content of the glass accessory above the bar, a mini player for

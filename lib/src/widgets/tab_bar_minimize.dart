@@ -164,8 +164,9 @@ abstract final class MorphTabBarMinimizeTuning {
 ///   return does not).
 /// - Motion in the minimizing direction starts the interaction once it
 ///   passes [MorphTabBarMinimizeTuning.activationDistance], if the
-///   content's range is at least [MorphTabBarMinimizeTuning
-///   .minimumRangeFactor] x (activation + active distance); from then on
+///   content's range is at least
+///   [MorphTabBarMinimizeTuning.minimumRangeFactor] x (activation + active
+///   distance); from then on
 ///   [progress] grows by the scroll over
 ///   [MorphTabBarMinimizeTuning.activeDistance], clamped to 0.01 - 1; at 1
 ///   the bar minimizes and the interaction rests until the next drag.
