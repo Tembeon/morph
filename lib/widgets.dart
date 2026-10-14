@@ -42,6 +42,7 @@ export 'src/widgets/alert.dart'
         MorphAlertTextField,
         showMorphActionSheet,
         showMorphAlert;
+export 'src/widgets/badge.dart' show MorphBadge;
 export 'src/widgets/bar_items.dart'
     show
         MorphBarAppearance,
@@ -60,10 +61,15 @@ export 'src/widgets/glass.dart' show MorphGlassPainter, MorphGlassScope;
 export 'src/widgets/glass_button.dart'
     show MorphGlassButton, MorphGlassButtonAppearance;
 export 'src/widgets/glass_container.dart' show MorphGlassContainer;
+export 'src/widgets/glass_effect.dart' show MorphGlassEffect;
 export 'src/widgets/glass_inspector.dart'
     show MorphGlassCensus, MorphGlassHint, MorphGlassInspector;
 export 'src/widgets/glass_renderer.dart'
-    show MorphGlassMaterial, MorphGlassRenderer, MorphGlassTier;
+    show
+        MorphGlassMaterial,
+        MorphGlassRenderer,
+        MorphGlassStyle,
+        MorphGlassTier;
 export 'src/widgets/glass_tier.dart'
     show MorphAdaptiveGlass, MorphGlassDeviceClass;
 export 'src/widgets/list.dart'
@@ -103,8 +109,10 @@ export 'src/widgets/navigation_bar.dart'
         MorphNavigationBarMetrics;
 export 'src/widgets/navigation_stack.dart'
     show
+        MorphBackButtonDisplayMode,
         MorphLargeTitleDisplayMode,
         MorphNavigationConfig,
+        MorphNavigationPage,
         MorphNavigationRoute,
         MorphNavigationScaffold,
         MorphNavigationStack,
@@ -137,5 +145,6 @@ export 'src/widgets/tab_bar.dart'
     show MorphTabBar, MorphTabBarAppearance, MorphTabItem;
 export 'src/widgets/toolbar.dart' show MorphToolbar, MorphToolbarMetrics;
 export 'src/widgets/typography.dart' show MorphTypography;
-export 'src/widgets/widgets_theme.dart' show MorphWidgetsTheme;
+export 'src/widgets/widgets_theme.dart'
+    show MorphWidgetsTheme, MorphWidgetsThemeScope;
 export 'src/widgets/zoom_motion.dart' show MorphZoomTuning;

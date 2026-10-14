@@ -2,6 +2,9 @@
 
 Status: measured device; ported; replayed (navigation_motion_test,
 navigation_stack_test, push_zoom_test). Bars over the pages: [bars.md](bars.md).
+Declarative stacks (`MorphNavigationStack.pages` + `MorphNavigationPage`,
+navigation_api_test) create the same `MorphNavigationRoute`s, so pushes,
+pops and zooms of a page list move exactly as imperative ones.
 
 ## Native
 

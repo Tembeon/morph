@@ -136,7 +136,8 @@ class MorphListAppearance {
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// [iconColor].
   static MorphListAppearance resolve(
     BuildContext context,
     MorphListAppearance? explicit,
@@ -146,6 +147,7 @@ class MorphListAppearance {
     themed: (theme) => theme.list,
     light: light,
     dark: dark,
+    tinted: (table, tint) => table.copyWith(iconColor: tint),
   );
 
   /// Copies this appearance with the given colors replaced.

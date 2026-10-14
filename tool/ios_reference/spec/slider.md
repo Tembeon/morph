@@ -98,7 +98,9 @@ lens-and-flex.md "Rest").
 
 ## API gaps
 
-- `minimumValue` / `maximumValue` (morph is 0..1 only).
+- `minimumValue` / `maximumValue` exist (`min` / `max`; the motion runs
+  in the track's 0..1 and the widget maps), as do `onChangeStart` (on the
+  thumb's touch down) and `onChangeEnd`.
 - `continuous = false`.
 - `sliderStyle = .thumbless`.
 - `UISliderTrackConfiguration`: custom tick positions, tick titles/images,

@@ -131,7 +131,12 @@ class MorphGlassSurface {
     this.opacity = 1,
     this.glow,
     this.shadows,
+    this.style,
   });
+
+  /// The material the surface asks for, or null for the painter's own
+  /// default ([MorphGlassRenderer.material]).
+  final MorphGlassStyle? style;
 
   /// The role of the surface.
   final MorphGlassKind kind;

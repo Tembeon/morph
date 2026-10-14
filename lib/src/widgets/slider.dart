@@ -53,8 +53,24 @@ class MorphSliderAppearance {
     tickColor: Color(0xFF38383A),
   );
 
+  /// Copies this appearance with the given fields replaced.
+  MorphSliderAppearance copyWith({
+    Color? activeTrackColor,
+    Color? inactiveTrackColor,
+    Color? thumbColor,
+    Color? tickColor,
+    double? disabledOpacity,
+  }) => MorphSliderAppearance(
+    activeTrackColor: activeTrackColor ?? this.activeTrackColor,
+    inactiveTrackColor: inactiveTrackColor ?? this.inactiveTrackColor,
+    thumbColor: thumbColor ?? this.thumbColor,
+    tickColor: tickColor ?? this.tickColor,
+    disabledOpacity: disabledOpacity ?? this.disabledOpacity,
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// [activeTrackColor].
   static MorphSliderAppearance resolve(
     BuildContext context,
     MorphSliderAppearance? explicit,
@@ -64,6 +80,7 @@ class MorphSliderAppearance {
     themed: (theme) => theme.slider,
     light: light,
     dark: dark,
+    tinted: (table, tint) => table.copyWith(activeTrackColor: tint),
   );
 }
 
@@ -86,20 +103,23 @@ class MorphSlider extends StatefulWidget {
   const MorphSlider({
     required this.value,
     required this.onChanged,
+    this.onChangeStart,
     this.onChangeEnd,
+    this.min = 0,
+    this.max = 1,
     this.activeTrackColor,
     this.inactiveTrackColor,
     this.appearance,
     this.semanticLabel,
     this.ticks = 0,
     super.key,
-  });
+  }) : assert(min < max, 'min must be less than max');
 
   /// The number of tick marks the value snaps to, like UIKit's
   /// `numberOfTicks`; below two the slider is continuous.
   final int ticks;
 
-  /// The current value, 0 to 1.
+  /// The current value, [min] to [max].
   ///
   /// While the user drags or the value glides, the gesture leads: a value
   /// that differs from the one last reported, such as a rounded or a
@@ -110,8 +130,19 @@ class MorphSlider extends StatefulWidget {
   /// null disables the slider.
   final ValueChanged<double>? onChanged;
 
+  /// Called with the value when the user grabs the thumb, before any
+  /// [onChanged] (UIKit `.touchDown` / `.editingDidBegin`), and before a
+  /// keyboard or screen reader step.
+  final ValueChanged<double>? onChangeStart;
+
   /// Called with the final value when a drag and its glide end.
   final ValueChanged<double>? onChangeEnd;
+
+  /// The value at the leading end of the track (UIKit `minimumValue`).
+  final double min;
+
+  /// The value at the trailing end of the track (UIKit `maximumValue`).
+  final double max;
 
   /// The fill of the track below the value, overriding [appearance]
   /// (UIKit `minimumTrackTintColor`).
@@ -142,7 +173,10 @@ class MorphSlider extends StatefulWidget {
 
 class _MorphSliderState extends MorphControlHost<MorphSlider> {
   late final MorphSliderMotion _motion = _create();
-  late final ValueNotifier<double> _semanticValue = ValueNotifier(widget.value);
+  late final ValueNotifier<double> _semanticValue = ValueNotifier(
+    _unit(widget.value),
+  );
+  double? _reportedOut;
   // The track rests through most of a drag; its glass host then neither
   // rebuilds nor pushes.
   late final MorphChanges<RRect> _trackFrames = MorphChanges<RRect>(
@@ -157,7 +191,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   MorphSliderMotion _create() {
     final motion = MorphSliderMotion(
       width: 0,
-      value: widget.value,
+      value: _unit(widget.value),
       frameRate: motionFrameRate,
       ticks: widget.ticks,
     );
@@ -166,20 +200,43 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
     return motion;
   }
 
+  /// [value] in the track's 0 to 1.
+  double _unit(double value) {
+    final min = widget.min;
+    final max = widget.max;
+    if (min == 0 && max == 1) return value;
+    return ((value - min) / (max - min)).clamp(0.0, 1.0);
+  }
+
+  /// The value at [unit] of the track.
+  double _out(double unit) {
+    final min = widget.min;
+    final max = widget.max;
+    if (min == 0 && max == 1) return unit;
+    return min + unit * (max - min);
+  }
+
+  /// Whether the widget's value is the one the motion last reported.
+  bool get _inSync =>
+      widget.value == _reportedOut ||
+      _unit(widget.value) == _motion.reportedValue;
+
   void _changed(double value) {
-    widget.onChanged?.call(value);
+    final out = _reportedOut = _out(value);
+    widget.onChanged?.call(out);
     _reconcile();
   }
 
   bool get _leading => _motion.isDragging || _motion.isGliding;
 
   void _reconcile() => reconcileAfterFrame(() {
-    if (widget.value == _motion.reportedValue) return false;
-    _motion.setValue(clock, widget.value);
+    if (_inSync) return false;
+    _motion.setValue(clock, _unit(widget.value));
+    _reportedOut = widget.value;
     return true;
   }, defer: () => _leading);
 
-  void _ended(double value) => widget.onChangeEnd?.call(value);
+  void _ended(double value) => widget.onChangeEnd?.call(_out(value));
 
   @override
   void advanceMotion(double t) => _motion.advance(t);
@@ -193,14 +250,15 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   @override
   void didUpdateWidget(MorphSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _semanticValue.value = widget.value;
+    _semanticValue.value = _unit(widget.value);
     _motion.ticks = widget.ticks;
-    if (widget.value == _motion.reportedValue) return;
+    if (_inSync) return;
     if (_leading) {
       _reconcile();
       return;
     }
-    _motion.setValue(clock, widget.value);
+    _motion.setValue(clock, _unit(widget.value));
+    _reportedOut = widget.value;
     wake();
   }
 
@@ -216,8 +274,11 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
 
   void _nudge(int delta) {
     if (!_enabled) return;
-    final value = (widget.value + delta * widget._step).clamp(0.0, 1.0);
-    if (value == widget.value) return;
+    final from = _unit(widget.value);
+    final unit = (from + delta * widget._step).clamp(0.0, 1.0);
+    if (unit == from) return;
+    final value = _out(unit);
+    widget.onChangeStart?.call(widget.value);
     widget.onChanged?.call(value);
     widget.onChangeEnd?.call(value);
   }
@@ -234,6 +295,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
     final tracker = VelocityTracker.withKind(event.kind);
     tracker.addPosition(event.timeStamp, event.localPosition);
     _tracker = tracker;
+    widget.onChangeStart?.call(widget.value);
     _motion.pointerDown(t, _x(event.localPosition));
   }
 
@@ -348,8 +410,9 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
 
   @override
   bool buildsLike(MorphSlider oldWidget) =>
-      (oldWidget.value == widget.value ||
-          widget.value == _motion.reportedValue) &&
+      (oldWidget.value == widget.value || _inSync) &&
+      oldWidget.min == widget.min &&
+      oldWidget.max == widget.max &&
       oldWidget.ticks == widget.ticks &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
       oldWidget.activeTrackColor == widget.activeTrackColor &&

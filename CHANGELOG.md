@@ -45,6 +45,69 @@ no behaviour or pixel change: every rename keeps what the old name did.
   `titleExitShift` are `@internal`: the stack's interactive pop drives
   them.
 
+New capabilities from the API parity audit (phase 2):
+
+- Ambient accent: `MorphWidgetsTheme.tint` (UIKit `tintColor`, SwiftUI
+  `tint(_:)`) replaces the accent of every built-in table that draws
+  one: slider and progress fill, tab bar selection, prominent glass
+  button and bar button, date picker accent and today fill, an alert's
+  preferred action, a list row's icon. An appearance or an explicit
+  color still wins. New `MorphWidgetsThemeScope` installs the theme
+  without a Material `Theme` (a `WidgetsApp` or `CupertinoApp`); the
+  nearer of a scope and a Material theme wins. Appearances of those
+  controls gain `copyWith`.
+- `MorphGlassButton.clear` and `.prominentClear`
+  (`UIButton.Configuration.clearGlass()` / `prominentClearGlass()`):
+  the clear material, untinted or filled with a tint or the accent; the
+  press is the regular button's (not measured apart). New
+  `MorphGlassButton.prominent` / `.style` fields name the variant.
+- `MorphGlassButton.prominent`'s `tint` is optional: without it the
+  button is filled with the accent (new
+  `MorphGlassButtonAppearance.prominentColor`, UIKit
+  `baseBackgroundColor` defaulting to `tintColor`).
+- Glass for app content: `MorphGlassEffect(child, shape, style, tint,
+  interactive)` (SwiftUI `glassEffect(_:in:)`, `UIGlassEffect`). Shapes:
+  stadium (default), circle, uniform rounded rectangle. `interactive`
+  lifts, stretches and glows like a glass button of the same size
+  without taking the child's touches (assumed equal to `.glass()`; not
+  yet measured on its own). Resting regular effects join a
+  `MorphGlassContainer`.
+- Per-surface material: `MorphGlassStyle { regular, clear }`
+  (`UIGlassEffect.Style`) on `MorphGlassSurface.style` and
+  `MorphGlassEffect.style`; `MorphGlassRenderer.material` stays the
+  default of surfaces that pick none. New
+  `MorphGlassButtonAppearance.clearFillColor`, the flat stand-in for
+  clear glass (an approximation, not measured).
+  `MorphGlassContainer.spacing` (fusion of app glass) is not added: the
+  container's joined layer shades members as separate shapes, and fusing
+  them needs the skin's merge law in that layer.
+- Navigation, Navigator 2: `MorphNavigationStack.pages(pages:,
+  onDidRemovePage:)` with `MorphNavigationPage` (slide, or zoom with
+  `from`), the form go_router and other routers drive
+  (`UINavigationController.viewControllers`, SwiftUI
+  `NavigationStack(path:)`).
+- Navigation bar: `MorphBarButton.badge` with the new `MorphBadge`
+  (`.count`, `.string`, `.indicator`; UIKit `UIBarButtonItem.Badge`);
+  `subtitle` / `largeSubtitle` on the scaffold, `subtitle` on the config
+  and `MorphNavigationBar`, `MorphLargeTitle.subtitle`
+  (`UINavigationItem.subtitle` / `largeSubtitle`, new
+  `MorphBarAppearance.subtitleColor`); `backButtonDisplayMode`
+  (`MorphBackButtonDisplayMode.standard / generic / minimal`) and
+  `hidesBackButton` on the scaffold and the config;
+  `MorphLargeTitleDisplayMode.automatic` with
+  `MorphNavigationStack.prefersLargeTitles`. Badge and subtitle geometry
+  are not yet measured on a device (static, by eye); no motion is added.
+- Tab bar: `MorphTabBar.onReselected` reports a tap on the selected tab
+  (scroll to top, pop to root); `MorphTabItem.selectedIcon` (UIKit
+  `selectedImage`) shows inside the lens; `MorphTabItem.badge`
+  (`badgeValue`) takes a `MorphBadge` (geometry not yet measured).
+- Slider: `min` / `max` (UIKit `minimumValue` / `maximumValue`; the
+  measured motion runs in the track's 0 to 1 and the widget maps) and
+  `onChangeStart` (on the thumb's touch down and before a keyboard or
+  screen reader step). `trackConfiguration` (neutral value, enabled
+  range, custom ticks) is not added: its fill and tick looks are not
+  measured; `ticks` stays.
+
 Per-frame work, closer to the native main thread (lifecycle passports,
 tool/ios_reference/spec/lifecycle.md "Closed"):
 

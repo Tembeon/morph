@@ -208,8 +208,48 @@ class MorphDatePickerAppearance {
     wheelColor: Color(0xFFFFFFFF),
   );
 
+  /// Copies this appearance with the given fields replaced.
+  MorphDatePickerAppearance copyWith({
+    Color? labelFillColor,
+    Color? labelColor,
+    Color? accentColor,
+    Color? platterColor,
+    Color? shadowColor,
+    Color? titleColor,
+    Color? weekdayColor,
+    Color? dayColor,
+    Color? todayFillColor,
+    Color? selectedDayColor,
+    Color? selectedDayFillColor,
+    Color? selectedDayTextColor,
+    Color? chevronColor,
+    Color? wheelBandColor,
+    Color? wheelColor,
+    double? wheelFadedOpacity,
+    double? unavailableDayOpacity,
+  }) => MorphDatePickerAppearance(
+    labelFillColor: labelFillColor ?? this.labelFillColor,
+    labelColor: labelColor ?? this.labelColor,
+    accentColor: accentColor ?? this.accentColor,
+    platterColor: platterColor ?? this.platterColor,
+    shadowColor: shadowColor ?? this.shadowColor,
+    titleColor: titleColor ?? this.titleColor,
+    weekdayColor: weekdayColor ?? this.weekdayColor,
+    dayColor: dayColor ?? this.dayColor,
+    todayFillColor: todayFillColor ?? this.todayFillColor,
+    selectedDayColor: selectedDayColor ?? this.selectedDayColor,
+    selectedDayFillColor: selectedDayFillColor ?? this.selectedDayFillColor,
+    selectedDayTextColor: selectedDayTextColor ?? this.selectedDayTextColor,
+    chevronColor: chevronColor ?? this.chevronColor,
+    wheelBandColor: wheelBandColor ?? this.wheelBandColor,
+    wheelColor: wheelColor ?? this.wheelColor,
+    wheelFadedOpacity: wheelFadedOpacity ?? this.wheelFadedOpacity,
+    unavailableDayOpacity: unavailableDayOpacity ?? this.unavailableDayOpacity,
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// [accentColor] and, at the table's own opacity, its [todayFillColor].
   static MorphDatePickerAppearance resolve(
     BuildContext context,
     MorphDatePickerAppearance? explicit,
@@ -219,6 +259,10 @@ class MorphDatePickerAppearance {
     themed: (theme) => theme.datePicker,
     light: light,
     dark: dark,
+    tinted: (table, tint) => table.copyWith(
+      accentColor: tint,
+      todayFillColor: tint.withValues(alpha: table.todayFillColor.a),
+    ),
   );
 }
 

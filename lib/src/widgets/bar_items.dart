@@ -27,6 +27,7 @@ import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
+import 'package:morph/src/widgets/badge.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// One button of a glass bar: a label or an icon.
@@ -50,6 +51,7 @@ class MorphBarButton {
     this.semanticLabel,
     this.menu,
     this.enabled = true,
+    this.badge,
   }) : assert(label != null || icon != null, 'a label or an icon'),
        back = false;
 
@@ -67,6 +69,7 @@ class MorphBarButton {
     this.enabled = true,
     this.id = 'morph.back',
   }) : icon = null,
+       badge = null,
        back = true;
 
   /// The identity of the button across item changes: UIKit's explicit
@@ -90,6 +93,11 @@ class MorphBarButton {
 
   /// Whether this is a back button.
   final bool back;
+
+  /// The badge at the top trailing corner of the button's content
+  /// (UIKit `UIBarButtonItem.badge`, iOS 26), or null; see [MorphBadge]
+  /// for what is not yet measured.
+  final MorphBadge? badge;
 
   /// The rows of the button's menu, or null for a button without one.
   ///
@@ -137,6 +145,7 @@ class MorphBarButton {
       other.semanticLabel == semanticLabel &&
       other.back == back &&
       other.enabled == enabled &&
+      other.badge == badge &&
       listEquals(other.menu, menu);
 
   @override
@@ -148,6 +157,7 @@ class MorphBarButton {
     semanticLabel,
     back,
     enabled,
+    badge,
     menu == null ? null : Object.hashAll(menu!),
   );
 }
@@ -430,6 +440,7 @@ class MorphBarAppearance {
     this.prominentColor = const Color(0xFF007AFF),
     this.prominentForegroundColor = const Color(0xFFFFFFFF),
     this.titleColor = const Color(0xFF000000),
+    this.subtitleColor = const Color(0x993C3C43),
     this.disabledIconColor = const Color(0x55000000),
     this.disabledLabelColor = const Color(0x19000000),
     this.disabledProminentColor = const Color(0xFFD1D1D6),
@@ -455,6 +466,9 @@ class MorphBarAppearance {
 
   /// The color of the bar's titles.
   final Color titleColor;
+
+  /// The color of the navigation bar's subtitles: secondaryLabel.
+  final Color subtitleColor;
 
   /// The color of a disabled plain button's icon and back chevron.
   ///
@@ -486,6 +500,7 @@ class MorphBarAppearance {
     foregroundColor: Color(0xFFFFFFFF),
     prominentColor: Color(0xFF0A84FF),
     titleColor: Color(0xFFFFFFFF),
+    subtitleColor: Color(0x99EBEBF5),
     disabledIconColor: Color(0x3CFFFFFF),
     disabledLabelColor: Color(0x12FFFFFF),
     disabledProminentColor: Color(0xFF3A3A3C),
@@ -501,6 +516,7 @@ class MorphBarAppearance {
       other.prominentColor == prominentColor &&
       other.prominentForegroundColor == prominentForegroundColor &&
       other.titleColor == titleColor &&
+      other.subtitleColor == subtitleColor &&
       other.disabledIconColor == disabledIconColor &&
       other.disabledLabelColor == disabledLabelColor &&
       other.disabledProminentColor == disabledProminentColor;
@@ -514,23 +530,55 @@ class MorphBarAppearance {
     prominentColor,
     prominentForegroundColor,
     titleColor,
+    subtitleColor,
     disabledIconColor,
     disabledLabelColor,
     disabledProminentColor,
   );
 
+  /// Copies this appearance with the given fields replaced.
+  MorphBarAppearance copyWith({
+    Color? capsuleColor,
+    Color? rimColor,
+    Color? shadowColor,
+    Color? foregroundColor,
+    Color? prominentColor,
+    Color? prominentForegroundColor,
+    Color? titleColor,
+    Color? subtitleColor,
+    Color? disabledIconColor,
+    Color? disabledLabelColor,
+    Color? disabledProminentColor,
+  }) => MorphBarAppearance(
+    capsuleColor: capsuleColor ?? this.capsuleColor,
+    rimColor: rimColor ?? this.rimColor,
+    shadowColor: shadowColor ?? this.shadowColor,
+    foregroundColor: foregroundColor ?? this.foregroundColor,
+    prominentColor: prominentColor ?? this.prominentColor,
+    prominentForegroundColor:
+        prominentForegroundColor ?? this.prominentForegroundColor,
+    titleColor: titleColor ?? this.titleColor,
+    subtitleColor: subtitleColor ?? this.subtitleColor,
+    disabledIconColor: disabledIconColor ?? this.disabledIconColor,
+    disabledLabelColor: disabledLabelColor ?? this.disabledLabelColor,
+    disabledProminentColor:
+        disabledProminentColor ?? this.disabledProminentColor,
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// [prominentColor].
   static MorphBarAppearance resolve(
     BuildContext context,
     MorphBarAppearance? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.bar ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveAppearance(
+    context,
+    explicit,
+    themed: (theme) => theme.bar,
+    light: light,
+    dark: dark,
+    tinted: (table, tint) => table.copyWith(prominentColor: tint),
+  );
 }
 
 /// Where a group of a [MorphBarItems] row sits.
@@ -620,6 +668,7 @@ List<MorphPlacedGroup> morphIdentifyBarItems(List<MorphPlacedGroup> groups) {
             semanticLabel: b.semanticLabel,
             menu: b.menu,
             enabled: b.enabled,
+            badge: b.badge,
           );
   }
 
@@ -1119,6 +1168,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       a.semanticLabel == b.semanticLabel &&
       a.back == b.back &&
       a.enabled == b.enabled &&
+      a.badge == b.badge &&
       listEquals(a.menu, b.menu);
 
   void _activate(Object buttonId) => _buttons[buttonId]?.onPressed?.call();
@@ -1991,6 +2041,7 @@ class _ButtonKey {
     button.semanticLabel,
     button.back,
     button.enabled,
+    button.badge,
   );
 }
 
@@ -2339,16 +2390,19 @@ class _ButtonContent extends StatelessWidget {
         ),
       );
     }
-    return Center(
-      child:
-          text ??
-          IconTheme.merge(
-            data: IconThemeData(color: iconColor, size: metrics.iconSize),
-            child: SizedBox.square(
-              dimension: metrics.iconSize,
-              child: Center(child: button.icon),
-            ),
+    final Widget content =
+        text ??
+        IconTheme.merge(
+          data: IconThemeData(color: iconColor, size: metrics.iconSize),
+          child: SizedBox.square(
+            dimension: metrics.iconSize,
+            child: Center(child: button.icon),
           ),
+        );
+    return Center(
+      child: button.badge == null
+          ? content
+          : MorphBadged(badge: button.badge, child: content),
     );
   }
 }

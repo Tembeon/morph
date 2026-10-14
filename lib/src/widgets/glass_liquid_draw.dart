@@ -22,16 +22,25 @@ import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 
+MorphGlassMaterial _materialOf(
+  MorphGlassRenderer renderer,
+  MorphGlassSurface surface,
+) => switch (surface.style) {
+  null => renderer.material,
+  MorphGlassStyle.regular => MorphGlassMaterial.regular,
+  MorphGlassStyle.clear => MorphGlassMaterial.clear,
+};
+
 LiquidGlassSettings _preset(
   MorphGlassRenderer renderer,
-  Brightness brightness,
-) => switch (renderer.material) {
+  MorphGlassSurface surface,
+) => switch (_materialOf(renderer, surface)) {
   MorphGlassMaterial.regular => LiquidGlassSettings(
     frost: LiquidGlassSettings.ios27RegularFrost(renderer.tint),
     tintAmount: renderer.tint,
   ),
   MorphGlassMaterial.toolbar => LiquidGlassSettings.ios27Toolbar(
-    brightness: brightness,
+    brightness: surface.brightness,
     tintAmount: renderer.tint,
   ),
   MorphGlassMaterial.clear => LiquidGlassSettings.ios27Clear(
@@ -47,7 +56,7 @@ LiquidGlassSettings morphLiquidSettings(
   MorphGlassRenderer renderer,
   MorphGlassSurface surface,
 ) {
-  final preset = _preset(renderer, surface.brightness);
+  final preset = _preset(renderer, surface);
   final optics = surface.optics;
   final lift = surface.lift.clamp(0.0, 1.0);
   final frosted =
@@ -88,7 +97,7 @@ LiquidGlassAppearance morphLiquidAppearance(
   MorphGlassSurface surface,
 ) => MorphGlassRenderer.floats(surface.kind)
     ? const LiquidGlassAppearance()
-    : (switch (renderer.material) {
+    : (switch (_materialOf(renderer, surface)) {
         MorphGlassMaterial.regular => LiquidGlassAppearance.ios27Regular(
           brightness: surface.brightness,
           tint: surface.tint ?? surface.color,

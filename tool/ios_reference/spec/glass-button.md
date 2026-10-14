@@ -90,7 +90,11 @@ Scenes `gb<W>x<H>`, `gbp<W>x<H>` (prominent); `PROBE_TINT`. Device plan
 
 ## morph
 
-`MorphGlassButton` and `MorphGlassButton.prominent(tint:)` (`padding`, `minSize`), `MorphGlassButtonAppearance`,
+`MorphGlassButton`, `MorphGlassButton.prominent(tint:)` (tint defaults to the
+accent, `MorphGlassButtonAppearance.prominentColor` / `MorphWidgetsTheme.tint`),
+`.clear` and `.prominentClear` (the liquid tier's fitted clear material; the
+press is the regular button's, NOT measured apart; flat stand-in
+`clearFillColor` is an approximation) (`padding`, `minSize`), `MorphGlassButtonAppearance`,
 `MorphGlassButtonMotion` (`reducedMotion`) (glass_button.dart) on
 `MorphFlexInteraction` (flex_interaction.dart, `glows: true`). Tests:
 controls_test (hold and drag-off replays, simulator and device),
@@ -111,7 +115,9 @@ the lift.
 
 ## API gaps
 
-- Clear glass variants (`clearGlass`, `prominentClearGlass`) as a style.
+- Clear glass variants exist as constructors; their press and their rim on
+  the device are not recorded (capture `clearGlass` / `prominentClearGlass`
+  scenes to confirm the press equals `.glass()`).
 - `buttonSize` presets and `cornerStyle` (morph: capsule only, padding).
 - Subtitle, image placement, activity indicator, selection toggling.
 - `menu` / `showsMenuAsPrimaryAction` on an arbitrary glass button (morph

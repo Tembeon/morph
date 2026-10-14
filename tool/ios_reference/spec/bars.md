@@ -349,20 +349,31 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 
 ## API gaps
 
-- Subtitles / large subtitles, title menu (`titleMenuProvider`),
+- Subtitles / large subtitles exist as API (`subtitle`, `largeSubtitle`)
+  with static geometry by eye: 13 pt secondaryLabel under the inline
+  title, 15 pt under the large title in a 22 pt band; NOT measured, and
+  the title swap does not animate them apart. Title menu (`titleMenuProvider`),
   `titleView`, `UINavigationItemStyle` browser / editor (center groups),
   `pinnedTrailingGroup`, overflow menu (`additionalOverflowItems`).
-- `largeTitleDisplayMode` inline / never variants per page.
-- Bar button badges; `hidesSharedBackground` (an item outside the capsule);
+- `largeTitleDisplayMode` inline variant (automatic / always / never exist;
+  automatic follows the page below, the first page
+  `MorphNavigationStack.prefersLargeTitles`).
+- Bar button badges exist (`MorphBarButton.badge`, `MorphBadge`): a 17 pt
+  systemRed capsule with 12 pt semibold text at the icon's top trailing
+  corner, a 10 pt dot; geometry and appear / change motion NOT measured.
+  `hidesSharedBackground` (an item outside the capsule);
   `sharesBackground = false`; fixed / flexible spaces as API.
 - Search bar integration placements in the nav bar / toolbar (morph has only
   the bottom search toolbar).
-- `backButtonDisplayMode` (generic / minimal), `hidesBackButton`.
+- `backButtonDisplayMode` (generic / minimal) and `hidesBackButton` exist;
+  UIKit's automatic shortening of a long back title to "Back" and then
+  the chevron when space runs out is not reproduced.
 
 ## Implementation notes (morph side, moved from CLAUDE.md)
 
 - `MorphNavigationStack` keeps ONE bar + toolbar over its Navigator. The
-  Navigator widget is built once (rebuilding it calls changedExternalState
+  Navigator widget is built once (`MorphNavigationStack.pages`: again only
+  when the list of pages changes; rebuilding it calls changedExternalState
   on every route and the pages' config publishing looped); scaffolds
   publish a signature-compared `MorphNavigationConfig`. A pushed screen
   publishes one frame after the push: the stack keeps showing the screen

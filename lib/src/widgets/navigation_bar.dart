@@ -48,6 +48,18 @@ abstract final class MorphNavigationBarMetrics {
   /// The size of the inline title.
   static const double titleSize = 17;
 
+  /// The size of the inline subtitle under the inline title: footnote by
+  /// eye, not yet measured on a device.
+  static const double subtitleSize = 13;
+
+  /// The size of the subtitle under a large title: subheadline by eye,
+  /// not yet measured on a device.
+  static const double largeSubtitleSize = 15;
+
+  /// The height a large subtitle adds to the large title area (not yet
+  /// measured on a device).
+  static const double largeSubtitleHeight = 22;
+
   /// The least space between the inline title and the bar's buttons: the
   /// title stays centered unless it would come closer, then it moves away
   /// from them (`titleControlPadding`).
@@ -67,6 +79,16 @@ TextStyle morphLargeTitleStyle(Color color) => MorphTypography.resolve(
 TextStyle morphInlineTitleStyle(Color color) => MorphTypography.resolve(
   MorphTypography.title.copyWith(
     fontSize: MorphNavigationBarMetrics.titleSize,
+    height: MorphBarMetrics.lineHeight,
+    color: color,
+  ),
+);
+
+/// The style of a navigation bar's inline subtitle, [color] usually the
+/// appearance's [MorphBarAppearance.subtitleColor].
+TextStyle morphInlineSubtitleStyle(Color color) => MorphTypography.resolve(
+  MorphTypography.body.copyWith(
+    fontSize: MorphNavigationBarMetrics.subtitleSize,
     height: MorphBarMetrics.lineHeight,
     color: color,
   ),
@@ -125,6 +147,7 @@ class MorphNavigationBar extends StatefulWidget {
   /// Creates a navigation bar.
   const MorphNavigationBar({
     this.title,
+    this.subtitle,
     this.leading = const [],
     this.trailing = const [],
     this.titleVisible = true,
@@ -144,6 +167,11 @@ class MorphNavigationBar extends StatefulWidget {
 
   /// The inline title.
   final String? title;
+
+  /// The line under the inline title (UIKit `UINavigationItem.subtitle`,
+  /// iOS 26), or null. It shows and hides with the title; its size and
+  /// spacing are not yet measured on a device.
+  final String? subtitle;
 
   /// The groups at the leading edge, in reading order, such as a back
   /// button (UIKit `leftBarButtonItems`).
@@ -226,25 +254,40 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
     1,
   );
   String? _outgoing;
+  String? _outgoingSubtitle;
   double _exitShift = 0;
-  final Map<(String, TextScaler, TextDirection), Size> _titleSizes = {};
+  final Map<(String, String?, TextScaler, TextDirection), Size> _titleSizes =
+      {};
 
-  Size _titleSize(String title, TextScaler scaler, TextDirection direction) {
+  Size _titleSize(
+    String title,
+    String? subtitle,
+    TextScaler scaler,
+    TextDirection direction,
+  ) {
     if (_titleSizes.length > 8) _titleSizes.clear();
-    return _titleSizes.putIfAbsent((title, scaler, direction), () {
-      final painter = TextPainter(
-        text: TextSpan(
-          text: title,
-          style: morphInlineTitleStyle(const Color(0xFF000000)),
-        ),
-        textDirection: direction,
-        textScaler: scaler,
-        maxLines: 1,
+    return _titleSizes.putIfAbsent((title, subtitle, scaler, direction), () {
+      Size measure(String text, TextStyle style) {
+        final painter = TextPainter(
+          text: TextSpan(text: text, style: style),
+          textDirection: direction,
+          textScaler: scaler,
+          maxLines: 1,
+        );
+        painter.layout();
+        final size = painter.size;
+        painter.dispose();
+        return size;
+      }
+
+      const black = Color(0xFF000000);
+      final size = measure(title, morphInlineTitleStyle(black));
+      if (subtitle == null) return size;
+      final below = measure(subtitle, morphInlineSubtitleStyle(black));
+      return Size(
+        math.max(size.width, below.width),
+        size.height + below.height,
       );
-      painter.layout();
-      final size = painter.size;
-      painter.dispose();
-      return size;
     });
   }
 
@@ -277,6 +320,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
         oldWidget.title != null &&
         !morphReducedMotionOf(context)) {
       _outgoing = oldWidget.titleVisible ? oldWidget.title : null;
+      _outgoingSubtitle = oldWidget.subtitle;
       _exitShift = widget.titleExitShift;
       _swap.setState(clock, 0, MorphNavigationTuning.pushVelocity);
       _swap.retarget(clock, 1);
@@ -359,7 +403,14 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                   if (_outgoing case final outgoing?)
                     _InlineTitle(
                       title: outgoing,
-                      size: _titleSize(outgoing, scaler, direction),
+                      subtitle: _outgoingSubtitle,
+                      subtitleColor: style.subtitleColor,
+                      size: _titleSize(
+                        outgoing,
+                        _outgoingSubtitle,
+                        scaler,
+                        direction,
+                      ),
                       scaler: scaler,
                       opacity: () => 1 - _swapProgress,
                       shift: () => _exitShift * width * _swapProgress,
@@ -373,7 +424,14 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                   if (widget.title case final title?)
                     _InlineTitle(
                       title: title,
-                      size: _titleSize(title, scaler, direction),
+                      subtitle: widget.subtitle,
+                      subtitleColor: style.subtitleColor,
+                      size: _titleSize(
+                        title,
+                        widget.subtitle,
+                        scaler,
+                        direction,
+                      ),
                       scaler: scaler,
                       opacity: () => _swapProgress,
                       shift: () => 0,
@@ -441,6 +499,8 @@ bool _listEquals(List<double> a, List<double> b) {
 class _InlineTitle extends StatefulWidget {
   const _InlineTitle({
     required this.title,
+    required this.subtitle,
+    required this.subtitleColor,
     required this.size,
     required this.scaler,
     required this.opacity,
@@ -454,6 +514,8 @@ class _InlineTitle extends StatefulWidget {
   });
 
   final String title;
+  final String? subtitle;
+  final Color subtitleColor;
   final Size size;
   final TextScaler scaler;
   final double Function() opacity;
@@ -541,6 +603,22 @@ class _InlineTitleState extends State<_InlineTitle> {
         textScaler: widget.scaler,
         style: style,
       );
+      if (widget.subtitle case final subtitle?) {
+        out = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            out,
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              textScaler: widget.scaler,
+              style: morphInlineSubtitleStyle(widget.subtitleColor),
+            ),
+          ],
+        );
+      }
       if (widget.motion == null) out = ExcludeSemantics(child: out);
       out = morphLiveVeiledGlyphs(
         live: frames,
@@ -583,10 +661,25 @@ class _InlineTitleState extends State<_InlineTitle> {
 /// out or fully under, as UIKit does.
 class MorphLargeTitle extends StatelessWidget {
   /// Creates a large title.
-  const MorphLargeTitle(this.title, {this.appearance, super.key});
+  const MorphLargeTitle(
+    this.title, {
+    this.subtitle,
+    this.appearance,
+    super.key,
+  });
 
   /// The title.
   final String title;
+
+  /// The line under the large title (UIKit `largeSubtitle`, iOS 26), or
+  /// null. It adds [MorphNavigationBarMetrics.largeSubtitleHeight] to the
+  /// area; its size and spacing are not yet measured on a device.
+  final String? subtitle;
+
+  /// The height of the large title area, with or without a [subtitle].
+  static double extentFor({required bool subtitle}) =>
+      MorphNavigationBarMetrics.largeTitleHeight +
+      (subtitle ? MorphNavigationBarMetrics.largeSubtitleHeight : 0);
 
   /// The look; null resolves it from the theme.
   final MorphBarAppearance? appearance;
@@ -594,7 +687,7 @@ class MorphLargeTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final look = MorphBarAppearance.resolve(context, appearance);
-    return Semantics(
+    final head = Semantics(
       header: true,
       child: SizedBox(
         height: MorphNavigationBarMetrics.largeTitleHeight,
@@ -618,6 +711,37 @@ class MorphLargeTitle extends StatelessWidget {
           ),
         ),
       ),
+    );
+    final subtitle = this.subtitle;
+    if (subtitle == null) return head;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        head,
+        SizedBox(
+          height: MorphNavigationBarMetrics.largeSubtitleHeight,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: MorphNavigationBarMetrics.largeTitleInset,
+            ),
+            child: Align(
+              alignment: AlignmentDirectional.topStart,
+              child: Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: MorphTypography.resolve(
+                  MorphTypography.body.copyWith(
+                    fontSize: MorphNavigationBarMetrics.largeSubtitleSize,
+                    color: look.subtitleColor,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

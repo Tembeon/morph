@@ -29,8 +29,18 @@ class MorphProgressViewAppearance {
     activeTrackColor: Color(0xFF0091FF),
   );
 
+  /// Copies this appearance with the given fields replaced.
+  MorphProgressViewAppearance copyWith({
+    Color? inactiveTrackColor,
+    Color? activeTrackColor,
+  }) => MorphProgressViewAppearance(
+    inactiveTrackColor: inactiveTrackColor ?? this.inactiveTrackColor,
+    activeTrackColor: activeTrackColor ?? this.activeTrackColor,
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// [activeTrackColor].
   static MorphProgressViewAppearance resolve(
     BuildContext context,
     MorphProgressViewAppearance? explicit,
@@ -40,6 +50,7 @@ class MorphProgressViewAppearance {
     themed: (theme) => theme.progressView,
     light: light,
     dark: dark,
+    tinted: (table, tint) => table.copyWith(activeTrackColor: tint),
   );
 }
 

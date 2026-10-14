@@ -23,6 +23,18 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
   search capsule. A lens / knob / thumb is an opaque platter at rest and
   clear glass only while lifted.
 - Without a painter, controls draw flat fills.
+- App glass: `MorphGlassEffect` (glass_effect.dart, SwiftUI
+  `glassEffect(_:in:)`) is a glass button's capsule host
+  (`MorphControlCapsule`) with an app shape (stadium, circle, uniform
+  rounded rect), a `MorphGlassStyle` and a tint; `interactive` runs the
+  glass button's flex motion from a raw `Listener`, so the child keeps its
+  touches.
+- Material per surface: `MorphGlassSurface.style` (`MorphGlassStyle.regular`
+  / `.clear`, `UIGlassEffect.Style`) picks the liquid preset for that
+  surface; null keeps the renderer's `material` (regular, toolbar, clear).
+  A glass container admits only members whose settings and appearance
+  match its own, so clear glass keeps its own layer in a regular
+  container.
 
 ## The surfaces channel
 

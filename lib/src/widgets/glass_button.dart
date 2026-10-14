@@ -10,6 +10,7 @@ import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
@@ -200,7 +201,9 @@ class MorphGlassButtonAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphGlassButtonAppearance({
     this.fillColor = const Color(0xD9FFFFFF),
+    this.clearFillColor = const Color(0x40FFFFFF),
     this.rimColor = const Color(0x1F000000),
+    this.prominentColor = const Color(0xFF0088FF),
     this.prominentRimColor = const Color(0x33FFFFFF),
     this.foregroundColor = const Color(0xFF000000),
     this.prominentForegroundColor = const Color(0xFFFFFFFF),
@@ -212,8 +215,17 @@ class MorphGlassButtonAppearance {
   /// The fill of the regular glass.
   final Color fillColor;
 
+  /// The flat stand-in for clear glass without a painter or on the flat
+  /// tier: an approximation, not measured.
+  final Color clearFillColor;
+
   /// The outline of the regular glass.
   final Color rimColor;
+
+  /// The fill of a [MorphGlassButton.prominent] button without its own
+  /// tint: the accent, iOS 27's systemBlue as rendered (UIKit
+  /// `baseBackgroundColor`, which defaults to `tintColor`).
+  final Color prominentColor;
 
   /// The outline of a prominent button.
   final Color prominentRimColor;
@@ -245,15 +257,45 @@ class MorphGlassButtonAppearance {
   /// The dark appearance.
   static const dark = MorphGlassButtonAppearance(
     fillColor: Color(0xB82C2C2E),
+    clearFillColor: Color(0x402C2C2E),
     rimColor: Color(0x33FFFFFF),
+    prominentColor: Color(0xFF0091FF),
     foregroundColor: Color(0xFFFFFFFF),
     shadowColor: Color(0x40000000),
     disabledForegroundColor: Color(0x4CEBEBF5),
     disabledTintColor: Color(0xFF3A3A3C),
   );
 
+  /// Copies this appearance with the given fields replaced.
+  MorphGlassButtonAppearance copyWith({
+    Color? fillColor,
+    Color? clearFillColor,
+    Color? rimColor,
+    Color? prominentColor,
+    Color? prominentRimColor,
+    Color? foregroundColor,
+    Color? prominentForegroundColor,
+    Color? shadowColor,
+    Color? disabledForegroundColor,
+    Color? disabledTintColor,
+  }) => MorphGlassButtonAppearance(
+    fillColor: fillColor ?? this.fillColor,
+    clearFillColor: clearFillColor ?? this.clearFillColor,
+    rimColor: rimColor ?? this.rimColor,
+    prominentColor: prominentColor ?? this.prominentColor,
+    prominentRimColor: prominentRimColor ?? this.prominentRimColor,
+    foregroundColor: foregroundColor ?? this.foregroundColor,
+    prominentForegroundColor:
+        prominentForegroundColor ?? this.prominentForegroundColor,
+    shadowColor: shadowColor ?? this.shadowColor,
+    disabledForegroundColor:
+        disabledForegroundColor ?? this.disabledForegroundColor,
+    disabledTintColor: disabledTintColor ?? this.disabledTintColor,
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// [prominentColor].
   static MorphGlassButtonAppearance resolve(
     BuildContext context,
     MorphGlassButtonAppearance? explicit,
@@ -263,6 +305,7 @@ class MorphGlassButtonAppearance {
     themed: (theme) => theme.glassButton,
     light: light,
     dark: dark,
+    tinted: (table, tint) => table.copyWith(prominentColor: tint),
   );
 }
 
@@ -297,22 +340,60 @@ class MorphGlassButton extends StatefulWidget {
     this.menu,
     this.enabled = true,
     super.key,
-  }) : tint = null;
+  }) : tint = null,
+       prominent = false,
+       style = MorphGlassStyle.regular;
 
   /// Creates a prominent glass button filled with [tint]
   /// (`UIButton.Configuration.prominentGlass()`, its
-  /// `baseBackgroundColor`).
+  /// `baseBackgroundColor`); without one it is filled with the ambient
+  /// accent, [MorphGlassButtonAppearance.prominentColor].
   const MorphGlassButton.prominent({
     required this.child,
     required this.onPressed,
-    required Color this.tint,
+    this.tint,
     this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
     this.minSize = const Size(44, 44),
     this.appearance,
     this.menu,
     this.enabled = true,
     super.key,
-  });
+  }) : prominent = true,
+       style = MorphGlassStyle.regular;
+
+  /// Creates a clear glass button (`UIButton.Configuration.clearGlass()`),
+  /// for buttons over rich media: the clear material, without the regular
+  /// glass's wash. Its label needs contrast of its own over a bright
+  /// backdrop. The press is the regular button's (not measured apart).
+  const MorphGlassButton.clear({
+    required this.child,
+    required this.onPressed,
+    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+    this.minSize = const Size(44, 44),
+    this.appearance,
+    this.menu,
+    this.enabled = true,
+    super.key,
+  }) : tint = null,
+       prominent = false,
+       style = MorphGlassStyle.clear;
+
+  /// Creates a prominent clear glass button filled with [tint], or the
+  /// ambient accent without one
+  /// (`UIButton.Configuration.prominentClearGlass()`). The press is the
+  /// regular button's (not measured apart).
+  const MorphGlassButton.prominentClear({
+    required this.child,
+    required this.onPressed,
+    this.tint,
+    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+    this.minSize = const Size(44, 44),
+    this.appearance,
+    this.menu,
+    this.enabled = true,
+    super.key,
+  }) : prominent = true,
+       style = MorphGlassStyle.clear;
 
   /// The label of the button.
   final Widget child;
@@ -342,9 +423,19 @@ class MorphGlassButton extends StatefulWidget {
   /// primary action, or press a button with [onPressed].
   final List<MorphMenuEntry>? menu;
 
-  /// The fill of a [MorphGlassButton.prominent] button; null for the
-  /// regular glass.
+  /// The fill of a [MorphGlassButton.prominent] button, or null for the
+  /// appearance's [MorphGlassButtonAppearance.prominentColor]; a regular
+  /// button has none.
   final Color? tint;
+
+  /// Whether the glass is filled with a tint
+  /// (`UIButton.Configuration.prominentGlass()` or
+  /// `prominentClearGlass()`).
+  final bool prominent;
+
+  /// The glass material: regular, or clear for [MorphGlassButton.clear]
+  /// and [MorphGlassButton.prominentClear].
+  final MorphGlassStyle style;
 
   /// The space around [child].
   final EdgeInsetsGeometry padding;
@@ -419,6 +510,8 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
       (oldWidget.onPressed == null) == (widget.onPressed == null) &&
       oldWidget.enabled == widget.enabled &&
       oldWidget.tint == widget.tint &&
+      oldWidget.prominent == widget.prominent &&
+      oldWidget.style == widget.style &&
       oldWidget.padding == widget.padding &&
       oldWidget.minSize == widget.minSize &&
       oldWidget.appearance == widget.appearance &&
@@ -436,11 +529,14 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
     final glass = MorphGlassScope.maybeOf(context);
     _motion.reducedMotion = morphReducedMotionOf(context);
     final enabled = _enabled;
-    final tint = widget.tint == null
+    final tint = !widget.prominent
         ? null
         : enabled
-        ? widget.tint
+        ? widget.tint ?? style.prominentColor
         : style.disabledTintColor;
+    final clear = widget.style == MorphGlassStyle.clear;
+    final fill = clear ? style.clearFillColor : style.fillColor;
+    final glassTint = clear && tint == null ? const Color(0x00000000) : null;
     final foreground = !enabled
         ? style.disabledForegroundColor
         : tint == null
@@ -471,7 +567,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
     final menu = widget.menu;
     if (menu != null) {
       final hold = widget.onPressed != null;
-      final color = tint ?? style.fillColor;
+      final color = tint ?? fill;
       final rim = tint == null ? style.rimColor : style.prominentRimColor;
       return RepaintBoundary(
         child: MorphMenuSource(
@@ -486,6 +582,8 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
             painter: glass,
             frames: frames,
             color: color,
+            tint: glassTint,
+            style: clear ? MorphGlassStyle.clear : null,
             rim: rim,
             shadow: style.shadowColor,
             brightness: brightness,
@@ -520,7 +618,9 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
             child: MorphControlCapsule(
               painter: glass,
               frames: frames,
-              color: tint ?? style.fillColor,
+              color: tint ?? fill,
+              tint: glassTint,
+              style: clear ? MorphGlassStyle.clear : null,
               rim: tint == null ? style.rimColor : style.prominentRimColor,
               shadow: style.shadowColor,
               brightness: brightness,
@@ -553,8 +653,23 @@ class MorphControlCapsule extends StatelessWidget {
     this.lift,
     this.glow,
     this.still,
+    this.shape = morphCapsuleShape,
+    this.style,
+    this.tint,
     super.key,
   });
+
+  /// The outline of the surface in a box of the given size: a capsule by
+  /// default.
+  final RRect Function(Size size) shape;
+
+  /// The material the glass asks its painter for, or null for the
+  /// painter's default.
+  final MorphGlassStyle? style;
+
+  /// The glass tint handed to the painter apart from the flat [color], or
+  /// null to tint with [color].
+  final Color? tint;
 
   /// Whether the capsule and every transform the control applies above it
   /// are at rest now, or null when the control does not tell.
@@ -598,6 +713,7 @@ class MorphControlCapsule extends StatelessWidget {
     if (glass == null) {
       return CustomPaint(
         painter: _CapsulePainter(
+          shape: shape,
           frames: frames,
           color: color,
           rim: rim,
@@ -613,7 +729,7 @@ class MorphControlCapsule extends StatelessWidget {
         Positioned.fill(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final shape = _capsule(constraints.biggest);
+              final shape = this.shape(constraints.biggest);
               return MorphGlassLayer(
                 painter: glass,
                 frames: frames,
@@ -623,6 +739,8 @@ class MorphControlCapsule extends StatelessWidget {
                     kind: MorphGlassKind.button,
                     shape: shape,
                     color: color,
+                    tint: tint,
+                    style: style,
                     brightness: brightness,
                     enabled: enabled,
                     lift: lift?.call() ?? 0,
@@ -639,13 +757,16 @@ class MorphControlCapsule extends StatelessWidget {
   }
 }
 
-RRect _capsule(Size size) => RRect.fromRectAndRadius(
+/// A capsule filling a box of [size].
+@internal
+RRect morphCapsuleShape(Size size) => RRect.fromRectAndRadius(
   Offset.zero & size,
   Radius.circular(math.min(size.width, size.height) / 2),
 );
 
 class _CapsulePainter extends CustomPainter {
   _CapsulePainter({
+    required this.shape,
     required Listenable frames,
     required this.color,
     required this.rim,
@@ -653,6 +774,7 @@ class _CapsulePainter extends CustomPainter {
     required this.glow,
   }) : super(repaint: frames);
 
+  final RRect Function(Size size) shape;
   final Color color;
   final Color rim;
   final Color shadow;
@@ -660,7 +782,7 @@ class _CapsulePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final shape = _capsule(size);
+    final shape = this.shape(size);
     final shadowPaint = Paint();
     shadowPaint.color = shadow;
     shadowPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
@@ -679,6 +801,7 @@ class _CapsulePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CapsulePainter oldDelegate) =>
+      oldDelegate.shape != shape ||
       oldDelegate.color != color ||
       oldDelegate.rim != rim ||
       oldDelegate.shadow != shadow ||

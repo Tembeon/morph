@@ -171,18 +171,49 @@ class MorphAlertAppearance {
     disabledLabelColor: Color(0x4CEBEBF5),
   );
 
+  /// Copies this appearance with the given fields replaced.
+  MorphAlertAppearance copyWith({
+    Color? platterColor,
+    Color? dimmingColor,
+    Color? shadowColor,
+    Color? titleColor,
+    Color? messageColor,
+    Color? buttonColor,
+    Color? labelColor,
+    Color? destructiveColor,
+    Color? preferredColor,
+    Color? preferredLabelColor,
+    Color? placeholderColor,
+    Color? disabledLabelColor,
+  }) => MorphAlertAppearance(
+    platterColor: platterColor ?? this.platterColor,
+    dimmingColor: dimmingColor ?? this.dimmingColor,
+    shadowColor: shadowColor ?? this.shadowColor,
+    titleColor: titleColor ?? this.titleColor,
+    messageColor: messageColor ?? this.messageColor,
+    buttonColor: buttonColor ?? this.buttonColor,
+    labelColor: labelColor ?? this.labelColor,
+    destructiveColor: destructiveColor ?? this.destructiveColor,
+    preferredColor: preferredColor ?? this.preferredColor,
+    preferredLabelColor: preferredLabelColor ?? this.preferredLabelColor,
+    placeholderColor: placeholderColor ?? this.placeholderColor,
+    disabledLabelColor: disabledLabelColor ?? this.disabledLabelColor,
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// [preferredColor].
   static MorphAlertAppearance resolve(
     BuildContext context,
     MorphAlertAppearance? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.alert ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveAppearance(
+    context,
+    explicit,
+    themed: (theme) => theme.alert,
+    light: light,
+    dark: dark,
+    tinted: (table, tint) => table.copyWith(preferredColor: tint),
+  );
 }
 
 /// Shows an alert that moves like an iOS 27 UIAlertController, and

@@ -125,11 +125,65 @@ class _GlassPageState extends State<GlassPage> {
           MorphTabBar(
             items: const [
               MorphTabItem(icon: Icons.photo_outlined, label: 'Library'),
-              MorphTabItem(icon: Icons.favorite_border, label: 'For You'),
+              MorphTabItem(
+                icon: Icons.favorite_border,
+                selectedIcon: Icons.favorite,
+                label: 'For You',
+                badge: MorphBadge.count(3),
+              ),
               MorphTabItem(icon: Icons.search, label: 'Search'),
             ],
             selected: _tab,
             onChanged: on((int i) => setState(() => _tab = i)),
+          ),
+          const SizedBox(height: 28),
+          Wrap(
+            alignment: .center,
+            spacing: 16,
+            runSpacing: 12,
+            children: [
+              MorphGlassButton.clear(
+                onPressed: on(() {}),
+                child: const Text('Clear'),
+              ),
+              MorphGlassButton.prominentClear(
+                onPressed: on(() {}),
+                child: const Text('Prominent clear'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          const Wrap(
+            alignment: .center,
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              MorphGlassEffect(
+                interactive: true,
+                child: Padding(
+                  padding: .symmetric(horizontal: 18, vertical: 12),
+                  child: Text('Regular'),
+                ),
+              ),
+              MorphGlassEffect(
+                style: .clear,
+                interactive: true,
+                child: Padding(
+                  padding: .symmetric(horizontal: 18, vertical: 12),
+                  child: Text('Clear'),
+                ),
+              ),
+              MorphGlassEffect(
+                shape: RoundedRectangleBorder(
+                  borderRadius: .all(.circular(14)),
+                ),
+                tint: Color(0xFFFF9500),
+                child: Padding(
+                  padding: .symmetric(horizontal: 18, vertical: 12),
+                  child: Text('Tinted'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

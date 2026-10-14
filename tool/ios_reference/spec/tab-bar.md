@@ -190,7 +190,11 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
 
 ## API gaps
 
-- Badges (`badgeValue`), subtitles, tab groups, hidden tabs.
+- Badges exist (`MorphTabItem.badge`, `MorphBadge`) with geometry by eye
+  (17 pt systemRed capsule at the glyph's top trailing corner), NOT
+  measured; `selectedImage` exists (`selectedIcon`, drawn inside the lens);
+  reselection (`onReselected`) fires on release, its timing not measured.
+  Subtitles, tab groups, hidden tabs.
 - `tabBarMinimizeBehavior` (bar collapsing on scroll) - not measured; the probe can already set it (`w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
 - `bottomAccessory` (mini player above the bar) - not measured.
 - `prominentTabIdentifier`, leading/trailing accessory views.

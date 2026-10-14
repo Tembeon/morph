@@ -244,12 +244,16 @@ ports `_UIFlexInteractionSpec` (lens-and-flex.md).
 
 ## Cross-cutting policy
 
-Theming: explicit `appearance` > `MorphWidgetsTheme` (a ThemeExtension,
-one appearance per control) > the appearance class's `light`/`dark`
-table for `morphBrightnessOf` (Theme, else MediaQuery platform
-brightness, else light). A ThemeData is one brightness, so a dark
-appearance goes in the dark theme. An explicit color parameter still
-beats the appearance.
+Theming: explicit `appearance` > `MorphWidgetsTheme` (one appearance per
+control) > the appearance class's `light`/`dark` table for
+`morphBrightnessOf` (Theme, else MediaQuery platform brightness, else
+light), with its accent replaced by `MorphWidgetsTheme.tint` (UIKit
+`tintColor`). The theme is a Material ThemeExtension or a
+`MorphWidgetsThemeScope` (no Material `Theme` needed); the nearer one
+wins. A ThemeData is one brightness, so a dark appearance goes in the
+dark theme. An explicit color parameter still beats the appearance.
+`morphResolveAppearance` builds a tinted table once per (table, tint), so
+a control comparing its resolved appearance by identity sees no change.
 
 Naming: a look table (colors and metrics) is `Morph<Control>Appearance`
 and every widget takes it as `appearance:` (UIKit precedent:

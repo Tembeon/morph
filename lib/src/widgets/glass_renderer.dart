@@ -40,7 +40,22 @@ enum MorphGlassTier {
   liquid,
 }
 
-/// The iOS 27 glass materials the liquid tier is fitted to.
+/// The two Liquid Glass materials an app picks per surface
+/// (`UIGlassEffect.Style`, SwiftUI `Glass.regular` / `Glass.clear`).
+enum MorphGlassStyle {
+  /// The regular material: a light wash that keeps content on it legible
+  /// over any backdrop. A [MorphGlassRenderer] draws it with its
+  /// [MorphGlassRenderer.material] preset.
+  regular,
+
+  /// The clear material, for glass over rich media (photos, video, maps):
+  /// no wash and the full bevel on every shape. Content on it needs its own
+  /// contrast, as UIKit advises.
+  clear,
+}
+
+/// The iOS 27 glass materials the liquid tier is fitted to, a renderer's
+/// preset for the surfaces that pick no [MorphGlassStyle] of their own.
 enum MorphGlassMaterial {
   /// The regular material of `.glass` buttons and controls.
   regular,
@@ -110,7 +125,9 @@ class MorphGlassRenderer extends MorphGlassPainter {
   /// The quality tier asked for; see [effectiveTier] for the one drawn.
   final MorphGlassTier tier;
 
-  /// The material preset of the liquid tier.
+  /// The material preset of the liquid tier for every surface without
+  /// its own [MorphGlassSurface.style]; a surface that picks a
+  /// [MorphGlassStyle] draws that material instead.
   final MorphGlassMaterial material;
 
   /// The factor on the preset's frost.

@@ -6,6 +6,7 @@ import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
+import 'package:morph/src/widgets/badge.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
@@ -25,11 +26,23 @@ class MorphTabItem {
   const MorphTabItem({
     required this.icon,
     required this.label,
+    this.selectedIcon,
+    this.badge,
     this.enabled = true,
   });
 
   /// The item's glyph.
   final IconData icon;
+
+  /// The glyph the item shows inside the selection lens (UIKit
+  /// `UITabBarItem.selectedImage`), or null for [icon]: a tab half under
+  /// the lens shows each glyph on its side of the lens outline.
+  final IconData? selectedIcon;
+
+  /// The badge at the top trailing corner of the glyph (UIKit
+  /// `UITabBarItem.badgeValue`, SwiftUI `badge(_:)`), or null; see
+  /// [MorphBadge] for what is not yet measured.
+  final MorphBadge? badge;
 
   /// The item's title.
   final String label;
@@ -80,6 +93,7 @@ class MorphTabBar extends StatefulWidget {
     required this.items,
     required this.selected,
     required this.onChanged,
+    this.onReselected,
     this.appearance,
     super.key,
   });
@@ -94,6 +108,14 @@ class MorphTabBar extends StatefulWidget {
   /// every tab ([MorphTabItem.enabled]): the bar keeps its look and still
   /// swells under a finger, but nothing selects.
   final ValueChanged<int>? onChanged;
+
+  /// Called with the selected tab's index when the user taps it again
+  /// (UIKit's `tabBarController(_:didSelect:)` for the selected tab),
+  /// where an app scrolls the tab's content to the top or pops it to its
+  /// root. A touch that starts and lifts on the selected tab reports it,
+  /// as do Space, Enter and a screen reader's activation; when it fires
+  /// during the release is not measured.
+  final ValueChanged<int>? onReselected;
 
   /// The colors of the bar; null resolves them from the theme.
   final MorphTabBarAppearance? appearance;
@@ -163,8 +185,30 @@ class MorphTabBarAppearance {
     color: Color(0xFFFAFAFA),
   );
 
+  /// Copies this appearance with the given fields replaced.
+  MorphTabBarAppearance copyWith({
+    Color? barColor,
+    Color? shadowColor,
+    Color? platterColor,
+    Color? liftedLensColor,
+    Color? lensBorderColor,
+    Color? selectedColor,
+    Color? color,
+    double? blurSigma,
+  }) => MorphTabBarAppearance(
+    barColor: barColor ?? this.barColor,
+    shadowColor: shadowColor ?? this.shadowColor,
+    platterColor: platterColor ?? this.platterColor,
+    liftedLensColor: liftedLensColor ?? this.liftedLensColor,
+    lensBorderColor: lensBorderColor ?? this.lensBorderColor,
+    selectedColor: selectedColor ?? this.selectedColor,
+    color: color ?? this.color,
+    blurSigma: blurSigma ?? this.blurSigma,
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// [selectedColor].
   static MorphTabBarAppearance resolve(
     BuildContext context,
     MorphTabBarAppearance? explicit,
@@ -174,6 +218,7 @@ class MorphTabBarAppearance {
     themed: (theme) => theme.tabBar,
     light: light,
     dark: dark,
+    tinted: (table, tint) => table.copyWith(selectedColor: tint),
   );
 }
 
@@ -326,6 +371,10 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
 
   void _select(int index) {
     if (!_selectable(index)) return;
+    if (index == motion.selected) {
+      widget.onReselected?.call(index);
+      return;
+    }
     motion.select(clock, index);
     wake();
   }
@@ -385,8 +434,13 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
   @override
   bool get controlEnabled => widget.items.isNotEmpty;
 
+  int? _downSlot;
+  int? _downSelected;
+
   @override
   void onControlDown(double t, PointerDownEvent event) {
+    _downSlot = motion.slotAt(trackPosition(event.localPosition));
+    _downSelected = motion.selected;
     super.onControlDown(t, event);
     if (_selectable(motion.slotAt(trackPosition(event.localPosition)))) {
       _glow.pointerDown(clock, event.localPosition);
@@ -401,8 +455,20 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
 
   @override
   void onControlUp(double t, PointerUpEvent event) {
+    final before = _downSelected;
+    final down = _downSlot;
+    _downSlot = null;
+    _downSelected = null;
     super.onControlUp(t, event);
     _glow.pointerUp(clock);
+    final up = motion.slotAt(trackPosition(event.localPosition));
+    if (down == before &&
+        up == before &&
+        motion.selected == before &&
+        before != null &&
+        _selectable(before)) {
+      widget.onReselected?.call(before);
+    }
   }
 
   @override
@@ -455,6 +521,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       _sameItems(oldWidget.items, widget.items) &&
       oldWidget.selected == widget.selected &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
+      (oldWidget.onReselected == null) == (widget.onReselected == null) &&
       oldWidget.appearance == widget.appearance;
 
   static bool _sameItems(List<MorphTabItem> a, List<MorphTabItem> b) {
@@ -464,7 +531,11 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       final x = a[i];
       final y = b[i];
       if (identical(x, y)) continue;
-      if (x.icon != y.icon || x.label != y.label || x.enabled != y.enabled) {
+      if (x.icon != y.icon ||
+          x.label != y.label ||
+          x.enabled != y.enabled ||
+          x.selectedIcon != y.selectedIcon ||
+          x.badge != y.badge) {
         return false;
       }
     }
@@ -546,6 +617,9 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
         touchEnabled: widget.items.isNotEmpty,
         onHighlight: highlightControlFocus,
         onStep: _step,
+        onActivate: widget.onReselected == null
+            ? null
+            : () => _select(motion.selected),
         dragAxis: .horizontal,
         delaysInScrollable: true,
         child: MorphLiveTransform(
@@ -711,41 +785,48 @@ class _TabLabel extends StatelessWidget {
     final style = MorphTypography.resolve(
       selected ? MorphTypography.tabLabelSelected : MorphTypography.tabLabel,
     ).copyWith(color: color);
+    final badge = item.badge;
     if (!selected) {
+      final Widget glyph = Icon(
+        item.icon,
+        size: MorphTabBarMetrics.iconSize,
+        color: color,
+      );
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(item.icon, size: MorphTabBarMetrics.iconSize, color: color),
+          if (badge == null) glyph else MorphBadged(badge: badge, child: glyph),
           const SizedBox(height: MorphTabBarMetrics.labelGap),
           Text(item.label, maxLines: 1, textScaler: scaler, style: style),
         ],
       );
     }
-    final icon = item.icon;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox.square(
-          dimension: MorphTabBarMetrics.iconSize,
-          child: Center(
-            child: RichText(
-              textDirection: TextDirection.ltr,
-              text: TextSpan(
-                text: String.fromCharCode(icon.codePoint),
-                style: TextStyle(
-                  inherit: false,
-                  color: color,
-                  fontSize: MorphTabBarMetrics.iconSize,
-                  fontFamily: icon.fontFamily,
-                  fontFamilyFallback: icon.fontFamilyFallback,
-                  package: icon.fontPackage,
-                  height: 1,
-                  leadingDistribution: TextLeadingDistribution.even,
-                ),
-              ),
+    final icon = item.selectedIcon ?? item.icon;
+    final Widget glyph = SizedBox.square(
+      dimension: MorphTabBarMetrics.iconSize,
+      child: Center(
+        child: RichText(
+          textDirection: TextDirection.ltr,
+          text: TextSpan(
+            text: String.fromCharCode(icon.codePoint),
+            style: TextStyle(
+              inherit: false,
+              color: color,
+              fontSize: MorphTabBarMetrics.iconSize,
+              fontFamily: icon.fontFamily,
+              fontFamilyFallback: icon.fontFamilyFallback,
+              package: icon.fontPackage,
+              height: 1,
+              leadingDistribution: TextLeadingDistribution.even,
             ),
           ),
         ),
+      ),
+    );
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (badge == null) glyph else MorphBadged(badge: badge, child: glyph),
         const SizedBox(height: MorphTabBarMetrics.labelGap),
         RichText(
           maxLines: 1,
