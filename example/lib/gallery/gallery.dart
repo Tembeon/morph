@@ -12,6 +12,7 @@ import 'package:morph_example/gallery/indicator_page.dart';
 import 'package:morph_example/gallery/lens_pages.dart';
 import 'package:morph_example/gallery/list_page.dart';
 import 'package:morph_example/gallery/menu_page.dart';
+import 'package:morph_example/gallery/minimize_page.dart';
 import 'package:morph_example/gallery/navigation_page.dart';
 import 'package:morph_example/gallery/search_page.dart';
 import 'package:morph_example/gallery/sheet_page.dart';
@@ -312,6 +313,11 @@ final List<GalleryEntry> galleryEntries = [
     'Tab bar',
     'Floating bar with 2 to 5 tabs, press growth and scrub',
     (_) => const TabBarPage(),
+  ),
+  GalleryEntry(
+    'Tab bar minimize',
+    'Minimizing on scroll, bottom accessory inline next to the circle',
+    (_) => const MinimizeTabBarPage(),
   ),
   GalleryEntry(
     'Controls',

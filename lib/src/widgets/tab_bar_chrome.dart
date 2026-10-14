@@ -8,6 +8,7 @@ import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/tab_bar.dart';
 import 'package:morph/src/widgets/tab_bar_minimize.dart';
 import 'package:morph/src/widgets/tab_collapse.dart';
+import 'package:morph/src/widgets/typography.dart';
 
 /// The scrolls of the content under a tab bar, which a minimizing
 /// [MorphTabBar] follows (UIKit observes the tab's content scroll view,
@@ -661,7 +662,15 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
                 environment: structure.minimized
                     ? MorphTabAccessoryEnvironment.inline
                     : MorphTabAccessoryEnvironment.regular,
-                child: accessory,
+                child: DefaultTextStyle(
+                  style: MorphTypography.resolve(
+                    MorphTypography.body.copyWith(color: style.color),
+                  ),
+                  child: IconTheme.merge(
+                    data: IconThemeData(color: style.color),
+                    child: accessory,
+                  ),
+                ),
               ),
             ),
           ),
