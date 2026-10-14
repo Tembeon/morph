@@ -1,3 +1,4 @@
+import 'package:flutter/animation.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 
@@ -186,4 +187,16 @@ abstract final class MorphNavigationTuning {
   /// capsules travel toward their places on the screen below while the
   /// finger drags the page: half the way when the page is fully out.
   static const double barDrift = 0.5;
+
+  /// The seconds a push or pop without a finger cross-fades for under
+  /// Reduce Motion: the leaving page fades out while the arriving one
+  /// fades in, on [crossFadeCurve], instead of sliding. An edge swipe
+  /// still slides. Read from UIKit, notes private: UINavigationController
+  /// hands a transition without a finger to its cross-fade animator when
+  /// the platform prefers cross-fade transitions (on with Reduce Motion;
+  /// Flutter reports only Reduce Motion, so morph follows that).
+  static const double crossFadeDuration = 0.5;
+
+  /// The easing of the cross-fade: UIView's default animation curve.
+  static const Curve crossFadeCurve = Curves.easeInOut;
 }
