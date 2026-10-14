@@ -519,6 +519,12 @@ class _AlertViewState extends State<_AlertView>
       (_popover?.isSettled ?? true) &&
       _press.isSettled;
 
+  @override
+  void settleMotion() {
+    _alert?.settle();
+    final gone = _alert?.isDismissed ?? _popover?.isDismissed ?? false;
+    if (_leaving && gone) _route.finishMotionRoute();
+  }
 
   void _leave() {
     if (_leaving) return;

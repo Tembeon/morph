@@ -219,7 +219,7 @@ const _ceilings = <String, _Ceiling>{
     layouts: 24,
     paints: 35,
   ),
-  'alert/flat dismiss': (first: 76, ms: 432, builds: 0, layouts: 0, paints: 18),
+  'alert/flat dismiss': (first: 76, ms: 400, builds: 0, layouts: 0, paints: 18),
   'alert/flat action-sheet-dismiss': (
     first: 74,
     ms: 544,
@@ -229,7 +229,7 @@ const _ceilings = <String, _Ceiling>{
   ),
   'alert/liquid dismiss': (
     first: 76,
-    ms: 432,
+    ms: 400,
     builds: 0,
     layouts: 0,
     paints: 22,
@@ -332,8 +332,8 @@ const _ceilings = <String, _Ceiling>{
     layouts: 19,
     paints: 30,
   ),
-  'alert/flat show': (first: 130, ms: 512, builds: 0, layouts: 0, paints: 18),
-  'alert/liquid show': (first: 137, ms: 512, builds: 0, layouts: 0, paints: 22),
+  'alert/flat show': (first: 130, ms: 416, builds: 0, layouts: 0, paints: 18),
+  'alert/liquid show': (first: 137, ms: 416, builds: 0, layouts: 0, paints: 22),
 };
 
 typedef _Ceiling = ({int first, int ms, int builds, int layouts, int paints});
