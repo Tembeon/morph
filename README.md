@@ -55,7 +55,8 @@ Recipes and applied patterns live there, not in this README.
   `MorphSearchTabBar`, whose search tab turns into the field); the
   compact `MorphDatePicker`; `MorphPageControl`, `MorphProgressView`
   and `MorphActivityIndicator`; plus `MorphContextMenuRegion` (a held
-  surface becomes its own context menu, satellites around it).
+  surface lifts into its preview and the measured menu card grows out of
+  it, as UIKit's context menu).
   Their motion objects
   (`MorphLensMotion`, `MorphSwitchMotion`, `MorphMenuMotion`, ...) are
   pure functions of explicit time and work without the widgets; they

@@ -225,8 +225,9 @@ One passport each: `MorphSegmentedControl`, `MorphTabBar`,
 `MorphSearchTabBar` (their minimizing and bottom accessory:
 tab-bar-minimize.md; `MorphTabBarChrome` wraps the bar's cached build, so
 a parent's new accessory rebuilds the group, not the bar), `MorphSwitch`, `MorphSlider`, `MorphStepper`,
-`MorphGlassButton`, `MorphMenuButton`, `MorphContextMenuRegion` /
-`MorphSatellite`, the bars (`MorphNavigationBar`, `MorphToolbar`,
+`MorphGlassButton`, `MorphMenuButton`, `MorphContextMenuRegion` (the
+button menu's card on a context attachment, `MorphMenuAttachment`) /
+`MorphSatellite` (its accessory), the bars (`MorphNavigationBar`, `MorphToolbar`,
 `MorphNavigationStack`, `MorphScrollEdgeEffect`, push zoom), sheets
 (`showMorphSheet` including zoom), alerts and action-sheet popovers,
 `MorphSearchField` / `MorphSearchToolbar`, `MorphDatePicker`,

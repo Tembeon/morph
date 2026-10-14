@@ -84,7 +84,8 @@ void main() {
             context,
             detents: const [MorphSheetDetent.medium],
             useRootNavigator: true,
-            builder: (BuildContext context) => _Probe(seen),
+            builder: (BuildContext context) =>
+                SizedBox(height: 40, child: _Probe(seen)),
           ),
         ),
       ),
@@ -130,11 +131,13 @@ void main() {
           child: Scaffold(
             body: Center(
               child: MorphContextMenuRegion(
-                below: MorphSatellite(
-                  height: 40,
-                  builder: (BuildContext context, MorphFlight flight) =>
-                      _Probe(seen),
-                ),
+                menu: <MorphMenuEntry>[
+                  MorphMenuWidget(
+                    height: 40,
+                    builder: (BuildContext context) =>
+                        SizedBox(height: 40, child: _Probe(seen)),
+                  ),
+                ],
                 child: const SizedBox(
                   width: 120,
                   height: 48,

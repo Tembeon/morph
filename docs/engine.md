@@ -338,7 +338,7 @@ What is where:
 - The padding every rectFor receives is `morphTargetPaddingOf`: the safe
   area unioned edge by edge with viewInsets. Every factory avoids the
   keyboard by construction (a sheet docks above it, a dialog centers in
-  the room left, the context menu column shifts, a menu places itself
+  the room left, a context menu moves its preview, a menu places itself
   clear of it); fullscreen ignores padding and keeps its insets.
 - The content's MediaQuery carries `morphContentViewInsets`: only the
   part of each inset the container still overlaps (a Scaffold inside

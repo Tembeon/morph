@@ -346,28 +346,30 @@ const _ceilings = <String, _Ceiling>{
     layouts: 37,
     paints: 39,
   ),
+  // The context menu is the button menu's card (unification, phase 3):
+  // the finger lifting off the preview clears the menu's glow and
+  // highlight (one build of the menu layer); the preview still moves by
+  // layout.
   'context-menu/flat release': (
-    first: 0,
-    ms: 368,
+    first: 16,
+    ms: 432,
     builds: 0,
-    layouts: 19,
+    layouts: 5,
     paints: 30,
   ),
-  // The close rebuilds the hero's copies, each in the region's own text
-  // style (3 DefaultTextStyle builds).
   'context-menu/flat close': (
-    first: 72,
-    ms: 656,
+    first: 0,
+    ms: 720,
     builds: 0,
-    layouts: 0,
+    layouts: 11,
     paints: 21,
   ),
   'context-menu/liquid release': (
-    first: 0,
-    ms: 368,
+    first: 16,
+    ms: 432,
     builds: 0,
-    layouts: 19,
-    paints: 30,
+    layouts: 8,
+    paints: 35,
   ),
   'alert/flat show': (first: 130, ms: 416, builds: 0, layouts: 0, paints: 18),
   'alert/liquid show': (first: 137, ms: 416, builds: 0, layouts: 0, paints: 22),
@@ -1346,13 +1348,17 @@ final _scenes = <_Scene>[
       MorphScope(
         child: _page(
           MorphContextMenuRegion(
-            below: MorphSatellite(
-              builder: (BuildContext context, MorphFlight flight) =>
-                  const ColoredBox(
-                    color: Color(0xFFFFFFFF),
-                    child: SizedBox(width: 250, height: 176),
-                  ),
-            ),
+            // The rows of the measured menu card, as the device scene's
+            // context menu shows them.
+            menu: <MorphMenuEntry>[
+              for (final title in <String>[
+                'Reply',
+                'Copy',
+                'Forward',
+                'Delete',
+              ])
+                MorphMenuItem(title: title, destructive: title == 'Delete'),
+            ],
             child: const ColoredBox(
               key: ValueKey<String>('bubble'),
               color: Color(0xFF0A84FF),

@@ -196,34 +196,14 @@ class _ContextMenuHero extends StatelessWidget {
     ),
   );
 
-  static Widget _actions(BuildContext context, MorphFlight flight) =>
-      DecoratedBox(
-        decoration: const BoxDecoration(
-          color: Color(0xFFFFFFFF),
-          borderRadius: BorderRadius.all(Radius.circular(16)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final title in const ['Reply', 'Copy', 'Delete'])
-              SizedBox(
-                height: 44,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Text(title),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      );
-
   @override
   Widget build(BuildContext context) => const MorphContextMenuRegion(
-    above: MorphSatellite(builder: _capsule),
-    below: MorphSatellite(builder: _actions),
+    accessory: MorphSatellite(builder: _capsule),
+    menu: <MorphMenuEntry>[
+      MorphMenuItem(title: 'Reply'),
+      MorphMenuItem(title: 'Copy'),
+      MorphMenuItem(title: 'Delete', destructive: true),
+    ],
     child: DecoratedBox(
       decoration: BoxDecoration(
         color: Color(0xFF0A84FF),

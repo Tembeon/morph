@@ -36,6 +36,7 @@ class MorphMenuController implements MorphMenuHost {
     required this.semanticLabel,
     this.onOpen,
     this.onClose,
+    this.launch,
   }) {
     menuContent = MorphMenuContent(onChanged: _contentChanged);
   }
@@ -74,6 +75,12 @@ class MorphMenuController implements MorphMenuHost {
 
   /// Receives each newly launched flight.
   final ValueChanged<MorphFlight>? onOpen;
+
+  /// Launches the flight that carries the menu instead of the vessel
+  /// flight from [tagId], or retargets it: a source that carries more than
+  /// the menu in one flight (a context menu's preview) builds a
+  /// [MorphMenuLayer] for this controller into it.
+  final MorphFlight Function()? launch;
 
   /// Called when the menu starts closing, however it closes: a row chosen,
   /// a touch outside it, Esc or [close].
@@ -298,24 +305,27 @@ class MorphMenuController implements MorphMenuHost {
       return;
     }
     final tuning = motion.tuning;
-    final flight = showMorph(
-      context,
-      from: tagId,
-      target: MorphTargetSpec.vessel(
-        rectFor: (Size size, EdgeInsets padding) => motion.menuRect,
-      ),
-      builder: (BuildContext context, MorphFlight flight) =>
-          MorphMenuLayer(host: this, flight: flight),
-      motion: MorphMotion.springs(
-        name: 'menu',
-        open: tuning.openSpring,
-        close: tuning.closeSpring,
-      ),
-      maxScrimOpacity: 0,
-      onDismissRequested: close,
-      semanticLabel: semanticLabel(),
-      overlay: _overlay,
-    );
+    final launch = this.launch;
+    final flight = launch != null
+        ? launch()
+        : showMorph(
+            context,
+            from: tagId,
+            target: MorphTargetSpec.vessel(
+              rectFor: (Size size, EdgeInsets padding) => motion.menuRect,
+            ),
+            builder: (BuildContext context, MorphFlight flight) =>
+                MorphMenuLayer(host: this, flight: flight),
+            motion: MorphMotion.springs(
+              name: 'menu',
+              open: tuning.openSpring,
+              close: tuning.closeSpring,
+            ),
+            maxScrimOpacity: 0,
+            onDismissRequested: close,
+            semanticLabel: semanticLabel(),
+            overlay: _overlay,
+          );
     if (identical(flight, _flight)) return;
     _flight = flight;
     flight.closed.whenComplete(() {

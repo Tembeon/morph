@@ -39,17 +39,29 @@ Rect _menuFrame(WidgetTester tester) => tester
 
 const Key _heroBox = ValueKey<String>('hero-box');
 const Size _heroSize = Size(160, 48);
-const double _aboveHeight = 40;
-const double _belowHeight = 100;
+const double _accessoryHeight = 40;
+
+/// The rect of the held view as it shows: the preview in the overlay
+/// while a flight carries it, the page's own view otherwise.
+Rect _shown(WidgetTester tester, MorphFlight? flight, {Key key = _heroBox}) {
+  final Finder views = find.byKey(key);
+  if (flight != null && flight.isAirborne && views.evaluate().length > 1) {
+    return tester.getRect(views.last);
+  }
+  return tester.getRect(views.first);
+}
 
 /// A scrollable page with one held hero, which can be deleted from its
 /// own menu - the archived-row case.
 class _Host extends StatefulWidget {
-  const _Host({this.heroTop = 200, this.enabled = true});
+  const _Host({this.heroTop = 200, this.enabled = true, this.rows = 2});
 
   /// Space above the hero, to place it near an edge.
   final double heroTop;
   final bool enabled;
+
+  /// How many rows the menu has: reply, delete, then fillers.
+  final int rows;
 
   @override
   State<_Host> createState() => _HostState();
@@ -59,6 +71,7 @@ class _HostState extends State<_Host> {
   int taps = 0;
   int holds = 0;
   int opens = 0;
+  int closes = 0;
   String? picked;
   MorphFlight? flight;
   bool heroMounted = true;
@@ -82,34 +95,31 @@ class _HostState extends State<_Host> {
                     opens++;
                     flight = f;
                   },
-                  above: MorphSatellite(
-                    height: _aboveHeight,
+                  onClose: () => closes++,
+                  accessory: MorphSatellite(
+                    height: _accessoryHeight,
                     builder: (BuildContext context, MorphFlight flight) =>
-                        const Text('above'),
-                  ),
-                  below: MorphSatellite(
-                    height: _belowHeight,
-                    builder: (BuildContext context, MorphFlight flight) =>
-                        Column(
-                          children: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                picked = 'reply';
-                                flight.close();
-                              },
-                              child: const Text('reply'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                picked = 'delete';
-                                flight.close();
-                                setState(() => heroMounted = false);
-                              },
-                              child: const Text('delete'),
-                            ),
-                          ],
+                        const SizedBox(
+                          height: _accessoryHeight,
+                          child: Text('above'),
                         ),
                   ),
+                  menu: <MorphMenuEntry>[
+                    MorphMenuItem(
+                      title: 'reply',
+                      onSelected: () => picked = 'reply',
+                    ),
+                    MorphMenuItem(
+                      title: 'delete',
+                      destructive: true,
+                      onSelected: () {
+                        picked = 'delete';
+                        setState(() => heroMounted = false);
+                      },
+                    ),
+                    for (var i = 2; i < widget.rows; i++)
+                      MorphMenuItem(title: 'row $i'),
+                  ],
                   child: GestureDetector(
                     onTap: () => taps++,
                     child: Container(
@@ -169,21 +179,18 @@ void frame(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
-/// The width of the menu column: the lifted hero (184 wide) is narrower
-/// than the default minimum, so the minimum wins.
-const double _menuWidth = 250;
 const double _gap = MorphContextMenuRegion.measuredMenuGap;
 
-/// The open menu holds the hero at UIKit's preview size: 1.15 for a
-/// 160 x 48 hero (24 points on its 160-point side, under the 26-point
-/// cap), so its slot is 184 x 55.2 - the satellites stand 16 points off
-/// the lifted hero, as the device menu stands off the lifted preview.
+/// The open preview is the held view at UIKit's preview size: 1.15 for a
+/// 160 x 48 view (24 points on its 160-point side, under the 26-point
+/// cap), so 184 x 55.2; the menu stands 16 points off it, as the device
+/// menu stands off the lifted preview.
 final double _lift = MorphContextMenuRegion.measuredPreviewScale(_heroSize);
-final double _slotHeight = _heroSize.height * _lift;
-final double _menuHeight =
-    _aboveHeight + _gap + _slotHeight + _gap + _belowHeight;
 
-Matcher _near(double value) => moreOrLessEquals(value, epsilon: 1e-9);
+/// The height of a menu of [rows] plain rows.
+double _rowsHeight(int rows) => MorphMenuTuning.standard.menuHeight(rows);
+
+Matcher _near(double value) => moreOrLessEquals(value, epsilon: 1e-6);
 
 void main() {
   test('the hold and the lift match an iPhone 16 Pro', () {
@@ -372,14 +379,10 @@ void main() {
         MaterialApp(
           builder: (BuildContext context, Widget? child) =>
               MorphScope(child: child!),
-          home: Center(
+          home: const Center(
             child: MorphContextMenuRegion(
-              below: MorphSatellite(
-                height: 40,
-                builder: (BuildContext context, MorphFlight flight) =>
-                    const Text('below'),
-              ),
-              child: const SizedBox(
+              menu: <MorphMenuEntry>[MorphMenuItem(title: 'below')],
+              child: SizedBox(
                 key: _heroBox,
                 width: 120,
                 height: 80,
@@ -420,7 +423,7 @@ void main() {
   group('device morph', deviceMorph);
 
   testWidgets('a tap passes through; a hold lifts the hero, then opens the '
-      'menu; an action closes it', (WidgetTester tester) async {
+      'menu; a row closes it', (WidgetTester tester) async {
     frame(tester);
     await tester.pumpWidget(const _Host());
     await tester.tap(find.text('hero'));
@@ -479,35 +482,29 @@ void main() {
       moreOrLessEquals(_heroSize.width, epsilon: 0.1),
       reason: 'after takeoff the hidden source returns to its rest endpoint',
     );
-    expect(flight.lastTargetRect.width, _menuWidth);
-    expect(flight.lastTargetRect.height, _near(_menuHeight));
-    // The satellites stand above and below the hero's slot, and the open
-    // hero is lifted about the center it rested at.
-    final Rect menu = flight.lastTargetRect;
-    expect(tester.getTopLeft(find.text('above')).dy, _near(menu.top));
+    // The preview is lifted about the center the hero rested at; the
+    // accessory stands 16 points above it and the menu 16 points below.
     final Rect home = tester.getRect(find.byKey(_heroBox).first);
-    final Rect open = tester.getRect(
-      find.descendant(of: find.byType(Column), matching: find.byKey(_heroBox)),
-    );
+    final Rect open = tester.getRect(find.byKey(_heroBox).last);
     expect(open.width, _near(_heroSize.width * _lift));
-    expect(open.height, _near(_slotHeight));
-    expect((open.center - home.center).distance, lessThan(1e-9));
-    expect(
-      tester.getTopLeft(find.text('reply')).dy,
-      greaterThan(menu.top + 96),
-    );
+    expect(open.height, _near(_heroSize.height * _lift));
+    expect((open.center - home.center).distance, lessThan(1e-6));
+    expect(flight.lastTargetRect, open);
+    expect(tester.getRect(find.text('above')).bottom, _near(open.top - _gap));
+    final Rect menu = _menuFrame(tester);
+    expect(menu.top, _near(open.bottom + _gap));
+    expect(menu.size, Size(250, _rowsHeight(2)));
+    expect(menu.center.dx, _near(home.center.dx));
 
     await tester.tap(find.text('reply'));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 40));
     expect(_host(tester).picked, 'reply');
-    expect(
-      flight.sourceRect.width,
-      moreOrLessEquals(_heroSize.width, epsilon: 0.1),
-      reason: 'close refreshes the natural source before flying home',
-    );
     await settle(tester);
     expect(find.text('above'), findsNothing);
+    expect(find.text('reply'), findsNothing);
     expect(flight.isFinished, isTrue);
+    expect(_host(tester).closes, 1);
     // Home again, at its natural size (the press spring's settle
     // tolerance leaves a fraction of a pixel).
     expect(
@@ -525,14 +522,17 @@ void main() {
     expect(_host(tester).holds, 0);
     expect(_host(tester).opens, 1);
     expect(find.text('above'), findsOneWidget);
+    expect(find.text('reply'), findsOneWidget);
     final MorphFlight first = _host(tester).flight!;
     final BuildContext door = tester.element(find.text('more').first);
     final MorphFlight again = MorphContextMenuRegion.open(door);
     await settle(tester);
     expect(identical(again, first), isTrue);
     expect(_host(tester).opens, 1);
-    first.close();
+    MorphContextMenuRegion.close(door);
     await settle(tester);
+    expect(first.isFinished, isTrue);
+    expect(find.text('reply'), findsNothing);
   });
 
   testWidgets('a release past the commit point opens the menu; one before '
@@ -552,7 +552,7 @@ void main() {
       reason: 'UIKit drops a preview let go early on the next frame',
     );
     await settle(tester);
-    expect(find.text('above'), findsNothing);
+    expect(find.text('reply'), findsNothing);
     expect(_host(tester).holds, 0);
     expect(_host(tester).taps, 1, reason: 'an early release is a tap');
 
@@ -571,13 +571,39 @@ void main() {
       reason: 'the flight takes off from the grown hero',
     );
     await settle(tester);
-    expect(find.text('above'), findsOneWidget);
+    expect(find.text('reply'), findsOneWidget);
     expect(_host(tester).taps, 1, reason: 'a committed release is no tap');
     flight.close();
     await settle(tester);
+    expect(find.text('reply'), findsNothing);
   });
 
-  testWidgets('the satellites grow out of the hero and retract into it', (
+  testWidgets('the menu grows out of a blob at the hero\'s center and '
+      'retracts into it', (WidgetTester tester) async {
+    frame(tester);
+    await tester.pumpWidget(const _Host());
+    await tester.tap(find.text('more'));
+    await settle(tester);
+    final MorphFlight flight = _host(tester).flight!;
+    final Rect home = tester.getRect(find.byKey(_heroBox).first);
+    final Rect rest = _menuShape(tester)!;
+    flight.close();
+    await tester.pump();
+    for (int i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final Rect now = _menuShape(tester)!;
+    expect(now.height, lessThan(rest.height));
+    expect(now.width, lessThan(rest.width));
+    expect(
+      (now.center - home.center).distance,
+      lessThan((rest.center - home.center).distance),
+    );
+    await settle(tester);
+    expect(find.text('reply'), findsNothing);
+  });
+
+  testWidgets('the preview and the menu build nothing per flight frame', (
     WidgetTester tester,
   ) async {
     frame(tester);
@@ -585,64 +611,26 @@ void main() {
     await tester.tap(find.text('more'));
     await settle(tester);
     final MorphFlight flight = _host(tester).flight!;
-    Rect hero() => tester.getRect(find.byKey(_heroBox).last);
-    final Rect rest = tester.getRect(find.text('reply'));
     flight.close();
     await tester.pump();
-    for (int i = 0; i < 8; i++) {
-      await tester.pump(const Duration(milliseconds: 16));
-    }
-    final double value = flight.controller.value;
-    expect(value, inExclusiveRange(0.05, 0.95));
-    final Rect now = tester.getRect(find.text('reply'));
-    // The below slot (100 tall) squeezes toward a blob 0.4 of the
-    // 48-point hero; the shuttle's own reveal scale (0.95 - 1) rides on
-    // top of it.
-    const double blob =
-        MorphContextMenuRegion.measuredRetractScale * 48 / _belowHeight;
-    final double squeezed = rest.height * (blob + (1 - blob) * value);
-    expect(
-      now.height,
-      inInclusiveRange(squeezed * 0.95 - 0.01, squeezed + 0.01),
-    );
-    expect(
-      (now.center.dy - hero().center.dy).abs(),
-      lessThan((rest.center.dy - hero().center.dy).abs()),
-      reason: 'the actions retract toward the hero',
-    );
-    await settle(tester);
-    expect(find.text('reply'), findsNothing);
-  });
-
-  testWidgets('the menu column and its satellites build nothing per flight '
-      'frame', (WidgetTester tester) async {
-    frame(tester);
-    await tester.pumpWidget(const _Host());
-    await tester.tap(find.text('more'));
-    await settle(tester);
-    final MorphFlight flight = _host(tester).flight!;
+    await tester.pump(const Duration(milliseconds: 16));
     var built = 0;
+    final names = <String>[];
     debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
-      bool inside = false;
-      element.visitAncestorElements((Element ancestor) {
-        inside = ancestor.widget.runtimeType.toString() == '_Retract';
-        return !inside;
-      });
-      if (inside) built++;
+      built++;
+      names.add(element.widget.runtimeType.toString());
     };
     addTearDown(() => debugOnRebuildDirtyWidget = null);
-    flight.close();
-    await tester.pump();
     for (int i = 0; i < 6; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }
     expect(flight.controller.value, inExclusiveRange(0.05, 0.95));
-    expect(built, 0, reason: 'the satellites retract without a build');
+    expect(built, 0, reason: 'the close builds $names');
     debugOnRebuildDirtyWidget = null;
     await settle(tester);
   });
 
-  testWidgets('the satellite semantics stand where they paint, open and '
+  testWidgets('the row semantics stand where they paint, open and '
       'unfolding', (WidgetTester tester) async {
     final SemanticsHandle semantics = tester.ensureSemantics();
     frame(tester);
@@ -663,8 +651,13 @@ void main() {
     void follows(String when) {
       for (final String row in <String>['reply', 'delete']) {
         final Offset painted = tester.getCenter(find.text(row));
-        final Offset read = global(tester.getSemantics(find.text(row))).center;
-        expect((read - painted).distance, lessThan(1), reason: '$row $when');
+        final Rect read = global(tester.getSemantics(find.text(row)));
+        expect(
+          (read.center.dy - painted.dy).abs(),
+          lessThan(1),
+          reason: '$row $when: $read vs $painted',
+        );
+        expect(read.contains(painted), isTrue, reason: '$row $when');
       }
     }
 
@@ -699,7 +692,7 @@ void main() {
     await gesture.up();
     await settle(tester);
     expect(_host(tester).holds, 0);
-    expect(find.text('above'), findsNothing);
+    expect(find.text('reply'), findsNothing);
     expect(
       tester.getRect(find.byKey(_heroBox)).width,
       moreOrLessEquals(_heroSize.width, epsilon: 0.1),
@@ -725,8 +718,8 @@ void main() {
     expect(_host(tester).holds, 0);
   });
 
-  testWidgets('a secondary click opens; a hero near the bottom shifts up so '
-      'the menu fits', (WidgetTester tester) async {
+  testWidgets('a secondary click opens; a hero near the bottom gets its menu '
+      'above it, reversed', (WidgetTester tester) async {
     frame(tester);
     await tester.pumpWidget(const _Host(heroTop: 500));
     final Rect home = tester.getRect(find.byKey(_heroBox));
@@ -734,21 +727,16 @@ void main() {
     await tester.tap(find.text('hero'), buttons: kSecondaryButton);
     await settle(tester);
     expect(_host(tester).holds, 0);
-    expect(find.text('above'), findsOneWidget);
-    final Rect menu = _host(tester).flight!.lastTargetRect;
-    // Clamped to the overlay's bottom margin; the hero travelled up
-    // with its column instead of staying put.
-    expect(menu.bottom, 600 - 12);
-    expect(menu.top, _near(600 - 12 - _menuHeight));
-    // Start-aligned, the lifted hero keeps its center x: it grows by
-    // (1.15 - 1) * 160 / 2 = 12 points to each side, as UIKit's preview
-    // grows about the held view's center.
+    expect(find.text('reply'), findsOneWidget);
+    final Rect open = tester.getRect(find.byKey(_heroBox).last);
+    expect((open.center - home.center).distance, lessThan(1e-6));
+    final Rect menu = _menuFrame(tester);
+    // Above the preview and its accessory, the entries reversed.
+    expect(menu.bottom, _near(open.top - _accessoryHeight - _gap - _gap));
     expect(
-      menu.left,
-      _near(home.left - (_lift - 1) * _heroSize.width / 2),
-      reason: 'start-aligned: the hero keeps its center x',
+      tester.getCenter(find.text('delete')).dy,
+      lessThan(tester.getCenter(find.text('reply')).dy),
     );
-    expect(tester.getTopLeft(find.text('above')).dy, _near(menu.top));
     _host(tester).flight!.close();
     await settle(tester);
     final Rect back = tester.getRect(find.byKey(_heroBox));
@@ -756,21 +744,39 @@ void main() {
     expect(back.width, moreOrLessEquals(home.width, epsilon: 0.1));
   });
 
-  testWidgets('the hero flies as one shared element', (
+  testWidgets('a menu that fits on neither side moves the preview with it', (
     WidgetTester tester,
   ) async {
+    frame(tester);
+    await tester.pumpWidget(const _Host(heroTop: 500, rows: 10));
+    final Rect home = tester.getRect(find.byKey(_heroBox));
+    await tester.tap(find.text('more'));
+    await settle(tester);
+    final Rect open = tester.getRect(find.byKey(_heroBox).last);
+    final Rect menu = _menuFrame(tester);
+    expect(menu.height, _rowsHeight(10));
+    expect(menu.bottom, _near(600 - 12));
+    expect(menu.top, _near(open.bottom + _gap));
+    expect(open.center.dy, lessThan(home.center.dy - 100));
+    expect(open.center.dx, _near(home.center.dx));
+    _host(tester).flight!.close();
+    await settle(tester);
+    final Rect back = tester.getRect(find.byKey(_heroBox));
+    expect((back.center - home.center).distance, lessThan(0.1));
+  });
+
+  testWidgets('the preview is one copy in the overlay over the hidden held '
+      'view', (WidgetTester tester) async {
     frame(tester);
     await tester.pumpWidget(const _Host());
     await tester.tap(find.text('more'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 40));
-    expect(
-      find.byKey(const ValueKey<Object>('morph-context-menu-hero')),
-      findsOneWidget,
-    );
+    expect(find.byKey(_heroBox), findsNWidgets(2));
     await settle(tester);
     _host(tester).flight!.close();
     await settle(tester);
+    expect(find.byKey(_heroBox), findsOneWidget);
   });
 
   testWidgets('deleting the hero from its own menu: the source unmounts '
@@ -779,11 +785,14 @@ void main() {
     await tester.pumpWidget(const _Host());
     await tester.tap(find.text('more'));
     await settle(tester);
-    await tester.tap(find.text('delete'));
-    await tester.pump();
     final MorphFlight flight = _host(tester).flight!;
-    // The live hero is gone from the page; the shuttle's copies (the
-    // ghost, the slot, the flying layer) keep the menu flying home.
+    await tester.tap(find.text('delete'));
+    for (int i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(_host(tester).picked, 'delete');
+    // The live hero is gone from the page; the overlay's copy keeps the
+    // preview flying home.
     expect(
       find.descendant(
         of: find.byType(ListView),
@@ -791,11 +800,10 @@ void main() {
       ),
       findsNothing,
     );
-    await tester.pump(const Duration(milliseconds: 16));
     expect(flight.isSourceLost, isTrue);
     await settle(tester);
     expect(flight.isFinished, isTrue);
-    expect(find.text('above'), findsNothing);
+    expect(find.text('reply'), findsNothing);
   });
 
   testWidgets('a source that moves with its scrollable is the live return '
@@ -828,16 +836,16 @@ void main() {
     await tester.pumpWidget(const _Host(enabled: false));
     await tester.longPress(find.text('hero'));
     await settle(tester);
-    expect(find.text('above'), findsNothing);
+    expect(find.text('reply'), findsNothing);
     expect(_host(tester).taps, 1, reason: 'the tap reached the child');
     await tester.tap(find.text('more'));
     await settle(tester);
-    expect(find.text('above'), findsOneWidget);
+    expect(find.text('reply'), findsOneWidget);
     _host(tester).flight!.close();
     await settle(tester);
   });
 
-  group('live slots', liveSlots);
+  group('accessory', accessory);
 
   group('menu rows', menuRows);
 }
@@ -1014,20 +1022,19 @@ void menuRows() {
 }
 
 const Key _liveHero = ValueKey<String>('live-hero');
+const Key _aboveBox = ValueKey<String>('above-box');
 
-/// A hero whose badge and a capsule whose note row are toggled by
-/// notifiers INSIDE the built content: the size changes without any
+/// A held hero with a content-sized accessory whose note row is toggled
+/// by a notifier INSIDE the built content: the size changes without any
 /// region rebuild, as an app's state usually does.
 class _LiveHost extends StatefulWidget {
   const _LiveHost({
-    required this.badge,
     required this.expanded,
     this.replica,
     this.opensOnSecondaryTap = true,
     this.onOuterSecondaryTap,
   });
 
-  final ValueNotifier<bool> badge;
   final ValueNotifier<bool> expanded;
   final Widget? replica;
   final bool opensOnSecondaryTap;
@@ -1039,6 +1046,7 @@ class _LiveHost extends StatefulWidget {
 
 class _LiveHostState extends State<_LiveHost> {
   MorphFlight? flight;
+  int reactions = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -1057,46 +1065,42 @@ class _LiveHostState extends State<_LiveHost> {
                   replica: widget.replica,
                   opensOnSecondaryTap: widget.opensOnSecondaryTap,
                   onOpen: (MorphFlight f) => flight = f,
-                  above: MorphSatellite(
+                  accessory: MorphSatellite(
                     builder: (BuildContext context, MorphFlight flight) =>
                         ValueListenableBuilder<bool>(
                           valueListenable: widget.expanded,
                           builder: (BuildContext context, bool on, Widget? _) =>
-                              SizedBox(
-                                height: on ? 100 : _aboveHeight,
-                                child: const Text('above'),
+                              GestureDetector(
+                                onTap: () {
+                                  reactions++;
+                                  MorphContextMenuRegion.close(context);
+                                },
+                                child: SizedBox(
+                                  key: _aboveBox,
+                                  width: 200,
+                                  height: on ? 100 : _accessoryHeight,
+                                  child: const Text('above'),
+                                ),
                               ),
                         ),
                   ),
-                  below: MorphSatellite(
-                    builder: (BuildContext context, MorphFlight flight) =>
-                        const SizedBox(
-                          height: _belowHeight,
-                          child: Text('reply'),
-                        ),
-                  ),
-                  child: ValueListenableBuilder<bool>(
-                    valueListenable: widget.badge,
-                    builder: (BuildContext context, bool on, Widget? _) =>
-                        Container(
-                          key: _liveHero,
-                          width: _heroSize.width,
-                          height: on ? 72 : _heroSize.height,
-                          color: const Color(0xFF334455),
-                          child: Row(
-                            children: <Widget>[
-                              const Text('hero'),
-                              Builder(
-                                builder: (BuildContext context) =>
-                                    GestureDetector(
-                                      onTap: () =>
-                                          MorphContextMenuRegion.open(context),
-                                      child: const Text('more'),
-                                    ),
-                              ),
-                            ],
+                  menu: const <MorphMenuEntry>[MorphMenuItem(title: 'reply')],
+                  child: Container(
+                    key: _liveHero,
+                    width: _heroSize.width,
+                    height: _heroSize.height,
+                    color: const Color(0xFF334455),
+                    child: Row(
+                      children: <Widget>[
+                        const Text('hero'),
+                        Builder(
+                          builder: (BuildContext context) => GestureDetector(
+                            onTap: () => MorphContextMenuRegion.open(context),
+                            child: const Text('more'),
                           ),
                         ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1109,175 +1113,76 @@ class _LiveHostState extends State<_LiveHost> {
   }
 }
 
-/// The hero copy in the open menu's slot: the only hero inside the
-/// menu's column (the page's own sits in the ListView, the shuttle's
-/// ghost replica and the flying copy outside any Column).
-Rect heroCopy(WidgetTester tester) => tester.getRect(
-  find.descendant(of: find.byType(Column), matching: find.byKey(_liveHero)),
-);
-
-void liveSlots() {
-  late ValueNotifier<bool> badge;
+void accessory() {
   late ValueNotifier<bool> expanded;
-  setUp(() {
-    badge = ValueNotifier<bool>(false);
-    expanded = ValueNotifier<bool>(false);
-  });
-  tearDown(() {
-    badge.dispose();
-    expanded.dispose();
-  });
+  setUp(() => expanded = ValueNotifier<bool>(false));
+  tearDown(() => expanded.dispose());
 
-  testWidgets('satellites without a height are sized by their content and '
-      'seeded at launch', (WidgetTester tester) async {
+  testWidgets('a content-sized accessory stands above the preview, centered '
+      'on it, and takes touches', (WidgetTester tester) async {
     frame(tester);
-    await tester.pumpWidget(_LiveHost(badge: badge, expanded: expanded));
+    await tester.pumpWidget(_LiveHost(expanded: expanded));
     await tester.tap(find.text('more'));
     await settle(tester);
-    final MorphFlight flight = tester
-        .state<_LiveHostState>(find.byType(_LiveHost))
-        .flight!;
-    expect(flight.lastTargetRect.width, _menuWidth);
-    expect(flight.lastTargetRect.height, _near(_menuHeight));
-    expect(
-      tester.getTopLeft(find.text('above')).dy,
-      _near(flight.lastTargetRect.top),
+    final _LiveHostState host = tester.state<_LiveHostState>(
+      find.byType(_LiveHost),
     );
-    flight.close();
+    final Rect preview = tester.getRect(find.byKey(_liveHero).last);
+    final Rect above = tester.getRect(find.byKey(_aboveBox));
+    expect(above.bottom, _near(preview.top - _gap));
+    expect(above.center.dx, _near(preview.center.dx));
+    expect(above.size, const Size(200, _accessoryHeight));
+    await tester.tap(find.text('above'));
     await settle(tester);
+    expect(host.reactions, 1);
+    expect(host.flight!.isFinished, isTrue);
+    expect(find.text('above'), findsNothing);
   });
 
-  testWidgets('a satellite growing while the menu is open springs the column '
-      'out; the hero stays put', (WidgetTester tester) async {
+  testWidgets('an accessory growing while the menu is open grows upward; '
+      'the preview stays put', (WidgetTester tester) async {
     frame(tester);
-    await tester.pumpWidget(_LiveHost(badge: badge, expanded: expanded));
+    await tester.pumpWidget(_LiveHost(expanded: expanded));
     await tester.tap(find.text('more'));
     await settle(tester);
-    final MorphFlight flight = tester
-        .state<_LiveHostState>(find.byType(_LiveHost))
-        .flight!;
-    final Rect before = flight.lastTargetRect;
-    final Rect hero = heroCopy(tester);
-    var columnBuilds = 0;
-    debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
-      if (element.widget.runtimeType.toString() == '_MenuColumn') {
-        columnBuilds++;
-      }
-    };
-    addTearDown(() => debugOnRebuildDirtyWidget = null);
+    final Rect preview = tester.getRect(find.byKey(_liveHero).last);
+    final Rect before = tester.getRect(find.text('above'));
     expanded.value = true;
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 16));
-    await tester.pump(const Duration(milliseconds: 60));
-    debugOnRebuildDirtyWidget = null;
-    expect(columnBuilds, 0, reason: 'the column springs without a build');
-    final Rect mid = flight.lastTargetRect;
-    expect(mid.height, greaterThan(before.height));
-    expect(mid.height, lessThan(before.height + 60));
-    expect(mid.top, lessThan(before.top), reason: 'the column grows upward');
-    expect(mid.bottom, moreOrLessEquals(before.bottom, epsilon: 0.01));
-    expect(
-      (heroCopy(tester).topLeft - hero.topLeft).distance,
-      lessThan(0.01),
-      reason: 'the hero does not move while the capsule grows',
-    );
-    await settle(tester);
-    final Rect after = flight.lastTargetRect;
-    expect(after.height, moreOrLessEquals(before.height + 60, epsilon: 0.01));
-    expect(
-      tester.getTopLeft(find.text('above')).dy,
-      moreOrLessEquals(after.top, epsilon: 0.01),
-    );
-    expect((heroCopy(tester).topLeft - hero.topLeft).distance, lessThan(0.01));
-    expanded.value = false;
-    await settle(tester);
-    expect(
-      flight.lastTargetRect.height,
-      moreOrLessEquals(before.height, epsilon: 0.01),
-    );
-    flight.close();
+    final Rect after = tester.getRect(find.text('above'));
+    expect(after.top, _near(before.top - 60));
+    expect(tester.getRect(find.byKey(_liveHero).last), preview);
+    tester.state<_LiveHostState>(find.byType(_LiveHost)).flight!.close();
     await settle(tester);
   });
 
-  testWidgets('the hero slot follows the hero content: a badge appearing '
-      'shows at once and the actions slide down on the spring', (
+  testWidgets('the accessory unfolds out of the preview\'s top edge', (
     WidgetTester tester,
   ) async {
     frame(tester);
-    await tester.pumpWidget(_LiveHost(badge: badge, expanded: expanded));
+    await tester.pumpWidget(_LiveHost(expanded: expanded));
     await tester.tap(find.text('more'));
     await settle(tester);
+    final Rect rest = tester.getRect(find.text('above'));
     final MorphFlight flight = tester
         .state<_LiveHostState>(find.byType(_LiveHost))
         .flight!;
-    final Rect before = flight.lastTargetRect;
-    final double replyBefore = tester.getTopLeft(find.text('reply')).dy;
-    badge.value = true;
-    await tester.pump();
-    // The copy lays out at its natural 72 at once and shows lifted: the
-    // 160 x 72 hero keeps the 1.15 scale (its long side is still 160).
-    expect(
-      heroCopy(tester).height,
-      _near(72 * _lift),
-      reason: 'content at its natural size, lifted',
-    );
-    await tester.pump(const Duration(milliseconds: 16));
-    await tester.pump(const Duration(milliseconds: 60));
-    final double replyMid = tester.getTopLeft(find.text('reply')).dy;
-    expect(replyMid, greaterThan(replyBefore));
-    expect(replyMid, lessThan(replyBefore + 24 * _lift));
-    await settle(tester);
-    // The lifted slot grows by the lifted 24 points of the badge.
-    expect(
-      flight.lastTargetRect.height,
-      moreOrLessEquals(before.height + 24 * _lift, epsilon: 0.01),
-    );
-    expect(
-      tester.getTopLeft(find.text('reply')).dy,
-      moreOrLessEquals(replyBefore + 24 * _lift, epsilon: 0.01),
-    );
-    // The source grew the same way: the flight lands into the grown
-    // hero without a size pop.
     flight.close();
-    await settle(tester);
-    expect(tester.getRect(find.byKey(_liveHero)).height, 72);
-  });
-
-  testWidgets('the keyboard shifts the column, and the hero travels with '
-      'it', (WidgetTester tester) async {
-    frame(tester);
-    await tester.pumpWidget(_LiveHost(badge: badge, expanded: expanded));
-    await tester.tap(find.text('more'));
-    await settle(tester);
-    final MorphFlight flight = tester
-        .state<_LiveHostState>(find.byType(_LiveHost))
-        .flight!;
-    final Rect before = flight.lastTargetRect;
-    final Rect hero = heroCopy(tester);
-    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
     await tester.pump();
-    await tester.pump();
-    final Rect shifted = flight.lastTargetRect;
-    expect(shifted.bottom, 600 - 300 - 12);
-    expect(shifted.height, _near(before.height));
-    expect(
-      heroCopy(tester).top,
-      moreOrLessEquals(hero.top - (before.bottom - shifted.bottom)),
-    );
-    tester.view.viewInsets = FakeViewPadding.zero;
-    await tester.pump();
-    await tester.pump();
-    expect(flight.lastTargetRect, before);
-    flight.close();
+    for (int i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final Rect now = tester.getRect(find.text('above'));
+    expect(now.width, lessThan(rest.width));
+    expect(now.bottom, greaterThan(rest.bottom - 1e-6));
     await settle(tester);
   });
 
-  testWidgets('a replica supplies every overlay copy and leaves the live '
+  testWidgets('a replica supplies the overlay copy and leaves the live '
       'child only at its source', (WidgetTester tester) async {
     frame(tester);
     await tester.pumpWidget(
       _LiveHost(
-        badge: badge,
         expanded: expanded,
         replica: const SizedBox(
           width: 160,
@@ -1290,12 +1195,10 @@ void liveSlots() {
     await tester.tap(find.text('more'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 40));
-    // Mid-flight: source ghost, target slot and shared flying layer use the
-    // disposable replica. The stateful child remains a single hidden source.
-    expect(find.text('ghost-copy'), findsNWidgets(3));
+    expect(find.text('ghost-copy'), findsOneWidget);
     expect(find.text('hero'), findsOneWidget);
     await settle(tester);
-    expect(find.text('ghost-copy'), findsNWidgets(2));
+    expect(find.text('ghost-copy'), findsOneWidget);
     expect(find.text('hero'), findsOneWidget);
     tester.state<_LiveHostState>(find.byType(_LiveHost)).flight!.close();
     await settle(tester);
@@ -1320,11 +1223,7 @@ void liveSlots() {
                 height: 48,
                 child: Text('visual-replica'),
               ),
-              below: MorphSatellite(
-                height: 48,
-                builder: (BuildContext context, MorphFlight flight) =>
-                    const Text('action'),
-              ),
+              menu: const <MorphMenuEntry>[MorphMenuItem(title: 'action')],
               onOpen: (MorphFlight value) => flight = value,
               child: Focus(
                 focusNode: node,
@@ -1361,8 +1260,9 @@ void liveSlots() {
     expect(owner(), findsOneWidget);
   });
 
-  testWidgets('a rebuilt region updates satellite structure and geometry in '
-      'the same frame', (WidgetTester tester) async {
+  testWidgets('a rebuilt region updates its rows and accessory in place', (
+    WidgetTester tester,
+  ) async {
     frame(tester);
     late StateSetter rebuild;
     bool changed = false;
@@ -1377,20 +1277,14 @@ void liveSlots() {
               rebuild = setState;
               return Center(
                 child: MorphContextMenuRegion(
-                  width: changed ? 280 : 250,
-                  gap: changed ? 4 : 8,
-                  above: MorphSatellite(
-                    height: changed ? 80 : 40,
+                  accessory: MorphSatellite(
                     builder: (BuildContext context, MorphFlight flight) =>
                         Text(changed ? 'new-above' : 'old-above'),
                   ),
-                  below: changed
-                      ? null
-                      : MorphSatellite(
-                          height: 100,
-                          builder: (BuildContext context, MorphFlight flight) =>
-                              const Text('old-below'),
-                        ),
+                  menu: <MorphMenuEntry>[
+                    MorphMenuItem(title: changed ? 'new-row' : 'old-row'),
+                    if (!changed) const MorphMenuItem(title: 'gone-row'),
+                  ],
                   onOpen: (MorphFlight value) => flight = value,
                   child: Builder(
                     builder: (BuildContext context) => GestureDetector(
@@ -1411,20 +1305,18 @@ void liveSlots() {
     );
     await tester.tap(find.text('reconfigure'));
     await settle(tester);
-    // 40 + 8 + the 160 x 48 hero lifted to 55.2 + 8 + 100.
-    expect(flight!.lastTargetRect.width, 250);
-    expect(flight!.lastTargetRect.height, _near(211.2));
-
+    expect(_menuFrame(tester).height, _rowsHeight(2));
     rebuild(() => changed = true);
     await tester.pump();
     await settle(tester);
     expect(find.text('old-above'), findsNothing);
-    expect(find.text('old-below'), findsNothing);
     expect(find.text('new-above'), findsOneWidget);
-    expect(flight!.lastTargetRect.width, moreOrLessEquals(280, epsilon: 0.01));
+    expect(find.text('old-row'), findsNothing);
+    expect(find.text('gone-row'), findsNothing);
+    expect(find.text('new-row'), findsOneWidget);
     expect(
-      flight!.lastTargetRect.height,
-      moreOrLessEquals(80 + 4 + 55.2, epsilon: 0.01),
+      _menuShape(tester)!.height,
+      moreOrLessEquals(_rowsHeight(1), epsilon: 0.01),
     );
     flight!.close();
     await settle(tester);
@@ -1435,11 +1327,7 @@ void liveSlots() {
     frame(tester);
     int outer = 0;
     await tester.pumpWidget(
-      _LiveHost(
-        badge: badge,
-        expanded: expanded,
-        onOuterSecondaryTap: () => outer++,
-      ),
+      _LiveHost(expanded: expanded, onOuterSecondaryTap: () => outer++),
     );
     await tester.tap(find.text('hero'), buttons: kSecondaryButton);
     await settle(tester);
@@ -1450,7 +1338,6 @@ void liveSlots() {
 
     await tester.pumpWidget(
       _LiveHost(
-        badge: badge,
         expanded: expanded,
         opensOnSecondaryTap: false,
         onOuterSecondaryTap: () => outer++,
@@ -1462,10 +1349,6 @@ void liveSlots() {
     expect(outer, 1);
   });
 }
-
-const ValueKey<Object> _flyingHero = ValueKey<Object>(
-  'morph-context-menu-hero',
-);
 
 /// The response and damping ratio of the spring UIKit resizes its open
 /// preview on, both ways: fitted to every presentation and close frame of
@@ -1707,7 +1590,6 @@ void devicePreview() {
                 left: 201 - size.width / 2,
                 top: 300 - size.height / 2,
                 child: MorphContextMenuRegion(
-                  alignment: Alignment.center,
                   onOpen: (MorphFlight f) => flight = f,
                   menu: _deviceRows(menu[3]),
                   child: SizedBox.fromSize(
@@ -1721,28 +1603,9 @@ void devicePreview() {
           ),
         ),
       );
-      // What is on screen: the flying copy while the hero travels, the
-      // source ghost on the launch frame (the flying copy needs one layout
-      // to measure), the slot copy in the open menu, the page's own hero
-      // otherwise.
-      Rect visible() {
-        final Finder flying = find.byKey(_flyingHero);
-        if (flying.evaluate().isNotEmpty) {
-          return tester.getRect(flying);
-        }
-        final MorphFlight? live = flight;
-        if (live != null && !live.isFinished && live.controller.value < 0.5) {
-          return live.sourceRect;
-        }
-        final Finder slot = find.descendant(
-          of: find.byType(Column),
-          matching: find.byKey(_heroBox),
-        );
-        if (slot.evaluate().isNotEmpty) {
-          return tester.getRect(slot);
-        }
-        return tester.getRect(find.byKey(_heroBox).first);
-      }
+      // What is on screen: the preview in the overlay while the flight
+      // carries it, the page's own hero otherwise.
+      Rect visible() => _shown(tester, flight);
 
       double growth(Rect r) => r.longestSide - size.longestSide;
       final lifted =
@@ -1850,7 +1713,6 @@ Future<({List<_DimFrame> open, List<_DimFrame> close})> _replayDim(
             left: 201 - size.width / 2,
             top: 300 - size.height / 2,
             child: MorphContextMenuRegion(
-              alignment: Alignment.center,
               onOpen: (MorphFlight f) => flight = f,
               menu: _deviceRows(menu[3]),
               child: SizedBox.fromSize(
@@ -1933,7 +1795,6 @@ _replayHold(
             left: 201 - size.width / 2,
             top: 300 - size.height / 2,
             child: MorphContextMenuRegion(
-              alignment: Alignment.center,
               onOpen: (MorphFlight f) => flight = f,
               menu: _deviceRows(menu[3]),
               child: SizedBox.fromSize(
@@ -1947,27 +1808,7 @@ _replayHold(
       ),
     ),
   );
-  Rect hero() {
-    final Finder flying = find.byKey(_flyingHero);
-    if (flying.evaluate().isNotEmpty) {
-      return tester.getRect(flying);
-    }
-    final MorphFlight? live = flight;
-    if (live != null && live.isLanding) {
-      return tester.getRect(find.byKey(_heroBox).first);
-    }
-    if (live != null && !live.isFinished && live.controller.value < 0.5) {
-      return live.sourceRect;
-    }
-    final Finder slot = find.descendant(
-      of: find.byType(Column),
-      matching: find.byKey(_heroBox),
-    );
-    if (slot.evaluate().isNotEmpty) {
-      return tester.getRect(slot);
-    }
-    return tester.getRect(find.byKey(_heroBox).first);
-  }
+  Rect hero() => _shown(tester, flight);
 
   Rect? menuRect() => _menuShape(tester);
 

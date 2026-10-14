@@ -7,9 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:motor/motor.dart';
 
 import 'package:morph/foundation.dart';
-import 'package:morph/src/frame.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/measure.dart';
 import 'package:morph/src/target.dart' show morphTargetPaddingOf;
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
@@ -24,172 +22,126 @@ import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
-/// One block of a context menu beside its hero: a slot above or below
-/// the held surface, built when the menu opens (so its rows read the
-/// state of that moment) and fading in with the menu. The slot spans the menu's full width; the content aligns itself inside.
+/// A block standing above a context menu's preview, as UIKit's
+/// accessory views do - a reactions capsule over a message bubble -
+/// built when the menu opens, so it reads the state of that moment.
 ///
-/// A slot without a [height] is sized by its content: measured under
-/// the menu's width, seeded at the menu's launch, and springing to
-/// every later change on the flight's open motion - a capsule that
-/// grows when a reaction is picked pushes the column out while the
-/// hero stays put. A slot with a [height] is a fixed box.
+/// It rides the preview: it stands [MorphContextMenuRegion.measuredMenuGap]
+/// above it, centered on it inside the safe area, and unfolds out of the
+/// preview's top edge as the menu opens and folds back into it as the
+/// menu closes. It is sized by its content, at most the overlay's width
+/// minus the menu's margins; a [height] reserves that much room above the
+/// preview when the menu is placed, so a preview near the top edge moves
+/// down to make room for it.
 class MorphSatellite {
-  /// Creates a satellite slot.
+  /// Creates an accessory.
   const MorphSatellite({this.height, required this.builder})
     : assert(
         height == null || height > 0,
-        'a satellite needs a positive height.',
+        'an accessory needs a positive height.',
       );
 
-  /// The slot's extent along the menu's column, in px; null sizes the
-  /// slot by its content, live.
+  /// The room reserved above the preview, in points; null reserves the
+  /// height the content had when the menu last showed.
   final double? height;
 
-  /// Builds the slot's content; receives the flight, so a row closes
-  /// the menu with `flight.close()` after its action.
+  /// Builds the content; receives the flight, so a reaction closes the
+  /// menu with `flight.close()` after its action.
   final MorphContentBuilder builder;
 }
 
-/// A surface that becomes its own context menu when HELD - the
-/// message-bubble pattern. The thing under a resting finger grows as
-/// UIKit's preview does ([measuredHoldGrowth]), and on the hold
-/// threshold it flies to where its satellites fit: a reactions capsule
-/// above, the actions below, both arriving on the flight's own spring.
-/// The open menu shows the hero lifted, as UIKit shows its preview
-/// ([measuredPreviewScale] about the hero's center), and the flight home
-/// lands it at its natural size.
-/// A finger let go past [measuredCommitDuration] opens the menu too. The
-/// hero keeps its identity for the whole journey (a shared element,
-/// never a copy fading in over a copy); the scrim is modal and a tap on
-/// it flies everything home; the finger may let go any time once the
-/// menu is up.
+/// A surface that becomes its own context menu when HELD, as a view
+/// with a `UIContextMenuInteraction` does: the thing under a resting
+/// finger grows as UIKit's preview grows ([measuredHoldGrowth]), and on
+/// the hold its preview lifts ([measuredPreviewScale] about its center)
+/// while the [menu] grows out of a blob at its center
+/// ([MorphMenuAttachment]) and the page dims.
 ///
-/// The region owns the gesture and the physics, the app owns every
-/// pixel: the hero is [child] itself, drawing its own surface - the
-/// flight's container is a transparent vessel with no mass of its own,
-/// so `MorphTag.specOf` inside the child reports a transparent spec and
-/// the child must not render its surface from it - and the satellites
-/// are the app's rows, capsules and light in slots ([MorphSatellite]).
+/// The menu IS the button menu, as in UIKit: the card, rows, sections,
+/// submenus, highlight, flex, scrolling, keyboard and haptics of
+/// [MorphMenuButton], on the context menu's measured morph
+/// ([MorphMenuMorphSpec.context]). It stands [measuredMenuGap] below the
+/// lifted preview, above it (its entries reversed unless [order] is
+/// [MorphMenuOrder.fixed]) when it does not fit below, and when it fits
+/// on neither side the preview moves with it until it fits. The finger
+/// that held the preview may slide onto a row and choose it on release,
+/// with a selection haptic on each row; let go on the preview, it leaves
+/// the menu open. A touch outside the menu, Esc, a chosen row or [close]
+/// sends the preview home and the menu back into its blob.
 ///
-/// Three doors into the same menu: the hold, a secondary (right)
-/// click, and [open] from any context inside [child] - a visible
-/// "more" glyph on a card opens what the hold would. A plain tap
-/// passes through to the child untouched.
+/// A finger let go past [measuredCommitDuration] opens the menu too, a
+/// plain tap passes through to the child untouched, and inside a
+/// scrollable the lift waits for the platform's touch deadline so a
+/// scroll never flashes it; a hold that wins the arena takes the gesture
+/// away from the scrollable and from the child's own tap. Three doors
+/// open the same menu: the hold, a secondary (right) click, and [open]
+/// from any context inside [child].
 ///
-/// Geometry: the menu is a column `[above, gap, hero, gap, below]` of
-/// at least [width], the hero placed by [alignment] - an outgoing bubble
-/// aligns its satellites to its trailing edge. The hero prefers to stay
-/// where it stands; when the satellites would leave the overlay (or
-/// its safe area, or the keyboard's edge) the whole column shifts to
-/// fit, and the hero visibly travels with it. The column rides the hero
-/// for the whole flight: the vessel's content alignment is chosen so
-/// the hero slot coincides with the flying hero at every spring value,
-/// and each satellite unfolds out of a blob at the hero's center
-/// ([measuredRetractScale]) on the way out and retracts into it on the
-/// way home, as UIKit's menu does.
-///
-/// The column is live: the hero's slot and every content-sized
-/// satellite are measured and spring to what their content becomes
-/// while the menu is open (a badge appearing on the hero, a note field
-/// unfolding in the capsule), and the placement follows - the hero
-/// stays put unless the column must shift. A change to [child] or the
-/// satellites while the menu is open rebuilds the menu.
-///
-/// Inside a scrollable the lift waits for the platform's touch
-/// deadline, so a scroll never flashes it; a hold that wins the arena
-/// takes the gesture away from the scrollable and from the child's
-/// own tap.
+/// The preview is the [child] itself, drawing its own surface (or
+/// [replica] in the overlay); an [accessory] rides above it.
 class MorphContextMenuRegion extends StatefulWidget {
-  /// Creates a region around the hero [child].
+  /// Creates a region around the held [child].
   const MorphContextMenuRegion({
     super.key,
     required this.child,
     this.menu = const <MorphMenuEntry>[],
+    this.accessory,
     this.order = MorphMenuOrder.automatic,
     this.dismissOnSelect,
     this.appearance,
-    this.above,
-    this.below,
     this.replica,
-    this.width = MorphMenuTuning.defaultMenuWidth,
-    this.gap = measuredMenuGap,
-    this.margin = MorphMenuTuning.contextMargin,
-    this.alignment = AlignmentDirectional.centerStart,
     this.holdDuration = measuredHoldDuration,
     this.lifts = true,
     this.enabled = true,
     this.opensOnSecondaryTap = true,
     this.tagId,
-    this.motion,
     this.maxScrimOpacity,
     this.scrimColor,
     this.scrimMotion,
-    this.shadowColor,
     this.overlay,
     this.semanticLabel,
     this.onHold,
     this.onOpen,
-  }) : assert(
-         below == null || menu.length == 0,
-         'a region shows its menu rows or a below satellite, not both.',
-       ),
-       assert(width > 0, 'width must be positive.'),
-       assert(gap >= 0, 'gap cannot be negative.'),
-       assert(margin >= 0, 'margin cannot be negative.');
+    this.onClose,
+  });
 
-  /// The hero: the surface that lifts, flies and returns. Draws its
-  /// own surface.
+  /// The held view: the surface that lifts into the preview and returns.
+  /// Draws its own surface.
   final Widget child;
 
-  /// The rows of the menu: the measured menu card of [MorphMenuButton]
-  /// with its rows, sections, submenus, highlight, flex and keyboard,
-  /// standing [measuredMenuGap] off the lifted hero and growing out of a
-  /// blob at the held view's center ([MorphMenuAttachment]), as UIKit's
-  /// context menu is its button menu. A finger that opened the menu by
-  /// holding slides onto a row and chooses it on release.
+  /// The rows of the menu (`UIMenu` children, SwiftUI's `menuItems`):
+  /// rows, sections, submenus, dividers, deferred groups and free-form
+  /// [MorphMenuWidget] rows. An empty menu shows the preview and the
+  /// [accessory] alone.
+  ///
+  /// The open menu follows the widget: a rebuild with other entries
+  /// updates it in place and resizes it on the measured springs.
   final List<MorphMenuEntry> menu;
 
-  /// The order of [menu] relative to the hero: a menu standing above the
-  /// hero reverses its entries unless this is [MorphMenuOrder.fixed]
-  /// (`preferredMenuElementOrder`).
+  /// A block above the preview, such as a reactions capsule, or null.
+  final MorphSatellite? accessory;
+
+  /// The order of [menu] relative to the preview: a menu standing above
+  /// the preview reverses its entries unless this is
+  /// [MorphMenuOrder.fixed] (`preferredMenuElementOrder`).
   final MorphMenuOrder order;
 
   /// Whether choosing a row closes the menu: null leaves it to each row's
-  /// [MorphMenuItem.keepsMenuOpen] (`menuActionDismissBehavior`).
+  /// [MorphMenuItem.keepsMenuOpen], true closes after every row, false
+  /// keeps the menu open after every row (`menuActionDismissBehavior`).
   final bool? dismissOnSelect;
 
   /// The look of [menu]; null resolves it through
   /// [MorphMenuAppearance.resolve].
   final MorphMenuAppearance? appearance;
 
-  /// The slot above the hero (a reactions capsule), or null.
-  final MorphSatellite? above;
-
-  /// The slot below the hero (the actions), or null.
-  final MorphSatellite? below;
-
-  /// The in-flight presentation of the hero ([MorphTag.replica]
-  /// semantics): a lighter, state-independent widget of the same size.
-  /// It is used both by the source ghost and by the open menu's hero slot,
-  /// so a [child] with an external FocusNode, controller, GlobalKey or other
+  /// The preview's stand-in in the overlay ([MorphTag.replica]
+  /// semantics): a lighter, state-independent widget of the same size, so
+  /// a [child] with an external FocusNode, controller, GlobalKey or other
   /// single-owner state stays mounted exactly once in its original place.
-  /// Keep the replica visual and disposable; it must not reuse those owners.
+  /// Keep the replica visual and disposable; it must not reuse those
+  /// owners.
   final Widget? replica;
-
-  /// The menu's minimum width; a wider hero widens the menu to itself.
-  final double width;
-
-  /// Space between the hero and each satellite; UIKit's
-  /// [measuredMenuGap] by default.
-  final double gap;
-
-  /// The menu's distance from the overlay's edges (past the safe area).
-  final double margin;
-
-  /// Where the hero sits across the menu's width when the menu is
-  /// wider than the hero - and which edge the satellites should align
-  /// their content to.
-  final AlignmentGeometry alignment;
 
   /// How long the finger must rest before the menu opens; a finger let
   /// go past [measuredCommitDuration] opens it at the release.
@@ -201,19 +153,19 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// iPhone 16 Pro.
   static const Duration measuredHoldDuration = Duration(milliseconds: 780);
 
-  /// Whether the hero grows under a resting finger and shows lifted in
-  /// the open menu. Held, it scales by `1 + growth / longest side`, the
+  /// Whether the held view grows under a resting finger and shows lifted
+  /// in the open menu. Held, it scales by `1 + growth / longest side`, the
   /// growth [measuredHoldGrowth] of the time held - the same number of
   /// points for every size, as UIKit's preview grows; a finger that lets
   /// go or scrolls before the commit point drops it back at once. Open,
-  /// the menu's hero is [measuredPreviewScale] of its natural size about
-  /// its natural center, and the satellites stand off the lifted hero:
-  /// the flight carries the hero from the grown size to the lifted one
-  /// (a small hero shrinks a little, a large one keeps growing) and back
-  /// to its natural size on the way home. Off, the hero keeps its
-  /// natural size throughout.
+  /// the preview is [measuredPreviewScale] of its natural size about its
+  /// natural center, and the menu stands off the lifted preview: the
+  /// preview goes from the grown size to the lifted one (a small view
+  /// shrinks a little, a large one keeps growing) and back to its natural
+  /// size on the way home. Off, the preview keeps its natural size
+  /// throughout.
   ///
-  /// Under Reduce Motion the held hero keeps its natural size, as UIKit
+  /// Under Reduce Motion the held view keeps its natural size, as UIKit
   /// holds its preview at scale 1 then (read from UIKit, notes private).
   final bool lifts;
 
@@ -288,9 +240,10 @@ class MorphContextMenuRegion extends StatefulWidget {
   static const double measuredMenuGap = 16;
 
   /// The size of the blob a UIKit menu grows out of and retracts into, as
-  /// a share of the preview, at the preview's center (48 x 32 for a
-  /// 120 x 80 preview).
-  static const double measuredRetractScale = 0.4;
+  /// a share of the held view, at its center (48 x 32 for a 120 x 80
+  /// view; [MorphMenuAttachment.blobSize] has the measured law).
+  static const double measuredRetractScale =
+      MorphMenuAttachment.measuredBlobScale;
 
   /// Whether the region listens for gestures; a disabled region is a
   /// plain wrapper that [open] can still drive.
@@ -305,16 +258,13 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// that must find the flight by name. Stable for the region's life.
   final Object? tagId;
 
-  /// Motion profile of the flight; null resolves MorphTheme, then
-  /// [measuredMotion].
-  final MorphMotion? motion;
-
   /// UIKit's context-menu morph, measured on an iPhone 16 Pro (iOS 27):
   /// the preview's resize and the menu growing out of its blob and
   /// retracting into it ride one spring both ways, response 0.284 s and
-  /// damping ratio 0.81. The open overshoots and the close dips below
-  /// its rest by 1.3 percent, so the handoff latch fires on the close's
-  /// zero crossing and the hero lands with UIKit's own undershoot.
+  /// damping ratio 0.81 ([MorphMenuMorphSpec.context]). The open
+  /// overshoots and the close dips below its rest by 1.3 percent, so the
+  /// handoff latch fires on the close's zero crossing and the held view
+  /// lands with UIKit's own undershoot.
   static const MorphMotion measuredMotion = MorphMotion.springs(
     name: 'contextMenu',
     open: measuredSpring,
@@ -358,20 +308,17 @@ class MorphContextMenuRegion extends StatefulWidget {
         Brightness.light => 0.2,
       };
 
-  /// Shadow color of the flying vessel (which casts none by itself).
-  final Color? shadowColor;
-
   /// The overlay the menu renders in; null is
   /// [morphPresentationOverlayOf] ([showMorph]'s `overlay:` semantics),
   /// above the bars of a navigation stack the region sits in. A floating
-  /// bar layered
-  /// over a nested navigator wants the navigator's owner's overlay.
+  /// bar layered over a nested navigator wants the navigator's owner's
+  /// overlay.
   final OverlayState? overlay;
 
   /// Accessibility name of the open menu.
   final String? semanticLabel;
 
-  /// The hold threshold was crossed and the menu is about to fly. Not
+  /// The hold threshold was crossed and the menu is about to open. Not
   /// called for [open] or a secondary click.
   ///
   /// The region itself plays UIKit's preview haptic at this moment
@@ -380,13 +327,18 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// (read from UIKit, notes private).
   final VoidCallback? onHold;
 
-  /// A new flight took off, whichever door opened it - subscribe to
-  /// [MorphFlight.events] here for the landing haptic.
+  /// The menu opened, whichever door opened it (`willDisplayMenu`):
+  /// receives the flight that carries the preview, the menu and the dim -
+  /// subscribe to [MorphFlight.events] here for the landing haptic.
   final void Function(MorphFlight flight)? onOpen;
 
+  /// The menu started closing, however it closes (`willEndMenu`): a row
+  /// chosen, a touch outside, Esc, [close] or the flight closed.
+  final VoidCallback? onClose;
+
   /// Opens the menu of the nearest enclosing region - the visible door:
-  /// a "more" glyph inside the hero calls this with its own context.
-  /// Inside the open menu's hero copy it retargets the live flight.
+  /// a "more" glyph inside the held view calls this with its own context.
+  /// Inside the open preview it retargets the live flight.
   static MorphFlight open(BuildContext context) {
     final _RegionScope? scope = context
         .getInheritedWidgetOfExactType<_RegionScope>();
@@ -398,22 +350,19 @@ class MorphContextMenuRegion extends StatefulWidget {
     return scope!.state._open();
   }
 
+  /// Closes the open menu of the region whose [child], [accessory] or
+  /// menu row [context] is in (`dismissMenu`); nothing happens when it is
+  /// not open.
+  static void close(BuildContext context) {
+    final _RegionScope? scope = context
+        .getInheritedWidgetOfExactType<_RegionScope>();
+    if (scope == null || !scope.state.mounted) return;
+    scope.state._close();
+  }
+
   @override
   State<MorphContextMenuRegion> createState() => _MorphContextMenuRegionState();
 }
-
-/// The hero's shared-element id: the same on the source and the target
-/// side of every region flight, one flight owning its own registry.
-const String _heroId = 'morph-context-menu-hero';
-
-/// The flying container of a context menu: no mass of its own. The
-/// hero and the satellites draw their surfaces; the vessel only lays
-/// them out and dims the page.
-const MorphSurfaceSpec _vessel = MorphSurfaceSpec(
-  shape: RoundedRectangleBorder(),
-  color: Color(0x00000000),
-  elevation: 0,
-);
 
 class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     with TickerProviderStateMixin {
@@ -423,8 +372,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     initialValue: 0,
   );
   MorphFlexSpec _flex = MorphFlexSpec.ultraSmall;
-  // The hero's scale below its natural size while its flight lands: the
-  // close spring's undershoot after the latch, which UIKit's preview
+  // The held view's scale below its natural size while its flight lands:
+  // the close spring's undershoot after the latch, which UIKit's preview
   // plays as a shrink below its natural size.
   final ValueNotifier<double> _landing = ValueNotifier<double>(0);
   late final Listenable _heroScale = Listenable.merge(<Listenable>[
@@ -436,7 +385,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   // tap is down (past a scrollable's touch deadline).
   late final Ticker _holdClock = createTicker(_onHoldTick);
   bool _growing = false;
-  // Under Reduce Motion the held hero keeps its size.
+  // Under Reduce Motion the held view keeps its size.
   bool _still = false;
   int? _clockPointer;
   Duration _holdOrigin = Duration.zero;
@@ -462,12 +411,15 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   MorphFlight? _flight;
   MorphFlight? _pressOwner;
   StreamSubscription<MorphFlightEvent>? _pressWatch;
-  _MenuGeometry? _geometry;
+  _Placement? _placement;
+  double _accessoryHeight = 0;
 
   Object? _sessionTag;
   Object get _tagId => _flight != null && !_flight!.isFinished
       ? _sessionTag ?? widget.tagId ?? this
       : widget.tagId ?? this;
+
+  MorphMenuController? get _controller => _driver.currentState?.controller;
 
   @override
   void initState() {
@@ -532,39 +484,24 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     if (oldWidget.opensOnSecondaryTap != widget.opensOnSecondaryTap) {
       _syncSecondaryDoor();
     }
-    // The open menu shows this widget's child and satellites, and an
+    // The open preview and accessory show this widget's child, and an
     // overlay entry does not follow its owner's build on its own: a
-    // rebuild with new content rebuilds the menu too. Deferred - the
-    // entry is no ancestor, so marking it during build is illegal.
+    // rebuild rebuilds them too. Deferred - the entry is no ancestor, so
+    // marking it during build is illegal. The menu rows follow through
+    // their controller.
     final MorphFlight? flight = _flight;
-    final _MenuGeometry? geometry = _geometry;
     if (flight != null && !flight.isFinished) {
       WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-        if (mounted && !flight.isFinished && identical(geometry, _geometry)) {
-          geometry?.reconfigure(
-            above: widget.above,
-            below: widget.below,
-            minWidth: widget.width,
-            gap: widget.gap,
-            margin: widget.margin,
-            alignment: widget.alignment.resolve(Directionality.of(context)),
-            lifted: widget.lifts,
-          );
-          flight.markNeedsBuild();
-        }
+        if (mounted && !flight.isFinished) flight.markContentNeedsBuild();
       });
     }
   }
 
   @override
   void dispose() {
-    // The flight is the scope's, not the region's: a hero whose row
-    // was archived from its own menu keeps flying and dissolves on its
-    // way home (MorphFlight.isSourceLost). Its column's springs are
-    // this State's tickers, though: they stop here, and the slots
-    // freeze at their current extents for the dissolve.
-    _geometry?.dispose();
-    _geometry = null;
+    // The flight is the scope's, not the region's: a held view archived
+    // from its own menu keeps flying and dissolves on its way home
+    // (MorphFlight.isSourceLost).
     unawaited(_pressWatch?.cancel());
     _tap.dispose();
     _hold.dispose();
@@ -652,7 +589,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     // arena rejects the tap BEFORE it starts the winner: the verdict
     // waits a microtask. A committed press keeps growing, and a flight
     // which re-reads this tag's transformed rect every frame owns the
-    // grown size through takeoff - the shuttle would chase a shrinking
+    // grown size through takeoff - the preview would chase a shrinking
     // source otherwise. Ordinary taps and canceled scroll attempts drop
     // at once, as UIKit drops a preview let go before its commit point.
     scheduleMicrotask(() {
@@ -677,15 +614,13 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
 
   void _onPointerMove(PointerMoveEvent event) {
     if (event.pointer == _clockPointer) _finger = event.position;
-    if (event.pointer == _menuPointer) {
-      _driver.currentState?.controller.menuPointerMove(event);
-    }
+    if (event.pointer == _menuPointer) _controller?.menuPointerMove(event);
   }
 
   void _onPointerUp(PointerUpEvent event) {
     if (event.pointer == _menuPointer) {
       _menuPointer = null;
-      _driver.currentState?.controller.menuPointerUp(event);
+      _controller?.menuPointerUp(event);
     }
     // The tap reports its own end only once it went down: a swipe that
     // a scrollable took before the touch deadline stops the clock here.
@@ -697,7 +632,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   void _onPointerCancel(PointerCancelEvent event) {
     if (event.pointer == _menuPointer) {
       _menuPointer = null;
-      _driver.currentState?.controller.menuPointerCancel(event);
+      _controller?.menuPointerCancel(event);
     }
     if (event.pointer != _clockPointer) {
       return;
@@ -769,124 +704,159 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     }
   }
 
+  OverlayState get _overlay =>
+      widget.overlay ??
+      morphPresentationOverlayOf(context) ??
+      Overlay.of(context);
+
+  /// Opens the menu, or retargets the open one; [pointer] is the finger
+  /// that held the preview, handed to the menu rows.
   MorphFlight _open({int? pointer}) {
-    final OverlayState? overlay = widget.overlay;
-    if (overlay != null) morphCheckOverlayAncestor(context, overlay);
-    if (_flight == null || _flight!.isFinished) {
-      _sessionTag = widget.tagId ?? this;
-    }
-    // The region's own box, ABOVE the press transform: the hero's
-    // natural rect, grown or not - the size the hero lands at, and the
-    // center the open menu lifts it about.
-    final Rect hero = morphAnchorRect(context, overlay: overlay);
-    final _MenuDriverState? driver = widget.menu.isEmpty
-        ? null
-        : _driver.currentState;
-    final MorphMenuMotion? motion = driver?.prepare(
-      held: hero,
-      preview: widget.lifts
-          ? Rect.fromCenter(
-              center: hero.center,
-              width:
-                  hero.width *
-                  MorphContextMenuRegion.measuredPreviewScale(hero.size),
-              height:
-                  hero.height *
-                  MorphContextMenuRegion.measuredPreviewScale(hero.size),
-            )
-          : hero,
-      accessory: widget.above == null
-          ? 0
-          : (widget.above!.height ?? 0) + widget.gap,
-      overlay:
-          overlay ?? morphPresentationOverlayOf(context) ?? Overlay.of(context),
-    );
+    final OverlayState? explicit = widget.overlay;
+    if (explicit != null) morphCheckOverlayAncestor(context, explicit);
     final MorphFlight? active = _flight;
-    final _MenuGeometry geometry;
-    if (active != null && !active.isFinished && _geometry != null) {
-      geometry = _geometry!;
-      geometry.reconfigure(
-        above: widget.above,
-        below: widget.below,
-        minWidth: widget.width,
-        gap: widget.gap,
-        margin: widget.margin,
-        alignment: widget.alignment.resolve(Directionality.of(context)),
-        lifted: widget.lifts,
-      );
-    } else {
-      geometry = _MenuGeometry(
-        hero: hero,
-        shift: motion?.previewShift,
-        above: widget.above,
-        below: widget.below,
-        minWidth: widget.width,
-        gap: widget.gap,
-        margin: widget.margin,
-        alignment: widget.alignment.resolve(Directionality.of(context)),
-        lifted: widget.lifts,
-      );
+    final bool fresh = active == null || active.isFinished;
+    if (fresh) {
+      _sessionTag = widget.tagId ?? this;
+      _placement = _place();
     }
+    final MorphMenuController? controller = _controller;
+    final MorphMenuMotion? motion = controller?.menuMotion;
+    if (controller != null &&
+        widget.menu.isNotEmpty &&
+        motion != null &&
+        !motion.isOpen) {
+      // The menu's opening launches the flight through the controller's
+      // launcher (_launch), which carries the preview and the menu as one.
+      if (pointer != null) {
+        _menuPointer = pointer;
+        controller.holdOpen(pointer, _finger);
+      } else {
+        controller.open();
+      }
+      final MorphFlight? launched = _flight;
+      if (launched != null && !launched.isFinished) return launched;
+    }
+    return _launch();
+  }
+
+  /// Where the preview, the accessory and the menu stand: the held view's
+  /// natural rect - the region's own box, ABOVE the press transform, grown
+  /// or not - the lifted preview about its center, and the menu attached
+  /// to it, which moves the preview when it fits on neither side.
+  _Placement _place() {
+    final Rect held = morphAnchorRect(context, overlay: widget.overlay);
+    final double scale = widget.lifts
+        ? MorphContextMenuRegion.measuredPreviewScale(held.size)
+        : 1;
+    final Rect lifted = Rect.fromCenter(
+      center: held.center,
+      width: held.width * scale,
+      height: held.height * scale,
+    );
+    final MorphSatellite? accessory = widget.accessory;
+    final double room = accessory == null
+        ? 0
+        : (accessory.height ?? _accessoryHeight) +
+              MorphContextMenuRegion.measuredMenuGap;
+    final OverlayState overlay = _overlay;
+    final RenderBox overlayBox =
+        overlay.context.findRenderObject()! as RenderBox;
+    final EdgeInsets padding = morphTargetPaddingOf(
+      context,
+      overlayBox.size,
+      overlayBox: overlayBox,
+    );
+    final _MenuDriverState? driver = _driver.currentState;
+    final MorphMenuAttachment attachment = MorphMenuAttachment(
+      held: held,
+      preview: lifted,
+      accessory: room,
+    );
+    Offset shift;
+    if (driver != null && widget.menu.isNotEmpty) {
+      shift = driver
+          .prepare(
+            held: held,
+            attachment: attachment,
+            overlay: overlay,
+            bounds: overlayBox.size,
+            padding: padding,
+          )
+          .previewShift;
+    } else {
+      shift = MorphMenuMotion.placeAttached(
+        attachment: attachment,
+        size: Size.zero,
+        bounds: overlayBox.size,
+        padding: padding,
+      ).shift;
+    }
+    return _Placement(held: held, preview: lifted.shift(shift));
+  }
+
+  /// Launches the flight that carries the preview, the accessory and the
+  /// menu, or retargets the live one.
+  MorphFlight _launch() {
+    final _Placement placement = _placement ??= _place();
     final MorphTheme? theme = MorphTheme.maybeOf(context);
     final MorphFlight flight = showMorph(
       context,
       from: _tagId,
-      motion:
-          widget.motion ??
-          theme?.motion ??
-          MorphContextMenuRegion.measuredMotion,
+      motion: MorphContextMenuRegion.measuredMotion,
       maxScrimOpacity:
           widget.maxScrimOpacity ??
           theme?.maxScrimOpacity ??
           MorphContextMenuRegion.measuredDimOpacity(morphBrightnessOf(context)),
       scrimColor: widget.scrimColor,
       scrimMotion: widget.scrimMotion ?? MorphContextMenuRegion.measuredDim,
-      shadowColor: widget.shadowColor,
       semanticLabel: widget.semanticLabel,
-      overlay: overlay,
-      target: _MenuTarget(geometry),
+      overlay: widget.overlay,
+      onDismissRequested: _close,
+      target: MorphTargetSpec.vessel(
+        rectFor: (Size size, EdgeInsets padding) => placement.preview,
+      ),
       builder: (BuildContext context, MorphFlight flight) =>
-          _buildMenu(context, flight, geometry),
+          _buildMenu(context, flight, placement),
     );
     if (!identical(flight, _flight)) {
       _flight = flight;
-      // A retarget reuses the live geometry above; only a fresh flight
-      // adopts a new one. The springs are this State's tickers and die
-      // with the flight, or with the State if that comes first.
-      _geometry?.dispose();
-      _geometry = geometry;
-      geometry.attach(flight, vsync: this);
-      _followLanding(flight, hero.size);
-      unawaited(
-        flight.closed.whenComplete(() {
-          geometry.dispose();
-          if (identical(_geometry, geometry)) {
-            _geometry = null;
-            if (mounted) setState(() {});
-          }
-        }),
-      );
+      _followLanding(flight, placement.held.size);
       late final StreamSubscription<MorphFlightEvent> closing;
       closing = flight.events.listen((MorphFlightEvent event) {
         if (event != MorphFlightEvent.closing) return;
         unawaited(closing.cancel());
-        _driver.currentState?.controller.close();
+        _menuPointer = null;
+        widget.onClose?.call();
+        _controller?.close();
       });
-      unawaited(flight.closed.whenComplete(() => unawaited(closing.cancel())));
+      unawaited(
+        flight.closed.whenComplete(() {
+          unawaited(closing.cancel());
+          if (identical(_flight, flight)) {
+            _placement = null;
+            // The tag takes the region's id again once the session ends.
+            if (mounted) setState(() {});
+          }
+        }),
+      );
       widget.onOpen?.call(flight);
-    }
-    if (driver != null && motion != null && !motion.isOpen) {
-      if (pointer != null) {
-        _menuPointer = pointer;
-        driver.controller.holdOpen(pointer, _finger);
-      } else {
-        driver.controller.open();
-      }
     }
     return flight;
   }
 
-  /// The menu started closing: the preview flies home with it.
+  /// Closes the open menu and sends the preview home.
+  void _close() {
+    final MorphMenuMotion? motion = _controller?.menuMotion;
+    if (motion != null && motion.isOpen) {
+      _controller!.close();
+      return;
+    }
+    final MorphFlight? flight = _flight;
+    if (flight != null && !flight.isFinished) flight.close();
+  }
+
+  /// The menu rows started closing: the preview flies home with them.
   void _menuClosed() {
     _menuPointer = null;
     final MorphFlight? flight = _flight;
@@ -901,9 +871,9 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     }
   }
 
-  /// Plays the close spring's undershoot past the latch on the source
-  /// hero: the lifted size is a linear function of the flight value, so
-  /// below zero the hero shrinks under its natural size by the same law.
+  /// Plays the close spring's undershoot past the latch on the held view:
+  /// the lifted size is a linear function of the flight value, so below
+  /// zero the view shrinks under its natural size by the same law.
   void _followLanding(MorphFlight flight, Size natural) {
     final double lift = widget.lifts
         ? MorphContextMenuRegion.measuredPreviewScale(natural) - 1
@@ -927,64 +897,59 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     );
   }
 
-  /// The source stays live in place. An explicit replica supplies every
-  /// overlay copy, keeping single-owner state out of the duplicated tree.
-  Widget _sourceHero() => _RegionScope(state: this, child: widget.child);
-
-  /// The hero in the open menu: content of the flight's target, under the
-  /// shuttle's Material and its body text style, but a copy of the source
-  /// that must read the source's own (a copy laid out in a slot sized from
-  /// the source would overflow it otherwise).
-  Widget _flightHero(MorphFlight flight) => _RegionScope(
-    state: this,
-    child: flight.sourceThemes.wrapText(widget.replica ?? widget.child),
-  );
-
   Widget _buildMenu(
     BuildContext context,
     MorphFlight flight,
-    _MenuGeometry geometry,
+    _Placement placement,
   ) {
-    final MorphSatellite? above = widget.above;
-    final MorphSatellite? below = widget.below;
-    // Built once per menu build; the geometry's ticks move only the
-    // slots around them.
-    final Widget? aboveContent = above == null
-        ? null
-        : MorphChromeBackdrop(child: above.builder(context, flight));
-    final Widget? belowContent = below == null
-        ? null
-        : MorphChromeBackdrop(child: below.builder(context, flight));
-    final Widget hero = MorphChromeBackdrop(child: _flightHero(flight));
-    return _MenuColumn(
-      flight: flight,
-      geometry: geometry,
-      above: above,
-      below: below,
-      aboveContent: aboveContent,
-      belowContent: belowContent,
-      hero: hero,
+    final MorphMenuController? controller = _controller;
+    final MorphSatellite? accessory = widget.accessory;
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        if (controller != null && widget.menu.isNotEmpty)
+          _RegionScope(
+            state: this,
+            child: MorphMenuLayer(host: controller, flight: flight),
+          ),
+        _PreviewLayer(
+          flight: flight,
+          placement: placement,
+          child: _RegionScope(
+            state: this,
+            child: flight.sourceThemes.wrapText(widget.replica ?? widget.child),
+          ),
+        ),
+        if (accessory != null)
+          _AccessoryLayer(
+            flight: flight,
+            placement: placement,
+            onHeight: (double height) => _accessoryHeight = height,
+            child: _RegionScope(
+              state: this,
+              child: MorphChromeBackdrop(
+                child: Builder(
+                  builder: (BuildContext context) =>
+                      accessory.builder(context, flight),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final Widget? replica = widget.replica;
     final Widget tagged = MorphTag(
       id: _tagId,
-      spec: _vessel,
-      replica: replica == null
-          ? null
-          : MorphSharedElement(
-              id: _heroId,
-              child: _RegionScope(state: this, child: replica),
-            ),
-      child: MorphSharedElement(id: _heroId, child: _sourceHero()),
+      child: _RegionScope(state: this, child: widget.child),
     );
-    // The press transform sits ABOVE the tag: the
-    // tag's live rect is the lifted one, so the flight takes off from
-    // exactly the pixels under the finger, and the wrapper chain is
-    // identical at rest - no remount across the press.
+    // The press transform sits ABOVE the tag: the tag's live rect is the
+    // lifted one, so the flight takes off from exactly the pixels under
+    // the finger, and the wrapper chain is identical at rest - no remount
+    // across the press.
     final Widget lifted = MorphLiveApart(
       // Apart while it grows or lands, so those frames repaint the
       // source, not the page around it.
@@ -1001,301 +966,203 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         child: tagged,
       ),
     );
-    final Widget listened = Listener(
-      behavior: HitTestBehavior.deferToChild,
-      onPointerDown: _onPointerDown,
-      onPointerMove: _onPointerMove,
-      onPointerUp: _onPointerUp,
-      onPointerCancel: _onPointerCancel,
-      child: lifted,
-    );
     return Semantics(
       onLongPress: widget.enabled ? _open : null,
-      child: widget.menu.isEmpty
-          ? listened
-          : _MenuDriver(key: _driver, region: this, child: listened),
+      child: _MenuDriver(
+        key: _driver,
+        region: this,
+        child: Listener(
+          behavior: HitTestBehavior.deferToChild,
+          onPointerDown: _onPointerDown,
+          onPointerMove: _onPointerMove,
+          onPointerUp: _onPointerUp,
+          onPointerCancel: _onPointerCancel,
+          child: lifted,
+        ),
+      ),
     );
   }
 }
 
-/// The menu column `[above, gap, hero, gap, below]` around the flying
-/// hero. It builds when the menu builds or a satellite appears or leaves;
-/// every other change of the column's extents reaches its render objects
-/// once per frame, after every spring of the frame ran, without a build.
-class _MenuColumn extends StatefulWidget {
-  const _MenuColumn({
+/// Where an open context menu's parts stand, in the overlay's
+/// coordinates: the held view at rest and its lifted preview, moved with
+/// the menu when the menu fits on neither side of it.
+class _Placement {
+  const _Placement({required this.held, required this.preview});
+
+  final Rect held;
+  final Rect preview;
+}
+
+/// The preview in the open menu: a copy of the held view, laid out at its
+/// natural size and shown on the rect the flight carries it on - from the
+/// grown held view to the lifted preview on the open, home on the close,
+/// a straight line on the flight's value (overshoot included), as UIKit
+/// resizes its preview about the held view's center.
+class _PreviewLayer extends StatelessWidget {
+  const _PreviewLayer({
     required this.flight,
-    required this.geometry,
-    required this.above,
-    required this.below,
-    required this.aboveContent,
-    required this.belowContent,
-    required this.hero,
+    required this.placement,
+    required this.child,
   });
 
   final MorphFlight flight;
-  final _MenuGeometry geometry;
-  final MorphSatellite? above;
-  final MorphSatellite? below;
-  final Widget? aboveContent;
-  final Widget? belowContent;
-  final Widget hero;
+  final _Placement placement;
+  final Widget child;
+
+  Rect _rect() =>
+      Rect.lerp(
+        flight.sourceRect,
+        placement.preview,
+        flight.controller.value,
+      ) ??
+      placement.preview;
 
   @override
-  State<_MenuColumn> createState() => _MenuColumnState();
+  Widget build(BuildContext context) {
+    final Size natural = placement.held.size;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        MorphLivePositionedTemplate(
+          live: flight.frameTicks,
+          template: () {
+            final Rect rect = _rect();
+            return Positioned(
+              left: rect.left,
+              top: rect.top,
+              width: rect.width,
+              height: rect.height,
+              child: morphLiveSlot,
+            );
+          },
+          child: IgnorePointer(
+            child: MorphLiveTemplate(
+              live: flight.frameTicks,
+              template: () => Transform.scale(
+                scale: natural.width <= 0 ? 1 : _rect().width / natural.width,
+                alignment: Alignment.topLeft,
+              ),
+              child: OverflowBox(
+                alignment: Alignment.topLeft,
+                minWidth: natural.width,
+                maxWidth: natural.width,
+                minHeight: natural.height,
+                maxHeight: natural.height,
+                child: MorphChromeBackdrop(child: child),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-class _MenuColumnState extends State<_MenuColumn> {
-  late final MorphFrameSync<(bool, bool)> _sync = MorphFrameSync<(bool, bool)>(
-    structure: () => (widget.geometry._hasAbove, widget.geometry._hasBelow),
-    rebuild: (_) => setState(() {}),
-  );
+/// The accessory above the preview: centered on the preview inside the
+/// overlay's margins, its bottom [MorphContextMenuRegion.measuredMenuGap]
+/// above the preview's top, unfolding out of that edge on the flight's
+/// value (opacity and scale about its bottom center).
+///
+/// Fidelity: approximation - UIKit's accessory views are not measured;
+/// they ride the preview and fade with it.
+class _AccessoryLayer extends StatelessWidget {
+  const _AccessoryLayer({
+    required this.flight,
+    required this.placement,
+    required this.onHeight,
+    required this.child,
+  });
+
+  final MorphFlight flight;
+  final _Placement placement;
+  final ValueChanged<double> onHeight;
+  final Widget child;
+
+  Rect _preview() =>
+      Rect.lerp(
+        flight.sourceRect,
+        placement.preview,
+        flight.controller.value,
+      ) ??
+      placement.preview;
 
   @override
-  void initState() {
-    super.initState();
-    _sync.follow(widget.geometry);
-  }
-
-  @override
-  void didUpdateWidget(_MenuColumn oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _sync.follow(widget.geometry);
-  }
-
-  @override
-  void dispose() {
-    _sync.dispose();
-    super.dispose();
-  }
-
-  Widget _live(RenderObjectWidget Function() template, {Widget? child}) =>
-      MorphLiveTemplate(live: _sync, template: template, child: child);
-
-  /// A satellite slot: a fixed box, or a box of the live extent whose
-  /// content lays out at its natural height under the menu's width,
-  /// clipped while the extent catches up - the growth reveals from the
-  /// hero's side outward.
-  Widget _slot({
-    required double Function() extent,
-    required bool fixed,
-    required Alignment alignment,
-    required ValueChanged<Size> onSize,
-    required Widget child,
-  }) {
-    final _MenuGeometry geometry = widget.geometry;
-    if (fixed) {
-      return _live(() => SizedBox(height: extent()), child: child);
-    }
-    return _live(
-      () => SizedBox(height: extent()),
-      child: ClipRect(
-        child: _live(
-          () => MorphContentMeasure(
-            childConstraints: BoxConstraints(
-              minWidth: geometry.width,
-              maxWidth: geometry.width,
-            ),
-            alignment: alignment,
-            onSize: onSize,
-          ),
+  Widget build(BuildContext context) {
+    return CustomSingleChildLayout(
+      delegate: _AccessoryLayout(
+        preview: _preview,
+        repaint: flight.frameTicks,
+        onHeight: onHeight,
+      ),
+      child: MorphLiveTemplate(
+        live: flight.frameTicks,
+        template: () {
+          final double unfold = flight.controller.value.clamp(0.0, 1.0);
+          return Opacity(opacity: unfold);
+        },
+        child: MorphLiveTemplate(
+          live: flight.frameTicks,
+          template: () {
+            final double unfold = flight.controller.value.clamp(0.0, 1.0);
+            return Transform.scale(
+              scale:
+                  MorphMenuAttachment.measuredBlobScale +
+                  (1 - MorphMenuAttachment.measuredBlobScale) * unfold,
+              alignment: Alignment.bottomCenter,
+            );
+          },
           child: child,
         ),
       ),
     );
   }
+}
+
+class _AccessoryLayout extends SingleChildLayoutDelegate {
+  _AccessoryLayout({
+    required this.preview,
+    required Listenable repaint,
+    required this.onHeight,
+  }) : super(relayout: repaint);
+
+  final Rect Function() preview;
+  final ValueChanged<double> onHeight;
 
   @override
-  Widget build(BuildContext context) {
-    _sync.read();
-    final MorphFlight flight = widget.flight;
-    final _MenuGeometry geometry = widget.geometry;
-    final MorphSatellite? above = widget.above;
-    final MorphSatellite? below = widget.below;
-    return _live(
-      () => SizedBox(width: geometry.width, height: geometry.height),
-      child: Column(
-        mainAxisSize: .min,
-        crossAxisAlignment: .stretch,
-        children: <Widget>[
-          if (above != null) ...<Widget>[
-            _Retract(
-              flight: flight,
-              geometry: geometry,
-              slot: () => Rect.fromLTWH(0, 0, geometry.width, geometry.above),
-              child: _slot(
-                extent: () => geometry.above,
-                fixed: above.height != null,
-                alignment: Alignment.bottomCenter,
-                onSize: geometry.reportAbove,
-                child: widget.aboveContent!,
-              ),
-            ),
-            _live(() => SizedBox(height: geometry.gap)),
-          ],
-          _live(
-            () => Align(alignment: Alignment(geometry.alignment.x, 0)),
-            child: _live(
-              () => SizedBox(
-                width: geometry.slotWidth,
-                height: geometry.slotHeight,
-              ),
-              // The same content on both sides: the target copy flies
-              // alone at full opacity - a fade-through of identical
-              // pixels would read as a blink.
-              child: MorphSharedElement(
-                id: _heroId,
-                fade: .none,
-                // The copy lays out at its natural size and is painted
-                // lifted, as UIKit scales its preview: text never
-                // rewraps at the lifted size. The slot is seeded at the
-                // hero's launch size and springs to what the copy
-                // becomes; the copy is never narrower than at launch,
-                // never wider than the menu, and overflows the slot
-                // until it catches up.
-                child: _live(
-                  () => Transform.scale(
-                    scale: geometry.scale,
-                    alignment: Alignment.topLeft,
-                  ),
-                  child: _live(
-                    () => OverflowBox(
-                      alignment: Alignment.topLeft,
-                      minWidth: geometry.heroWidth,
-                      maxWidth: geometry.heroWidth,
-                      minHeight: geometry.heroHeight,
-                      maxHeight: geometry.heroHeight,
-                    ),
-                    child: _live(
-                      () => MorphContentMeasure(
-                        childConstraints: BoxConstraints(
-                          minWidth: geometry.hero.width,
-                          maxWidth: geometry.width / geometry.scale,
-                        ),
-                        alignment: AlignmentDirectional.topStart,
-                        onSize: geometry.reportHero,
-                      ),
-                      child: widget.hero,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (below != null) ...<Widget>[
-            _live(() => SizedBox(height: geometry.gap)),
-            _Retract(
-              flight: flight,
-              geometry: geometry,
-              slot: () => Rect.fromLTWH(
-                0,
-                geometry.aboveExtent + geometry.slotHeight + geometry.gap,
-                geometry.width,
-                geometry.below,
-              ),
-              child: _slot(
-                extent: () => geometry.below,
-                fixed: below.height != null,
-                alignment: Alignment.topCenter,
-                onSize: geometry.reportBelow,
-                child: widget.belowContent!,
-              ),
-            ),
-          ],
-        ],
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      BoxConstraints(
+        maxWidth: math.max(
+          0,
+          constraints.maxWidth - 2 * MorphMenuTuning.contextMargin,
+        ),
+      );
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    onHeight(childSize.height);
+    final Rect rect = preview();
+    final double left = (rect.center.dx - childSize.width / 2).clamp(
+      MorphMenuTuning.contextMargin,
+      math.max(
+        MorphMenuTuning.contextMargin,
+        size.width - MorphMenuTuning.contextMargin - childSize.width,
       ),
     );
-  }
-}
-
-/// A satellite unfolding out of the hero: at flight value 0 the slot is
-/// squeezed into a blob of [MorphContextMenuRegion.measuredRetractScale]
-/// times the hero's natural size at the hero's center, at 1 it stands in
-/// place - the menu grows out of the held surface and retracts into it on
-/// the way home, a pure function of the flight's value. The satellite
-/// rect uses the engine's flight geometry, including its size overshoot
-/// above 1; the column's content remains laid out at its natural size.
-///
-/// The transform is read when the box paints, after the frame's springs
-/// ran and the shuttle re-read the source's rect; a flight frame repaints
-/// the box and builds nothing.
-class _Retract extends StatelessWidget {
-  const _Retract({
-    required this.flight,
-    required this.geometry,
-    required this.slot,
-    required this.child,
-  });
-
-  final MorphFlight flight;
-  final _MenuGeometry geometry;
-
-  /// The slot's rect in the column now.
-  final Rect Function() slot;
-  final Widget child;
-
-  Matrix4 _transform() {
-    final double value = math.max(flight.controller.value, 0);
-    final Rect slot = this.slot();
-    if (value == 1 || slot.width <= 0 || slot.height <= 0) {
-      return Matrix4.identity();
-    }
-    // The blob is placed where it is SEEN: at the center of the held
-    // view, which the vessel stands on at value 0. The column overflows
-    // that rect by its content alignment and is painted at the reveal
-    // scale about its own center, so both are divided out.
-    final Size source = flight.sourceRect.size;
-    final Alignment align = geometry.contentAlignment;
-    final Offset seen = Offset(
-      source.width / 2 - (source.width - geometry.width) * (align.x + 1) / 2,
-      source.height / 2 - (source.height - geometry.height) * (align.y + 1) / 2,
+    return Offset(
+      left,
+      rect.top - MorphContextMenuRegion.measuredMenuGap - childSize.height,
     );
-    final double reveal = morphTargetRevealScale(value);
-    final Offset middle = Offset(geometry.width / 2, geometry.height / 2);
-    final Rect blob = Rect.fromCenter(
-      center: middle + (seen - middle) / reveal,
-      width:
-          geometry.heroWidth *
-          MorphContextMenuRegion.measuredRetractScale /
-          reveal,
-      height:
-          geometry.heroHeight *
-          MorphContextMenuRegion.measuredRetractScale /
-          reveal,
-    );
-    final Rect now = morphFlightGeometry(
-      value: value,
-      sourceRect: blob,
-      targetRect: slot,
-      sourceShape: flight.tag.shape,
-      targetShape: flight.target.shape,
-    ).rect;
-    final Matrix4 transform = Matrix4.translationValues(
-      now.left - slot.left,
-      now.top - slot.top,
-      0,
-    );
-    transform.scaleByDouble(
-      now.width / slot.width,
-      now.height / slot.height,
-      1,
-      1,
-    );
-    return transform;
   }
 
   @override
-  Widget build(BuildContext context) => MorphLiveBox(
-    live: flight.frameTicks,
-    transform: _transform,
-    child: child,
-  );
+  bool shouldRelayout(_AccessoryLayout oldDelegate) => true;
 }
 
-/// The identity transport behind [MorphContextMenuRegion.open]. Lives
-/// INSIDE the tag's child, so the hero copies in the shuttle carry it
-/// too: a "more" glyph in the open menu's hero retargets the live
-/// flight instead of asserting.
+/// The identity transport behind [MorphContextMenuRegion.open] and
+/// [MorphContextMenuRegion.close]. Lives INSIDE the tag's child and the
+/// overlay copies too: a "more" glyph in the open preview retargets the
+/// live flight instead of asserting.
 class _RegionScope extends InheritedWidget {
   const _RegionScope({required this.state, required super.child});
 
@@ -1305,335 +1172,7 @@ class _RegionScope extends InheritedWidget {
   bool updateShouldNotify(_RegionScope oldWidget) => state != oldWidget.state;
 }
 
-/// The menu's target: the vessel, with the rect and the content
-/// alignment read live from the column on every frame the column
-/// notifies.
-class _MenuTarget extends MorphTargetSpec {
-  _MenuTarget(this.geometry)
-    : super(
-        rectFor: geometry.rectFor,
-        surface: _vessel,
-        clipBehavior: Clip.none,
-        repaint: geometry,
-      );
-
-  final _MenuGeometry geometry;
-
-  @override
-  Alignment get contentAlignment => geometry.contentAlignment;
-}
-
-/// One live extent of the column: its current value, and the spring
-/// that carries it to each new measurement once seeded.
-class _LiveExtent {
-  _LiveExtent(this.value, {required this.seeded});
-
-  double value;
-  bool seeded;
-  SingleMotionController? spring;
-}
-
-/// The menu column around a hero: sizes, the hero's slot and the
-/// placement rule. The slot holds the hero lifted
-/// ([MorphContextMenuRegion.measuredPreviewScale] of its natural extents)
-/// about the launch rect's center. The hero's rect is captured once at
-/// launch; the
-/// extents are live - seeded from the first measurement (the hero's
-/// from its launch size) and springing to every later one on the
-/// flight's open motion - and the column notifies on every change, so
-/// the rect, the alignment and the slots move together in one frame.
-class _MenuGeometry extends ChangeNotifier {
-  _MenuGeometry({
-    required this.hero,
-    this.shift,
-    required MorphSatellite? above,
-    required MorphSatellite? below,
-    required this.minWidth,
-    required this.gap,
-    required this.margin,
-    required this.alignment,
-    required this.lifted,
-  }) : _hasAbove = above != null,
-       _hasBelow = below != null,
-       _above = _LiveExtent(above?.height ?? 0, seeded: above?.height != null),
-       _below = _LiveExtent(below?.height ?? 0, seeded: below?.height != null),
-       _heroWidth = _LiveExtent(hero.width, seeded: true),
-       _heroHeight = _LiveExtent(hero.height, seeded: true);
-
-  /// The hero's natural rect at launch, in overlay coordinates.
-  final Rect hero;
-
-  /// How far the menu rows moved the lifted hero to fit inside the safe
-  /// area ([MorphMenuMotion.previewShift]); null places the column by
-  /// clamping it into the safe area itself.
-  final Offset? shift;
-
-  /// The menu's minimum width.
-  double minWidth;
-
-  /// Space between the hero and each satellite.
-  double gap;
-
-  /// The menu's distance from the overlay edges.
-  double margin;
-
-  /// The resolved hero alignment across the width.
-  Alignment alignment;
-
-  /// Whether the slot holds the hero lifted.
-  bool lifted;
-
-  bool _hasAbove;
-  bool _hasBelow;
-  final _LiveExtent _above;
-  final _LiveExtent _below;
-  final _LiveExtent _heroWidth;
-  final _LiveExtent _heroHeight;
-
-  MorphFlight? _flight;
-  TickerProvider? _vsync;
-  bool _disposed = false;
-
-  /// Binds the column to its flight: the springs ride the flight's
-  /// motion on [vsync]'s tickers.
-  void attach(MorphFlight flight, {required TickerProvider vsync}) {
-    _flight = flight;
-    _vsync = vsync;
-  }
-
-  /// Applies a rebuilt region to the already-open column. Structural
-  /// changes and fixed extents are reflected before the overlay rebuilds,
-  /// so layout never combines new children with stale slot geometry.
-  void reconfigure({
-    required MorphSatellite? above,
-    required MorphSatellite? below,
-    required double minWidth,
-    required double gap,
-    required double margin,
-    required Alignment alignment,
-    required bool lifted,
-  }) {
-    if (_disposed) {
-      return;
-    }
-    final bool hadAbove = _hasAbove;
-    final bool hadBelow = _hasBelow;
-    bool changed =
-        this.minWidth != minWidth ||
-        this.gap != gap ||
-        this.margin != margin ||
-        this.alignment != alignment ||
-        this.lifted != lifted ||
-        hadAbove != (above != null) ||
-        hadBelow != (below != null);
-    this.minWidth = minWidth;
-    this.gap = gap;
-    this.margin = margin;
-    this.alignment = alignment;
-    this.lifted = lifted;
-    _hasAbove = above != null;
-    _hasBelow = below != null;
-    changed = _reconfigureSatellite(_above, hadAbove, above) || changed;
-    changed = _reconfigureSatellite(_below, hadBelow, below) || changed;
-    if (changed) {
-      notifyListeners();
-    }
-  }
-
-  bool _reconfigureSatellite(
-    _LiveExtent extent,
-    bool existed,
-    MorphSatellite? satellite,
-  ) {
-    if (satellite == null) {
-      final bool changed = existed || extent.value != 0 || extent.seeded;
-      extent.spring?.dispose();
-      extent.spring = null;
-      extent.value = 0;
-      extent.seeded = false;
-      return changed;
-    }
-    if (!existed) {
-      extent.spring?.dispose();
-      extent.spring = null;
-      extent.value = 0;
-      // This is a live insertion, not the invisible launch measurement:
-      // its first content report should grow from zero on the spring.
-      extent.seeded = true;
-    }
-    final double? fixed = satellite.height;
-    if (fixed == null) {
-      return !existed;
-    }
-    final bool changed = extent.value != fixed || !extent.seeded;
-    _report(extent, fixed);
-    return changed || !existed;
-  }
-
-  /// The above slot's current extent (without the gap).
-  double get above => _above.value;
-
-  /// The below slot's current extent (without the gap).
-  double get below => _below.value;
-
-  /// The hero's current natural width.
-  double get heroWidth => _heroWidth.value;
-
-  /// The hero's current natural height.
-  double get heroHeight => _heroHeight.value;
-
-  /// The hero's lift in the open menu: UIKit's preview scale of its
-  /// current natural size, or 1 unlifted.
-  double get scale => lifted
-      ? MorphContextMenuRegion.measuredPreviewScale(Size(heroWidth, heroHeight))
-      : 1;
-
-  /// The hero slot's current width: the lifted hero.
-  double get slotWidth => heroWidth * scale;
-
-  /// The hero slot's current height: the lifted hero.
-  double get slotHeight => heroHeight * scale;
-
-  /// The column's width: the lifted hero's or the minimum, whichever is
-  /// wider.
-  double get width => math.max(minWidth, slotWidth);
-
-  /// Rows above the hero plus their gap; 0 without a satellite.
-  double get aboveExtent => _hasAbove ? above + gap : 0;
-
-  /// Rows below the hero plus their gap; 0 without a satellite.
-  double get belowExtent => _hasBelow ? below + gap : 0;
-
-  /// The column's height.
-  double get height => aboveExtent + slotHeight + belowExtent;
-
-  /// The hero slot's offset inside the column.
-  Offset get heroOffset =>
-      Offset((alignment.x + 1) / 2 * (width - slotWidth), aboveExtent);
-
-  /// Where the column sits inside the vessel for every spring value.
-  /// The vessel lerps from the hero's rect to the column's; aligning
-  /// the content by the hero slot's share of the extra size makes the
-  /// slot coincide with the flying hero at EVERY value - the satellites
-  /// ride the hero as one rigid body and only unfold.
-  Alignment get contentAlignment {
-    final double extra = aboveExtent + belowExtent;
-    final double y = extra <= 0 ? 0 : aboveExtent / extra * 2 - 1;
-    return Alignment(alignment.x, y);
-  }
-
-  /// The column's rect: the hero stays put - lifted about its launch
-  /// center, as UIKit lifts its preview - unless the column would leave
-  /// the overlay's safe area (or the keyboard's edge), then the whole
-  /// column shifts.
-  Rect rectFor(Size overlay, EdgeInsets padding) {
-    final double leftMin = padding.left + margin;
-    final double leftMax = overlay.width - padding.right - margin - width;
-    final double topMin = padding.top + margin;
-    final double topMax = overlay.height - padding.bottom - margin - height;
-    final Offset slot =
-        hero.topLeft - Offset(hero.width, hero.height) * ((scale - 1) / 2);
-    final Offset? shift = this.shift;
-    if (shift != null) {
-      return Rect.fromLTWH(
-        slot.dx - heroOffset.dx + shift.dx,
-        slot.dy - heroOffset.dy + shift.dy,
-        width,
-        height,
-      );
-    }
-    final double left = (slot.dx - heroOffset.dx).clamp(
-      leftMin,
-      leftMax < leftMin ? leftMin : leftMax,
-    );
-    final double top = (slot.dy - heroOffset.dy).clamp(
-      topMin,
-      topMax < topMin ? topMin : topMax,
-    );
-    return Rect.fromLTWH(left, top, width, height);
-  }
-
-  /// The above slot's content was measured.
-  void reportAbove(Size size) => _report(_above, size.height);
-
-  /// The below slot's content was measured.
-  void reportBelow(Size size) => _report(_below, size.height);
-
-  /// The hero copy was measured.
-  void reportHero(Size size) {
-    _report(_heroWidth, size.width);
-    _report(_heroHeight, size.height);
-  }
-
-  void _report(_LiveExtent extent, double target) {
-    final MorphFlight? flight = _flight;
-    final TickerProvider? vsync = _vsync;
-    if (_disposed || flight == null || vsync == null) {
-      return;
-    }
-    if (!extent.seeded) {
-      extent.seeded = true;
-      extent.value = target;
-      notifyListeners();
-      return;
-    }
-    if (target == extent.value && !(extent.spring?.isAnimating ?? false)) {
-      return;
-    }
-    final Motion motion = flight.controller.effectiveMotion.openMotion;
-    SingleMotionController? spring = extent.spring;
-    if (spring == null) {
-      spring = SingleMotionController(
-        motion: motion,
-        vsync: vsync,
-        initialValue: extent.value,
-      );
-      spring.addListener(() {
-        extent.value = spring!.value;
-        notifyListeners();
-      });
-      extent.spring = spring;
-    } else if (spring.motion != motion) {
-      spring.motion = motion;
-    }
-    spring.animateTo(target);
-  }
-
-  @override
-  void dispose() {
-    if (_disposed) {
-      return;
-    }
-    _disposed = true;
-    for (final _LiveExtent extent in <_LiveExtent>[
-      _above,
-      _below,
-      _heroWidth,
-      _heroHeight,
-    ]) {
-      extent.spring?.dispose();
-      extent.spring = null;
-    }
-    super.dispose();
-  }
-}
-
-/// A long press whose arena deadline is advanced by the hold ticker.
-class _MotionHoldRecognizer extends LongPressGestureRecognizer {
-  _MotionHoldRecognizer({super.debugOwner});
-
-  @override
-  Duration? get deadline => null;
-
-  void commit() {
-    if (state == GestureRecognizerState.possible && primaryPointer != null) {
-      didExceedDeadline();
-    }
-  }
-}
-
-/// The clock and the controller of a region's menu rows, and the source
-/// tag their flight takes off from: the blob at the held view's center.
+/// The clock and the controller of a region's menu rows.
 class _MenuDriver extends StatefulWidget {
   const _MenuDriver({super.key, required this.region, required this.child});
 
@@ -1646,19 +1185,18 @@ class _MenuDriver extends StatefulWidget {
 
 class _MenuDriverState extends State<_MenuDriver>
     with SingleTickerProviderStateMixin<_MenuDriver>, MorphClock<_MenuDriver> {
-  final Object _tag = Object();
-  BuildContext? _scope;
   MorphMenuAppearance _style = MorphMenuAppearance.light;
 
   late final MorphMenuController controller = MorphMenuController(
-    tagId: _tag,
-    scopeContext: () => _scope,
+    tagId: Object(),
+    scopeContext: () => context,
     clock: () => clock,
     stamp: stamp,
     wake: wake,
     style: () => _style,
     glyph: () => const SizedBox.shrink(),
     semanticLabel: () => _region.semanticLabel,
+    launch: () => widget.region._launch(),
     onClose: () => widget.region._menuClosed(),
   );
 
@@ -1700,19 +1238,18 @@ class _MenuDriverState extends State<_MenuDriver>
     super.dispose();
   }
 
-  /// Lays the menu out for the view [held] at rest and its lifted
-  /// [preview], both in [overlay]'s coordinates; an open menu stays as it
+  /// Lays the menu out for the view [held] at rest, attached to its
+  /// lifted preview, in [overlay]'s coordinates; an open menu stays as it
   /// is.
   MorphMenuMotion prepare({
     required Rect held,
-    required Rect preview,
-    required double accessory,
+    required MorphMenuAttachment attachment,
     required OverlayState overlay,
+    required Size bounds,
+    required EdgeInsets padding,
   }) {
     final MorphMenuMotion? current = controller.menuMotion;
     if (current != null && current.isPresented) return current;
-    final RenderBox overlayBox =
-        overlay.context.findRenderObject()! as RenderBox;
     _content.rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     _content.titleStyle = MorphTypography.resolve(_style.textStyle);
     _content.textScaler =
@@ -1720,20 +1257,12 @@ class _MenuDriverState extends State<_MenuDriver>
     _content.beginSession();
     return controller.prepare(
       button: held,
-      bounds: overlayBox.size,
-      padding: morphTargetPaddingOf(
-        context,
-        overlayBox.size,
-        overlayBox: overlayBox,
-      ),
+      bounds: bounds,
+      padding: padding,
       tuning: MorphMenuTuning.context,
       overlay: overlay,
       dismissOnSelect: _region.dismissOnSelect,
-      attachment: MorphMenuAttachment(
-        held: held,
-        preview: preview,
-        accessory: accessory,
-      ),
+      attachment: attachment,
     );
   }
 
@@ -1750,28 +1279,20 @@ class _MenuDriverState extends State<_MenuDriver>
   @override
   Widget build(BuildContext context) {
     _style = MorphMenuAppearance.resolve(context, _region.appearance);
-    return Stack(
-      fit: StackFit.passthrough,
-      clipBehavior: Clip.none,
-      children: <Widget>[
-        widget.child,
-        Positioned.fill(
-          child: IgnorePointer(
-            child: Builder(
-              builder: (BuildContext context) {
-                _scope = context;
-                return Center(
-                  child: FractionallySizedBox(
-                    widthFactor: MorphMenuAttachment.measuredBlobScale,
-                    heightFactor: MorphMenuAttachment.measuredBlobScale,
-                    child: MorphTag(id: _tag, child: const SizedBox.expand()),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
-    );
+    return widget.child;
+  }
+}
+
+/// A long press whose arena deadline is advanced by the hold ticker.
+class _MotionHoldRecognizer extends LongPressGestureRecognizer {
+  _MotionHoldRecognizer({super.debugOwner});
+
+  @override
+  Duration? get deadline => null;
+
+  void commit() {
+    if (state == GestureRecognizerState.possible && primaryPointer != null) {
+      didExceedDeadline();
+    }
   }
 }

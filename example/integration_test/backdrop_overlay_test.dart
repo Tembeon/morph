@@ -187,14 +187,15 @@ class _PageState extends State<_Page> {
         );
       case 'hero':
         return MorphContextMenuRegion(
-          below: MorphSatellite(
-            builder: (BuildContext context, MorphFlight flight) =>
-                const SizedBox(
-                  width: 200,
-                  height: 120,
-                  child: ColoredBox(color: Color(0xFF3A3A3C)),
-                ),
-          ),
+          menu: <MorphMenuEntry>[
+            MorphMenuWidget(
+              height: 120,
+              builder: (BuildContext context) => const SizedBox(
+                height: 120,
+                child: ColoredBox(color: Color(0xFF3A3A3C)),
+              ),
+            ),
+          ],
           child: MorphGlassButton(
             key: const Key('target'),
             onPressed: () {},

@@ -1653,9 +1653,12 @@ class _MorphShuttleState extends State<_MorphShuttle> {
           Positioned.fill(
             child: IgnorePointer(
               ignoring: flight.controller.target < 1,
+              // The scrim's opacity rides its own springs: the frame ticks
+              // repaint the scrim's box, so the vessel's chain does not
+              // build on every frame of the dim.
               child: _ShuttleScrim(
                 flight: flight,
-                live: null,
+                live: _frameTicks,
                 opacityOf: () => flight.scrimOpacity,
               ),
             ),
@@ -2412,7 +2415,7 @@ class _VesselFrameState extends State<_VesselFrame> {
     return (
       flight.controller.target < 1,
       flight.dissolveOpacity,
-      flight.modal ? flight.scrimOpacity : 0.0,
+      flight.modal,
       flight.semanticLabel,
     );
   }

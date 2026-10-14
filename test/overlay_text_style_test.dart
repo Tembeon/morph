@@ -138,11 +138,12 @@ void main() {
       tester,
       Center(
         child: MorphContextMenuRegion(
-          below: MorphSatellite(
-            height: 88,
-            builder: (BuildContext context, MorphFlight flight) =>
-                _styled('reply'),
-          ),
+          menu: <MorphMenuEntry>[
+            MorphMenuWidget(
+              height: 88,
+              builder: (BuildContext context) => _styled('reply'),
+            ),
+          ],
           child: SizedBox(width: 200, height: 80, child: _styled('hero')),
         ),
       ),

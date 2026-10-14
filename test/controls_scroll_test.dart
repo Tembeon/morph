@@ -80,11 +80,12 @@ List<Widget> _controls(_State s, StateSetter setState) => [
   Center(
     child: MorphContextMenuRegion(
       onHold: () => s.holds++,
-      below: MorphSatellite(
-        height: 40,
-        builder: (BuildContext context, MorphFlight flight) =>
-            const Text('reply'),
-      ),
+      menu: <MorphMenuEntry>[
+        MorphMenuWidget(
+          height: 40,
+          builder: (BuildContext context) => const Text('reply'),
+        ),
+      ],
       child: const SizedBox(
         width: 160,
         height: 48,
