@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/widgets.dart';
@@ -83,16 +84,19 @@ RenderMorphLiveBox _card(WidgetTester tester, String title) => tester
 
 /// The opacities of every dimming layer of the stack's pages now.
 List<double> _dims(WidgetTester tester) => [
-  for (final box in tester.widgetList<MorphLiveBox>(
-    find.byWidgetPredicate(
-      (w) =>
-          w is MorphLiveBox &&
-          w.opacity != null &&
-          w.child is RepaintBoundary &&
-          (w.child! as RepaintBoundary).child is ColoredBox,
-    ),
+  for (final box in tester.renderObjectList<RenderCustomPaint>(
+    find.byKey(const ValueKey<String>('morph.navigation.dim')),
   ))
-    box.opacity!(),
+    (() {
+      final canvas = TestRecordingCanvas();
+      box.painter!.paint(canvas, box.size);
+      final draws = canvas.invocations.where(
+        (i) => i.invocation.memberName == #drawRect,
+      );
+      return draws.isEmpty
+          ? 0.0
+          : (draws.single.invocation.positionalArguments[1]! as Paint).color.a;
+    })(),
 ];
 
 void main() {
@@ -110,10 +114,12 @@ void main() {
     expect(clip.blRadiusX, MorphNavigationTuning.fallbackCardRadius);
     expect(clip.width, _screen.width);
     final dims = _dims(tester);
-    expect(
-      dims.reduce((a, b) => a > b ? a : b),
-      closeTo(MorphNavigationTuning.underDimOpacity * (1 - out), 1e-3),
-    );
+    final expectedDim =
+        Color.getAlphaFromOpacity(
+          MorphNavigationTuning.underDimOpacity * (1 - out),
+        ) /
+        255;
+    expect(dims.reduce((a, b) => a > b ? a : b), closeTo(expectedDim, 1e-3));
 
     await gesture.moveBy(const Offset(-150, 0));
     await tester.pump(const Duration(milliseconds: 16));

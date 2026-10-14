@@ -62,7 +62,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Saved query').hitTestable(), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(MorphSearchField).first,
+        matching: find.text('Saved query'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets(
@@ -73,8 +79,8 @@ void main() {
       tester.view.padding = const FakeViewPadding(top: 62 * 3);
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
-        MaterialApp(
-          home: const Directionality(
+        const MaterialApp(
+          home: Directionality(
             textDirection: TextDirection.rtl,
             child: MorphNavigationScaffold(
               title: 'Search',

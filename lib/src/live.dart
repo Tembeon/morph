@@ -276,10 +276,13 @@ class MorphLiveIgnorePointer extends SingleChildRenderObjectWidget {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderIgnorePointer pointer) {
-    (pointer as _RenderLiveIgnorePointer).bindLive(
+  void updateRenderObject(
+    BuildContext context,
+    RenderIgnorePointer renderObject,
+  ) {
+    (renderObject as _RenderLiveIgnorePointer).bindLive(
       live,
-      () => pointer.ignoring = ignoringOf(),
+      () => renderObject.ignoring = ignoringOf(),
     );
   }
 }

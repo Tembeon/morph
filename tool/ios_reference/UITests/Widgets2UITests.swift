@@ -200,13 +200,13 @@ final class Widgets2UITests: XCTestCase {
             open()
             path(p(201, 750), pressFor: 0.1, [(p(201, 500), 1.0, 0.3), (p(201, 800), 1.4, 0.5)])
         }
-        capture("plan-tablebg", scene: "w2sheet", extra: ["PROBE_DETENTS": "ml", "PROBE_TABLEBG": "native", "PROBE_SCRIPT": "present@0.5;tree-medium@2.5;large@3.5;tree-large@5.5", "PROBE_W2TRACK": track], settle: 0.5) {
+        capture("plan-tablebg", scene: "w2sheet", extra: ["PROBE_DETENTS": "ml", "PROBE_TABLEBG": "native", "PROBE_SCRIPT": "present@0.5;tree-medium@2.5;large@7;tree-large@9", "PROBE_W2TRACK": track], settle: 0.5) {
             pause(2.4)
             let a = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
             a.name = "tablebg-medium"
             a.lifetime = .keepAlways
             add(a)
-            pause(3.2)
+            pause(4.4)
             let b = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
             b.name = "tablebg-large"
             b.lifetime = .keepAlways

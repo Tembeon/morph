@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart'
-    show BoxHitTestResult, RenderRepaintBoundary;
+    show BoxHitTestResult, RenderRepaintBoundary, RenderTransform;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/live.dart';
@@ -938,43 +938,35 @@ class MorphNavigationRoute<T> extends PageRoute<T>
         : page;
     final radius = Radius.circular(_cardRadiusOf(context));
     final slide = _slideOf(animation, secondaryAnimation);
+    var pageSize = Size.zero;
     // The page's own width, the unit the edge swipe measures the finger
     // in, so a stack narrower than the screen still tracks it 1:1.
     return MorphLiveTransform.sized(
       live: slide,
       writeSizedInto: (Matrix4 into, Size size) {
+        pageSize = size;
         final x =
             size.width *
             ((1 - animation.value) -
                 MorphNavigationTuning.parallax * secondaryAnimation.value);
         into.setTranslationRaw(rtl ? -x : x, 0, 0);
       },
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final bounds = Offset.zero & constraints.biggest;
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              MorphLiveBox(
-                live: animation,
-                clip: () => animation.isAnimating
-                    ? RRect.fromRectAndRadius(bounds, radius)
-                    : null,
-                continuous: true,
-                child: slid,
-              ),
-              IgnorePointer(
-                child: MorphLiveBox(
-                  live: secondaryAnimation,
-                  opacity: () =>
-                      MorphNavigationTuning.underDimOpacity *
-                      secondaryAnimation.value,
-                  child: const ColoredBox(color: Color(0xFF000000)),
-                ),
-              ),
-            ],
-          );
-        },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          MorphLiveBox(
+            live: animation,
+            clip: () => animation.isAnimating
+                ? RRect.fromRectAndRadius(Offset.zero & pageSize, radius)
+                : null,
+            continuous: true,
+            child: slid,
+          ),
+          CustomPaint(
+            key: const ValueKey<String>('morph.navigation.dim'),
+            painter: _NavigationDim(secondaryAnimation),
+          ),
+        ],
       ),
     );
   }
@@ -1009,6 +1001,31 @@ Future<T?> pushMorphZoom<T>(
   );
   route._zoomSource = MorphZoomSource.resolve(context, from);
   return Navigator.of(context).push<T>(route);
+}
+
+class _NavigationDim extends CustomPainter {
+  _NavigationDim(this.animation) : super(repaint: animation);
+
+  final Animation<double> animation;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final opacity = MorphNavigationTuning.underDimOpacity * animation.value;
+    if (opacity <= 0) return;
+    final paint = Paint();
+    // Match the former opacity layer's eight-bit alpha exactly.
+    paint.color = const Color(
+      0xFF000000,
+    ).withAlpha(Color.getAlphaFromOpacity(opacity.clamp(0.0, 1.0)));
+    canvas.drawRect(Offset.zero & size, paint);
+  }
+
+  @override
+  bool hitTest(Offset position) => false;
+
+  @override
+  bool shouldRepaint(_NavigationDim oldDelegate) =>
+      oldDelegate.animation != animation;
 }
 
 /// A page of a [MorphNavigationStack.pages] stack (or of any Navigator 2
@@ -1777,16 +1794,15 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold>
     Widget content = scroll;
     if (widget.showsVerticalScrollIndicator) {
       content = Stack(
+        fit: StackFit.expand,
         children: [
-          Positioned.fill(child: scroll),
-          Positioned.fill(
-            child: MorphScrollIndicator(
-              controller: _controller,
-              padding: EdgeInsets.only(top: barExtent, bottom: toolbarExtent),
-              contentPadding: EdgeInsets.only(
-                top: barExtent,
-                bottom: toolbarExtent,
-              ),
+          scroll,
+          MorphScrollIndicator(
+            controller: _controller,
+            padding: EdgeInsets.only(top: barExtent, bottom: toolbarExtent),
+            contentPadding: EdgeInsets.only(
+              top: barExtent,
+              bottom: toolbarExtent,
             ),
           ),
         ],
@@ -1795,24 +1811,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold>
     // One structure whether or not the bar hides, so hiding it never
     // remounts the scroll view.
     final shift = _extended ? _shift : 0.0;
-    content = Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: -shift,
-          child: MorphLiveTransform.matrix(
-            live: _hiding,
-            alignment: null,
-            matrixOf: () =>
-                Matrix4.translationValues(0, -shift * _hiding.value, 0),
-            child: content,
-          ),
-        ),
-      ],
-    );
+    content = _BarContent(live: _hiding, shift: shift, child: content);
     final search = widget.search;
     Widget body = ColoredBox(
       color: background,
@@ -1893,6 +1892,56 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold>
           ),
       ],
     );
+  }
+}
+
+// Extends the scroll viewport by the hidden bar's height, then follows
+// its translation without rebuilding or remounting the scroll view.
+class _BarContent extends SingleChildRenderObjectWidget {
+  const _BarContent({required this.live, required this.shift, super.child});
+
+  final Animation<double> live;
+  final double shift;
+
+  @override
+  _RenderBarContent createRenderObject(BuildContext context) {
+    final render = _RenderBarContent();
+    render.bind(live, shift);
+    return render;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderBarContent render) =>
+      render.bind(live, shift);
+}
+
+class _RenderBarContent extends RenderTransform with MorphLiveBinding {
+  _RenderBarContent() : super(transform: Matrix4.identity());
+
+  double _shift = 0;
+
+  void bind(Animation<double> live, double shift) {
+    if (_shift != shift) {
+      _shift = shift;
+      markNeedsLayout();
+    }
+    bindLive(live, () {
+      transform = Matrix4.translationValues(0, -_shift * live.value, 0);
+    });
+  }
+
+  @override
+  void performLayout() {
+    child?.layout(
+      constraints.hasBoundedHeight
+          ? constraints.copyWith(
+              minHeight: constraints.minHeight + _shift,
+              maxHeight: constraints.maxHeight + _shift,
+            )
+          : constraints,
+      parentUsesSize: true,
+    );
+    size = constraints.constrain(child?.size ?? Size.zero);
   }
 }
 
