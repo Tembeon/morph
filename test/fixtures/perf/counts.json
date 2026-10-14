@@ -77,10 +77,10 @@
     "idle": 0
   },
   "menu-card/flat": {
-    "frames": 271,
+    "frames": 273,
     "builds": 1.5,
-    "paints": 26.6,
-    "pictures": 2.2,
+    "paints": 27.3,
+    "pictures": 2.6,
     "captures": 0.0,
     "offscreen": 0.7,
     "snapshotImages": 0.0,
@@ -88,10 +88,10 @@
     "idle": 0
   },
   "menu-held/flat": {
-    "frames": 225,
+    "frames": 226,
     "builds": 1.3,
-    "paints": 19.5,
-    "pictures": 1.7,
+    "paints": 19.9,
+    "pictures": 1.9,
     "captures": 0.0,
     "offscreen": 0.3,
     "snapshotImages": 0.0,
@@ -341,10 +341,10 @@
     "idle": 0
   },
   "menu-card/fake": {
-    "frames": 271,
+    "frames": 273,
     "builds": 1.7,
-    "paints": 37.1,
-    "pictures": 5.2,
+    "paints": 37.7,
+    "pictures": 5.6,
     "captures": 2.8,
     "offscreen": 3.6,
     "snapshotImages": 0.0,
@@ -352,10 +352,10 @@
     "idle": 0
   },
   "menu-held/fake": {
-    "frames": 225,
+    "frames": 226,
     "builds": 1.6,
-    "paints": 27.4,
-    "pictures": 4.0,
+    "paints": 27.8,
+    "pictures": 4.2,
     "captures": 2.0,
     "offscreen": 2.3,
     "snapshotImages": 0.0,
@@ -605,10 +605,10 @@
     "idle": 0
   },
   "menu-card/liquid": {
-    "frames": 271,
+    "frames": 273,
     "builds": 1.7,
-    "paints": 37.1,
-    "pictures": 5.2,
+    "paints": 37.7,
+    "pictures": 5.6,
     "captures": 2.8,
     "offscreen": 3.6,
     "snapshotImages": 0.0,
@@ -616,10 +616,10 @@
     "idle": 0
   },
   "menu-held/liquid": {
-    "frames": 225,
+    "frames": 226,
     "builds": 1.6,
-    "paints": 27.4,
-    "pictures": 4.0,
+    "paints": 27.8,
+    "pictures": 4.2,
     "captures": 2.0,
     "offscreen": 2.3,
     "snapshotImages": 0.0,

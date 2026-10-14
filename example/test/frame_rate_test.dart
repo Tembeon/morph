@@ -19,6 +19,17 @@ Future<void> _openGlassPage(WidgetTester tester) async {
   addTearDown(tester.view.reset);
   await tester.pumpWidget(const GalleryApp());
   await _settle(tester);
+  await tester.scrollUntilVisible(
+    find.text('Glass renderer'),
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.ensureVisible(find.text('Glass renderer'));
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
   await tester.tap(find.text('Glass renderer'));
   await _settle(tester);
   await tester.scrollUntilVisible(

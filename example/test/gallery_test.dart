@@ -188,6 +188,17 @@ void main() {
   testWidgets('the glass page settings reach every page', (tester) async {
     await _pumpGallery(tester);
     expect(find.byType(MorphGlassScope), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Glass renderer'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.text('Glass renderer'));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tap(find.text('Glass renderer'));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
@@ -222,6 +233,16 @@ void main() {
       const Duration(seconds: 10),
     );
     await _back(tester);
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    await tester.scrollUntilVisible(
+      find.text('Controls'),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
       EnginePhase.sendSemanticsUpdate,

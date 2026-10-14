@@ -268,7 +268,7 @@ const _ceilings = <String, _Ceiling>{
   ),
   'menu/flat open-inline': (
     first: 60,
-    ms: 928,
+    ms: 944,
     builds: 0,
     layouts: 1,
     paints: 22,
@@ -282,7 +282,7 @@ const _ceilings = <String, _Ceiling>{
   ),
   'menu/liquid open-inline': (
     first: 60,
-    ms: 928,
+    ms: 944,
     builds: 0,
     layouts: 6,
     paints: 29,

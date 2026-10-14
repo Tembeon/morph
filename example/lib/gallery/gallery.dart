@@ -183,6 +183,8 @@ class GalleryPage extends StatefulWidget {
     required this.title,
     required this.slivers,
     this.largeTitle = false,
+    this.subtitle,
+    this.largeSubtitle,
     this.leading = const [],
     this.trailing = const [],
     this.toolbarLeading = const [],
@@ -200,6 +202,12 @@ class GalleryPage extends StatefulWidget {
 
   /// Whether the title shows large above the content.
   final bool largeTitle;
+
+  /// The line under the inline title, or null.
+  final String? subtitle;
+
+  /// The line under the large title, or null for [subtitle].
+  final String? largeSubtitle;
 
   /// The groups at the leading edge of the navigation bar.
   final List<MorphBarButtonGroup> leading;
@@ -253,6 +261,8 @@ class _GalleryPageState extends State<GalleryPage> {
     return MorphNavigationScaffold(
       title: widget.title,
       largeTitleDisplayMode: widget.largeTitle ? .always : .never,
+      subtitle: widget.subtitle,
+      largeSubtitle: widget.largeSubtitle,
       leading: widget.leading,
       trailing: [...widget.trailing, slowMotion],
       toolbarLeading: widget.toolbarLeading,
@@ -311,7 +321,7 @@ final List<GalleryEntry> galleryEntries = [
   ),
   GalleryEntry(
     'Tab bar',
-    'Floating bar with 2 to 5 tabs, press growth and scrub',
+    'Floating bar with 2 to 5 tabs, press growth, scrub and badges',
     (_) => const TabBarPage(),
   ),
   GalleryEntry(
@@ -326,8 +336,13 @@ final List<GalleryEntry> galleryEntries = [
   ),
   GalleryEntry(
     'Menu',
-    'A glass button morphing into its menu and back',
+    'A glass button morphing into its menu; long-press context menus',
     (_) => const MenuPage(),
+  ),
+  GalleryEntry(
+    'Context menu',
+    'Hold a list row or a photo: it lifts and opens its actions',
+    (_) => const ContextMenuPage(),
   ),
   GalleryEntry(
     'Sheets',
@@ -351,7 +366,7 @@ final List<GalleryEntry> galleryEntries = [
   ),
   GalleryEntry(
     'Navigation',
-    'Large title, morphing bar buttons, toolbar sets, scroll edge effect',
+    'Large title and subtitles, bar button badges, toolbar sets, edge effect',
     (_) => const NavigationDemoPage(),
   ),
   GalleryEntry(

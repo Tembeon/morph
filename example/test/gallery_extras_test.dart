@@ -251,4 +251,80 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('context menu: a held row opens its actions, a pick closes', (
+    tester,
+  ) async {
+    await _open(tester, 'Context menu');
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Anna')),
+    );
+    for (var i = 0; i < 120; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(tester.takeException(), isNull, reason: 'frame $i of the hold');
+    }
+    await gesture.up();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(find.text('Reply'), findsOneWidget);
+    await tester.tap(find.text('Reply'));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(find.text('Reply: Anna'), findsOneWidget);
+    expect(find.text('Reply'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('navigation: badges on bar buttons, subtitles under titles', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const GalleryApp());
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    final entry = find.widgetWithText(MorphListRow, 'Navigation');
+    await tester.scrollUntilVisible(
+      entry,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    await tester.tap(entry);
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(find.text('12'), findsOneWidget);
+    expect(find.text('12 unread, updated just now'), findsWidgets);
+    await tester.tap(find.text('Message 1'));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(find.text('From Anna, today'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tab bar: a count badge on a tab', (tester) async {
+    await _open(tester, 'Tab bar');
+    expect(find.text('3'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
 }

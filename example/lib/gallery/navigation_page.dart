@@ -4,10 +4,12 @@ import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 
 /// A small mail app on the gallery's measured navigation stack: a
-/// large-title list whose bar buttons morph into the detail screen's on
-/// a push, a toolbar that swaps its item sets, the soft or hard scroll edge effect, and a
-/// row of photos that zoom into their pages (drag a photo page down or to
-/// the right to zoom it back).
+/// large-title list with a subtitle and badged bar buttons (a count and a
+/// dot), a detail screen with a subtitle under its inline title, bar
+/// buttons that morph into the detail screen's on a push, a toolbar that
+/// swaps its item sets, the soft or hard scroll edge effect, and a row of
+/// photos that zoom into their pages (drag a photo page down or to the
+/// right to zoom it back).
 class NavigationDemoPage extends StatefulWidget {
   /// Creates the page.
   const NavigationDemoPage({super.key});
@@ -43,13 +45,18 @@ const _palette = [
   Color(0xFFFF2D55),
 ];
 
-MorphBarButton _icon(String id, IconData icon, VoidCallback? onPressed) =>
-    MorphBarButton(
-      id: id,
-      icon: Icon(icon),
-      semanticLabel: id,
-      onPressed: onPressed,
-    );
+MorphBarButton _icon(
+  String id,
+  IconData icon,
+  VoidCallback? onPressed, {
+  MorphBadge? badge,
+}) => MorphBarButton(
+  id: id,
+  icon: Icon(icon),
+  semanticLabel: id,
+  badge: badge,
+  onPressed: onPressed,
+);
 
 class _Inbox extends StatelessWidget {
   const _Inbox({
@@ -114,14 +121,22 @@ class _Inbox extends StatelessWidget {
     return GalleryPage(
       title: 'Inbox',
       largeTitle: true,
+      subtitle: '12 unread',
+      largeSubtitle: '12 unread, updated just now',
       edgeEffect: edge,
       trailing: [
         MorphBarButtonGroup([
-          _icon('add', Icons.add, GalleryGlassScope.enabled(context, () {})),
+          _icon(
+            'flagged',
+            Icons.flag_outlined,
+            GalleryGlassScope.enabled(context, () {}),
+            badge: const MorphBadge.count(12),
+          ),
           _icon(
             'more',
             Icons.more_horiz,
             GalleryGlassScope.enabled(context, () {}),
+            badge: const MorphBadge.indicator(),
           ),
         ]),
       ],
@@ -274,6 +289,7 @@ class _DetailState extends State<_Detail> {
   Widget build(BuildContext context) {
     return GalleryPage(
       title: 'Message ${widget.index}',
+      subtitle: 'From Anna, today',
       edgeEffect: widget.edge,
       trailing: [
         MorphBarButtonGroup([

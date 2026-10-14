@@ -456,17 +456,19 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
   /// Draws [child], whose screen scale may animate; [cover] is the blur,
   /// in logical pixels, something above draws over it (a fading menu
   /// card), which hides a raster's resampling; [aligned] draws a moving
-  /// child as [MorphGlyphPolicy] draws an aligned drawing.
+  /// child as [MorphGlyphPolicy] draws an aligned drawing; without
+  /// [snaps] it draws as a card does ([MorphGlyphs.faded]): from one
+  /// raster while it moves, live at rest.
   const MorphGlyphs({
     required super.child,
     this.cover,
     this.aligned = false,
+    this.snaps = true,
     super.key,
   }) : coverBlur = 0,
        opacity = 1,
        live = null,
-       opacityOf = null,
-       snaps = true;
+       opacityOf = null;
 
   /// Draws [child], a card whose screen scale may animate, faded to the
   /// opacity [opacityOf] reads, again on every notification of [live].
