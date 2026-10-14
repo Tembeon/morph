@@ -127,9 +127,14 @@ field options; nullable segmented selection, `MorphSegment.enabled` /
 `width`; list checkmark and detail accessories, `MorphSliverListSection`;
 date picker `minuteInterval` and the reserved `MorphDatePickerStyle`.
 
-Static where no measurement exists (passports say what): badge and
-subtitle geometry, the clear buttons' press, interactive glass, list
-glyphs, the first segmented selection, the dismiss attempt's timing.
+Read from UIKit's code since (notes private; passports say what): badge
+metrics and placement, subtitle fonts and large layout, the clear and
+tinted glass glow, the dismiss attempt's release rule, minuteInterval's
+round-down; list glyph identities and the disabled segment color are
+recorded but not ported. Still static / needing a device: badge motion and
+the tab badge's height, the inline subtitle gap, interactive glass, list
+glyph outlines, the first segmented selection (lens path), the sheet's
+rubber-band extent.
 
 Not done: `MorphGlassContainer.spacing` (fusing app glass needs the skin's
 merge law in the container's joined layer, a pixel-changing renderer
