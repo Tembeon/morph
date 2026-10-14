@@ -222,9 +222,37 @@ abstract final class MorphSheetTuning {
   static const double grabberHitHeight = 40;
 
   /// The limit, in unscaled points, that a sheet which cannot be dismissed
-  /// approaches while it is pulled down: the drag is rubber-banded with
-  /// this dimension. Not measured on a device.
-  static const double refusedPullExtent = 40;
+  /// approaches while it is pulled down: the drag below the smallest detent
+  /// is rubber-banded (coefficient 0.55) with this dimension. A simulator
+  /// capture of a 200 point sheet pulled 134 points fits 200 to 0.3 points
+  /// rms; UIKit takes a quarter of the sheet's height capped at 200 (read
+  /// from UIKit, notes private), so every phone reaches the cap.
+  static const double refusedPullExtent = 200;
+
+  /// The most a floating sheet stretches above its largest detent, in
+  /// unscaled points: a drag up past it is rubber-banded (coefficient
+  /// 0.55) with a dimension of the room left to the maximum height,
+  /// capped at this. A docked sheet has no room and does not move.
+  /// Simulator capture: a medium-only sheet fits 100 (0.2 points rms over
+  /// 240 points of travel), a 700 point detent with 78 points of room
+  /// fits 78 (0.5 points rms).
+  static const double stretchLimit = 100;
+
+  /// How far below the large detent, in unscaled points, a dragged sheet
+  /// finishes docking: during a drag the docking progress runs from the
+  /// largest floating detent to the large detent less this (768 of 778 on
+  /// a 402 x 874 screen in every simulator row). A settle docks over the
+  /// whole way to the large detent.
+  static const double dragDockShortfall = 10;
+
+  /// The docking progress at which a dragged sheet changes its background:
+  /// past it the opaque fill animates in on [spring] and the glass goes
+  /// once the fill is opaque; below it the glass returns and the fill
+  /// animates out. The sheet takes the background of the detent nearest
+  /// to it (read from UIKit, notes private); the simulator flips the
+  /// background between 600.0 and 602.7 points both ways, where the drag's
+  /// docking progress crosses one half.
+  static const double backgroundSwitch = 0.5;
 
   /// The share of [refusedPullExtent] that a refused pull must exceed when
   /// the finger lifts for the sheet to report a dismiss attempt: UIKit
@@ -253,11 +281,19 @@ abstract final class MorphSheetTuning {
 /// fraction. A move between two floating detents keeps the sheet
 /// floating throughout.
 ///
+/// The opaque fill that replaces the glass at the large detent follows
+/// its own [MorphSheetTuning.spring] toward the background of the detent
+/// the sheet heads to: in a settle or a programmatic change it keeps pace
+/// with the docking, while a drag switches it where the docking progress
+/// crosses [MorphSheetTuning.backgroundSwitch], so the glass gives way to
+/// the fill at a point of the drag rather than along it.
+///
 /// A touch swells a floating sheet by [MorphSheetTuning.pressScale]. A
 /// drag moves the sheet's top edge with the finger: between the smallest
 /// and the largest detent the height follows it point for point, above
-/// the largest it does not move, and below the smallest the whole sheet
-/// slides down. A sheet that floats when the drag begins stretches along
+/// a floating largest detent it rubber-bands toward the maximum height
+/// (at most [MorphSheetTuning.stretchLimit]), a docked sheet does not
+/// move up, and below the smallest the whole sheet slides down. A sheet that floats when the drag begins stretches along
 /// the drag with the finger's travel and its changes of speed
 /// ([MorphSheetTuning.stretchPerPoint]), keeping its area and its bottom
 /// edge, and springs back on release.
@@ -272,26 +308,38 @@ abstract final class MorphSheetTuning {
 class MorphSheetMotion {
   /// Creates a motion with the given detent [heights] (ascending), resting
   /// hidden below the screen until [present].
+  ///
+  /// [fullHeight] is the height of a sheet at the maximum detent value,
+  /// the room a drag up may stretch a floating sheet into; null takes the
+  /// largest detent, which leaves no room.
   MorphSheetMotion({
     required List<double> heights,
     required this.width,
     required int initial,
+    double? fullHeight,
     this.dockedIndex,
     this.undimmedIndex,
     this.dismissible = true,
     this.inset = MorphSheetTuning.floatingInset,
   }) : _heights = List<double>.of(heights),
+       _fullHeight = fullHeight ?? heights.last,
        _index = initial,
        _height = MorphSpringState(MorphSheetTuning.spring, heights[initial]),
-       _offset = MorphSpringState(MorphSheetTuning.spring, 0) {
+       _offset = MorphSpringState(MorphSheetTuning.spring, 0),
+       _fill = MorphSpringState(
+         MorphSheetTuning.spring,
+         initial == dockedIndex ? 1 : 0,
+       ) {
     _toDocked = initial == dockedIndex;
     _dockStart = _toDocked ? 1 : 0;
+    _cornerStart = _dockStart;
     _heightStart = heights[initial];
     _floating = _toDocked ? _floatingBelowDocked : heights[initial];
     _offset.snap(0, hiddenOffset);
   }
 
   List<double> _heights;
+  double _fullHeight;
 
   /// The width of the container in pixels.
   double width;
@@ -313,6 +361,7 @@ class MorphSheetMotion {
 
   final MorphSpringState _height;
   final MorphSpringState _offset;
+  final MorphSpringState _fill;
   final MorphTimeline _timeline = MorphTimeline(now: 0);
   double? _pressAt;
   final MorphSpringState _press = MorphSpringState(
@@ -337,6 +386,7 @@ class MorphSheetMotion {
 
   bool _toDocked = false;
   double _dockStart = 0;
+  double _cornerStart = 0;
   double _heightStart = 0;
   double _floating = 0;
 
@@ -396,6 +446,7 @@ class MorphSheetMotion {
       _pressAt == null &&
       !_released &&
       _press.isAtRest(_now, 1e-4) &&
+      _fill.isAtRest(_now, 1e-3) &&
       !_stretching &&
       _stretch.isAtRest(_now, 1e-5);
 
@@ -408,6 +459,35 @@ class MorphSheetMotion {
   /// The docking progress at time [t]: 0 floating, 1 edge to edge.
   double dock(double t) => _dockFor(height(t));
 
+  /// The opacity of the opaque fill at time [t], 0 to 1: 0 shows the
+  /// glass of a floating sheet, 1 the fill of a docked one, which hides
+  /// the glass.
+  double fill(double t) => _fill.value(t).clamp(0.0, 1.0);
+
+  /// How far the bottom corners have turned from the floating radius to
+  /// the docked one at time [t], 0 to 1.
+  ///
+  /// A drag sets the radius from the docking progress `p` as
+  /// `1 - (1 - p)^2`: the corner keeps concentric with the shrinking gap
+  /// to the screen edge, so it reaches the docked radius sooner than the
+  /// scale. A settle or a programmatic change carries the radius from
+  /// where it started to its end in step with the docking.
+  double cornerBlend(double t) {
+    final d = dock(t);
+    if (_dragFrom != null) return 1 - (1 - d) * (1 - d);
+    if (_toDocked) {
+      final span = 1 - _dockStart;
+      if (span <= 1e-9) return 1;
+      final p = ((d - _dockStart) / span).clamp(0.0, 1.0);
+      return _cornerStart + (1 - _cornerStart) * p;
+    }
+    if (_dockStart <= 1e-9) return 0;
+    return _cornerStart * (d / _dockStart).clamp(0.0, 1.0);
+  }
+
+  double get _rubberRoom =>
+      (_fullHeight - _heights.last).clamp(0.0, MorphSheetTuning.stretchLimit);
+
   double _dockFor(double h) {
     final docked = dockedIndex;
     if (docked == null) return 0;
@@ -415,7 +495,9 @@ class MorphSheetMotion {
     if (_dragFrom != null) {
       final ref = _floatingBelowDocked;
       if (top <= ref) return 1;
-      return ((h - ref) / (top - ref)).clamp(0.0, 1.0);
+      final shortened = top - MorphSheetTuning.dragDockShortfall;
+      final end = shortened > ref ? shortened : top;
+      return ((h - ref) / (end - ref)).clamp(0.0, 1.0);
     }
     if (_toDocked) {
       final span = top - _heightStart;
@@ -485,12 +567,18 @@ class MorphSheetMotion {
     return shown * f;
   }
 
-  /// Replaces the detent [heights] and the container [width] after a
-  /// layout change, keeping the selected detent.
-  void relayout(double t, List<double> heights, double width) {
+  /// Replaces the detent [heights], the container [width] and the
+  /// [fullHeight] after a layout change, keeping the selected detent.
+  void relayout(
+    double t,
+    List<double> heights,
+    double width, {
+    double? fullHeight,
+  }) {
     advance(t);
     this.width = width;
     _heights = List<double>.of(heights);
+    _fullHeight = fullHeight ?? heights.last;
     _index = _index.clamp(0, heights.length - 1);
     if (_dragFrom == null) _transition(t, _index);
   }
@@ -528,13 +616,16 @@ class MorphSheetMotion {
   void _transition(double t, int index, {double? velocity}) {
     final h = height(t);
     final d = _dockFor(h);
+    final corner = cornerBlend(t);
     _dragFrom = null;
     _releaseStretch(t);
     final changed = index != _index;
     _index = index;
     _toDocked = index == dockedIndex;
     _dockStart = d;
+    _cornerStart = corner;
     _heightStart = h;
+    _fillToward(t, _toDocked ? 1 : 0);
     if (!_toDocked) {
       _floating = _heights[index];
     } else if (d <= 0) {
@@ -546,6 +637,11 @@ class MorphSheetMotion {
   }
 
   double get _top => _height.value(_now) - _offset.value(_now);
+
+  void _fillToward(double t, double target) {
+    if (dockedIndex == null || _fill.target == target) return;
+    _fill.retarget(t, target);
+  }
 
   /// A finger touched the sheet: a floating sheet swells.
   void press(double t) {
@@ -591,9 +687,21 @@ class MorphSheetMotion {
     }
     _floating = _floatingBelowDocked;
     _dragFrom = y;
-    _dragTop = _top;
+    final top = _top;
+    final largest = _heights.last;
+    final room = _rubberRoom;
+    _dragTop = top > largest && room > 0
+        ? largest + _unstretched(top - largest, room)
+        : top;
     _height.snap(t, _height.value(t));
     _offset.snap(t, _offset.value(t));
+  }
+
+  // The finger travel that [morphRubberband] maps to [y] with [dimension].
+  static double _unstretched(double y, double dimension) {
+    const c = 0.55;
+    final held = math.min(y, dimension * 0.999);
+    return held * dimension / (c * (dimension - held));
   }
 
   /// The finger moved to screen position [y].
@@ -602,11 +710,19 @@ class MorphSheetMotion {
     final from = _dragFrom;
     if (from == null || _released) return;
     if (_stretching) _track(t, (y - from).abs());
-    final top = math.min(_dragTop - (y - from), _heights.last);
+    final raw = _dragTop - (y - from);
+    final largest = _heights.last;
+    final top = raw <= largest
+        ? raw
+        : largest + morphRubberband(raw - largest, dimension: _rubberRoom);
     final lowest = _heights.first;
     if (top >= lowest) {
       _height.snap(t, top);
       _offset.snap(t, 0);
+      _fillToward(
+        t,
+        _dockFor(top) >= MorphSheetTuning.backgroundSwitch ? 1 : 0,
+      );
     } else {
       final below = lowest - top;
       _height.snap(t, lowest);
@@ -719,6 +835,7 @@ class MorphSheetMotion {
       _press.retarget(pressAt, MorphSheetTuning.pressScale);
     }
     _timeline.runDue(_now);
+    if (_fill.isAtRest(_now, 1e-3)) _fill.snap(_now, _fill.target);
     if (_dragFrom != null) return;
     if (_height.isAtRest(_now, 0.05)) _height.snap(_now, _height.target);
     if (_offset.isAtRest(_now, 0.05)) _offset.snap(_now, _offset.target);
