@@ -26,3 +26,14 @@ jobs:
         run: python3 tool/ios_reference/coverage/coverage.py check --api /tmp/morph-api.json
       - name: Test false-positive protection and scenario planning
         run: python3 -m unittest discover -s tool/ios_reference/coverage/tests -v
+      - name: Save reviewable drift diagnostics
+        if: always()
+        run: python3 tool/ios_reference/coverage/coverage.py report --api /tmp/morph-api.json > /tmp/morph-coverage-report.json || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-coverage-integrity
+          path: |
+            /tmp/morph-api.json
+            /tmp/morph-coverage-report.json
+            pubspec.lock
