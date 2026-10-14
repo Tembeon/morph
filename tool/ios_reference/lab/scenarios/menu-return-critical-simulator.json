@@ -1,0 +1,508 @@
+{
+  "schema": 1,
+  "id": "menu-return-critical-simulator",
+  "canvas": {
+    "width": 402,
+    "height": 874,
+    "scale": 3
+  },
+  "appearance": "light",
+  "background": {
+    "kind": "solid",
+    "color": "#F2F2F7"
+  },
+  "marker": [
+    8,
+    56,
+    100,
+    10
+  ],
+  "widgets": [
+    {
+      "id": "menu",
+      "kind": "menu",
+      "rect": [
+        179,
+        300,
+        44,
+        44
+      ],
+      "items": [
+        {
+          "title": "Copy"
+        },
+        {
+          "title": "Share"
+        },
+        {
+          "title": "More",
+          "children": [
+            {
+              "title": "Sub one"
+            },
+            {
+              "title": "Sub two"
+            },
+            {
+              "title": "Deeper",
+              "children": [
+                {
+                  "title": "Deep one"
+                },
+                {
+                  "title": "Deep two"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tracks": [
+    {
+      "id": "source",
+      "native": {
+        "identifier": "menu"
+      },
+      "flutter": {
+        "key": "menu"
+      }
+    },
+    {
+      "id": "rows",
+      "native": {
+        "class": "_UIContextMenuListView$",
+        "all": true
+      },
+      "flutter": {
+        "type": "_MenuRows",
+        "all": true
+      },
+      "properties": [
+        "left",
+        "top",
+        "width",
+        "height"
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "id": "menu-and-source",
+      "rect": [
+        50,
+        250,
+        302,
+        490
+      ]
+    },
+    {
+      "id": "submenu-rim-left",
+      "rect": [
+        73,
+        475,
+        7,
+        65
+      ]
+    },
+    {
+      "id": "submenu-shadow-left",
+      "rect": [
+        57,
+        455,
+        14,
+        105
+      ]
+    },
+    {
+      "id": "submenu-face",
+      "rect": [
+        180,
+        477,
+        40,
+        7
+      ]
+    },
+    {
+      "id": "parent-rim-left",
+      "rect": [
+        77,
+        310,
+        7,
+        35
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "open",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "identifier": "menu"
+      }
+    },
+    {
+      "id": "root-footer",
+      "action": "assert",
+      "anchor": {
+        "label": "Ask Siri"
+      },
+      "exists": false
+    },
+    {
+      "id": "more",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "More",
+        "last": true
+      }
+    },
+    {
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "Deeper",
+        "last": true
+      },
+      "id": "deeper"
+    },
+    {
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "Deeper",
+        "last": true
+      },
+      "id": "back-deeper"
+    },
+    {
+      "id": "back",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "More",
+        "last": true
+      }
+    },
+    {
+      "id": "more-again",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "More",
+        "last": true
+      }
+    },
+    {
+      "id": "close-submenu",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 25,
+          "y": 830
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2
+    },
+    {
+      "id": "open-again",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "identifier": "menu"
+      }
+    },
+    {
+      "id": "close-root",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 25,
+          "y": 830
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2
+    }
+  ],
+  "observationWindows": [
+    {
+      "id": "open-source",
+      "step": "open",
+      "start": -0.15,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "source",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "more-source",
+      "step": "more",
+      "start": -0.15,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "source",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deeper-source",
+      "step": "deeper",
+      "start": -0.15,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "source",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "back-deeper-source",
+      "step": "back-deeper",
+      "start": -0.15,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "source",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "back-source",
+      "step": "back",
+      "start": -0.15,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "source",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "more-again-source",
+      "step": "more-again",
+      "start": -0.15,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "source",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "close-submenu-source",
+      "step": "close-submenu",
+      "start": -0.15,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "source",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "open-again-source",
+      "step": "open-again",
+      "start": -0.15,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "source",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "close-root-source",
+      "step": "close-root",
+      "start": -0.15,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "source",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "open-rows",
+      "step": "open",
+      "start": 0.35,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "rows/0",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "more-rows",
+      "step": "more",
+      "start": 0.35,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "rows/1",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deeper-rows",
+      "step": "deeper",
+      "start": 0.35,
+      "end": 0.9,
+      "maxGapMs": 50,
+      "tracks": [
+        {
+          "id": "rows/2",
+          "properties": [
+            "left",
+            "top",
+            "width",
+            "height"
+          ]
+        }
+      ]
+    }
+  ]
+}

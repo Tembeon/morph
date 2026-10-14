@@ -180,6 +180,8 @@ def validate(data):
                 raise LabError(f"animations.{key} must be boolean")
         if "class" in animations and not isinstance(animations["class"], str):
             raise LabError("animations.class must be a regular expression string")
+    from .observations import validate_windows
+    validate_windows(data)
     return data
 
 

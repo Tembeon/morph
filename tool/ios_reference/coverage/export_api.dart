@@ -71,6 +71,17 @@ Map<String, Object?> _describe(Element element) {
     'kind': element.kind.name,
     'exports': <String>[],
     'signature': element.displayString(),
+    if (element is ConstructorElement) 'const': element.isConst,
+    if (element is ConstructorElement) 'factory': element.isFactory,
+    if (element is ExecutableElement) 'static': element.isStatic,
+    if (element is ExecutableElement) 'abstract': element.isAbstract,
+    if (element is VariableElement) 'const': element.isConst,
+    if (element is VariableElement) 'final': element.isFinal,
+    if (element is EnumElement)
+      'enumValues': [
+        for (final field in element.fields)
+          if (field.isEnumConstant) field.name,
+      ],
     if (element is FunctionTypedElement)
       'parameters': [
         for (final parameter in element.formalParameters)

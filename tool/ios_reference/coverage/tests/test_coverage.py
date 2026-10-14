@@ -65,13 +65,14 @@ class EvidenceTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         (self.root / "lib").mkdir()
         (self.root / "lib/control.dart").write_text("source version one")
-        self.scenario = {"schema": 1, "id": "menu-test", "gates": {"geometryMaxPt": 1.0}}
+        self.scenario = {"schema": 1, "id": "menu-test", "gates": {"geometryMaxPt": 1.0}, "observationWindows": [{"id": "open"}]}
         self.environment = {"nativeOSMajor": 27, "nativeTarget": "simulator", "appearance": "light"}
         self.profiles = {"sim": {"environment": self.environment, "readBack": {"rm": False, "rt": False}}}
-        self.obligations = {"menu.root": {"oracle": "telemetry", "contractApproved": True, "profiles": ["sim"], "scenarioHashes": [ledger.digest(self.scenario)]}}
+        self.obligations = {"menu.root": {"oracle": "telemetry", "contractApproved": True, "profiles": ["sim"], "observationWindows": ["open"], "scenarioHashes": [ledger.digest(self.scenario)]}}
         self.record = {"kind": "lab-telemetry", "bundle": str(self.root), "profile": "sim", "environment": self.environment,
                        "claims": [{"obligation": "menu.root", "gate": "geometryMaxPt", "metric": "geometry/boundsErrorPt/max"}]}
         self.report = {"schema": 1, "scenario": "menu-test", "passed": True, "failures": [], "fidelityGatesDeclared": True,
+                       "observationCoverage": {"declared": True, "passed": True, "windows": [{"id": "open", "passed": True}]},
                        "geometry": {"boundsErrorPt": {"max": 0.5}},
                        "quality": {side: {"errors": [], "metadata": {"sha256": ledger.digest(self.scenario), "rm": False, "rt": False, "os": "27.0"}}
                                    for side in ("native", "candidate")}}
@@ -131,7 +132,7 @@ class EvidenceTests(unittest.TestCase):
         self.obligations["menu.root"]["oracle"] = "optical-contract"
         with self.assertRaisesRegex(ledger.CoverageError, "oracle"):
             self.verify()
-        self.obligations["menu.root"] = {"oracle": "telemetry", "contractApproved": True, "profiles": ["sim"], "scenarioHashes": []}
+        self.obligations["menu.root"] = {"oracle": "telemetry", "contractApproved": True, "profiles": ["sim"], "observationWindows": ["open"], "scenarioHashes": []}
         with self.assertRaisesRegex(ledger.CoverageError, "not reviewed"):
             self.verify()
 
@@ -149,6 +150,12 @@ class EvidenceTests(unittest.TestCase):
     def test_approved_scenario_does_not_close_a_broad_unreviewed_question(self):
         self.obligations["menu.root"]["contractApproved"] = False
         with self.assertRaisesRegex(ledger.CoverageError, "unreviewed question"):
+            self.verify()
+
+    def test_passed_global_report_cannot_override_missing_critical_window(self):
+        self.report["observationCoverage"]["windows"] = []
+        self.save("report", self.report)
+        with self.assertRaisesRegex(ledger.CoverageError, "observation window"):
             self.verify()
 
 

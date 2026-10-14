@@ -25,11 +25,11 @@ class ApiExportTests(unittest.TestCase):
             for entry in ("widgets.dart", "motion.dart", "glass_painter.dart"):
                 (lib / entry).write_text("export 'foundation.dart';\n")
 
-            def export(default, body):
+            def export(default, body, choices="one, two", const_constructor=True):
                 (lib / "controls.dart").write_text(
-                    "class Example { const Example({this.enabled = " + default + ", this._privateField = 0}); "
+                    "class Example { " + ("const " if const_constructor else "") + "Example({this.enabled = " + default + ", this._privateField = 0}); "
                     "final bool enabled; final int _privateField; void act() { " + body + " } }\n"
-                    "class Hidden {}\nenum Choice { one, two }\n")
+                    "class Hidden {}\nenum Choice { " + choices + " }\n")
                 result = subprocess.run(["dart", "run", str(HERE / "export_api.dart"), str(package)],
                                         cwd=ROOT, capture_output=True, text=True, timeout=120)
                 self.assertEqual(result.returncode, 0, result.stderr)
@@ -44,6 +44,10 @@ class ApiExportTests(unittest.TestCase):
             self.assertFalse(any(ledger.api_drift(baseline, body_only).values()))
             changed = export("true", "")
             self.assertEqual(ledger.api_drift(baseline, changed)["changed"], ["CLASS:Example"])
+            reordered = export("false", "", choices="two, one")
+            self.assertEqual(ledger.api_drift(baseline, reordered)["changed"], ["ENUM:Choice"])
+            no_const = export("false", "", const_constructor=False)
+            self.assertEqual(ledger.api_drift(baseline, no_const)["changed"], ["CLASS:Example"])
 
 
 if __name__ == "__main__":

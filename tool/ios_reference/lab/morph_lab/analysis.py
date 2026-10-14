@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from .scenario import LabError, digest
+from .observations import check_windows
 
 
 def read_rows(path):
@@ -324,7 +325,8 @@ def compare(native, candidate, scenario):
     inputs = compare_input(native, candidate)
     geometry = compare_geometry(native, candidate)
     events = compare_events(native, candidate)
-    failures = []
+    observation_coverage = check_windows(native, candidate, scenario)
+    failures = list(observation_coverage["failures"])
     for side, q in quality.items():
         if q["errors"]:
             failures.append(f"{side}: invalid capture metadata")
@@ -378,6 +380,7 @@ def compare(native, candidate, scenario):
             failures.append(f"{name}: {actual} exceeds {limit}")
     return {"schema": 1, "scenario": scenario["id"], "alignment": "geometry: first delivered touch; input paths: first source touch; one offset, no time warping",
             "quality": quality, "input": inputs, "geometry": geometry, "events": events,
+            "observationCoverage": observation_coverage,
             "responseWindows": {"native": response_windows(native), "candidate": response_windows(candidate)},
             "fidelityGatesDeclared": bool(scenario.get("gates") or any(r.get("gates") for r in scenario.get("regions", []))),
             "failures": failures, "passed": not failures}

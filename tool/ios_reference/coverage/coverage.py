@@ -161,6 +161,13 @@ def verify_evidence(record, obligations, profiles, root=ROOT):
         obligation = claim.get("obligation")
         require(obligation in obligations, f"unknown obligation {obligation}")
         require(obligations[obligation].get("contractApproved") is True, "broad/unreviewed question cannot be certified")
+        required_windows = obligations[obligation].get("observationWindows", [])
+        acquisition = report.get("observationCoverage", {})
+        require(isinstance(required_windows, list) and required_windows, "contract needs explicit observation windows")
+        require(acquisition.get("declared") is True and acquisition.get("passed") is True, "critical telemetry acquisition is incomplete")
+        scenario_windows = {window["id"] for window in scenario.get("observationWindows", [])}
+        observed_windows = {window["id"] for window in acquisition.get("windows", []) if window.get("passed") is True}
+        require(set(required_windows) <= scenario_windows & observed_windows, "required observation window missing or incomplete")
         require(record["profile"] in obligations[obligation].get("profiles", []), "profile is not applicable to this obligation")
         require(obligations[obligation].get("oracle") == "telemetry", f"{obligation}: this oracle cannot certify it")
         require(obligation not in accepted, f"duplicate claim {obligation}")
@@ -304,6 +311,9 @@ def main():
                 print(f"  {failure}")
             if any(result.get("apiDrift", {}).values()):
                 print("API DRIFT: review new/removed/changed declarations before updating the baseline")
+                for kind, symbols in result["apiDrift"].items():
+                    for symbol in symbols:
+                        print(f"  {kind}: {symbol}")
         if result["invalidEvidence"] or any(result.get("apiDrift", {}).values()) or (args.require_ready and not result["ready"]):
             sys.exit(2)
     except (CoverageError, OSError, KeyError, TypeError, ValueError) as error:

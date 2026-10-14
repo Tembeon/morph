@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:developer' show Timeline;
 import 'dart:io';
 import 'dart:math' as math;
@@ -14,6 +14,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/lab/lab_clocks.dart';
+import 'package:morph_example/lab/lab_trace_writer.dart';
 
 /// Builds a custom scenario control and emits its observable events.
 typedef LabWidgetBuilder =
@@ -78,11 +79,12 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
   final Stopwatch _clock = Stopwatch();
   final Map<String, double> _values = {};
   Ticker? _ticker;
-  IOSink? _sink;
+  LabTraceWriter? _writer;
   int _sequence = 0;
   final ValueNotifier<int> _marker = ValueNotifier<int>(0);
   double _flushed = 0;
   bool _started = false;
+  final Set<String> _errorStacks = {};
   void Function(FlutterErrorDetails)? _previousErrorHandler;
 
   double get _now => _clock.elapsedMicroseconds / 1e6;
@@ -94,7 +96,9 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
     _previousErrorHandler = FlutterError.onError;
     FlutterError.onError = _error;
     if (widget.writeTrace) {
-      _sink = File('${Directory.systemTemp.path}/morph-lab.jsonl').openWrite();
+      _writer = LabTraceWriter(
+        File('${Directory.systemTemp.path}/morph-lab.jsonl').openWrite(),
+      );
     }
     GestureBinding.instance.pointerRouter.addGlobalRoute(_pointer);
     SchedulerBinding.instance.addTimingsCallback(_timings);
@@ -124,15 +128,21 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
 
   void _log(Map<String, Object?> row) {
     widget.onRow?.call(row);
-    _sink?.writeln(jsonEncode(row));
+    _writer?.add(row);
     if (_now - _flushed > 0.5) {
       _flushed = _now;
-      _sink?.flush();
+      if (_writer case final writer?) unawaited(writer.flush());
     }
   }
 
   void _error(FlutterErrorDetails details) {
-    _log({'k': 'lab_error', 't': _now, 'e': details.exceptionAsString()});
+    final message = details.exceptionAsString();
+    _log({
+      'k': 'lab_error',
+      't': _now,
+      'e': message,
+      if (_errorStacks.add(message)) 'stack': details.stack?.toString(),
+    });
     _previousErrorHandler?.call(details);
   }
 
@@ -578,7 +588,7 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
     }
     _ticker?.dispose();
     _marker.dispose();
-    _sink?.close();
+    if (_writer case final writer?) unawaited(writer.close());
     if (FlutterError.onError == _error) {
       FlutterError.onError = _previousErrorHandler;
     }

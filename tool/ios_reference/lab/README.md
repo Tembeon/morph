@@ -20,20 +20,27 @@ The default target is the owner's iPhone 16 Pro, 402 x 874 pt at 3x.
 No command starts a simulator. Unlock the phone and enable UI Automation.
 
 The separate, explicitly requested simulator adapter boots the specified UDID
-and runs the same native XCUITest input protocol:
+and runs the same XCUITest input protocol on native and Flutter applications:
 
 ```sh
-python3 -m morph_lab.simulator scenarios/menu-return-simulator.json \
+python3 -m morph_lab.simulator scenarios/menu-return-simulator.json --side both \
   --simulator <available-ios-simulator-udid> --out /tmp/menu-simulator-001
+python3 lab.py compare /tmp/menu-simulator-001/scenario.json \
+  --native /tmp/menu-simulator-001/native --candidate /tmp/menu-simulator-001/flutter \
+  --out /tmp/menu-simulator-001/comparison --no-film --event-windows
 ```
 
-It captures native telemetry, runner journals and screenshot attachments with
-source/environment provenance. It does not capture a candidate or films and
-prints `OBSERVED`, never a fidelity pass. Outputs are append-only; a per-simulator
+It captures telemetry, runner journals and screenshot attachments with
+source/environment provenance. Choose `--side native|flutter|both`; the default
+remains native. Paired outputs use `native/` and `flutter/`. Flutter builds in
+debug mode because the simulator requires it; its timing is not a release
+performance result. Liquid renderer initialization must succeed. The adapter
+does not capture films and prints `OBSERVED`, never a fidelity pass. Outputs are
+append-only; a per-simulator
 lock protects concurrent runs. It leaves the simulator booted and does not use
 the phone lock, install on a phone or change accessibility settings. This native
-adapter is the first stage; paired simulator capture and optical comparison are
-still pending. Simulator behavior must be confirmed on physical hardware for
+adapter leaves its test apps installed; optical comparison is still pending.
+Simulator behavior must be confirmed on physical hardware for
 device-dependent effects.
 
 `menu-return-simulator.json` uses the same submenu-return input protocol but
@@ -41,6 +48,26 @@ explicitly asserts that the Ask Siri footer is absent. The original phone
 scenario explicitly expects it. The iOS 27 iPhone 17 simulator observation on
 2026-10-14 failed the phone assumption; this is an environment-specific fixture,
 not a production rule that simulators never show that row.
+
+`menu-return-critical-simulator.json` removes screenshot steps and declares 12
+`observationWindows`: nine source intervals and three newly opened row-container
+intervals. Each interval is relative to an actually received down for a named
+single-pointer step. Its explicit track instances/properties must contain finite
+samples throughout, including both interval boundaries, with no gap over the
+declared limit. A dense aggregate cannot compensate for a missing critical
+interval. The pilot's 50 ms limit is an acquisition-quality requirement, not a
+native motion constant. The 0.35 s row interval starts after creation; it does not
+claim to cover the earlier birth of the row container or the actual glass shape.
+Add those as separate reviewed channels/contracts rather than extending this
+quality result into a visual claim.
+
+`observationCoverage` in the comparison report records per-property counts,
+invalid values and maximum gaps on both sides. Failure invalidates the comparison.
+Completeness alone still prints `EVIDENCE` when no fidelity gates are declared.
+The coverage ledger requires approved telemetry contracts to name their critical
+windows; a green global report cannot close a missing-window contract. Multi-touch
+windows need an explicit finger-to-step mapping and are currently rejected by
+the validator rather than ambiguously aligned.
 
 ```sh
 cd tool/ios_reference/lab

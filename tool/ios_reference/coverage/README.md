@@ -62,6 +62,8 @@ verified and decomposition is approved. API changes return 2 even when existing
 tests pass. The analyzer resolves exports, `show`/`hide`, declared members,
 parameter types and defaults. It records inherited behavior through supertype
 signatures; framework API changes require native/Flutter SDK review separately.
+It also records enum declaration order and const/factory/static/abstract/final
+flags, so an index-changing reorder or loss of a const constructor is reviewed.
 Review the delta before regenerating `api-baseline.json`. This baseline records
 the surface to monitor, not an assertion that every exported API is correct.
 Analyzer 10.2.0 is pinned: 10.1.0 reported private parameter spellings in
@@ -91,6 +93,9 @@ individual `claims` containing `obligation`, `gate` and `metric`. Artifacts must
 stay inside the bundle. Each obligation must be narrowed to an approved contract
 (`contractApproved: true`) and list reviewed `scenarioHashes`. Broad questions
 cannot be closed by attaching one successful scenario.
+Telemetry contracts also list their required `observationWindows`; all must be
+declared in the scenario and have complete native/candidate acquisition in the
+report. Missing critical intervals cannot be replaced by an overall sample count.
 The report must pass, contain no quality errors, have matching scenario hashes,
 read-back settings and an actual declared gate related to the claimed metric.
 Both manifests must record the exact `coverageEnvironment`; older captures
@@ -115,9 +120,10 @@ No green baseline is allowed to imply those configurations were exercised.
 - Plans, native observations, implementation and verified fidelity stay distinct.
 - Missing evidence, stale sources, unreviewed scenarios and unrelated gates fail.
 - Each discovered discrepancy becomes a named obligation and replay regression.
-- Native SDK drift, model-based seeded fuzzing with shrinking, critical-frame
-  coverage and independent review are required next layers, not claimed features
-  of the initial ledger.
+- Native SDK drift, model-based seeded fuzzing with shrinking, physical/optical
+  critical-frame coverage and independent review are required next layers.
+  Explicit telemetry-window acquisition checks are implemented; they do not
+  prove what actually reached the display.
 
 There is no finite proof of every possible OS behavior. The aim is explicit,
 expanding coverage with reproducible evidence and no silent unknowns at release.
