@@ -133,7 +133,13 @@ section does not repaint its rows).
 - Plain and grouped (non-inset) styles, swipe actions, reordering,
   section index.
 - Checkmark, detail button and detail disclosure accessories exist
-  (`MorphListAccessory`), drawn in the tint by eye: glyph shapes and sizes
-  NOT measured. A sliver form exists (`MorphSliverListSection`): rows built
+  (`MorphListAccessory`), drawn in the tint. UIKit [read from UIKit, notes
+  private]: checkmark = SF `checkmark` at emphasized body (17 pt
+  semibold), medium scale (small at the largest accessibility sizes),
+  tinted; detail = SF `info.circle`, default symbol configuration,
+  tinted; the chevron's default tint is tertiaryLabel; content-to-accessory
+  padding 16. morph still paints the two glyphs by eye in a 22 pt box: the
+  symbol outlines are assets, not code, so shapes and sizes need a device
+  capture. A sliver form exists (`MorphSliverListSection`): rows built
   lazily, each row's resting glass in its own solid-backdrop layer instead
   of the card's one.

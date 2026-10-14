@@ -333,6 +333,27 @@ bool _sameDay(DateTime a, DateTime b) =>
 String _defaultDate(DateTime d) =>
     '${_months[d.month - 1].substring(0, 3)} ${d.day}, ${d.year}';
 
+/// [minute] rounded down to a multiple of [interval], as UIKit's
+/// `roundsToMinuteInterval` does (read from UIKit, notes private).
+@internal
+int morphFloorMinute(int minute, int interval) =>
+    interval < 2 ? minute : minute - minute % interval;
+
+/// [value] with its minute rounded down to a multiple of [interval] and
+/// its seconds dropped; unchanged for an interval of 1. UIKit rounds the
+/// date it shows and reports this way as soon as it is set (read from
+/// UIKit, notes private).
+@internal
+DateTime morphFloorToMinuteInterval(DateTime value, int interval) {
+  if (interval < 2) return value;
+  return value.copyWith(
+    minute: morphFloorMinute(value.minute, interval),
+    second: 0,
+    millisecond: 0,
+    microsecond: 0,
+  );
+}
+
 String _defaultTime(DateTime d, {required bool twentyFour}) {
   if (twentyFour) return '${_two(d.hour)}:${_two(d.minute)}';
   final h = d.hour % 12 == 0 ? 12 : d.hour % 12;
@@ -421,10 +442,10 @@ class MorphDatePicker extends StatefulWidget {
   final MorphDatePickerStyle style;
 
   /// The step of the minute wheel in minutes, a divisor of 60 from 1 to
-  /// 30 (UIKit `minuteInterval`). The wheel shows the multiples of it and
-  /// a time between two of them on the nearer one, as UIKit's
-  /// `roundsToMinuteInterval` does; the picker reports only multiples once
-  /// the user turns a wheel.
+  /// 30 (UIKit `minuteInterval`). As UIKit's `roundsToMinuteInterval`
+  /// does, a time between two multiples is rounded DOWN to the earlier one
+  /// with its seconds dropped, in the label and on the wheel alike, and the
+  /// picker reports only such times (read from UIKit, notes private).
   final int minuteInterval;
 
   /// The picked moment.
@@ -531,7 +552,10 @@ class _MorphDatePickerState extends State<MorphDatePicker> {
 
   @override
   Widget build(BuildContext context) {
-    final value = widget.value;
+    final value = morphFloorToMinuteInterval(
+      widget.value,
+      widget.minuteInterval,
+    );
     final date =
         widget.localizations.dateFormatter?.call(value) ?? _defaultDate(value);
     final time =
@@ -2464,11 +2488,7 @@ class _TimeWheelsState extends State<_TimeWheels> {
   late int _hour = _bounded(widget.value).hour;
   late int _minute = _rounded(_bounded(widget.value).minute);
 
-  int _rounded(int minute) {
-    final step = widget.minuteInterval;
-    if (step == 1) return minute;
-    return ((minute / step).round() * step) % 60;
-  }
+  int _rounded(int minute) => morphFloorMinute(minute, widget.minuteInterval);
 
   bool get _pm => _hour >= 12;
   bool _syncing = false;

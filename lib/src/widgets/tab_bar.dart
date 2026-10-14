@@ -861,7 +861,14 @@ class _TabLabel extends StatelessWidget {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (badge == null) glyph else MorphBadged(badge: badge, child: glyph),
+          if (badge == null)
+            glyph
+          else
+            MorphBadged.glyph(
+              badge: badge,
+              glyphSize: const Size.square(MorphTabBarMetrics.iconSize),
+              child: glyph,
+            ),
           const SizedBox(height: MorphTabBarMetrics.labelGap),
           Text(item.label, maxLines: 1, textScaler: scaler, style: style),
         ],
@@ -892,7 +899,14 @@ class _TabLabel extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (badge == null) glyph else MorphBadged(badge: badge, child: glyph),
+        if (badge == null)
+          glyph
+        else
+          MorphBadged.glyph(
+            badge: badge,
+            glyphSize: const Size.square(MorphTabBarMetrics.iconSize),
+            child: glyph,
+          ),
         const SizedBox(height: MorphTabBarMetrics.labelGap),
         RichText(
           maxLines: 1,

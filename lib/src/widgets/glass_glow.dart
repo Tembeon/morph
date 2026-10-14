@@ -221,11 +221,51 @@ class MorphTouchGlowMotion {
   static const double spotSpread = 0.568;
 
   /// The gain of the spot's color matrix over a gray backdrop, less one:
-  /// 3 in the dark appearance, 0.667 in the light one.
+  /// 3 in the dark appearance, 0.667 in the light one. They are the
+  /// color-dodge gains `1 / (1 - white) - 1` of UIKit's glow white levels
+  /// 0.75 (dark) and 0.4 (light) (read from UIKit, notes private).
   static double spotGain(Brightness brightness) => switch (brightness) {
     Brightness.dark => 3,
     Brightness.light => 0.667,
   };
+
+  /// The glow white level of clear glass in both appearances (read from
+  /// UIKit, notes private).
+  static const double clearGlassWhite = 0.7;
+
+  /// The glow white level of tinted glass over the tint's luminance:
+  /// UIKit lerps from [tintWhiteFrom] to [tintWhiteTo] by luminance to the
+  /// power [tintLuminanceExponent] (read from UIKit, notes private).
+  static const double tintWhiteFrom = 0.7;
+
+  /// See [tintWhiteFrom].
+  static const double tintWhiteTo = 0.25;
+
+  /// See [tintWhiteFrom].
+  static const double tintLuminanceExponent = 1.25;
+
+  /// The gain less one of a spot with color-dodge white level [white].
+  static double spotGainOfWhite(double white) => 1 / (1 - white) - 1;
+
+  /// The spot's gain less one for a glass surface: tinted glass by its
+  /// [tint]'s luminance (UIKit's Rec. 709 weights of the gamma-encoded
+  /// channels, times alpha), clear glass by [clearGlassWhite], regular
+  /// glass by [spotGain]. Tinted and clear values are read from UIKit, not
+  /// measured on a device.
+  static double spotGainFor(
+    Brightness brightness, {
+    Color? tint,
+    bool clear = false,
+  }) {
+    if (tint != null) {
+      final luminance =
+          (0.2126 * tint.r + 0.7152 * tint.g + 0.0722 * tint.b) * tint.a;
+      final t = math.pow(luminance.clamp(0.0, 1.0), tintLuminanceExponent);
+      return spotGainOfWhite(tintWhiteFrom + (tintWhiteTo - tintWhiteFrom) * t);
+    }
+    if (clear) return spotGainOfWhite(clearGlassWhite);
+    return spotGain(brightness);
+  }
 
   final MorphSpringState _progress = MorphSpringState(riseSpring, 0);
   final MorphSpringState _scale = MorphSpringState(fallSpring, 1);

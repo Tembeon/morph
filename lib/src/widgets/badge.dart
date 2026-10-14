@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -6,10 +8,16 @@ import 'package:morph/src/widgets/typography.dart';
 /// (UIKit `UIBarButtonItem.Badge`, `UITabBarItem.badgeValue`, SwiftUI
 /// `badge(_:)`).
 ///
-/// It draws at the top trailing corner of the item's icon, in systemRed
-/// with white text unless its colors are given. Its size, font and offset
-/// are not yet measured on a device: they follow the iOS 26 badge by eye
-/// (a 17 point tall capsule with 12 point semibold text, a 10 point dot).
+/// It draws in systemRed with white text unless its colors are given: a
+/// capsule as tall as its 12 point medium text line plus 2 points above and
+/// below, 4 points of side padding, at least as wide as it is tall and at
+/// most 64 points wide; the dot is an 18 point circle. On a bar button it
+/// centers on the 45 degree point of its capsule's top trailing corner; on a
+/// tab its leading edge sits 5 points inside the glyph's trailing edge.
+/// These metrics are read from UIKit (notes private); how a badge appears,
+/// changes and leaves (UIKit fades it with the bar's update animation) is
+/// not reproduced, and the tab badge's height above the glyph is not
+/// measured.
 @immutable
 class MorphBadge {
   /// A badge showing [count]; a count of zero or less shows no badge.
@@ -73,65 +81,191 @@ class MorphBadge {
       Object.hash(count, text, foregroundColor, backgroundColor);
 }
 
-/// Places [badge] over the top trailing corner of [child].
+/// The metrics of a [MorphBadge], read from UIKit's bar badge metrics
+/// and its badge placement (notes private).
+@internal
+abstract final class MorphBadgeMetrics {
+  /// The text size: caption 1.
+  static const double fontSize = 12;
+
+  /// The text weight: medium.
+  static const FontWeight fontWeight = FontWeight.w500;
+
+  /// The space above and below the text.
+  static const double verticalPadding = 2;
+
+  /// The space before and after the text.
+  static const double horizontalPadding = 4;
+
+  /// The widest a badge gets.
+  static const double maxWidth = 64;
+
+  /// The size of a badge without text.
+  static const double dotSize = 18;
+
+  /// How far past its capsule's corner point a bar badge's trailing edge
+  /// may reach before the badge moves toward the item.
+  static const double cornerReach = 10;
+
+  /// How far inside the glyph's trailing edge a tab badge's leading edge
+  /// sits.
+  static const double tabInset = 5;
+
+  /// The tab badge's top above the glyph's top: by eye, not measured
+  /// (UIKit places it 2 points below the tab button's top).
+  static const double tabRise = 6;
+
+  /// The text style of a badge label in [color].
+  static TextStyle textStyle(Color color) => MorphTypography.resolve(
+    const TextStyle(fontSize: fontSize, fontWeight: fontWeight),
+  ).copyWith(color: color);
+
+  /// The size of a badge showing [label] (null for the dot).
+  static Size sizeOf(String? label) {
+    if (label == null || label.isEmpty) return const Size.square(dotSize);
+    final painter = TextPainter(
+      text: TextSpan(text: label, style: textStyle(const Color(0xFF000000))),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    );
+    painter.layout();
+    final text = painter.size;
+    painter.dispose();
+    final height = text.height + 2 * verticalPadding;
+    final width = math.max(
+      height,
+      math.min(text.width + 2 * horizontalPadding, maxWidth),
+    );
+    return Size(width, height);
+  }
+}
+
+/// Places [badge] over [child], at the corner of a bar button's capsule
+/// ([MorphBadged.corner]) or beside a tab's glyph ([MorphBadged.glyph]).
 @internal
 class MorphBadged extends StatelessWidget {
-  /// Creates the badged child.
-  const MorphBadged({required this.badge, required this.child, super.key});
+  /// A bar button's badge: [child] fills the item's box of [itemSize], and
+  /// [capsule] is the rounded rectangle, in the box's coordinates, whose top
+  /// trailing corner the badge centers on (its 45 degree point on a corner
+  /// of [radius]).
+  const MorphBadged.corner({
+    required this.badge,
+    required this.child,
+    required Size this.itemSize,
+    required Rect this.capsule,
+    required double this.radius,
+    super.key,
+  }) : glyphSize = null;
+
+  /// A tab's badge: [child] is the glyph of [glyphSize].
+  const MorphBadged.glyph({
+    required this.badge,
+    required this.child,
+    required Size this.glyphSize,
+    super.key,
+  }) : itemSize = null,
+       capsule = null,
+       radius = null;
 
   /// The badge, or null for none.
   final MorphBadge? badge;
 
-  /// The badged widget, usually an icon.
+  /// The badged widget.
   final Widget child;
+
+  /// The size of a bar button's box.
+  final Size? itemSize;
+
+  /// The capsule a bar button's badge sits on, in the box's coordinates.
+  final Rect? capsule;
+
+  /// The capsule's corner radius.
+  final double? radius;
+
+  /// The size of a tab's glyph.
+  final Size? glyphSize;
+
+  /// The top left corner of a badge of [size] on a bar button.
+  @visibleForTesting
+  static Offset cornerOrigin({
+    required Size size,
+    required Size itemSize,
+    required Rect capsule,
+    required double radius,
+    required bool rtl,
+  }) {
+    final inset = radius * (1 - math.sqrt1_2);
+    final cy = capsule.top + inset;
+    final half = size.width / 2;
+    double cx;
+    if (rtl) {
+      final corner = capsule.left + inset;
+      final hi = itemSize.width - half;
+      final lo = math.min(hi, corner - MorphBadgeMetrics.cornerReach + half);
+      cx = corner.clamp(lo, hi);
+    } else {
+      final corner = capsule.right - inset;
+      final hi = corner + MorphBadgeMetrics.cornerReach - half;
+      final lo = math.min(hi, half);
+      cx = corner.clamp(lo, hi);
+    }
+    return Offset(cx - half, cy - size.height / 2);
+  }
 
   @override
   Widget build(BuildContext context) {
     final badge = this.badge;
     if (badge == null || !badge.visible) return child;
     final label = badge.label;
+    final size = MorphBadgeMetrics.sizeOf(label);
     final fill = badge.backgroundColor ?? MorphBadge.defaultBackgroundColor;
-    final Widget mark = label == null
-        ? Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(color: fill, shape: BoxShape.circle),
-          )
-        : Container(
-            constraints: const BoxConstraints(minWidth: 17),
-            height: 17,
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            decoration: ShapeDecoration(
-              color: fill,
-              shape: const StadiumBorder(),
-            ),
-            alignment: Alignment.center,
-            child: Text(
+    final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    final Widget mark = Container(
+      width: size.width,
+      height: size.height,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(
+        horizontal: MorphBadgeMetrics.horizontalPadding,
+      ),
+      decoration: ShapeDecoration(color: fill, shape: const StadiumBorder()),
+      child: label == null
+          ? null
+          : Text(
               label,
               maxLines: 1,
               softWrap: false,
+              overflow: TextOverflow.ellipsis,
               textScaler: TextScaler.noScaling,
-              style:
-                  MorphTypography.resolve(
-                    const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      height: 1,
-                    ),
-                  ).copyWith(
-                    color:
-                        badge.foregroundColor ??
-                        MorphBadge.defaultForegroundColor,
-                  ),
+              style: MorphBadgeMetrics.textStyle(
+                badge.foregroundColor ?? MorphBadge.defaultForegroundColor,
+              ),
             ),
-          );
+    );
+    final Offset origin;
+    if (glyphSize case final glyph?) {
+      final start = glyph.width - MorphBadgeMetrics.tabInset;
+      origin = Offset(
+        rtl ? glyph.width - start - size.width : start,
+        -MorphBadgeMetrics.tabRise,
+      );
+    } else {
+      origin = cornerOrigin(
+        size: size,
+        itemSize: itemSize!,
+        capsule: capsule!,
+        radius: radius!,
+        rtl: rtl,
+      );
+    }
     return Stack(
       clipBehavior: Clip.none,
       children: [
         child,
-        PositionedDirectional(
-          top: label == null ? -2 : -6,
-          end: label == null ? -2 : -8,
+        Positioned(
+          left: origin.dx,
+          top: origin.dy,
+          width: size.width,
+          height: size.height,
           child: Semantics(label: label, child: mark),
         ),
       ],

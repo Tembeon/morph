@@ -393,17 +393,36 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 ## API gaps
 
 - Subtitles / large subtitles exist as API (`subtitle`, `largeSubtitle`)
-  with static geometry by eye: 13 pt secondaryLabel under the inline
-  title, 15 pt under the large title in a 22 pt band; NOT measured, and
-  the title swap does not animate them apart. Title menu (`titleMenuProvider`),
+  [read from UIKit, notes private; ported]: inline, the title turns 15 pt
+  semibold (short emphasized subheadline) over a 12 pt regular subtitle
+  (short caption 1); large, the title turns 22 pt bold (emphasized title
+  2) over an 11 pt medium subtitle (caption 2); subtitles in
+  secondaryLabel. Large layout: subtitle baseline 16 pt above the area's
+  bottom (the plain title's baseline sits there too), title baseline 6 pt
+  above the subtitle's line; area = title line + subtitle line + 6 in
+  place of the plain title's line (+4.8 pt at 1.2 line heights). Not read:
+  the inline title-subtitle gap (lines stack), the "short" styles' tighter
+  leading (morph uses 1.2), how the title swap animates them. All need a
+  device check. Title menu (`titleMenuProvider`),
   `titleView`, `UINavigationItemStyle` browser / editor (center groups),
   `pinnedTrailingGroup`, overflow menu (`additionalOverflowItems`).
 - `largeTitleDisplayMode` inline variant (automatic / always / never exist;
   automatic follows the page below, the first page
   `MorphNavigationStack.prefersLargeTitles`).
-- Bar button badges exist (`MorphBarButton.badge`, `MorphBadge`): a 17 pt
-  systemRed capsule with 12 pt semibold text at the icon's top trailing
-  corner, a 10 pt dot; geometry and appear / change motion NOT measured.
+- Bar button badges exist (`MorphBarButton.badge`, `MorphBadge`)
+  [read from UIKit, notes private; ported in badge.dart]: systemRed fill,
+  white text, caption 1 medium (12 pt w500); height = text line + 2 + 2,
+  side padding 4, width at least the height and at most 64; a badge
+  without text (indicator) is an 18 pt circle; corner radius half the
+  shorter side. It centers on the 45 degree point of the capsule's top
+  trailing corner (the whole capsule when the item is alone in it, else
+  the item's width over the capsule's height, capsule corner radius); a
+  wide badge shifts toward the item so its trailing edge reaches at most
+  10 pt past that point. UIKit formats a count with the locale's grouping
+  (morph: plain digits). Motion: a new badge fades in from 0, a removed
+  one fades out, size / place changes ride the bar's update animation; NOT
+  ported (static badge) - the curve is the bar's and needs a device
+  check.
   `hidesSharedBackground` (an item outside the capsule);
   `sharesBackground = false`; fixed / flexible spaces as API.
 - Search bar integration placements in the nav bar / toolbar (morph has only

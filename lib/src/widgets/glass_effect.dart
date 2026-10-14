@@ -200,7 +200,9 @@ class _MorphGlassEffectState extends State<MorphGlassEffect>
       enabled: true,
       shape: _shape,
       lift: interactive ? () => _lift : null,
-      glow: interactive ? () => _motion.glowAt(brightness) : null,
+      glow: interactive
+          ? () => _motion.glowAt(brightness, tint: tint, clear: clear)
+          : null,
       still: interactive ? () => _motion.isSettled : () => true,
       child: widget.child,
     );

@@ -107,11 +107,19 @@ keeps them in its picture.
 
 - Image segments (and image + title), UIAction segments.
 - Per-segment enabled and fixed width exist (`MorphSegment.enabled`,
-  `.width`); a disabled label's look (drawn at `disabledOpacity`) is NOT
-  measured. Content offset is missing.
+  `.width`); morph draws a disabled label at `disabledOpacity`. UIKit
+  [read from UIKit, notes private]: an image segment's content drops to
+  alpha 0.5; a disabled title takes the control's disabled color, a gray
+  of the inherited tint's white level (capped at 0.6 in light) at alpha
+  0.45 light / 0.35 dark. Not ported: which tint a segmented label
+  inherits is not read, so the color needs a device capture. Content
+  offset is missing.
 - No selection exists (`selectedIndex: null`, `noSegment`): the lens is
-  hidden; the first selection appears at rest on its segment - UIKit's
-  appearance animation is NOT measured.
+  hidden; the first selection appears at rest on its segment. UIKit's
+  classic selection view fades in (opacity spring, 0.1 s delay) and pops
+  from a hidden scale [read from UIKit, notes private], but the iOS 27
+  lens path was not traced, so the phone's first-selection animation is
+  still NOT known - needs a capture.
 - `momentary` mode.
 - Animated insert/remove of segments (is there a lens/width animation? not
   measured).

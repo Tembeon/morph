@@ -141,8 +141,14 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
 - Delegate callbacks exist: `onDetentChanged` (on every settle toward a
   new detent, programmatic ones included) and `onDismissAttempt`
   (`dismissible` false or a blocking `PopScope`, which also stops the
-  drag; reported on release - when UIKit reports it during the pull is
-  NOT measured).
+  drag). UIKit marks the refused start of a dismissal during the drag but
+  reports nothing while the finger is down; after the lift it reports the
+  attempt (async, next main-queue turn) only when the pull beyond the edge
+  exceeds a quarter of the rubber-band extent, whatever the velocity [read
+  from UIKit, notes private; ported: `dismissAttemptShare` 0.25 of
+  `refusedPullExtent`]. The extent itself (morph 40, rubber band c 0.55) is
+  NOT measured: UIKit derives it from the sheet's height or detent with
+  caps of 200 / 100 pt, which branch applies to the bottom edge is open.
 - Full-screen / form-sheet presentation styles.
 
 ## Implementation notes (morph side, moved from CLAUDE.md)

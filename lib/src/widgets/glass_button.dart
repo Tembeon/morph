@@ -123,8 +123,16 @@ class MorphGlassButtonMotion {
   /// The measured touch's glow through the shared glass color model.
   ///
   /// Its timing and growth follow this button's flex interaction; the
-  /// wash and spot color matrices use the glass glow seam.
-  MorphGlassGlow? glowAt(Brightness brightness) {
+  /// wash and spot color matrices use the glass glow seam. A [tint]ed or
+  /// [clear] surface lights with its own spot gain
+  /// ([MorphTouchGlowMotion.spotGainFor]); the press itself is the same for
+  /// every glass (UIKit gives the clear configurations no press of their
+  /// own, read from UIKit, notes private).
+  MorphGlassGlow? glowAt(
+    Brightness brightness, {
+    Color? tint,
+    bool clear = false,
+  }) {
     final big = bigGlowOpacity;
     final little = littleGlowOpacity;
     if (big <= 0.001 && little <= 0.001) return null;
@@ -134,7 +142,11 @@ class MorphGlassButtonMotion {
       radius:
           MorphTouchGlowMotion.spotSpread * littleGlowSize * littleGlowScale,
       gain:
-          MorphTouchGlowMotion.spotGain(brightness) *
+          MorphTouchGlowMotion.spotGainFor(
+            brightness,
+            tint: tint,
+            clear: clear,
+          ) *
           MorphTouchGlowMotion.spotCore *
           little,
     );
@@ -364,7 +376,8 @@ class MorphGlassButton extends StatefulWidget {
   /// Creates a clear glass button (`UIButton.Configuration.clearGlass()`),
   /// for buttons over rich media: the clear material, without the regular
   /// glass's wash. Its label needs contrast of its own over a bright
-  /// backdrop. The press is the regular button's (not measured apart).
+  /// backdrop. The press is the regular button's; the touch glow uses
+  /// clear glass's white level (read from UIKit, notes private).
   const MorphGlassButton.clear({
     required this.child,
     required this.onPressed,
@@ -381,7 +394,8 @@ class MorphGlassButton extends StatefulWidget {
   /// Creates a prominent clear glass button filled with [tint], or the
   /// ambient accent without one
   /// (`UIButton.Configuration.prominentClearGlass()`). The press is the
-  /// regular button's (not measured apart).
+  /// regular button's; the touch glow follows the tint's luminance as on
+  /// any tinted glass (read from UIKit, notes private).
   const MorphGlassButton.prominentClear({
     required this.child,
     required this.onPressed,
@@ -626,7 +640,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
               brightness: brightness,
               enabled: enabled,
               lift: () => _lift,
-              glow: () => _motion.glowAt(brightness),
+              glow: () => _motion.glowAt(brightness, tint: tint, clear: clear),
               still: () => _motion.isSettled,
               child: content,
             ),

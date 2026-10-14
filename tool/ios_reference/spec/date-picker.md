@@ -241,11 +241,12 @@ backdrop.
   `MorphDatePickerStyle { compact, inline, wheels }` is reserved, only
   `compact` is drawn (asserted).
 - `countDownTimer` and `yearAndMonth` modes.
-- `minuteInterval` exists: the minute wheel holds 60 / interval rows and a
-  time between two multiples shows on the nearer one (UIKit
-  `roundsToMinuteInterval` default); whether UIKit also rounds the label
-  and the reported value before a wheel turns is NOT measured (morph keeps
-  the label and reports multiples only after a turn).
+- `minuteInterval` exists: the minute wheel holds 60 / interval rows. With
+  `roundsToMinuteInterval` (the default) UIKit rounds the date DOWN to the
+  earlier multiple and drops the seconds as soon as it is set, so the label,
+  the wheel and the reported value all show the floored time [read from
+  UIKit, notes private; ported: `morphFloorToMinuteInterval`]. A device check
+  of a 9:44 -> 9:30 label (interval 15) is still to be recorded.
 - `locale` / `calendar` / `timeZone` (non-Gregorian calendars, locale
   week start beyond `firstDayOfWeek`).
 - `setDate:animated:` wheel animation.

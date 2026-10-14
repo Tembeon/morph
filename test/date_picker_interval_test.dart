@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/date_picker.dart';
 
 void main() {
   testWidgets('the minute wheel steps by the minute interval', (tester) async {
@@ -27,7 +27,8 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.text('09:41'));
+    expect(find.text('09:41'), findsNothing);
+    await tester.tap(find.text('09:30'));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
       EnginePhase.sendSemanticsUpdate,
@@ -54,6 +55,16 @@ void main() {
     );
     expect(picked, isNotEmpty);
     expect(picked.last.minute % 15, 0);
+  });
+
+  test('a minute interval rounds down and drops the seconds', () {
+    expect(morphFloorMinute(44, 15), 30);
+    expect(morphFloorMinute(58, 5), 55);
+    expect(morphFloorMinute(58, 1), 58);
+    expect(
+      morphFloorToMinuteInterval(DateTime(2026, 10, 3, 9, 59, 42), 15),
+      DateTime(2026, 10, 3, 9, 45),
+    );
   });
 
   test('the variant enum reserves UIKit styles', () {
