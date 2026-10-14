@@ -101,8 +101,8 @@
   "nav-scroll/flat": {
     "frames": 86,
     "builds": 0.8,
-    "paints": 76.0,
-    "pictures": 3.0,
+    "paints": 23.3,
+    "pictures": 1.2,
     "captures": 0.0,
     "offscreen": 0.7,
     "snapshotImages": 0.0,
@@ -354,7 +354,7 @@
   "nav-scroll/fake": {
     "frames": 86,
     "builds": 0.8,
-    "paints": 60.6,
+    "paints": 23.3,
     "pictures": 1.2,
     "captures": 4.8,
     "offscreen": 6.5,
@@ -607,7 +607,7 @@
   "nav-scroll/liquid": {
     "frames": 86,
     "builds": 0.8,
-    "paints": 60.6,
+    "paints": 23.3,
     "pictures": 1.2,
     "captures": 4.8,
     "offscreen": 6.5,

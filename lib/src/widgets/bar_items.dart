@@ -1949,6 +1949,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
         ),
       ),
     );
+    // An item that only moves is composited again, not repainted.
     return MorphLivePositionedTemplate(
       key: ValueKey<Object>(button.id),
       live: _ticks,
@@ -1962,7 +1963,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
           child: morphLiveSlot,
         );
       },
-      child: content,
+      child: RepaintBoundary(child: content),
     );
   }
 }

@@ -558,7 +558,7 @@ class _InlineTitleState extends State<_InlineTitle> {
       width: w,
       top: capsuleCenter - textHeight / 2,
       height: textHeight,
-      child: Semantics(header: true, child: out),
+      child: Semantics(header: true, child: RepaintBoundary(child: out)),
     );
   }
 }

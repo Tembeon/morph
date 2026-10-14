@@ -297,8 +297,11 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
 
   final BackdropKey _barsBackdrop = BackdropKey();
 
-  Widget _bars(Widget bar) =>
-      MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar);
+  // A bar repaints on its own: its motion leaves the pages and the
+  // navigator around it unpainted.
+  Widget _bars(Widget bar) => RepaintBoundary(
+    child: MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar),
+  );
 
   List<MorphBarButtonGroup> _leadingOf(
     List<PageRoute<Object?>> pages,
@@ -616,8 +619,51 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     child: builder(context),
   );
 
+  Object? _transitionInputs;
+  Widget? _transition;
+
+  // The route's scope builds the transition on every tick of either
+  // animation and hands it a fresh wrapper of the same page each time.
+  // Handing back the transition built before stops the rebuild there: the
+  // slide follows the animations through live render objects, and the
+  // wrapper only reads the animation's status and the user gesture, which
+  // it follows itself.
   @override
   Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final page = switch (child) {
+      final ListenableBuilder wrapper => wrapper.child,
+      _ => null,
+    };
+    final inputs = page == null
+        ? null
+        : (
+            page,
+            animation,
+            secondaryAnimation,
+            animation.status,
+            Directionality.maybeOf(context),
+            morphReducedMotionOf(context),
+            MorphNavigationSnapshot.enabled,
+          );
+    final kept = _transition;
+    if (inputs != null && kept != null && inputs == _transitionInputs) {
+      return kept;
+    }
+    _transitionInputs = inputs;
+    return _transition = _buildTransition(
+      context,
+      animation,
+      secondaryAnimation,
+      child,
+    );
+  }
+
+  Widget _buildTransition(
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
@@ -972,8 +1018,11 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
   ScrollController? _own;
   final BackdropKey _barsBackdrop = BackdropKey();
 
-  Widget _bars(Widget bar) =>
-      MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar);
+  // A bar repaints on its own: its motion leaves the pages and the
+  // navigator around it unpainted.
+  Widget _bars(Widget bar) => RepaintBoundary(
+    child: MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar),
+  );
 
   ScrollController get _controller =>
       widget.controller ?? (_own ??= ScrollController());

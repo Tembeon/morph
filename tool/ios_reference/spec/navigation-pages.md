@@ -98,6 +98,19 @@ drawing's own opacity. Policy measured on the tab bar and menu
 (tab-bar.md, menu-button.md); the navigation bench is unchanged within
 its spread (glass-renderer.md "One glyph policy").
 
+Per-frame work (lifecycle.md, 2026-10-14): the route's scope builds its
+transition on every tick of either animation; `MorphNavigationRoute`
+hands back the transition it built before while the page, the
+animations, their status, the direction and Reduce Motion are the same,
+so the slide (a live transform) and the edge-swipe region no longer
+rebuild (6 -> 2 builds a frame mid-transition; the 2 left are the
+framework's own listenable builders of the two routes). The stack's bars
+are a repaint boundary, the inline titles and every bar item one each:
+an item that only moves is composited again, and the navigator around the
+bars no longer repaints with them. Host recorder, flat: push 6/5/75-97 ->
+2/5/38-46 a frame, pop 6/5/78-92 -> 2/5/39-47, the tail after the slide
+0/3/58 -> 0/3/18 and 1.26 -> 0.96 s (bars.md "Rest").
+
 ## Not reproduced / open
 
 - +1.25 widths/s returning flicks.
