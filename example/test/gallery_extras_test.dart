@@ -284,7 +284,9 @@ void main() {
   testWidgets('navigation: badges on bar buttons, subtitles under titles', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(1206, 2622);
+    // Wide enough for the detail page's title between its groups in the
+    // test font, whose glyphs are as wide as they are tall.
+    tester.view.physicalSize = const Size(2622, 2622);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(const GalleryApp());

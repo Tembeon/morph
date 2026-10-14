@@ -86,10 +86,74 @@ abstract final class MorphNavigationBarMetrics {
           MorphBarMetrics.lineHeight +
       largeTitleSubtitleGap;
 
-  /// The least space between the inline title and the bar's buttons: the
-  /// title stays centered unless it would come closer, then it moves away
-  /// from them (`titleControlPadding`).
+  /// The least space between the inline title and the bar's buttons
+  /// (`titleControlPadding`); see [morphInlineTitleFrame] for where the
+  /// title goes when it does not fit centered.
   static const double titlePadding = 12;
+}
+
+/// Where a navigation bar puts an inline title [textWidth] wide, or null
+/// when there is no room for it.
+///
+/// [lo] and [hi] bound the room between the groups (see
+/// [morphInlineTitleBounds]). UIKit centers the title on the bar when it
+/// fits between the bounds so centered; otherwise it puts the title at the
+/// leading bound (not just as far as needed) and truncates it with an
+/// ellipsis at the other one; with no room left the title is not drawn.
+/// Measured on the simulator (iPhone 17 Pro, iOS 27.0, 2026-10-14: five
+/// title lengths with and without a subtitle under a back button and zero
+/// to three trailing groups, 46 bars): every title within 1 point of this
+/// rule. A title with a subtitle places its two lines as one block
+/// [textWidth] wide, both lines leading-aligned when the block is not
+/// centered (one bar of nine centers a fitting subtitle under a truncated
+/// title: not reproduced). Where between 0 and 131 points of room UIKit
+/// drops the title is not measured; morph drops it at no room.
+@internal
+({double left, double width, bool centered})? morphInlineTitleFrame({
+  required double barWidth,
+  required double textWidth,
+  required double lo,
+  required double hi,
+  required bool rtl,
+}) {
+  final room = hi - lo;
+  if (room <= 0 || textWidth <= 0) return null;
+  final center = barWidth / 2;
+  final half = textWidth / 2;
+  if (center - half >= lo - 0.01 && center + half <= hi + 0.01) {
+    return (left: center - half, width: textWidth, centered: true);
+  }
+  final width = math.min(textWidth, room);
+  return (left: rtl ? hi - width : lo, width: width, centered: false);
+}
+
+/// The room a navigation bar leaves its inline title between its capsules,
+/// for [morphInlineTitleFrame].
+///
+/// Each capsule is `(left, right, onLeft)`, `onLeft` true for the groups
+/// on the left side of the bar (the leading groups in left-to-right
+/// text). [lo] is the right edge of the left groups plus
+/// [MorphNavigationBarMetrics.titlePadding], [sideInset] without them;
+/// [hi] the left edge of the right groups minus the padding, the bar's
+/// width less [sideInset] without them. A group bounds the side it belongs
+/// to wherever it stands, also when it reaches past the bar's center.
+@internal
+({double lo, double hi}) morphInlineTitleBounds({
+  required double barWidth,
+  required double sideInset,
+  required List<(double, double, bool)> capsules,
+}) {
+  const pad = MorphNavigationBarMetrics.titlePadding;
+  var lo = sideInset;
+  var hi = barWidth - sideInset;
+  for (final (l, r, onLeft) in capsules) {
+    if (onLeft) {
+      lo = math.max(lo, r + pad);
+    } else {
+      hi = math.min(hi, l - pad);
+    }
+  }
+  return (lo: lo, hi: hi);
 }
 
 /// The style of a navigation bar's large title: [MorphTypography.largeTitle].
@@ -219,6 +283,8 @@ class MorphNavigationBar extends StatefulWidget {
     this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
     this.sideInset = MorphNavigationBarMetrics.sideInset,
+    this.hiding,
+    this.hidden,
     super.key,
   });
 
@@ -289,6 +355,16 @@ class MorphNavigationBar extends StatefulWidget {
   /// The space between the screen's sides and the outer capsules.
   final double sideInset;
 
+  /// How far the bar is hidden, 0 shown and 1 slid up off the screen with
+  /// its edge effect; null keeps it shown. A [MorphNavigationScaffold]
+  /// drives it.
+  @internal
+  final Animation<double>? hiding;
+
+  /// Whether the bar is hidden or hiding: it takes no touches then.
+  @internal
+  final ValueListenable<bool>? hidden;
+
   /// The height of a bar below a status bar [topInset] tall.
   static double heightFor(double topInset) =>
       topInset + MorphNavigationBarMetrics.barHeight;
@@ -305,7 +381,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
     titleVisible: widget.titleVisible,
     scrolledUnder: widget.scrolledUnder,
   );
-  List<double> _capsuleEdges = const [];
+  List<(double, double, bool)> _capsuleEdges = const [];
   final MorphSpringState _swap = MorphSpringState(
     MorphNavigationTuning.pushSpring,
     1,
@@ -406,8 +482,12 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
     }
   }
 
-  void _onLayout(List<double> edges) {
-    if (_listEquals(edges, _capsuleEdges)) return;
+  void _onLayout(List<MorphBarCapsuleLayout> layout, bool rtl) {
+    final edges = [
+      for (final c in layout)
+        (c.rect.left, c.rect.right, (c.segment == MorphBarSide.leading) != rtl),
+    ];
+    if (_edgesEqual(edges, _capsuleEdges)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => _capsuleEdges = edges);
     });
@@ -450,9 +530,8 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                       menuAppearance: widget.menuAppearance,
                       menuTuning: widget.menuTuning,
                       menuOverlay: widget.menuOverlay,
-                      onLayout: (layout) => _onLayout([
-                        for (final c in layout) ...[c.rect.left, c.rect.right],
-                      ]),
+                      onLayout: (layout) =>
+                          _onLayout(layout, direction == TextDirection.rtl),
                       groups: _placed(leading, widget.trailing),
                       driftGroups: drift == null
                           ? null
@@ -481,6 +560,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                       color: style.titleColor,
                       width: width,
                       edges: _capsuleEdges,
+                      sideInset: widget.sideInset,
                       direction: direction,
                     ),
                   if (widget.title case final title?)
@@ -502,6 +582,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                       color: style.titleColor,
                       width: width,
                       edges: _capsuleEdges,
+                      sideInset: widget.sideInset,
                       direction: direction,
                     ),
                 ],
@@ -511,34 +592,63 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
         ),
       ),
     );
-    if (edge == null) return bar;
     final extent = MorphNavigationBar.heightFor(top);
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: 0,
-          right: 0,
-          top: 0,
-          height: MorphScrollEdgeEffect.bandExtent(
-            edge,
-            extent,
-            MorphScrollEdgeEffectAppearance.resolve(
-              context,
-              widget.edgeEffectAppearance,
+    if (edge == null) return _hideable(bar, extent);
+    final band = MorphScrollEdgeEffect.bandExtent(
+      edge,
+      extent,
+      MorphScrollEdgeEffectAppearance.resolve(
+        context,
+        widget.edgeEffectAppearance,
+      ),
+    );
+    return _hideable(
+      Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: band,
+            child: MorphScrollEdgeEffect.driven(
+              extent: extent,
+              style: edge,
+              appearance: widget.edgeEffectAppearance,
+              opacity: () => _motion.edgeOpacity,
+              repaint: frames,
             ),
           ),
-          child: MorphScrollEdgeEffect.driven(
-            extent: extent,
-            style: edge,
-            appearance: widget.edgeEffectAppearance,
-            opacity: () => _motion.edgeOpacity,
-            repaint: frames,
-          ),
-        ),
-        bar,
-      ],
+          bar,
+        ],
+      ),
+      math.max(extent, band),
     );
+  }
+
+  // Slides the bar (and its edge effect, [travel] reaching past both) up
+  // off the screen while it hides: a transform, so the glass keeps reading
+  // its backdrop and the motion builds nothing.
+  Widget _hideable(Widget bar, double travel) {
+    final hiding = widget.hiding;
+    if (hiding == null) return bar;
+    Widget out = MorphLiveTransform.matrix(
+      live: hiding,
+      alignment: null,
+      matrixOf: () =>
+          Matrix4.translationValues(0, -travel * hiding.value.clamp(0, 1.2), 0),
+      child: bar,
+    );
+    final hidden = widget.hidden;
+    if (hidden != null) {
+      out = ValueListenableBuilder<bool>(
+        valueListenable: hidden,
+        builder: (BuildContext context, bool hidden, Widget? child) =>
+            IgnorePointer(ignoring: hidden, child: child),
+        child: out,
+      );
+    }
+    return out;
   }
 }
 
@@ -550,10 +660,17 @@ List<MorphPlacedGroup> _placed(
   for (final g in trailing) MorphPlacedGroup(g, MorphBarSide.trailing),
 ];
 
-bool _listEquals(List<double> a, List<double> b) {
+bool _edgesEqual(
+  List<(double, double, bool)> a,
+  List<(double, double, bool)> b,
+) {
   if (a.length != b.length) return false;
   for (var i = 0; i < a.length; i++) {
-    if ((a[i] - b[i]).abs() > 0.01) return false;
+    final (al, ar, aSide) = a[i];
+    final (bl, br, bSide) = b[i];
+    if (aSide != bSide || (al - bl).abs() > 0.01 || (ar - br).abs() > 0.01) {
+      return false;
+    }
   }
   return true;
 }
@@ -572,6 +689,7 @@ class _InlineTitle extends StatefulWidget {
     required this.color,
     required this.width,
     required this.edges,
+    required this.sideInset,
     required this.direction,
   });
 
@@ -586,7 +704,8 @@ class _InlineTitle extends StatefulWidget {
   final Listenable frames;
   final Color color;
   final double width;
-  final List<double> edges;
+  final List<(double, double, bool)> edges;
+  final double sideInset;
   final TextDirection direction;
 
   @override
@@ -633,50 +752,60 @@ class _InlineTitleState extends State<_InlineTitle> {
     final style = widget.subtitle == null
         ? morphInlineTitleStyle(widget.color)
         : morphInlineTitleWithSubtitleStyle(widget.color);
-    final textWidth = widget.size.width;
     final textHeight = widget.size.height;
-    const pad = MorphNavigationBarMetrics.titlePadding;
     final width = widget.width;
-    final edges = widget.edges;
-    final center = width / 2;
-    var lo = 0.0;
-    var hi = width;
-    for (var i = 0; i + 1 < edges.length; i += 2) {
-      final l = edges[i];
-      final r = edges[i + 1];
-      if (r <= center) lo = math.max(lo, r + pad);
-      if (l >= center) hi = math.min(hi, l - pad);
-    }
-    final room = math.max(0.0, hi - lo);
-    final w = math.min(textWidth, room);
-    var left = center - w / 2;
-    if (left < lo) left = lo;
-    if (left + w > hi) left = math.max(lo, hi - w);
+    final rtl = widget.direction == TextDirection.rtl;
+    final bounds = morphInlineTitleBounds(
+      barWidth: width,
+      sideInset: widget.sideInset,
+      capsules: widget.edges,
+    );
+    final frame = morphInlineTitleFrame(
+      barWidth: width,
+      textWidth: widget.size.width,
+      lo: bounds.lo,
+      hi: bounds.hi,
+      rtl: rtl,
+    );
     final capsuleCenter = MorphBarMetrics.navigation.capsuleHeight / 2;
+    if (frame == null) {
+      return Positioned(
+        left: 0,
+        width: 0,
+        top: capsuleCenter,
+        height: 0,
+        child: widget.motion == null || !shown
+            ? const SizedBox.shrink()
+            : Semantics(header: true, label: widget.title),
+      );
+    }
+    final align = frame.centered ? TextAlign.center : TextAlign.start;
     Widget out;
     if (!shown) {
       out = const ExcludeSemantics(child: SizedBox.shrink());
     } else {
       final frames = widget.frames;
-      final rtl = widget.direction == TextDirection.rtl;
       out = Text(
         widget.title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.center,
+        textAlign: align,
         textScaler: widget.scaler,
         style: style,
       );
       if (widget.subtitle case final subtitle?) {
         out = Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: frame.centered
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.stretch,
           children: [
             out,
             Text(
               subtitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
+              textAlign: align,
               textScaler: widget.scaler,
               style: morphInlineSubtitleStyle(widget.subtitleColor),
             ),
@@ -706,8 +835,8 @@ class _InlineTitleState extends State<_InlineTitle> {
       if (debugMorphInlineTitleLayer) out = RepaintBoundary(child: out);
     }
     return Positioned(
-      left: left,
-      width: w,
+      left: frame.left,
+      width: frame.width,
       top: capsuleCenter - textHeight / 2,
       height: textHeight,
       child: Semantics(header: true, child: RepaintBoundary(child: out)),

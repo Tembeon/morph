@@ -32,6 +32,8 @@ enum Scenes {
             return SingleControlScene(name: name)
         }
         switch name {
+        case "navtitle":
+            return NavTitleScene.make()
         case "merge":
             return MergeScene()
         case "mergeDyn":

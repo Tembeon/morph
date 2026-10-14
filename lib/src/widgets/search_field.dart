@@ -11,6 +11,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_container.dart';
+import 'package:morph/src/widgets/navigation_stack.dart';
 import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -707,6 +708,7 @@ class MorphSearchToolbar extends StatefulWidget {
     this.appearance,
     this.buttonAppearance,
     this.closeLabel = 'Close',
+    this.hidesNavigationBarDuringPresentation = true,
     super.key,
   });
 
@@ -716,6 +718,13 @@ class MorphSearchToolbar extends StatefulWidget {
   /// [onActiveChanged] reports only what the user does: a change made
   /// here is not reported back.
   final bool? active;
+
+  /// Whether the navigation bar of the [MorphNavigationScaffold] on this
+  /// toolbar's route hides while the search is active, the content moving
+  /// up to the status bar (UIKit `UISearchController`
+  /// `hidesNavigationBarDuringPresentation`, on by default): see
+  /// [MorphNavigationScaffold.setNavigationBarHidden].
+  final bool hidesNavigationBarDuringPresentation;
 
   /// The controller of the text; null keeps one inside.
   final TextEditingController? controller;
@@ -858,10 +867,26 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
       }
       wake();
       setState(() {});
+      _hideBar(true);
       final quiet = _quiet;
       _quiet = false;
       if (!quiet) widget.onActiveChanged?.call(true);
     }
+  }
+
+  bool _barHidden = false;
+
+  void _hideBar(bool hidden) {
+    if (hidden && !widget.hidesNavigationBarDuringPresentation) return;
+    if (hidden == _barHidden) return;
+    _barHidden = hidden;
+    MorphNavigationScaffold.setNavigationBarHidden(context, hidden: hidden);
+  }
+
+  @override
+  void deactivate() {
+    _hideBar(false);
+    super.deactivate();
   }
 
   void _end({bool report = true}) {
@@ -876,6 +901,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
     _focus.unfocus();
     wake();
     setState(() {});
+    _hideBar(false);
     if (report) widget.onActiveChanged?.call(false);
   }
 

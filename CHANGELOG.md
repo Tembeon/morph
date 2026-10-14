@@ -35,6 +35,25 @@ no behaviour or pixel change: every rename keeps what the old name did.
     and end a search from code (UIKit `isActive`).
   - `MorphSearchField.height` and `glass`, and
     `MorphSearchFieldAppearance.stackedFillColor`, for the stacked field.
+- Navigation bar and scaffold follow the native sweep of 2026-10-14
+  (pixel changes, declared in the bars passport):
+  - the inline title (and subtitle) keeps to the room between the
+    leading and trailing groups as UIKit does: centered on the bar when
+    it fits so, else at the leading bound and truncated, dropped without
+    room. A group reaching past the bar's center no longer runs under it.
+  - BREAKING: `MorphNavigationScaffold.largeTitleDisplayMode` defaults
+    to `automatic`, as UIKit's: a stack with `prefersLargeTitles` shows
+    large titles on every screen that does not say `never`, and a screen
+    pushed over a large-title screen takes a large title too.
+  - `MorphNavigationScaffold.navigationBarHidden` and
+    `MorphNavigationScaffold.setNavigationBarHidden(context, hidden:)`:
+    the bar slides off and the content moves up to the status bar on the
+    measured motion (`MorphNavigationBarHiding`).
+    `MorphSearchToolbar.hidesNavigationBarDuringPresentation` (on) uses it
+    while searching, as UIKit's search controller does.
+  - `MorphScrollIndicator` / `MorphScrollIndicatorTuning`: UIKit's
+    vertical scroll indicator, shown by every scaffold while it scrolls
+    (`showsVerticalScrollIndicator`, on).
 
 - Sheets follow a new simulator capture of UISheetPresentationController
   (pixel changes, declared in the sheets passport):

@@ -20,8 +20,10 @@ import 'package:morph/src/widgets/navigation_snapshot.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/push_zoom.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
+import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
 import 'package:morph/src/widgets/search_stacked.dart';
+import 'package:morph/src/widgets/scroll_indicator.dart';
 import 'package:morph/src/widgets/toolbar.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -47,6 +49,7 @@ class MorphNavigationConfig {
     this.hidesBackButton = false,
     this.largeTitleDisplayMode = MorphLargeTitleDisplayMode.never,
     this.navigationBarHidden = false,
+    this.barHiding,
   });
 
   /// Whether the navigation bar steps aside for this screen: it shows
@@ -57,6 +60,11 @@ class MorphNavigationConfig {
 
   /// The screen's title.
   final String? title;
+
+  /// The motion that hides the navigation bar while the screen asks for
+  /// it ([MorphNavigationScaffold.navigationBarHidden]), or null for a bar
+  /// that always shows. Compared by identity.
+  final MorphNavigationBarHiding? barHiding;
 
   /// The line under the inline title (UIKit `UINavigationItem.subtitle`,
   /// iOS 26), or null.
@@ -129,7 +137,8 @@ class MorphNavigationConfig {
       other.backButtonDisplayMode == backButtonDisplayMode &&
       other.hidesBackButton == hidesBackButton &&
       other.largeTitleDisplayMode == largeTitleDisplayMode &&
-      other.navigationBarHidden == navigationBarHidden;
+      other.navigationBarHidden == navigationBarHidden &&
+      identical(other.barHiding, barHiding);
 
   @override
   int get hashCode => Object.hash(
@@ -148,7 +157,44 @@ class MorphNavigationConfig {
     hidesBackButton,
     largeTitleDisplayMode,
     navigationBarHidden,
+    barHiding,
   );
+}
+
+final Expando<ValueNotifier<bool>> _barHideRequests =
+    Expando<ValueNotifier<bool>>('MorphNavigationScaffold bar hiding');
+
+/// How far a screen's navigation bar is hidden, 0 shown and 1 hidden,
+/// following [MorphNavigationScaffold.navigationBarHidden] and
+/// [MorphNavigationScaffold.setNavigationBarHidden].
+///
+/// Measured on a UIKit search controller presenting from a toolbar search
+/// field (`hidesNavigationBarDuringPresentation`, iPhone 17 Pro simulator,
+/// iOS 27.0, film of the 2026-10-14 sweep): on the focus the content moves
+/// up to the status bar on one spring, fitted response 0.36 s, damping
+/// 0.76 (1.2 pt rms over 17 frames, 102 points of travel), starting at
+/// once - 0.33 s before the keyboard starts to rise; the large title rides
+/// up with the content and is gone by half the travel. Not measured: the
+/// way back, and a bar with buttons or an inline title (morph slides the
+/// whole bar up off the screen on the same progress: APPROXIMATION,
+/// pending the iPhone).
+class MorphNavigationBarHiding {
+  MorphNavigationBarHiding._(this.progress, this.hidden);
+
+  /// The progress, 0 shown and 1 hidden; it leaves 0 to 1 when the spring
+  /// overshoots.
+  final Animation<double> progress;
+
+  /// Whether the bar is asked to hide: it takes no touches then.
+  final ValueListenable<bool> hidden;
+
+  /// The spring the content and the bar move on (fit, see the class).
+  static const MorphSpring spring = MorphSpring(0.36, 0.76);
+
+  /// How fast the large title fades: its opacity is
+  /// `1 - largeTitleFade * progress` (read by eye from the film: faint at
+  /// 0.5 of the travel, gone at 0.6).
+  static const double largeTitleFade = 2;
 }
 
 /// How a back button shows the title of the screen it returns to, after
@@ -530,6 +576,8 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
                   edgeEffect: config?.edgeEffect,
                   titleExitShift: _titleExit,
                   drift: drift,
+                  hiding: config?.barHiding?.progress,
+                  hidden: config?.barHiding?.hidden,
                   appearance: widget.appearance,
                   menuAppearance: widget.menuAppearance,
                   menuTuning: widget.menuTuning,
@@ -1186,7 +1234,7 @@ class MorphNavigationScaffold extends StatefulWidget {
   const MorphNavigationScaffold({
     required this.title,
     required this.slivers,
-    this.largeTitleDisplayMode = MorphLargeTitleDisplayMode.never,
+    this.largeTitleDisplayMode = MorphLargeTitleDisplayMode.automatic,
     this.subtitle,
     this.largeSubtitle,
     this.leading = const [],
@@ -1202,8 +1250,27 @@ class MorphNavigationScaffold extends StatefulWidget {
     this.controller,
     this.appearance,
     this.search,
+    this.navigationBarHidden = false,
+    this.showsVerticalScrollIndicator = true,
     super.key,
   });
+
+  /// Hides (or shows again) the navigation bar of the
+  /// [MorphNavigationScaffold] on the route around [context], as
+  /// [navigationBarHidden] does: what UIKit's search controller does while
+  /// it presents (`hidesNavigationBarDuringPresentation`). The call may come
+  /// from anywhere on that route, such as a search toolbar stacked over
+  /// the scaffold; without a route it does nothing. A hidden
+  /// [navigationBarHidden] stays hidden.
+  static void setNavigationBarHidden(
+    BuildContext context, {
+    required bool hidden,
+  }) {
+    final route = ModalRoute.of(context);
+    if (route == null) return;
+    final request = _barHideRequests[route] ??= ValueNotifier<bool>(false);
+    request.value = hidden;
+  }
 
   /// The page's search, a field stacked under the large title (UIKit
   /// `UINavigationItem.searchController` with the stacked placement), or
@@ -1217,8 +1284,26 @@ class MorphNavigationScaffold extends StatefulWidget {
   final List<Widget> slivers;
 
   /// Whether the title shows large above the content until it scrolls
-  /// under the bar (UIKit `largeTitleDisplayMode`).
+  /// under the bar (UIKit `largeTitleDisplayMode`). The default,
+  /// [MorphLargeTitleDisplayMode.automatic], is UIKit's: a stack's first
+  /// screen follows [MorphNavigationStack.prefersLargeTitles] and every
+  /// later one the screen below it, so a stack that prefers large titles
+  /// shows them on every screen that does not opt out with `never`.
   final MorphLargeTitleDisplayMode largeTitleDisplayMode;
+
+  /// Whether the navigation bar is hidden (UIKit
+  /// `setNavigationBarHidden(_:animated:)`, SwiftUI
+  /// `toolbarVisibility(.hidden, for: .navigationBar)`): the bar slides up
+  /// off the screen and the content moves up to the status bar, on
+  /// [MorphNavigationBarHiding]'s measured motion.
+  /// [MorphNavigationScaffold.setNavigationBarHidden] hides it from below
+  /// the scaffold's route, as a search toolbar does while it searches.
+  final bool navigationBarHidden;
+
+  /// Whether a vertical scroll indicator shows while the content scrolls
+  /// (UIKit `showsVerticalScrollIndicator`, on by default): see
+  /// [MorphScrollIndicator].
+  final bool showsVerticalScrollIndicator;
 
   /// The line under the inline title (UIKit `UINavigationItem.subtitle`,
   /// iOS 26), or null; not yet measured on a device.
@@ -1277,8 +1362,20 @@ class MorphNavigationScaffold extends StatefulWidget {
       _MorphNavigationScaffoldState();
 }
 
-class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
+class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold>
+    with SingleTickerProviderStateMixin<MorphNavigationScaffold> {
   ScrollController? _own;
+  late final AnimationController _hiding = AnimationController.unbounded(
+    vsync: this,
+  );
+  ValueNotifier<bool>? _request;
+  bool _hidden = false;
+  // How far the content moves up while the bar is hidden; set when the
+  // bar starts to hide, so the motion never rebuilds the page.
+  double _shift = 0;
+  // The scroll view is laid out [_shift] taller while the bar is hidden or
+  // moving, so the content it uncovers at the bottom is built.
+  bool _extended = false;
   final BackdropKey _barsBackdrop = BackdropKey();
 
   // A bar repaints on its own: its motion leaves the pages and the
@@ -1346,12 +1443,78 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
   void initState() {
     super.initState();
     _controller.addListener(_scrolled);
+    _hiding.addStatusListener(_hidingStatus);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateLarge();
+    final route = ModalRoute.of(context);
+    final request = route == null
+        ? null
+        : _barHideRequests[route] ??= ValueNotifier<bool>(false);
+    if (!identical(request, _request)) {
+      _request?.removeListener(_requestChanged);
+      _request = request;
+      request?.addListener(_requestChanged);
+      _updateHidden();
+    }
+  }
+
+  // From a listener the change rebuilds the scaffold; from
+  // didChangeDependencies / didUpdateWidget the build that follows reads
+  // it.
+  void _requestChanged() => _updateHidden(rebuild: true);
+
+  void _updateHidden({bool rebuild = false}) {
+    final hidden = widget.navigationBarHidden || (_request?.value ?? false);
+    if (hidden == _hidden) return;
+    _hidden = hidden;
+    _hiddenNow.value = hidden;
+    if (hidden) _shift = _hiddenShift();
+    final target = hidden ? 1.0 : 0.0;
+    final reduced = morphReducedMotionOf(context);
+    final extended = hidden || !reduced;
+    if (reduced) {
+      _hiding.value = target;
+    } else {
+      _hiding.animateWith(
+        SpringSimulation(
+          MorphNavigationBarHiding.spring.description,
+          _hiding.value,
+          target,
+          _hiding.velocity,
+        ),
+      );
+    }
+    if (extended == _extended) return;
+    if (rebuild) {
+      setState(() => _extended = extended);
+    } else {
+      _extended = extended;
+    }
+  }
+
+  void _hidingStatus(AnimationStatus status) {
+    if (_hidden || _hiding.isAnimating || !_extended) return;
+    if (_hiding.value.abs() > 1e-3) return;
+    _hiding.value = 0;
+    setState(() => _extended = false);
+  }
+
+  // The bar's height plus what is left of the large title above the
+  // content: UIKit moves the content up to the status bar.
+  double _hiddenShift() {
+    var shift = MorphNavigationBarMetrics.barHeight;
+    if (_largeTitle && _controller.hasClients) {
+      final position = _controller.position;
+      final offset = position.pixels - position.minScrollExtent;
+      shift += (_largeExtent - offset).clamp(0.0, _largeExtent);
+    } else if (_largeTitle) {
+      shift += _largeExtent;
+    }
+    return shift;
   }
 
   @override
@@ -1365,10 +1528,16 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
     if ((oldWidget.largeSubtitle ?? oldWidget.subtitle) != _largeSubtitle) {
       _scrolled();
     }
+    if (oldWidget.navigationBarHidden != widget.navigationBarHidden) {
+      _updateHidden();
+    }
   }
 
   @override
   void dispose() {
+    _request?.removeListener(_requestChanged);
+    _hiding.dispose();
+    _hiddenNow.dispose();
     _controller.removeListener(_scrolled);
     _own?.dispose();
     super.dispose();
@@ -1408,6 +1577,13 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
     edgeEffect: widget.edgeEffect,
     backButtonTitle: widget.backButtonTitle,
     navigationBarHidden: _hidesBar,
+    barHiding: _barHiding,
+  );
+
+  final ValueNotifier<bool> _hiddenNow = ValueNotifier<bool>(false);
+  late final MorphNavigationBarHiding _barHiding = MorphNavigationBarHiding._(
+    _hiding,
+    _hiddenNow,
   );
 
   @override
@@ -1455,10 +1631,18 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
           ),
           if (_largeTitle)
             SliverToBoxAdapter(
-              child: MorphLargeTitle(
-                widget.title,
-                subtitle: _largeSubtitle,
-                appearance: widget.appearance,
+              child: MorphLiveOpacity(
+                live: _hiding,
+                opacityOf: () =>
+                    (1 -
+                            MorphNavigationBarHiding.largeTitleFade *
+                                _hiding.value)
+                        .clamp(0.0, 1.0),
+                child: MorphLargeTitle(
+                  widget.title,
+                  subtitle: _largeSubtitle,
+                  appearance: widget.appearance,
+                ),
               ),
             ),
           if (widget.search != null)
@@ -1467,6 +1651,46 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
           SliverPadding(padding: EdgeInsets.only(bottom: toolbarExtent)),
         ],
       ),
+    );
+    final barExtent = MorphNavigationBar.heightFor(top);
+    Widget content = scroll;
+    if (widget.showsVerticalScrollIndicator) {
+      content = Stack(
+        children: [
+          Positioned.fill(child: scroll),
+          Positioned.fill(
+            child: MorphScrollIndicator(
+              controller: _controller,
+              padding: EdgeInsets.only(top: barExtent, bottom: toolbarExtent),
+              contentPadding: EdgeInsets.only(
+                top: barExtent,
+                bottom: toolbarExtent,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    // One structure whether or not the bar hides, so hiding it never
+    // remounts the scroll view.
+    final shift = _extended ? _shift : 0.0;
+    content = Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: -shift,
+          child: MorphLiveTransform.matrix(
+            live: _hiding,
+            alignment: null,
+            matrixOf: () =>
+                Matrix4.translationValues(0, -shift * _hiding.value, 0),
+            child: content,
+          ),
+        ),
+      ],
     );
     final search = widget.search;
     Widget body = ColoredBox(
@@ -1480,7 +1704,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
             ).titleColor,
           ),
         ),
-        child: scroll,
+        child: content,
       ),
     );
     if (search != null) {
@@ -1528,6 +1752,8 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
               animate: _animate,
               edgeEffect: widget.edgeEffect,
               appearance: widget.appearance,
+              hiding: _hiding,
+              hidden: _hiddenNow,
             ),
           ),
         ),

@@ -27,6 +27,7 @@ Widget _inbox(void Function(BuildContext) onContext) => Builder(
     return MorphNavigationScaffold(
       title: 'Inbox',
       largeTitleDisplayMode: .always,
+      backButtonDisplayMode: .minimal,
       leading: [
         MorphBarButtonGroup([
           MorphBarButton(id: 'close', label: 'Close', onPressed: () {}),

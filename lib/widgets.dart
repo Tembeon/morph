@@ -114,6 +114,7 @@ export 'src/widgets/navigation_stack.dart'
     show
         MorphBackButtonDisplayMode,
         MorphLargeTitleDisplayMode,
+        MorphNavigationBarHiding,
         MorphNavigationConfig,
         MorphNavigationPage,
         MorphNavigationRoute,
@@ -133,6 +134,8 @@ export 'src/widgets/scroll_edge_effect.dart'
         MorphScrollEdgeEffect,
         MorphScrollEdgeEffectAppearance,
         MorphScrollEdgeEffectStyle;
+export 'src/widgets/scroll_indicator.dart'
+    show MorphScrollIndicator, MorphScrollIndicatorTuning;
 export 'src/widgets/search_field.dart'
     show MorphSearchField, MorphSearchFieldAppearance, MorphSearchToolbar;
 export 'src/widgets/search_stacked.dart' show MorphNavigationSearch;
