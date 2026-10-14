@@ -22,6 +22,18 @@ import 'package:morph/src/widgets/tab_bar_minimize.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
+/// What a [MorphTabItem] stands for beyond an ordinary tab (SwiftUI
+/// `TabRole`).
+enum MorphTabRole {
+  /// The search tab (UIKit `UISearchTab` without
+  /// `automaticallyActivatesSearch`, SwiftUI `Tab(role: .search)`): an
+  /// ordinary tab while the bar is expanded, whose page carries a stacked
+  /// search field; a minimized bar sets it apart as a circle of its own at
+  /// the trailing side. For the search tab that turns into a field on
+  /// selection, use [MorphSearchTabBar].
+  search,
+}
+
 /// One item of a [MorphTabBar].
 class MorphTabItem {
   /// Creates a tab item.
@@ -31,7 +43,12 @@ class MorphTabItem {
     this.selectedIcon,
     this.badge,
     this.enabled = true,
+    this.role,
   });
+
+  /// The item's role, or null for an ordinary tab. At most one item of a
+  /// bar is the [MorphTabRole.search] tab, conventionally the last.
+  final MorphTabRole? role;
 
   /// The item's glyph.
   final IconData icon;
@@ -97,12 +114,19 @@ class MorphTabItem {
 /// [MorphContentScrollScope]): a user's scroll in the minimizing
 /// direction shrinks the bar slightly as it goes and, after 64 points,
 /// collapses the bar into a circle holding the selected tab's glyph
-/// ([MorphTabBarMinimizeMotion]); scrolling back, a scroll to the top or a
-/// tap on the circle expands it. A finger held on the circle for 0.22 s
+/// ([MorphTabBarMinimizeMotion]); a scroll to the top, pushing the
+/// content past its far end or a tap on the circle expands it (a scroll
+/// back in the middle of the content does not, as on iOS 27). A finger held on the circle for 0.22 s
 /// expands the bar under it, and one that moves 4 points along it expands
 /// it at once; from that move the touch scrubs the tabs as the expanded
 /// bar's drag does and its release selects, while a hold lifted in place
-/// lets the bar collapse back (UIKit's interactive expansion). A
+/// lets the bar collapse back (UIKit's interactive expansion). A tab with
+/// [MorphTabRole.search] becomes a circle of its own at the trailing side
+/// while the bar is minimized, its glyph tinted while it is selected;
+/// the leading circle then shows the last other tab selected, and a tap
+/// on it expands the bar and selects that tab, as iOS 27 does (filmed on
+/// the simulator). A tap on the search circle selects the search tab and
+/// leaves the bar minimized (not yet measured). A
 /// [bottomAccessory] floats in its own glass above the bar and moves
 /// inline next to the minimized circle; its content reads where it is
 /// from [MorphTabAccessoryEnvironment.of].
@@ -617,6 +641,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       accessory: widget.bottomAccessory,
       contentScroll: widget.contentScroll,
       barPress: this,
+      onSelect: _select,
     );
   }
 
@@ -631,7 +656,8 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
           x.label != y.label ||
           x.enabled != y.enabled ||
           x.selectedIcon != y.selectedIcon ||
-          x.badge != y.badge) {
+          x.badge != y.badge ||
+          x.role != y.role) {
         return false;
       }
     }

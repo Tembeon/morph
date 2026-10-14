@@ -135,6 +135,7 @@ export 'src/widgets/scroll_edge_effect.dart'
         MorphScrollEdgeEffectStyle;
 export 'src/widgets/search_field.dart'
     show MorphSearchField, MorphSearchFieldAppearance, MorphSearchToolbar;
+export 'src/widgets/search_stacked.dart' show MorphNavigationSearch;
 export 'src/widgets/search_tab_bar.dart' show MorphSearchTabBar;
 export 'src/widgets/segmented_control.dart'
     show MorphSegment, MorphSegmentedControl, MorphSegmentedControlAppearance;
@@ -145,7 +146,7 @@ export 'src/widgets/slider.dart' show MorphSlider, MorphSliderAppearance;
 export 'src/widgets/stepper.dart' show MorphStepper, MorphStepperAppearance;
 export 'src/widgets/switch.dart' show MorphSwitch, MorphSwitchAppearance;
 export 'src/widgets/tab_bar.dart'
-    show MorphTabBar, MorphTabBarAppearance, MorphTabItem;
+    show MorphTabBar, MorphTabBarAppearance, MorphTabItem, MorphTabRole;
 export 'src/widgets/tab_bar_chrome.dart'
     show
         MorphContentScroll,

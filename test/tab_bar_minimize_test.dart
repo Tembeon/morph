@@ -104,16 +104,17 @@ void main() {
       expect(away.progress, 0);
     });
 
-    test('a drag back by 64 points expands (approximation)', () {
+    test('a drag back in the middle of the content stays minimized', () {
       final away = MorphScrollAway();
-      _drag(away, 100);
+      _drag(away, 400);
       away.endDrag(decelerates: false);
-      away.record(100);
+      away.record(400);
       away.beginDrag();
-      away.scroll(60, min: 0, max: 2000, tracking: true);
+      for (var y = 400.0; y >= 250; y -= 10) {
+        away.scroll(y, min: 0, max: 2000, tracking: true);
+      }
+      away.endDrag(decelerates: false);
       expect(away.progress, 1);
-      away.scroll(36, min: 0, max: 2000, tracking: true);
-      expect(away.progress, 0);
     });
 
     test('a scroll to the top expands', () {
@@ -405,6 +406,85 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(MorphCollapsingTabs), findsOneWidget);
       expect(changes, isEmpty);
+    });
+
+    testWidgets('a search tab splits into its own trailing circle', (
+      WidgetTester tester,
+    ) async {
+      _phone(tester);
+      const items = [
+        MorphTabItem(icon: Icons.home, label: 'Home'),
+        MorphTabItem(icon: Icons.library_books, label: 'Library'),
+        MorphTabItem(
+          icon: Icons.search,
+          label: 'Search',
+          role: MorphTabRole.search,
+        ),
+      ];
+      var selected = 0;
+      final changes = <int>[];
+      late StateSetter set;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MorphContentScrollScope(
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                set = setState;
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ListView.builder(
+                        itemCount: 100,
+                        itemBuilder: (BuildContext context, int i) =>
+                            SizedBox(height: 60, child: Text('Row $i')),
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 21,
+                      child: MorphTabBar(
+                        items: items,
+                        selected: selected,
+                        onChanged: (int i) {
+                          changes.add(i);
+                          setState(() => selected = i);
+                        },
+                        minimizeBehavior:
+                            MorphTabBarMinimizeBehavior.onScrollDown,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      set(() => selected = 2);
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      final collapsed = tester.widget<MorphCollapsingTabs>(
+        find.byType(MorphCollapsingTabs),
+      );
+      // The leading circle shows the last other tab.
+      expect(collapsed.selected, 0);
+      final search = find.byKey(const ValueKey<String>('searchCircle'));
+      expect(
+        tester.getRect(search),
+        const Rect.fromLTWH(402 - 28 - 48, 874 - 21 - 62 + 7, 48, 48),
+      );
+      await tester.tapAt(const Offset(28 + 24, 874 - 21 - 31));
+      await tester.pumpAndSettle();
+      expect(changes, [0]);
+      expect(find.byType(MorphCollapsingTabs), findsNothing);
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(402 - 28 - 24, 874 - 21 - 31));
+      await tester.pumpAndSettle();
+      expect(changes, [0, 2]);
+      expect(find.byType(MorphCollapsingTabs), findsOneWidget);
     });
 
     testWidgets('a programmatic scroll never minimizes; reaching the top '

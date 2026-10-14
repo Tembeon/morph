@@ -230,7 +230,9 @@ button menu's card on a context attachment, `MorphMenuAttachment`) /
 `MorphSatellite` (its accessory), the bars (`MorphNavigationBar`, `MorphToolbar`,
 `MorphNavigationStack`, `MorphScrollEdgeEffect`, push zoom), sheets
 (`showMorphSheet` including zoom), alerts and action-sheet popovers,
-`MorphSearchField` / `MorphSearchToolbar`, `MorphDatePicker`,
+`MorphSearchField` / `MorphSearchToolbar` / `MorphNavigationSearch` (the
+stacked field of a scaffold page and of a `MorphTabRole.search` tab),
+`MorphDatePicker`,
 `MorphPageControl`, `MorphProgressView`, `MorphActivityIndicator`, the
 inset grouped list (`MorphListSection` / `MorphSliverListSection` /
 `MorphListRow`). `MorphGlassEffect` puts a glass button's resting glass

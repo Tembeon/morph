@@ -8,6 +8,11 @@ import 'package:morph_example/gallery/knobs.dart';
 /// in its bottom accessory (UIKit `tabBarMinimizeBehavior`,
 /// `bottomAccessory`).
 ///
+/// The search row swaps the bar for one with a search tab: the activating
+/// kind ([MorphSearchTabBar]) or an ordinary tab with
+/// [MorphTabRole.search], whose page carries a stacked search field
+/// ([MorphNavigationSearch]) and which a minimized bar sets apart.
+///
 /// Page options add the automatic behavior, which does not minimize on an
 /// iPhone, and switch the bar from the [MorphContentScrollScope] around
 /// the page to a [MorphContentScroll] it is handed directly.
@@ -26,8 +31,22 @@ class _MinimizeTabBarPageState extends State<MinimizeTabBarPage> {
   final MorphContentScroll _scroll = MorphContentScroll();
   bool _accessory = true;
   bool _playing = false;
-  bool _search = false;
+  _SearchKind _search = .none;
   bool _searching = false;
+  String _query = '';
+
+  static const _searchTab = MorphTabItem(
+    icon: Icons.search_rounded,
+    label: 'Search',
+    role: .search,
+  );
+
+  List<MorphTabItem> get _tabs => switch (_search) {
+    .tab => [..._items.take(3), _searchTab],
+    _ => _items,
+  };
+
+  bool get _onSearchPage => _search == .tab && _selected == 3;
 
   Widget _toggle(String label, bool value, ValueChanged<bool> onChanged) =>
       Padding(
@@ -84,6 +103,41 @@ class _MinimizeTabBarPageState extends State<MinimizeTabBarPage> {
     ),
   ];
 
+  // The search tab's page: a large title, the stacked search field and
+  // the rows it filters.
+  Widget _searchPage() {
+    final rows = [
+      for (var i = 0; i < 60; i++)
+        if ('Item $i'.toLowerCase().contains(_query.toLowerCase())) 'Item $i',
+    ];
+    return GalleryPage(
+      key: const ValueKey<String>('searchPage'),
+      title: 'Search',
+      largeTitle: true,
+      backgroundColor: MorphScrollEdgeEffectAppearance.resolve(
+        context,
+        null,
+      ).backgroundColor,
+      search: MorphNavigationSearch(
+        onChanged: (String q) => setState(() => _query = q),
+      ),
+      slivers: [
+        SliverPadding(
+          padding: const .only(bottom: 200),
+          sliver: SliverList.builder(
+            itemCount: rows.length,
+            itemBuilder: (BuildContext context, int i) => Container(
+              height: 52,
+              padding: const .symmetric(horizontal: 16),
+              alignment: .centerLeft,
+              child: Text(rows[i]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _player() => _MiniPlayer(
     playing: _playing,
     onPlay: () => setState(() => _playing = !_playing),
@@ -96,81 +150,91 @@ class _MinimizeTabBarPageState extends State<MinimizeTabBarPage> {
         children: [
           NotificationListener<ScrollNotification>(
             onNotification: _directScroll ? _scroll.handle : null,
-            child: GalleryPage(
-              title: 'Tab bar minimize',
-              options: _options,
-              slivers: [
-                SliverPadding(
-                  padding: const .fromLTRB(16, 8, 16, 200),
-                  sliver: SliverList.builder(
-                    itemCount: 60,
-                    itemBuilder: (BuildContext context, int i) {
-                      if (i == 0) {
-                        return Padding(
-                          padding: const .only(bottom: 12),
-                          child: MorphSegmentedControl(
-                            segments: const [
-                              MorphSegment('Scroll down'),
-                              MorphSegment('Scroll up'),
-                              MorphSegment('Never'),
-                            ],
-                            selectedIndex: switch (_behaviors.indexOf(
-                              _behavior,
-                            )) {
-                              < 0 => null,
-                              final i => i,
-                            },
-                            onChanged: (int v) =>
-                                setState(() => _behavior = _behaviors[v]),
-                          ),
-                        );
-                      }
-                      if (i == 1) {
-                        return _toggle(
-                          'Bottom accessory',
-                          _accessory,
-                          (bool v) => setState(() => _accessory = v),
-                        );
-                      }
-                      if (i == 2) {
-                        return _toggle(
-                          'Search tab',
-                          _search,
-                          (bool v) => setState(() {
-                            _search = v;
-                            _searching = false;
-                          }),
-                        );
-                      }
-                      return Container(
-                        height: 64,
-                        margin: const .only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: HSLColor.fromAHSL(
-                            1,
-                            (i * 29) % 360,
-                            0.5,
-                            0.6,
-                          ).toColor(),
-                          borderRadius: .circular(14),
+            child: _onSearchPage
+                ? _searchPage()
+                : GalleryPage(
+                    title: 'Tab bar minimize',
+                    options: _options,
+                    slivers: [
+                      SliverPadding(
+                        padding: const .fromLTRB(16, 8, 16, 200),
+                        sliver: SliverList.builder(
+                          itemCount: 60,
+                          itemBuilder: (BuildContext context, int i) {
+                            if (i == 0) {
+                              return Padding(
+                                padding: const .only(bottom: 12),
+                                child: MorphSegmentedControl(
+                                  segments: const [
+                                    MorphSegment('Scroll down'),
+                                    MorphSegment('Scroll up'),
+                                    MorphSegment('Never'),
+                                  ],
+                                  selectedIndex: switch (_behaviors.indexOf(
+                                    _behavior,
+                                  )) {
+                                    < 0 => null,
+                                    final i => i,
+                                  },
+                                  onChanged: (int v) =>
+                                      setState(() => _behavior = _behaviors[v]),
+                                ),
+                              );
+                            }
+                            if (i == 1) {
+                              return _toggle(
+                                'Bottom accessory',
+                                _accessory,
+                                (bool v) => setState(() => _accessory = v),
+                              );
+                            }
+                            if (i == 2) {
+                              return Padding(
+                                padding: const .only(bottom: 12),
+                                child: MorphSegmentedControl(
+                                  segments: const [
+                                    MorphSegment('No search'),
+                                    MorphSegment('Activating'),
+                                    MorphSegment('Search tab'),
+                                  ],
+                                  selectedIndex: _search.index,
+                                  onChanged: (int v) => setState(() {
+                                    _search = _SearchKind.values[v];
+                                    _searching = false;
+                                    _selected = _selected.clamp(0, 2);
+                                  }),
+                                ),
+                              );
+                            }
+                            return Container(
+                              height: 64,
+                              margin: const .only(bottom: 8),
+                              decoration: BoxDecoration(
+                                color: HSLColor.fromAHSL(
+                                  1,
+                                  (i * 29) % 360,
+                                  0.5,
+                                  0.6,
+                                ).toColor(),
+                                borderRadius: .circular(14),
+                              ),
+                              alignment: .centerLeft,
+                              padding: const .symmetric(horizontal: 16),
+                              child: Text(
+                                '${_tabs[_selected].label} row $i',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                        alignment: .centerLeft,
-                        padding: const .symmetric(horizontal: 16),
-                        child: Text(
-                          '${_items[_selected].label} row $i',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
-          if (_search)
+          if (_search == .activating)
             Positioned.fill(
               child: MorphSearchTabBar(
                 items: _items.take(3).toList(),
@@ -192,7 +256,7 @@ class _MinimizeTabBarPageState extends State<MinimizeTabBarPage> {
               right: 0,
               bottom: 21,
               child: MorphTabBar(
-                items: _items,
+                items: _tabs,
                 selected: _selected,
                 onChanged: GalleryGlassScope.enabled(
                   context,
@@ -208,6 +272,9 @@ class _MinimizeTabBarPageState extends State<MinimizeTabBarPage> {
     );
   }
 }
+
+/// Which search tab the bar carries.
+enum _SearchKind { none, activating, tab }
 
 /// A mini player that drops its secondary control inline.
 class _MiniPlayer extends StatelessWidget {

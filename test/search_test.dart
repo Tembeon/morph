@@ -671,11 +671,10 @@ void main() {
     ) async {
       await pump(tester, const MorphSearchField());
       final editable = tester.widget<EditableText>(find.byType(EditableText));
-      // UIKit's search field turns autocorrection off and keeps spell
-      // checking, which leaves the keyboard's prediction bar empty; the
-      // engine ties both to one flag, and turning it off drops the bar
-      // (the keyboard 26 points shorter), so it stays on.
-      expect(editable.autocorrect, isTrue);
+      // UIKit's search field offers no suggestions; the engine ties spell
+      // checking (and the prediction bar) to the same flag.
+      expect(editable.autocorrect, isFalse);
+      expect(editable.enableSuggestions, isFalse);
       expect(editable.textCapitalization, TextCapitalization.sentences);
       expect(editable.textInputAction, TextInputAction.search);
       await tester.tap(find.byType(MorphSearchField));
@@ -683,6 +682,8 @@ void main() {
       final config = tester.testTextInput.setClientArgs!;
       expect(config['textCapitalization'], 'TextCapitalization.sentences');
       expect(config['inputAction'], 'TextInputAction.search');
+      expect(config['autocorrect'], isFalse);
+      expect(config['enableSuggestions'], isFalse);
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),
         EnginePhase.sendSemanticsUpdate,
@@ -783,6 +784,7 @@ void main() {
       WidgetTester tester, {
       ValueChanged<bool>? onActive,
       List<MorphBarButton> leading = const [],
+      bool? active,
     }) async {
       await tester.binding.setSurfaceSize(const Size(_w, _h));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -797,6 +799,7 @@ void main() {
                       for (final b in leading) MorphBarButtonGroup([b]),
                     ],
                     onActiveChanged: onActive,
+                    active: active,
                   ),
                 ),
               ],
@@ -1016,6 +1019,36 @@ void main() {
         EnginePhase.sendSemanticsUpdate,
         const Duration(seconds: 10),
       );
+    });
+
+    testWidgets('active starts and ends the search from code', (tester) async {
+      final reported = <bool>[];
+      Future<void> settle() => tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      await pump(tester, onActive: reported.add, active: false);
+      final field = find.byType(MorphSearchField);
+      final rest = tester.getRect(field);
+      await pump(tester, onActive: reported.add, active: true);
+      await settle();
+      expect(tester.getRect(field).left, moreOrLessEquals(8, epsilon: 0.05));
+      expect(find.bySemanticsLabel('Close'), findsOneWidget);
+      await tester.enterText(find.byType(EditableText), 'abc');
+      await pump(tester, onActive: reported.add, active: false);
+      await settle();
+      expect(tester.getRect(field), rectMoreOrLessEquals(rest, epsilon: 0.05));
+      expect(find.text('abc'), findsNothing);
+      expect(find.bySemanticsLabel('Close'), findsNothing);
+      expect(reported, isEmpty);
+      await pump(tester, onActive: reported.add);
+      await tester.tap(field);
+      await settle();
+      expect(reported, [true]);
+      await tester.tap(find.bySemanticsLabel('Close'));
+      await settle();
+      expect(reported, [true, false]);
     });
 
     testWidgets('Escape ends the search', (tester) async {

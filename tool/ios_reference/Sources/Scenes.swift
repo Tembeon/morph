@@ -120,6 +120,8 @@ final class TabBarScene: UITabBarController {
                 label.centerYAnchor.constraint(equalTo: vc.view.centerYAnchor),
             ])
             vc.tabBarItem = UITabBarItem(title: titles[index], image: UIImage(systemName: symbols[index]), tag: index)
+            let badges = (ProcessInfo.processInfo.environment["PROBE_BADGES"] ?? "").split(separator: ",", omittingEmptySubsequences: false)
+            if slot < badges.count, badges[slot] != "-" { vc.tabBarItem.badgeValue = String(badges[slot]) }
             return vc
         }
         if let d = ProcessInfo.processInfo.environment["PROBE_DARK"] { overrideUserInterfaceStyle = d == "1" ? .dark : .light }

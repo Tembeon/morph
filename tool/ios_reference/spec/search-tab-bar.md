@@ -76,9 +76,19 @@ same 48 pt tab circle the search morph ends in, and the search circle
 shrinks to 48 pt at the trailing side; searching from there leaves the tab
 circle in place. The accessory fades while searching (not measured).
 
+## The search tab without automatic activation [simulator, 2026-10-14]
+
+`automaticallyActivatesSearch = false` (UIKit's default): the search tab
+is an ordinary "Search" tab inside the bar, and its page shows a large
+title with a stacked search field; the field's presentation is in
+[search.md](search.md) ("stacked field"). morph: a `MorphTabItem` with
+`role: MorphTabRole.search` in a `MorphTabBar`, its page a
+`MorphNavigationScaffold` with `search: MorphNavigationSearch(...)`.
+Minimized, the search tab is a circle of its own
+([tab-bar-minimize.md](tab-bar-minimize.md), "Search tab").
+
 ## API gaps
 
-- `automaticallyActivatesSearch = false` variant (tab without auto focus).
 - Search tab inside sidebar mode; scope bars; suggestions.
 
 ## Implementation notes (morph side, moved from CLAUDE.md)
@@ -90,8 +100,8 @@ circle in place. The accessory fades while searching (not measured).
   0.8 pt rms).
 - ONLY the activating search tab is a separate circle in iOS 27: without
   `automaticallyActivatesSearch` UIKit draws the search tab as an ordinary
-  "Search" tab inside the bar (filmed), so the widget models the activating
-  kind only.
+  "Search" tab inside the bar (filmed), so `MorphSearchTabBar` models the
+  activating kind only; the other kind is `MorphTabRole.search`.
 - TAB MORPH REVERSAL (films tm-*): a tap on the tab circle while the morph
   into the field runs turns it around with its velocity (UIKit, taps 0.125
   and 0.225 s after the search tap; at 0.375 the keyboard covers the

@@ -10,6 +10,32 @@ release, following the API parity audit
 and option names, written in Flutter idioms. BREAKING throughout, with
 no behaviour or pixel change: every rename keeps what the old name did.
 
+- Search and tab bars follow the native sweep of 2026-10-14 (pixel
+  changes, declared in the search, search tab bar and minimize
+  passports):
+  - the search tab without automatic activation: `MorphTabRole.search`
+    on a `MorphTabItem` is an ordinary tab, and its page takes a stacked
+    search field through `MorphNavigationScaffold.search`
+    (`MorphNavigationSearch`): a flat 44 point field under the large
+    title that, tapped, carries the page up until it sits under the
+    status bar, narrows for a close button and turns to glass, the
+    navigation bar stepping aside (`hidesNavigationBarDuringPresentation`,
+    `MorphNavigationConfig.navigationBarHidden` for a stack's shared bar).
+  - a minimized `MorphTabBar` sets its search tab apart as a trailing
+    circle; the leading circle shows the last other tab, and a tap on it
+    expands the bar and selects that tab.
+  - a scroll back up in the middle of the content no longer expands a
+    minimized bar (iOS 27 stays minimized); the top end, a push past the
+    far end and a tap still expand it.
+  - the search field asks for no keyboard suggestions (UIKit's search
+    field offers none). Flutter's iOS engine drops the prediction bar with
+    them, so the keyboard is 27 points shorter than UIKit's, and it cannot
+    disable the return key of an empty field.
+  - `MorphSearchToolbar.active` and `MorphNavigationSearch.active` start
+    and end a search from code (UIKit `isActive`).
+  - `MorphSearchField.height` and `glass`, and
+    `MorphSearchFieldAppearance.stackedFillColor`, for the stacked field.
+
 - Sheets follow a new simulator capture of UISheetPresentationController
   (pixel changes, declared in the sheets passport):
   - a floating sheet dragged above its largest detent rubber-bands toward

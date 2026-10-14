@@ -305,3 +305,18 @@ start-end; thumb color params; slider semantic formatter; localized
 stepper labels; progress `animated` default true (UIKit's setter does not
 animate); activity starts animating (UIKit starts stopped); captions;
 badge appear/leave animation; concentric corner API.
+
+## Follow-up (search and tab bars, 2026-10-14)
+
+- 2: ported - `MorphTabRole.search` + `MorphNavigationScaffold.search`
+  (`MorphNavigationSearch`); geometry and spring in search.md
+  ("stacked field"). Device timing pending.
+- 5: ported - the 64 pt reverse rule is gone (tab-bar-minimize.md).
+  Device distances pending.
+- 6: ported - the minimized search circle (tab-bar-minimize.md, "Search
+  tab"). The search circle's tap pending.
+- 8: open - the probe takes `PROBE_BADGES`; the native look under a held
+  lens is not captured yet (the simulator run was cut short).
+- 14: suggestions off; the empty return key is an engine limit
+  (search.md).
+- 15: `MorphSearchToolbar.active`, `MorphNavigationSearch.active`.

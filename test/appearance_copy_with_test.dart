@@ -618,6 +618,11 @@ void main() {
           (a) => a.copyWith(disabledFillColor: _color).disabledFillColor,
           _color,
         ),
+        'stackedFillColor': (
+          (a) => a.stackedFillColor,
+          (a) => a.copyWith(stackedFillColor: _color).stackedFillColor,
+          _color,
+        ),
       },
     ),
     _Case<MorphSegmentedControlAppearance>(

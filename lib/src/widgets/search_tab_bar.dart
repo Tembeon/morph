@@ -49,8 +49,9 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 ///
 /// This is UIKit's search tab with `automaticallyActivatesSearch`: only
 /// then does iOS 27 set the search tab apart as a circle. A search tab
-/// that waits for a tap on its field is an ordinary tab inside the bar
-/// (a [MorphTabItem] of [MorphTabBar]).
+/// that waits for a tap on its field is an ordinary tab inside the bar: a
+/// [MorphTabItem] of [MorphTabBar] with [MorphTabRole.search], whose page
+/// is a [MorphNavigationScaffold] with a [MorphNavigationSearch].
 ///
 /// The edges were measured at both ends and their timing fitted to video
 /// of the real morph; the path between is a straight interpolation of the

@@ -47,7 +47,7 @@ app owns the pages (IndexedStack or similar). That is the Flutter idiom (`Naviga
 | `UITab.userInfo`, `parent`, `viewController` (iOS 18) | plumbing | none | - | skip |
 | `UITabGroup` (`children`, `selectedChild`, `displayOrder`, `sidebarAppearance`) (iOS 18; `isSidebarDestination` 26, `collapsedByDefault` 26.1) | nested tabs (sidebar sections) | none | sidebar concept | skip |
 | `UISearchTab(viewControllerProvider:)` (iOS 18), `UISearchTab.identifier` (iOS 26.4) | search tab | `MorphSearchTabBar` (separate widget) | search tab is a different widget, not an item kind | keep (see Breaking changes for naming) |
-| `UISearchTab.automaticallyActivatesSearch` (iOS 26, NEW) | tab turns into a field on selection (circle at trailing edge) | `MorphSearchTabBar` models only `true`; `false` = an ordinary `MorphTabItem` | documented in dartdoc | keep |
+| `UISearchTab.automaticallyActivatesSearch` (iOS 26, NEW) | true: the tab turns into a field (circle at the trailing edge); false (default): an ordinary tab whose page stacks a field | true = `MorphSearchTabBar`; false = `MorphTabItem(role: MorphTabRole.search)` + `MorphNavigationScaffold(search:)` | - | done 2026-10-14 |
 | `UITabBar.tintColor` / `unselectedItemTintColor` (iOS 5 / 10) | selected / unselected tint | `MorphTabBarStyle.selectedColor` / `color` | names differ | keep (style table; `selectedColor`/`color` is clear) |
 | `UITabBar.leadingAccessoryView` / `trailingAccessoryView` | bar accessories | none | header: `API_UNAVAILABLE(ios)` (tvOS 13 only) - the passport's API list is wrong here | skip (not on iOS) |
 | `UITabBar.itemPositioning`, `itemWidth`, `itemSpacing` (iOS 7) | layout tweaks | none (measured pitch, widened to the label) | - | skip (measured geometry is the spec) |
@@ -59,7 +59,7 @@ app owns the pages (IndexedStack or similar). That is the Flutter idiom (`Naviga
 |---|---|---|---|---|
 | `TabView(selection:content:)` with `Tab` (iOS 18) | same as UIKit `tabs` + `selectedTab` | `MorphTabBar.items` + `selected` | value-typed selection vs index | keep (index) |
 | `Tab(_:systemImage:value:role:)` (iOS 18) | same as `UITab` | `MorphTabItem` | - | same as UIKit `UITab(...)` row |
-| `TabRole.search` (iOS 18) | search tab | `MorphSearchTabBar` | - | same as UIKit `UISearchTab` row |
+| `TabRole.search` (iOS 18) | search tab | `MorphTabRole.search` (non-activating) / `MorphSearchTabBar` (activating) | - | done |
 | `TabRole.prominent` (iOS 27, NEW) | prominent tab | none | - | same as UIKit `prominentTabIdentifier` row |
 | `tabViewSearchActivation(.automatic/.searchTabSelection)` (iOS 26, NEW) | = `automaticallyActivatesSearch` | `MorphSearchTabBar` | - | same as UIKit row |
 | `TabSection` (iOS 18), `sectionActions`, `defaultSectionExpansion` | sidebar sections | none | sidebar | skip |

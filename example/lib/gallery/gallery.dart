@@ -235,8 +235,12 @@ class GalleryPage extends StatefulWidget {
     this.backgroundColor,
     this.options,
     this.optionsListenable,
+    this.search,
     super.key,
   });
+
+  /// The page's stacked search field, or null.
+  final MorphNavigationSearch? search;
 
   /// The page's title.
   final String title;
@@ -444,6 +448,7 @@ class _GalleryPageState extends State<GalleryPage> {
       backgroundColor:
           widget.backgroundColor ??
           MorphListAppearance.resolve(context, null).backgroundColor,
+      search: widget.search,
       slivers: widget.slivers,
     );
   }

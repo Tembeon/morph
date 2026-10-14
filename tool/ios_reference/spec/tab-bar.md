@@ -204,6 +204,13 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
   the lift is outside [read from UIKit, notes private]; any delay after
   the lift is not traced.
   Subtitles, tab groups, hidden tabs.
+  Badge under a held or dragged lens: morph draws the badge inside both
+  item rows, so the lifted lens's copy stretches it into a red drop at
+  its rim (native sweep item 8). UIKit's badge is a separate view over
+  the item; whether the lens magnifies or keeps it crisp is not seen yet:
+  the probe sets badges with `PROBE_BADGES` (comma list per slot, `-`
+  for none, empty for a dot) on `tabbar<N>`; capture pending on the
+  iPhone before the badge moves above the lens.
 - `tabBarMinimizeBehavior` and `bottomAccessory`: ported from UIKit's
   code, not yet recorded; passport [tab-bar-minimize.md](tab-bar-minimize.md)
   (the probe sets it: `w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
