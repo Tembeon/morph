@@ -762,6 +762,26 @@ final class ProbeUITests: XCTestCase {
     /// What turns the touch glow into its dragging state (scale 2, half opacity): distance from
     /// the touch-down or the finger leaving its tab. Slow drags (PROBE_STEP_HZ points) of 25 to
     /// 60 pt, inside one tab and across the boundary between two.
+    /// Captures whether badges stay sharp above a held selection lens.
+    func testTabBadges() {
+        capture("followup-tab-badges", scene: "tabbar3", extra: ["PROBE_BADGES": "-,3,", "PROBE_TABLAYERS": "1"]) {
+            let c = tabCenters()
+            for (name, point) in [("number", c[1]), ("dot", c[2])] {
+                let done = expectation(description: "badge hold \(name)")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    let attachment = XCTAttachment(screenshot: self.app.screenshot())
+                    attachment.name = "tab-badge-held-\(name)"
+                    attachment.lifetime = .keepAlways
+                    self.add(attachment)
+                    done.fulfill()
+                }
+                synth([Stroke(points: [(0, point)], liftAt: 1.6)], name: "badge-\(name)")
+                wait(for: [done], timeout: 5)
+                pause(1.2)
+            }
+        }
+    }
+
     func testTabGlowDrag() {
         capture("look-tabbar3-glowdrag", scene: "tabbar3", extra: ["PROBE_DARK": "1", "PROBE_TABLAYERS": "1"]) {
             let c = tabCenters()

@@ -150,6 +150,33 @@ final class ExtrasUITests: XCTestCase {
 
     // MARK: search field touch (toolbar placement, capsule 28..412 x 880..928)
 
+    /// Search presentation and return on the phone for both navigation placements.
+    func testX3SearchFollowup() {
+        func shot(_ name: String) {
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+        capture("followup-search-stacked", scene: "x3search", extra: ["PROBE_SEARCH": "tab"]) {
+            let s = screen
+            tap(p(s.width - 52, s.height - 52)); pause(1.5)
+            shot("search-stacked-rest")
+            let field = app.searchFields.firstMatch
+            tap(field.exists ? p(field.frame.midX, field.frame.midY) : p(s.width / 2, 190)); pause(1.8)
+            shot("search-stacked-active")
+            closeSearch(); pause(1.5)
+            shot("search-stacked-return")
+        }
+        capture("followup-search-toolbar", scene: "x3search", extra: ["PROBE_SEARCH": "toolbar", "PROBE_TBITEMS": "1"]) {
+            let s = screen
+            tap(p(s.width / 2, s.height - 52)); pause(1.8)
+            shot("search-toolbar-active")
+            closeSearch(); pause(1.5)
+            shot("search-toolbar-return")
+        }
+    }
+
     func testX3Search() {
         capture("search-tap", scene: "x3search", extra: ["PROBE_SEARCH": "toolbar"]) {
             tap(p(220, 904), hold: 0.08); pause(1.6); shot("search-focused")

@@ -1381,6 +1381,15 @@ class MorphNavigationScaffold extends StatefulWidget {
     final route = ModalRoute.of(context);
     if (route == null) return;
     final request = _barHideRequests[route] ??= ValueNotifier<bool>(false);
+    // A controlled search may change during its parent's build, after
+    // the scaffold and the shared bar have already built this frame.
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        request.value = hidden;
+      });
+      return;
+    }
     request.value = hidden;
   }
 

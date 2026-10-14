@@ -237,6 +237,29 @@ final class Widgets2UITests: XCTestCase {
 
     // MARK: search
 
+    /// Minimized manual search tab: reverse scroll, main circle, search circle.
+    func testW2MinimizeFollowup() {
+        capture("followup-tab-minimize", scene: "w2search", extra: ["PROBE_MINIMIZE": "1", "PROBE_SCRIPT": "tab:search@0.5"]) {
+            func shot(_ name: String) {
+                let attachment = XCTAttachment(screenshot: app.screenshot())
+                attachment.name = name
+                attachment.lifetime = .keepAlways
+                add(attachment)
+            }
+            shot("tab-minimize-rest")
+            path(p(201, 700), pressFor: 0.1, [(p(201, 250), 1.2, 0.5)])
+            pause(1.0)
+            shot("tab-minimize-collapsed")
+            path(p(201, 400), pressFor: 0.1, [(p(201, 550), 1.0, 0.5)])
+            pause(1.0)
+            shot("tab-minimize-reverse")
+            tap(p(52, 822)); pause(1.0)
+            shot("tab-minimize-main-circle")
+            tap(p(350, 822)); pause(1.0)
+            shot("tab-minimize-search-circle")
+        }
+    }
+
     func testW2Search() {
         capture("search-tab-tap", scene: "w2search", extra: ["PROBE_SEARCH": "tab"]) {
             let field = app.buttons["Search"].firstMatch

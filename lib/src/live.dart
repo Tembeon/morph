@@ -250,6 +250,45 @@ class _RenderLiveOpacity extends RenderOpacity with MorphLiveBinding {
   _RenderLiveOpacity({super.opacity});
 }
 
+/// An [IgnorePointer] whose hit testing follows a live source without
+/// rebuilding its child. Semantics follow [RenderIgnorePointer] too.
+@internal
+class MorphLiveIgnorePointer extends SingleChildRenderObjectWidget {
+  /// Reads [ignoringOf] on every notification of [live].
+  const MorphLiveIgnorePointer({
+    required this.live,
+    required this.ignoringOf,
+    super.child,
+    super.key,
+  });
+
+  /// The source of the hit-testing state, or null for a fixed one.
+  final Listenable? live;
+
+  /// Whether the child ignores pointer input now.
+  final bool Function() ignoringOf;
+
+  @override
+  RenderIgnorePointer createRenderObject(BuildContext context) {
+    final pointer = _RenderLiveIgnorePointer(ignoring: ignoringOf());
+    pointer.bindLive(live, () => pointer.ignoring = ignoringOf());
+    return pointer;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderIgnorePointer pointer) {
+    (pointer as _RenderLiveIgnorePointer).bindLive(
+      live,
+      () => pointer.ignoring = ignoringOf(),
+    );
+  }
+}
+
+class _RenderLiveIgnorePointer extends RenderIgnorePointer
+    with MorphLiveBinding {
+  _RenderLiveIgnorePointer({super.ignoring});
+}
+
 /// A [Text] faded by an opacity that follows a live source.
 ///
 /// The fade is the alpha of the text's color, so a fading text draws in

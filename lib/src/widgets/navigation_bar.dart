@@ -641,10 +641,9 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
     );
     final hidden = widget.hidden;
     if (hidden != null) {
-      out = ValueListenableBuilder<bool>(
-        valueListenable: hidden,
-        builder: (BuildContext context, bool hidden, Widget? child) =>
-            IgnorePointer(ignoring: hidden, child: child),
+      out = MorphLiveIgnorePointer(
+        live: hidden,
+        ignoringOf: () => hidden.value,
         child: out,
       );
     }

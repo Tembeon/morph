@@ -141,6 +141,7 @@ class MorphStackedSearchSlot extends StatelessWidget {
             child: IgnorePointer(
               child: ExcludeFocus(
                 child: MorphSearchField(
+                  controller: scope.state._controller,
                   placeholder: search.placeholder,
                   appearance: search.appearance,
                   height: MorphSearchTuning.stackedHeight,
@@ -243,6 +244,8 @@ class _MorphStackedSearchHostState extends State<MorphStackedSearchHost>
   }
 
   double get _p => _spring.value(_now);
+
+  bool get _rtl => Directionality.maybeOf(context) == TextDirection.rtl;
 
   @override
   void initState() {
@@ -353,9 +356,11 @@ class _MorphStackedSearchHostState extends State<MorphStackedSearchHost>
     const side = MorphSearchTuning.stackedSideInset;
     const h = MorphSearchTuning.stackedHeight;
     _focused = Rect.fromLTRB(
-      side,
+      _rtl ? side + h + MorphSearchTuning.stackedCloseGap : side,
       top,
-      _size.width - side - h - MorphSearchTuning.stackedCloseGap,
+      _rtl
+          ? _size.width - side
+          : _size.width - side - h - MorphSearchTuning.stackedCloseGap,
       top + h,
     );
     _rest = _slotRect() ?? _focused;
@@ -392,9 +397,14 @@ class _MorphStackedSearchHostState extends State<MorphStackedSearchHost>
     const h = MorphSearchTuning.stackedHeight;
     final field = _fieldRect();
     return Rect.fromLTWH(
-      _focused.right +
-          MorphSearchTuning.stackedCloseGap +
-          (1 - p) * MorphSearchTuning.stackedCloseTravel,
+      _rtl
+          ? _focused.left -
+                MorphSearchTuning.stackedCloseGap -
+                h -
+                (1 - p) * MorphSearchTuning.stackedCloseTravel
+          : _focused.right +
+                MorphSearchTuning.stackedCloseGap +
+                (1 - p) * MorphSearchTuning.stackedCloseTravel,
       field.top,
       h,
       h,
