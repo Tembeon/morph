@@ -1,7 +1,8 @@
 # Tab bar minimize and bottom accessory passport
 
 Status: read from UIKit (iOS 27.0.1, iPhone 16 Pro cache; notes private);
-ported; NOT yet recorded on the device. See also [tab-bar.md](tab-bar.md),
+ported; simulator film of the reverse scroll and the search tab circle
+(2026-10-14); NOT yet recorded on the device. See also [tab-bar.md](tab-bar.md),
 [search-tab-bar.md](search-tab-bar.md), API rows in
 [api/tab-bar.md](api/tab-bar.md).
 
@@ -35,10 +36,15 @@ the tab bar's animation settings.
 - Expand rules read: pushing further past the far end (the end the bar
   minimizes toward) while minimized; reaching the near end while the
   interaction runs, moving back; a scroll to the top (status bar).
-- Not read: the reverse scroll in the middle of the content. The SDK
-  header says the bar "expands when scrolling back up", but the negative
-  accumulation never activates the interaction in the code read. morph:
-  a drag of 64 pt in the expanding direction expands (APPROXIMATION).
+- The reverse scroll in the middle of the content does NOT expand: the
+  negative accumulation never activates the interaction in the code
+  read, and on the iOS 27 simulator (scene `w2search`,
+  `PROBE_MINIMIZE=1`, 2026-10-14 sweep) a 150 pt drag back up in the
+  middle of the list, released and settled, left the bar minimized,
+  although the SDK header says the bar "expands when scrolling back up".
+  morph follows (until 2026-10-14 a 64 pt drag back expanded it, an
+  approximation now dropped). A device capture at several distances and
+  a long reverse fling is still due.
 
 ## Spec - motion (read from UIKit)
 
@@ -86,6 +92,29 @@ the tab bar's animation settings.
   the morph rests expanded, so the lens shows from then on (about 0.4 s);
   the tab bar selects on contact as the expanded bar does. The search tab
   bar's minimized circle is not ported (tap only).
+
+## Spec - search tab [simulator, 2026-10-14]
+
+Scene `w2search`, `PROBE_MINIMIZE=1` (Home, Library, a UISearchTab
+without automatic activation, selected), sweep stills s1-s4
+(`runs/native-sweep-20261014/runs/native-minimize/`, private):
+
+- Minimized while the search tab is selected, the search tab is a circle
+  of its own at the trailing side (the leading circle mirrored, 28 from
+  the side and bottom), its magnifier tinted; the leading circle shows
+  the last other tab (Home), untinted.
+- A tap on the leading circle expanded the bar with Home selected (the
+  page switched).
+- morph: `MorphTabRole.search` on a `MorphTabItem`; the chrome's search
+  circle grows from a bar-tall circle around the search tab's slot to
+  `MorphTabBarGroupGeometry.searchCollapsed` on the collapse spring
+  while its glyph fades in with the content (path APPROXIMATION, not
+  filmed frame by frame); the inline accessory sits between the two
+  circles. A tap on the search circle while another tab is selected
+  selects the search tab and stays minimized (not measured); a tab
+  circle tap selects the last other tab only while the search tab is
+  selected (UIKit's selection gesture selects the circle's "weak" tab,
+  read from UIKit, notes private).
 
 ## Spec - geometry
 
@@ -175,7 +204,8 @@ its collapsing tabs still follow by layout (shared with the search morph).
   search tab bar's hold.
 - `automatic` resolves to never (an iPhone tab bar that does not opt in);
   not read from UIKit.
-- Reverse-scroll expansion rule (above).
+- Reverse-scroll: device distances (above); the search circle's tap and
+  path (above).
 - The accessory while searching (morph fades it), Reduce Motion.
 - `setBottomAccessory(_:animated:)`'s insertion animation (morph: the
   accessory appears in one frame).

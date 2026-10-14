@@ -50,6 +50,47 @@ will/didPresent, will/didDismiss; UISearchBar scope buttons, tokens
   the final keyboard frame). Closing falls straight from above the keyboard
   to rest (no dip). 0.7 - 2 pt rms over 300 pt.
 
+## Spec - stacked field (search tab page) [simulator, 2026-10-14]
+
+Scene `x3search`, `PROBE_SEARCH=tab` (UISearchTab without
+`automaticallyActivatesSearch`, the page's UISearchController stacked,
+`hidesSearchBarWhenScrolling` false); iPhone 17 Pro iOS 27.0 simulator,
+402 x 874, status bar 62. Evidence (private):
+`runs/native-sweep-20261014/runs/native-tabsearch/` (stills s1-s4, film).
+
+- Rest: large title (bar 62 - 116, title area 116 - 168), field 16 - 386
+  x 168 - 212 (44 tall, full capsule), flat fill 239, 239, 240 on white =
+  0x767680 at 12 percent; the first row starts 10 below (222). No glass.
+- Presented: field 16 - 332 x 62 - 106 (under the status bar), glass;
+  close circle 342 - 386 (44, 10 from the field, 16 from the side); the
+  content moved up rigidly with the field (first row at 116, 106 points
+  of travel, the same as the field); the large title left with it; the
+  tab bar stays where it is and the keyboard covers it.
+- Motion: one spring for the field, the content and the close button,
+  fitted to the 60 Hz film (16 frames, field top 168 -> 62):
+  response 0.30, damping 0.90, 0.6 percent rms. The caret shows before
+  the motion starts; the keyboard came about 0.9 s later on the
+  simulator (its first keyboard; not evidence of device timing). The
+  close button rides the field's vertical position and slides in from
+  the trailing side: its center 378 -> 364 while the field finishes
+  (about 40 points at p ~ 0.7; a two-frame lag like the toolbar's is
+  likely).
+- Scrolling while presented keeps the keyboard.
+- morph: `MorphNavigationSearch` on `MorphNavigationScaffold.search`
+  (search_stacked.dart; the scaffold adds `MorphStackedSearchSlot` after
+  the large title and wraps its body in `MorphStackedSearchHost`),
+  `MorphSearchTuning.stacked*`, `MorphSearchField.height` / `glass`,
+  `MorphSearchFieldAppearance.stackedFillColor`. Test:
+  search_stacked_test. Approximations (declared): the field turns to
+  glass at p = 0.5 (one frame; UIKit's crossfade not read); the close
+  button slides 40 points with alpha = p, no lag; the content under a
+  presented field is covered by the page background (UIKit blurs it
+  with the edge effect); a scrolled stacked field scrolls away (UIKit's
+  default `hidesSearchBarWhenScrolling`; the probe's pinned glass field
+  under the inline title is not ported); dark fill 0x767680 at 24
+  percent not measured; the motion starts on the focus (latency after
+  the tap not read: film clock).
+
 ## Disabled field [device, light + dark, 2026-10-03]
 
 - `UISearchTextField.isEnabled = NO`: the GLASS capsule is replaced by a
@@ -100,12 +141,21 @@ starts it.
 - UIKit moves the close button two frames behind the field.
 - The large-title nav bar collapsing during search (app's business).
 - UIKit's empty prediction bar (autocorrect off + spell check on cannot be
-  requested through Flutter's engine; keeping the bar avoids a 27 pt drop).
+  requested through Flutter's engine): since 2026-10-14 the field asks
+  for no suggestions, so the bar is gone and the keyboard is 27 pt
+  shorter (the focused toolbar field sits 27 pt lower than native).
+- UIKit's return key is disabled while the field is empty
+  (`enablesReturnKeyAutomatically`); Flutter's iOS engine hard-codes it
+  off (FlutterTextInputPlugin.mm, Flutter 3.47.2), so an empty query can
+  be submitted.
 
 ## API gaps
 
-- Search in the navigation bar (integrated / stacked / integratedButton /
-  inline placements) - only the bottom toolbar placement exists.
+- Search in the navigation bar: the bottom toolbar placement and the
+  stacked one (`MorphNavigationSearch`) exist; integrated (inline in the
+  bar), integratedButton and the pinned stacked field do not.
+- Ending a search from code: `MorphSearchToolbar.active` and
+  `MorphNavigationSearch.active` (2026-10-14).
 - Scope bar, search tokens, suggestions, results controller semantics,
   bookmark / results list buttons.
 
@@ -138,6 +188,7 @@ starts it.
   prediction bar on screen but empty (328 pt keyboard). Flutter's engine
   sets spellChecking from the same `autocorrect` flag, and autocorrect false
   drops the bar (keyboard 27 pt shorter, the focused field 27 pt lower than
-  native - filmed), so the field keeps autocorrect on (suggestions show in
-  the bar: NOT reproduced without an engine change) and asks for sentence
-  capitalization.
+  native - filmed). Until 2026-10-14 the field kept autocorrect on (the
+  bar on screen with suggestions); the native sweep ranked the
+  suggestions as the more visible difference, so the field now asks for
+  autocorrect and suggestions off and keeps sentence capitalization.

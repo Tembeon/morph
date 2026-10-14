@@ -153,7 +153,9 @@ void main() {
     expect(bar().contentScroll, isNotNull);
     expect(
       tester
-          .widget<MorphSegmentedControl>(find.byType(MorphSegmentedControl))
+          .widget<MorphSegmentedControl>(
+            find.byType(MorphSegmentedControl).first,
+          )
           .selectedIndex,
       isNull,
     );
@@ -166,6 +168,31 @@ void main() {
       1500,
     );
     await _settle(tester);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('minimize page: a search tab with a stacked search field', (
+    tester,
+  ) async {
+    await _open(tester, 'Tab bar minimize');
+    await tester.tap(find.text('Search tab'));
+    await _settle(tester);
+    final bar = tester.widget<MorphTabBar>(find.byType(MorphTabBar));
+    expect(bar.items.last.role, MorphTabRole.search);
+    bar.onChanged!(3);
+    await _settle(tester);
+    expect(find.text('Item 0'), findsOneWidget);
+    final field = find.byType(MorphSearchField);
+    await tester.tap(field.first);
+    await _settle(tester);
+    await tester.enterText(find.byType(EditableText).last, 'Item 1');
+    await _settle(tester);
+    expect(find.text('Item 0'), findsNothing);
+    expect(find.text('Item 12'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Close'));
+    await _settle(tester);
+    expect(find.text('Item 0'), findsOneWidget);
+    expect(_unstyledTexts(tester), isEmpty);
     expect(tester.takeException(), isNull);
   });
 

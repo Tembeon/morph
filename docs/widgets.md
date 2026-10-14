@@ -229,7 +229,9 @@ a parent's new accessory rebuilds the group, not the bar), `MorphSwitch`, `Morph
 `MorphSatellite`, the bars (`MorphNavigationBar`, `MorphToolbar`,
 `MorphNavigationStack`, `MorphScrollEdgeEffect`, push zoom), sheets
 (`showMorphSheet` including zoom), alerts and action-sheet popovers,
-`MorphSearchField` / `MorphSearchToolbar`, `MorphDatePicker`,
+`MorphSearchField` / `MorphSearchToolbar` / `MorphNavigationSearch` (the
+stacked field of a scaffold page and of a `MorphTabRole.search` tab),
+`MorphDatePicker`,
 `MorphPageControl`, `MorphProgressView`, `MorphActivityIndicator`, the
 inset grouped list (`MorphListSection` / `MorphSliverListSection` /
 `MorphListRow`). `MorphGlassEffect` puts a glass button's resting glass

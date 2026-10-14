@@ -17,7 +17,7 @@ suggestions are left to the app.
 ## UIKit
 | UIKit API (type.member, availability) | meaning | morph equivalent | gap / mismatch | proposal |
 |---|---|---|---|---|
-| `UISearchController.isActive` (iOS 8) | search presented; settable to start/stop | `MorphSearchToolbar.onActiveChanged` (report only); `MorphSearchTabBar.searching` + `onSearchingChanged` (controlled) | toolbar: no way to END a search from code (only the close button or Escape; unfocusing keeps it active); two names for one concept | add controlled `active` to `MorphSearchToolbar`; rename tab bar pair -> `active` / `onActiveChanged` |
+| `UISearchController.isActive` (iOS 8) | search presented; settable to start/stop | `MorphSearchToolbar.active` + `onActiveChanged`; `MorphSearchTabBar.active` + `onActiveChanged`; `MorphNavigationSearch.active` + `onActiveChanged` | - (2026-10-14: controlled `active` on the toolbar and the stacked search; parent changes are not reported back) | done |
 | `UISearchControllerDelegate.willPresent/didPresent/willDismiss/didDismiss` (iOS 8) | lifecycle | `onActiveChanged(true/false)` (fires at start of the change) | no "did" (settled) phase | keep (add `onActiveSettled` only if asked) |
 | `UISearchController.searchBar` / `UISearchBar.text` (legacy) | the query | `controller` (`TextEditingController`) on all three widgets | - | keep |
 | `UISearchResultsUpdating.updateSearchResults(for:)`, `UISearchBarDelegate.searchBar(_:textDidChange:)` (legacy) | query changed | `MorphSearchField.onChanged`, `MorphSearchToolbar.onChanged`, `MorphSearchTabBar.onQueryChanged` | tab bar name differs | rename `MorphSearchTabBar.onQueryChanged -> onChanged` |
@@ -41,10 +41,10 @@ suggestions are left to the app.
 | `UISearchController.ignoresSearchSuggestionsForSearchBarPlacementStacked` (iOS 16) | suggestions per placement | none | - | skip |
 | `UISearchController.searchResultsController`, `showsSearchResultsController`, `automaticallyShowsSearchResultsController` (iOS 8 / 13) | results page over content | none | app swaps its body on `onActiveChanged` | skip (Flutter: widget tree) |
 | `UISearchController.obscuresBackgroundDuringPresentation` (iOS 9.1) | dim content while active | none | app draws its own scrim | skip (or document recipe) |
-| `UISearchController.hidesNavigationBarDuringPresentation` (legacy) | nav bar slides away (stacked) | none | stacked placement only | skip until nav-bar placement exists |
+| `UISearchController.hidesNavigationBarDuringPresentation` (legacy) | nav bar slides away (stacked) | `MorphNavigationSearch.hidesNavigationBarDuringPresentation` (default true; `MorphNavigationConfig.navigationBarHidden` carries it to a stack's shared bar) | toolbar placement keeps the nav bar (native hides it, sweep item 3) | done for stacked; toolbar pending the bars hook |
 | `UISearchController.searchControllerObservedScrollView` | tvOS-only (header: unavailable on iOS) | none | - | skip |
-| `UINavigationItem.searchController` (iOS 11) | attach search to a screen | none (`MorphNavigationConfig` has no search) | search is not integrated with `MorphNavigationStack` / `MorphNavigationScaffold` bars | add `MorphNavigationConfig.search` (a `MorphSearchConfig`: placeholder, controller, callbacks) |
-| `UINavigationItem.preferredSearchBarPlacement` / `searchBarPlacement`, `UINavigationItemSearchBarPlacement.automatic/.integrated/.stacked/.integratedCentered/.integratedButton` (iOS 16; `integrated*` iOS 26, NEW; `.inline` deprecated -> `.integrated`) | where the field lives | `MorphSearchToolbar` = `.integrated` on iPhone with toolbar integration | only one placement; no stacked (under large title), no `.integratedButton` | add `MorphSearchPlacement.{automatic, integrated, integratedButton, stacked}` on the nav config; stacked/integratedButton need capture |
+| `UINavigationItem.searchController` (iOS 11) | attach search to a screen | `MorphNavigationScaffold.search` (`MorphNavigationSearch`, stacked placement) | stacked only; the toolbar placement is still a separate widget | done (stacked) |
+| `UINavigationItem.preferredSearchBarPlacement` / `searchBarPlacement`, `UINavigationItemSearchBarPlacement.automatic/.integrated/.stacked/.integratedCentered/.integratedButton` (iOS 16; `integrated*` iOS 26, NEW; `.inline` deprecated -> `.integrated`) | where the field lives | `MorphSearchToolbar` = `.integrated` on iPhone with toolbar integration; `MorphNavigationSearch` = `.stacked` | no `.integratedButton`, no placement enum | add `MorphSearchPlacement` when a second nav-bar placement lands |
 | `UINavigationItem.searchBarPlacementAllowsToolbarIntegration` (iOS 26, NEW) | iPhone: field may move into the bottom toolbar | implicit (`MorphSearchToolbar` always is the toolbar) | - | keep implicit; becomes a flag with the nav config |
 | `UINavigationItem.searchBarPlacementAllowsExternalIntegration` (iOS 26, NEW) | split view moves the field | none | iPad split only | skip |
 | `UINavigationItem.searchBarPlacementBarButtonItem` (iOS 26, NEW) | where the field sits among bar items | none (`MorphSearchToolbar.leading/trailing` put it between) | - | keep (leading/trailing is the Flutter shape) |
@@ -87,11 +87,11 @@ suggestions are left to the app.
 ## Ranked gaps
 | # | gap | need | cost | proposal |
 |---|---|---|---|---|
-| 1 | end/start search from code (`isActive`, `dismissSearch`) | high (selecting a result must close search) | S | add controlled `active` + `onActiveChanged` to `MorphSearchToolbar`; same pair on `MorphSearchTabBar` |
-| 2 | search not integrated with `MorphNavigationStack` bars (`UINavigationItem.searchController`) | high (the iOS 26 way to add search) | M | add `MorphNavigationConfig.search` driving the shared toolbar |
+| 1 | end/start search from code (`isActive`, `dismissSearch`) | high (selecting a result must close search) | S | done 2026-10-14 (`active` on the toolbar and `MorphNavigationSearch`) |
+| 2 | search not integrated with `MorphNavigationStack` bars (`UINavigationItem.searchController`) | high (the iOS 26 way to add search) | M | stacked placement done 2026-10-14 (`MorphNavigationScaffold.search`); toolbar placement still standalone |
 | 3 | suggestions (`searchSuggestions` / `searchCompletion`) | med | M (morph menu exists; capture native list) | add `suggestions` + `onSuggestionSelected` |
 | 4 | scope bar (`scopeButtonTitles`, `scopeBarActivation`, `searchScopes`) | med | M (capture; reuse segmented control) | add `scopes`, `selectedScope`, `onScopeChanged`, `scopeActivation` |
-| 5 | other placements: stacked (under large title), `integratedButton` / `searchToolbarBehavior(.minimize)` | med | L (capture each) | add `MorphSearchPlacement` enum on the nav config |
+| 5 | other placements: `integratedButton` / `searchToolbarBehavior(.minimize)`, pinned stacked | med | L (capture each) | stacked done; add `MorphSearchPlacement` with the next one |
 | 6 | tokens | low-med | L (editable spans) | add later |
 | 7 | `enabled` on toolbar / tab bar, `inputFormatters` | low | S | add |
 
