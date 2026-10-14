@@ -143,6 +143,36 @@ abstract final class MorphSearchTuning {
   /// The space between the keyboard and a tab bar's focused search (8,
   /// where the toolbar's search keeps [keyboardGap]).
   static const double tabKeyboardGap = 8;
+
+  /// The spring of a stacked search field's presentation: the page and
+  /// its field move up until the field sits under the status bar, the
+  /// field narrows and the close button arrives (UIKit's stacked
+  /// `UISearchController` on a search tab, iOS 27 simulator film at 60
+  /// Hz: response 0.30, damping 0.90, 0.6 percent rms of 106 points of
+  /// travel; not yet recorded on the device).
+  static const stackedSpring = MorphSpring(0.3, 0.9);
+
+  /// The height of a stacked search field (iOS 27 simulator: 44 points,
+  /// at rest and presented).
+  static const double stackedHeight = 44;
+
+  /// The space between the screen's sides and a stacked search field, at
+  /// rest and presented (16 points).
+  static const double stackedSideInset = 16;
+
+  /// The space below a stacked search field, before the content (10
+  /// points at rest and presented).
+  static const double stackedBottomGap = 10;
+
+  /// The space between a presented stacked field and its close button
+  /// (10 points; the close button is [stackedHeight] wide, [stackedSideInset]
+  /// from the trailing side).
+  static const double stackedCloseGap = 10;
+
+  /// How far toward the trailing side a stacked field's close button
+  /// starts as it arrives (about 40 points on the simulator film, where
+  /// it slides in with the field's narrowing edge).
+  static const double stackedCloseTravel = 40;
 }
 
 /// The geometry of a tab bar with a search tab, at rest and searching.
