@@ -29,7 +29,7 @@ engine `showMorphSheet`, `showMorphDialog`, `showMorphRoute`, `MorphPageRoute`, 
 | `largestUndimmedDetentIdentifier` (iOS 15) | detents up to it do not dim, page stays live | `largestUndimmedDetent` | none | keep |
 | `prefersGrabberVisible` (iOS 15) | show grabber | `grabberVisible` | none | keep |
 | `preferredCornerRadius` (iOS 15) | corner radius of the sheet | none (`MorphSheetTuning.topRadius` 38 fixed) | not configurable | add `cornerRadius` to `presentMorphSheet` / `MorphSheetRoute` |
-| `prefersScrollingExpandsWhenScrolledToEdge` (iOS 15) | scroll up expands sheet before scrolling | always on via `MorphSheet.scrollControllerOf` | can not turn it off | add `scrollingExpandsSheet = true` |
+| `prefersScrollingExpandsWhenScrolledToEdge` (iOS 15) | scroll up expands sheet before scrolling | `scrollingExpandsSheet` (default true) | none | keep |
 | `prefersEdgeAttachedInCompactHeight` (iOS 15) | landscape phone: attach to bottom edge | none | landscape layout not specified | add later with landscape measurement (low) |
 | `widthFollowsPreferredContentSizeWhenEdgeAttached` (iOS 15) | width from content when edge attached | none | | skip until edge-attached lands |
 | `prefersPageSizing` (iOS 17) | page vs form width on wide screens | none | wide-screen sizing absent | add with `MorphSheetSizing` (see SwiftUI `presentationSizing`) |
@@ -93,7 +93,7 @@ engine `showMorphSheet`, `showMorphDialog`, `showMorphRoute`, `MorphPageRoute`, 
 | 3 | Content-fitted height (`presentationSizing(.fitted)`, custom resolver) | high | M | add `MorphSheetDetent.custom(resolver)` (S) and a fitted detent measured from content (M) |
 | 4 | Full-screen cover (`.fullScreen`, `fullScreenCover`, `coverVertical`) | med | M | add `presentMorphFullScreen` with a measured cover-vertical slide |
 | 5 | `preferredCornerRadius` / `presentationCornerRadius` | med | S | add `cornerRadius` |
-| 6 | `prefersScrollingExpandsWhenScrolledToEdge = false` / `.scrolls` | med | S | add `scrollingExpandsSheet` |
+| 6 | `prefersScrollingExpandsWhenScrolledToEdge = false` / `.scrolls` | med | S | done: `scrollingExpandsSheet` |
 | 7 | Replace detents while open (`invalidateDetents`, changing `detents` with `animateChanges`) | low | S | add `MorphSheet.setDetents` |
 | 8 | Wide-screen sizing and placement (`formSheet`, `prefersPageSizing`, `presentationSizing(.form/.page)`, `preferredPlacement` 27) | low (phones first) | L | add `MorphSheetSizing` + `MorphSheetPlacement` after an iPad measurement |
 | 9 | Landscape edge attachment (`prefersEdgeAttachedInCompactHeight`, `widthFollows...`) | low | M | measure landscape, then add |

@@ -623,4 +623,147 @@ void main() {
     await gesture.up();
     await _settle(tester);
   });
+
+  testWidgets('a grouped list background follows the docked fill', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(402, 874) * 3;
+    tester.view.devicePixelRatio = 3;
+    tester.view.padding = const FakeViewPadding(top: 62 * 3, bottom: 34 * 3);
+    addTearDown(tester.view.reset);
+    MorphSheet? sheet;
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+          builder: (BuildContext context) {
+            sheet = MorphSheet.of(context);
+            return const MorphListBackground(
+              child: SizedBox.expand(key: _contentKey),
+            );
+          },
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    final gray = MorphListAppearance.light.backgroundColor;
+    RenderObject fill() => tester.renderObject(
+      find.descendant(
+        of: find.byType(MorphListBackground),
+        matching: find.byWidgetPredicate(
+          (Widget w) => w.runtimeType.toString() == 'MorphLiveColoredBox',
+        ),
+      ),
+    );
+    expect(fill(), isNot(paints..rect()));
+    sheet!.animateTo(MorphSheetDetent.large);
+    await _settle(tester);
+    expect(fill(), paints..rect(color: gray));
+    expect(
+      tester.renderObject<RenderBox>(find.byType(MorphListBackground)).size,
+      const Size(402, 812),
+    );
+  });
+
+  group('keyboard and scrolling (simulator capture, 402 x 874)', () {
+    void phone(WidgetTester tester) {
+      tester.view.physicalSize = const Size(402, 874) * 3;
+      tester.view.devicePixelRatio = 3;
+      tester.view.padding = const FakeViewPadding(top: 62 * 3, bottom: 34 * 3);
+      addTearDown(tester.view.reset);
+    }
+
+    testWidgets('a medium-only sheet rises by the keyboard height', (
+      WidgetTester tester,
+    ) async {
+      phone(tester);
+      await tester.pumpWidget(
+        _app(
+          onPresent: (BuildContext context) => showMorphSheet<void>(
+            context,
+            detents: const [MorphSheetDetent.medium],
+            builder: _content,
+          ),
+        ),
+      );
+      await tester.tap(find.text('present'));
+      await _settle(tester);
+      expect(tester.getRect(find.byKey(_contentKey)).top, closeTo(415.0, 0.5));
+      tester.view.viewInsets = const FakeViewPadding(bottom: 328 * 3);
+      await _settle(tester);
+      // UIKit: value 435.68 + 328, still floating: top 100.1.
+      expect(tester.getRect(find.byKey(_contentKey)).top, closeTo(100.1, 0.5));
+      tester.view.resetViewInsets();
+      await _settle(tester);
+      expect(tester.getRect(find.byKey(_contentKey)).top, closeTo(415.0, 0.5));
+    });
+
+    testWidgets('a medium and large sheet docks while the keyboard shows', (
+      WidgetTester tester,
+    ) async {
+      phone(tester);
+      final changes = <MorphSheetDetent>[];
+      MorphSheet? sheet;
+      await tester.pumpWidget(
+        _app(
+          onPresent: (BuildContext context) => showMorphSheet<void>(
+            context,
+            detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+            onDetentChanged: changes.add,
+            builder: (BuildContext context) {
+              sheet = MorphSheet.of(context);
+              return _content(context);
+            },
+          ),
+        ),
+      );
+      await tester.tap(find.text('present'));
+      await _settle(tester);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 328 * 3);
+      await _settle(tester);
+      expect(tester.getRect(find.byKey(_contentKey)).top, closeTo(62, 0.5));
+      expect(sheet!.detent, MorphSheetDetent.medium);
+      tester.view.resetViewInsets();
+      await _settle(tester);
+      expect(tester.getRect(find.byKey(_contentKey)).top, closeTo(415.0, 0.5));
+      expect(changes, isEmpty);
+    });
+
+    testWidgets('scrollingExpandsSheet false scrolls the content at once', (
+      WidgetTester tester,
+    ) async {
+      phone(tester);
+      final controllers = <ScrollController>[];
+      await tester.pumpWidget(
+        _app(
+          onPresent: (BuildContext context) => showMorphSheet<void>(
+            context,
+            detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+            scrollingExpandsSheet: false,
+            builder: (BuildContext context) {
+              final c = MorphSheet.scrollControllerOf(context);
+              controllers.add(c);
+              return ListView(
+                key: _contentKey,
+                controller: c,
+                children: [
+                  for (var i = 0; i < 60; i++)
+                    SizedBox(height: 44, child: Text('row $i')),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      await tester.tap(find.text('present'));
+      await _settle(tester);
+      final top = tester.getRect(find.byKey(_contentKey)).top;
+      await tester.drag(find.text('row 3'), const Offset(0, -200));
+      await _settle(tester);
+      expect(tester.getRect(find.byKey(_contentKey)).top, closeTo(top, 0.5));
+      expect(controllers.last.offset, greaterThan(100));
+    });
+  });
 }

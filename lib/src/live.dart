@@ -1035,7 +1035,7 @@ class _RenderLiveColoredBox extends RenderProxyBoxWithHitTestBehavior
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    if (size > Size.zero) {
+    if (size > Size.zero && _color.a > 0) {
       final paint = Paint();
       paint.isAntiAlias = true;
       paint.color = _color;

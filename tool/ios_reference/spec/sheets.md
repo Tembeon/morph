@@ -85,14 +85,18 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   is the "line" seen on the phone. `MorphSheetMotion.fill`,
   `backgroundSwitch`.
 - Content: an insetGrouped table in the sheet is clear while floating and
-  systemGroupedBackground when docked (UIKit switches it; morph does not
-  touch the app's content - see gaps).
+  systemGroupedBackground when docked; its cells stay white. morph:
+  `MorphListBackground` (the page behind an inset grouped list) reads the
+  sheet's fill live and paints the grouped gray at its opacity, so it
+  switches with the sheet's background; outside a sheet it is opaque.
 
 ## Spec - corners [sim 2026-10-14]
 
 - Continuous corners (cornerCurve continuous) on the sheet's clip: morph
   clips with the rounded superellipse of the same radii (`MorphLiveBox`
-  `continuous`); the glass already drew one.
+  `continuous`); the glass already drew one. The zoom container and a
+  zooming or scrubbed sheet clip continuous too (the corner radius still
+  runs from the source's to the sheet's).
 - Unscaled radii: top 38; bottom floating display - 8 = 54 (drawn 51.85
   at the floating scale), docked = the display radius (UIKit stores
   infinity, the environment radius 62 on this screen).
@@ -114,6 +118,21 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   0.3 pt rms); UIKit takes a quarter of the sheet height capped at 200
   (notes private). `refusedPullExtent` 200 (was an unmeasured 40).
 - The area-keeping stretch above rides on top of both.
+
+## Spec - keyboard and scrolling [sim 2026-10-14]
+
+- A text field focused in the sheet (keyboard 328 pt on 402 x 874, safe
+  bottom 34): the maximum stays 778; every detent value grows by the
+  keyboard height up to the maximum, and the sheet goes to its largest
+  detent. Medium-only: value 435.68 + 328 = 763.68, still floating (top
+  100.1). Medium and large: docks at 778. Large: unchanged. The keyboard
+  hiding returns it to the detent it had; no detent-change callback
+  either way. morph: `_layout` raises the detents by `viewInsets.bottom`
+  and moves the motion silently (`MorphSheetMotion.relayout(index:)`).
+- `prefersScrollingExpandsWhenScrolledToEdge = false` (`scrollingExpandsSheet`
+  false): a 250 pt drag up on a scroll view at medium scrolls it 250 pt
+  and the sheet stays (value 435.68 throughout); default true expands
+  first (value 435.68 -> 677, released to large), then scrolls.
 
 ## Spec - zoom from a source [film, device; invisible to layer sampling]
 
@@ -145,7 +164,10 @@ simulator +1/60. Film crop `references/alert-video/sheet-opening-*`.
 Scene `w2sheet`: `PROBE_DETENTS` (e.g. ml, sml, l), `PROBE_GRABBER=0`,
 `PROBE_UNDIMMED=m`, `PROBE_SCROLLEXPAND=0`, `PROBE_EDGE=1`, `PROBE_STYLE`,
 `PROBE_ZOOM=1`, `PROBE_SHEETBG=1`, `PROBE_SCRIPT` (present, dismiss, large,
-medium, small, settings). Widgets2UITests testW2Sheet, testW2SheetFlicks.
+medium, small, settings, kb, kbOff), `PROBE_DETENTS` letter `h` (a 700 pt
+custom detent, or maximum - 40), `PROBE_MODAL=1` (isModalInPresentation),
+`PROBE_FIELD=1` (a text field as the table header, focused by `kb`),
+`PROBE_TABLEBG=native` (keep the table's own background). Widgets2UITests testW2Sheet, testW2SheetFlicks.
 Zoom: scene `snzoom` (`PROBE_SRC`, `PROBE_SRC_Y`, `PROBE_DETENTS`,
 `PROBE_STYLE=full`), SheetNavUITests testSNZoom, testSNZoomScrub,
 testSNZoomScrubTiming + MorphRecorder.
@@ -171,24 +193,24 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
 
 ## Not reproduced / open
 
-- Grouped list content does not switch its background with the sheet
-  (UIKit clears an insetGrouped table while floating); `MorphListSection`
-  in a sheet keeps its appearance's background.
-- The zoom container clips with circular corners (the source may be any
-  shape); the sheet itself clips continuous.
 - The bottom radius during a drag rounds the inset to a pixel in UIKit
   (steps of a third of a point); morph is smooth.
-- Measured on the simulator only (background flip, corners, stretch room):
-  confirm on the iPhone with the probe scene before calling them device
-  truth; the 10 pt docking shortfall and the 100 / 200 pt caps may depend
-  on the screen.
+- Measured on the simulator only (background flip, corners, stretch room,
+  keyboard, scroll-to-expand off): device capture pending. Screen size:
+  an iPhone 17 Pro Max simulator (440 x 956) reads the same 100 / 200 pt
+  extents, 0.56 medium, 8 pt inset and 38 / 54 radii at rest; its drag
+  (the 10 pt shortfall) and the 17e / SE sizes were not captured
+  (pending, device plan in the coordinator's queue).
 
 - The present's 8 pt horizontal drift (first-frame artifact).
 - One frame per docking reading the sheet at y 0.
 - The touch swell holds through a drag (sqrt(sx sy) stays 1.00854 x the
   floating scale in every device drag of a floating sheet); morph lets it
   go when the drag begins.
-- Keyboard avoidance MOTION (layout only: the maximum shrinks).
+- Keyboard MOTION: morph moves the raised sheet on the sheet spring as
+  the insets change; UIKit's curve under the keyboard is not measured. A
+  sheet with three detents was not captured (whether the keyboard picks
+  the largest detent or the smallest one that fits is assumed: largest).
 - ~0.1 s of interactive scrub before a drag commits; random immediate zoom
   dismissals.
 
@@ -197,7 +219,6 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
 - `preferredCornerRadius`, `prefersEdgeAttachedInCompactHeight`,
   `widthFollowsPreferredContentSize...`, `prefersPageSizing`,
   `preferredPlacement` (iPad / wide), `sourceView` popover adaptation.
-- `prefersScrollingExpandsWhenScrolledToEdge = false`.
 - Custom detents exist (`MorphSheetDetent.custom(resolver, identifier:)`)
   and a content-sized one (`MorphSheetDetent.fitted`, SwiftUI
   `presentationSizing(.fitted)`; the content is laid out loose and

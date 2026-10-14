@@ -77,6 +77,7 @@ export 'src/widgets/list.dart'
     show
         MorphListAccessory,
         MorphListAppearance,
+        MorphListBackground,
         MorphListMetrics,
         MorphListRow,
         MorphListSection,
