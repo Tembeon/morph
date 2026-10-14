@@ -56,6 +56,9 @@ tool/ios_reference/spec/lifecycle.md "Closed"):
   control and the switch repaint apart from the page; a navigation slide
   builds 2 elements a frame instead of 6 and its bars repaint on their
   own; a spinning activity indicator takes one frame per image.
+- A sheet's detent change rebuilds only what reads the sheet through
+  `MorphSheet.of` (`scrollControllerOf` no longer depends on the detent);
+  an alert's dismissal no longer rebuilds its card.
 
 Migration, old -> new:
 
