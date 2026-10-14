@@ -14,12 +14,14 @@ enum MorphTabBarMinimizeBehavior {
   /// The bar never minimizes.
   never,
 
-  /// The bar minimizes when the content scrolls down and expands when it
-  /// scrolls back up.
+  /// The bar minimizes when the content scrolls down. It expands at the
+  /// content's top end, on a tap and when the content is pushed past its
+  /// far end; a scroll back up in the middle of the content leaves it
+  /// minimized, as iOS 27 does.
   onScrollDown,
 
-  /// The bar minimizes when the content scrolls up and expands when it
-  /// scrolls back down; for content aligned to the bottom (a chat).
+  /// The bar minimizes when the content scrolls up, mirroring
+  /// [onScrollDown]; for content aligned to the bottom (a chat).
   onScrollUp;
 
   /// Whether a bar with this behavior minimizes at all.
@@ -34,9 +36,8 @@ enum MorphTabBarMinimizeBehavior {
 /// bar layout record, matched to the measured search tab circle (48 pt, 28
 /// from the side and the bottom). Which of the two collapse springs moves
 /// the glass and which the content, the space between the minimized
-/// circles and the accessory, the accessory's height and the reverse
-/// scroll that expands the bar are not read: they wait for a recording
-/// (probe scene `w2search`, `PROBE_MINIMIZE=1`).
+/// circles and the accessory and the accessory's height are not read:
+/// they wait for a recording (probe scene `w2search`, `PROBE_MINIMIZE=1`).
 abstract final class MorphTabBarMinimizeTuning {
   /// The scroll in the minimizing direction, in points, before the bar
   /// starts to respond: UIKit's activation threshold, 0.
@@ -176,10 +177,11 @@ abstract final class MorphTabBarMinimizeTuning {
 /// - Pushing further past the far end while the bar is minimized expands
 ///   it, as does reaching the near end while the interaction runs.
 /// - A scroll to the top ([scrollToTop]) expands it.
-/// - A drag in the expanding direction expands a minimized bar after
-///   [MorphTabBarMinimizeTuning.activeDistance]: UIKit documents that the
-///   bar expands when the content scrolls back, but its rule was not read
-///   (an approximation, to be recorded).
+/// - A drag in the expanding direction in the middle of the content does
+///   not expand a minimized bar: UIKit's code has no such path, and on the
+///   iOS 27 simulator a 150 point drag back left the bar minimized,
+///   although the SDK header says the bar expands when the content
+///   scrolls back.
 class MorphScrollAway {
   /// Creates the interaction; [minimizesOnScrollUp] reverses the
   /// minimizing direction (UIKit `onScrollUp`).
@@ -244,11 +246,6 @@ class MorphScrollAway {
       if (acc.abs() < threshold) return;
       final atFarEdge = minimizesOnScrollUp ? offset <= min : offset >= max;
       if (atFarEdge && signed > 0 && _progress != 0) {
-        _state = _State.idle;
-        _set(0);
-        return;
-      }
-      if (acc <= -MorphTabBarMinimizeTuning.activeDistance && _progress == 1) {
         _state = _State.idle;
         _set(0);
         return;

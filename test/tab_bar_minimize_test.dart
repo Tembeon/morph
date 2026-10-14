@@ -104,16 +104,17 @@ void main() {
       expect(away.progress, 0);
     });
 
-    test('a drag back by 64 points expands (approximation)', () {
+    test('a drag back in the middle of the content stays minimized', () {
       final away = MorphScrollAway();
-      _drag(away, 100);
+      _drag(away, 400);
       away.endDrag(decelerates: false);
-      away.record(100);
+      away.record(400);
       away.beginDrag();
-      away.scroll(60, min: 0, max: 2000, tracking: true);
+      for (var y = 400.0; y >= 250; y -= 10) {
+        away.scroll(y, min: 0, max: 2000, tracking: true);
+      }
+      away.endDrag(decelerates: false);
       expect(away.progress, 1);
-      away.scroll(36, min: 0, max: 2000, tracking: true);
-      expect(away.progress, 0);
     });
 
     test('a scroll to the top expands', () {

@@ -97,8 +97,9 @@ class MorphTabItem {
 /// [MorphContentScrollScope]): a user's scroll in the minimizing
 /// direction shrinks the bar slightly as it goes and, after 64 points,
 /// collapses the bar into a circle holding the selected tab's glyph
-/// ([MorphTabBarMinimizeMotion]); scrolling back, a scroll to the top or a
-/// tap on the circle expands it. A finger held on the circle for 0.22 s
+/// ([MorphTabBarMinimizeMotion]); a scroll to the top, pushing the
+/// content past its far end or a tap on the circle expands it (a scroll
+/// back in the middle of the content does not, as on iOS 27). A finger held on the circle for 0.22 s
 /// expands the bar under it, and one that moves 4 points along it expands
 /// it at once; from that move the touch scrubs the tabs as the expanded
 /// bar's drag does and its release selects, while a hold lifted in place

@@ -177,6 +177,14 @@ class MorphSearchFieldAppearance {
 /// placement UIKit uses on an iPhone, with the focus transition, use
 /// [MorphSearchToolbar].
 ///
+/// The keyboard offers no suggestions and its return key reads Search, as
+/// UIKit's search field. Two traits differ (Flutter's iOS engine sets
+/// neither): UIKit keeps an empty prediction bar above the keys, where
+/// this keyboard has none and is 27 points shorter (a focused toolbar
+/// field sits that much lower), and UIKit disables the return key while
+/// the field is empty (`enablesReturnKeyAutomatically`), where this one
+/// stays enabled and submits the empty text.
+///
 /// Labels follow the text scale up to [maxTextScale]. Screen readers see
 /// a text field labelled [semanticLabel] (the placeholder by default).
 ///
@@ -360,6 +368,11 @@ class _MorphSearchFieldState extends State<MorphSearchField>
       textInputAction: TextInputAction.search,
       keyboardAppearance: brightness,
       textCapitalization: TextCapitalization.sentences,
+      // UIKit's search field offers no suggestions. iOS's engine ties
+      // spell checking, and with it the prediction bar, to this flag, so
+      // the keyboard comes without the bar.
+      autocorrect: false,
+      enableSuggestions: false,
       rendererIgnoresPointer: true,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
@@ -643,6 +656,11 @@ void morphPaintCross(Canvas canvas, Size size, Color color) {
 /// them without a keyboard. Tapping elsewhere leaves the search active,
 /// as in UIKit.
 ///
+/// [active] starts or ends the search from code (UIKit
+/// `UISearchController.isActive`, SwiftUI `searchable(isPresented:)` and
+/// `dismissSearch`): true focuses the field, false ends the search as the
+/// close button does. Left null, only the user starts and ends it.
+///
 /// Place it in a [Stack] that fills the screen, with [Positioned.fill]:
 /// it takes hits only on its own glass.
 class MorphSearchToolbar extends StatefulWidget {
@@ -656,11 +674,19 @@ class MorphSearchToolbar extends StatefulWidget {
     this.onChanged,
     this.onSubmitted,
     this.onActiveChanged,
+    this.active,
     this.appearance,
     this.buttonAppearance,
     this.closeLabel = 'Close',
     super.key,
   });
+
+  /// Whether the search is active, set from code; null leaves it to the
+  /// user. A change to true focuses the field and starts the search, a
+  /// change to false ends it (the text clears, the keyboard leaves).
+  /// [onActiveChanged] reports only what the user does: a change made
+  /// here is not reported back.
+  final bool? active;
 
   /// The controller of the text; null keeps one inside.
   final TextEditingController? controller;
@@ -744,12 +770,34 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
     super.initState();
     _listen();
     _ticks.follow(frames);
+    if (widget.active ?? false) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && (widget.active ?? false)) _startFromCode();
+      });
+    }
   }
 
   @override
   void didUpdateWidget(MorphSearchToolbar oldWidget) {
     super.didUpdateWidget(oldWidget);
     _listen();
+    final active = widget.active;
+    if (active == null || active == oldWidget.active) return;
+    if (active) {
+      _startFromCode();
+    } else {
+      _end(report: false);
+    }
+  }
+
+  bool get _searching => _motion.isFocused || _keyboardWait != null;
+
+  bool _quiet = false;
+
+  void _startFromCode() {
+    if (_searching || _focus.hasFocus) return;
+    _quiet = true;
+    _focus.requestFocus();
   }
 
   void _listen() {
@@ -781,12 +829,15 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
       }
       wake();
       setState(() {});
-      widget.onActiveChanged?.call(true);
+      final quiet = _quiet;
+      _quiet = false;
+      if (!quiet) widget.onActiveChanged?.call(true);
     }
   }
 
-  void _end() {
-    if (!_motion.isFocused && _keyboardWait == null) return;
+  void _end({bool report = true}) {
+    _quiet = false;
+    if (!_searching) return;
     _keyboardWait = null;
     _frozenClose = _lastClose;
     _frozenKeyboard = MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
@@ -796,7 +847,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
     _focus.unfocus();
     wake();
     setState(() {});
-    widget.onActiveChanged?.call(false);
+    if (report) widget.onActiveChanged?.call(false);
   }
 
   // The keyboard's inset rebuilds the bar on every frame of its rise and
