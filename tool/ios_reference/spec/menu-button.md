@@ -530,6 +530,14 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   way. Pixel 6a menu scene, A B B A: frames striking glyphs liquid 9.7 ->
   4.4 percent, flat 9.9 -> 4.5; atlas flat 0.17 -> 0.12 ms per frame;
   frames over budget within the spread (liquid 2.9 / 3.8 -> 3.7 / 3.8).
+- The rows draw as a card (2026-10-14): from one raster while the card
+  moves, live at rest, never snapped. A snap scales the whole rows layer
+  about its center, so in the spring's tail, flipping between grid scales
+  and the exact one, the far rows shook against the card's edges at the
+  end of the open (host: up to 1.2 pt at 60 Hz on a ten-row menu, up to
+  7 pt frame to frame on the gallery's tall settings menu).
+  test/menu_open_end_test.dart pins it. NEAR (resampled while moving),
+  as the alert and date picker cards.
 - Device trace tool: example/integration_test/menu_trace_test.dart
   (profile build, `--dart-define=TRACE_SCENE=center|gallery`,
   `TRACE_RUN=<id>`, writes `<app tmp>/menu_trace_<id>.json`: FrameTimings,

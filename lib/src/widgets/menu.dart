@@ -2600,7 +2600,13 @@ Widget _menuRows({
     ),
   );
   final Widget layer = RepaintBoundary(child: rows);
-  return cover == null ? layer : MorphGlyphs(cover: cover, child: layer);
+  // The rows draw as a card: a snap about the layer's center would move
+  // the far rows against the card's edges by up to a few points, and the
+  // spring's tail flipping between grid scales and the exact one shook
+  // them at the end of the open.
+  return cover == null
+      ? layer
+      : MorphGlyphs(cover: cover, snaps: false, child: layer);
 }
 
 /// The root rows of [host]'s menu built ahead of its opening, out of
