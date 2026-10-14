@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -32,11 +33,13 @@ import 'package:morph/widgets.dart';
 ///
 /// The scenes whose gap to native was closed are pinned in [_ceilings]:
 /// the first frame's builds, the last frame with any work, and the median
-/// builds and paints of the frames after the first. A change may lower them, never raise them. The
+/// builds, layouts and paints of the frames after the first. A change may lower them, never raise them. The
 /// others are recorded only. `LIFECYCLE_LOG=true` prints every timeline;
 /// `LIFECYCLE_OUT=<file>` writes them to a file; `LIFECYCLE_TOP=<n>` lists
 /// n render object classes per step instead of 8, `LIFECYCLE_DUMP=true`
-/// prints the classes painted in every frame.
+/// prints the classes painted in every frame, and
+/// `LIFECYCLE_WHO=<step>:<frame>` prints every render object laid out or
+/// painted in that frame with the widgets that made it.
 void main() {
   final log = Platform.environment['LIFECYCLE_LOG'] == 'true';
   final out = Platform.environment['LIFECYCLE_OUT'];
@@ -89,40 +92,178 @@ void main() {
 }
 
 /// The pinned scenes, by `family/tier step`: the builds of the first
-/// frame, the last frame with any work in ms, and the median builds and
-/// paints of the frames after the first (lifecycle.md, 2026-10-14).
+/// frame, the last frame with any work in ms, and the median builds,
+/// layouts and paints of the frames after the first (lifecycle.md,
+/// 2026-10-14).
 const _ceilings = <String, _Ceiling>{
-  'segmented/flat select-2': (first: 13, ms: 1296, builds: 0, paints: 8),
-  'segmented/flat select-3': (first: 13, ms: 1328, builds: 0, paints: 8),
-  'segmented/liquid select-2': (first: 13, ms: 1296, builds: 0, paints: 9),
-  'tabbar/flat select-1': (first: 41, ms: 1328, builds: 0, paints: 17),
-  'tabbar/flat select-0': (first: 41, ms: 1456, builds: 0, paints: 17),
-  'tabbar/liquid select-1': (first: 41, ms: 1328, builds: 0, paints: 18),
-  'tabbar/liquid select-0': (first: 41, ms: 1456, builds: 0, paints: 18),
-  'switch/flat set-on': (first: 7, ms: 944, builds: 0, paints: 9),
-  'switch/flat set-off': (first: 7, ms: 832, builds: 0, paints: 9),
-  'switch/liquid set-on': (first: 7, ms: 944, builds: 0, paints: 9),
-  'button/flat highlight-on': (first: 0, ms: 448, builds: 0, paints: 16),
-  'button/flat highlight-off': (first: 0, ms: 704, builds: 0, paints: 16),
-  'button/liquid highlight-on': (first: 0, ms: 448, builds: 0, paints: 16),
-  'navigation/flat push': (first: 248, ms: 960, builds: 2, paints: 47),
-  'navigation/flat pop': (first: 114, ms: 944, builds: 2, paints: 49),
-  'navigation/liquid push': (first: 248, ms: 960, builds: 2, paints: 48),
-  'navigation/liquid pop': (first: 137, ms: 944, builds: 2, paints: 49),
-  'sheet/flat detent-large': (first: 20, ms: 688, builds: 0, paints: 31),
-  'sheet/flat detent-medium': (first: 19, ms: 688, builds: 0, paints: 27),
-  'sheet/liquid detent-large': (first: 20, ms: 688, builds: 0, paints: 35),
-  'alert/flat dismiss': (first: 76, ms: 432, builds: 0, paints: 18),
+  'segmented/flat select-2': (
+    first: 13,
+    ms: 1296,
+    builds: 0,
+    layouts: 2,
+    paints: 8,
+  ),
+  'segmented/flat select-3': (
+    first: 13,
+    ms: 1328,
+    builds: 0,
+    layouts: 2,
+    paints: 8,
+  ),
+  'segmented/liquid select-2': (
+    first: 13,
+    ms: 1296,
+    builds: 0,
+    layouts: 2,
+    paints: 9,
+  ),
+  'tabbar/flat select-1': (
+    first: 41,
+    ms: 1328,
+    builds: 0,
+    layouts: 2,
+    paints: 17,
+  ),
+  'tabbar/flat select-0': (
+    first: 41,
+    ms: 1456,
+    builds: 0,
+    layouts: 2,
+    paints: 17,
+  ),
+  'tabbar/liquid select-1': (
+    first: 41,
+    ms: 1328,
+    builds: 0,
+    layouts: 2,
+    paints: 18,
+  ),
+  'tabbar/liquid select-0': (
+    first: 41,
+    ms: 1456,
+    builds: 0,
+    layouts: 2,
+    paints: 18,
+  ),
+  'switch/flat set-on': (first: 7, ms: 944, builds: 0, layouts: 2, paints: 9),
+  'switch/flat set-off': (first: 7, ms: 832, builds: 0, layouts: 2, paints: 9),
+  'switch/liquid set-on': (first: 7, ms: 944, builds: 0, layouts: 2, paints: 9),
+  'button/flat highlight-on': (
+    first: 0,
+    ms: 448,
+    builds: 0,
+    layouts: 0,
+    paints: 16,
+  ),
+  'button/flat highlight-off': (
+    first: 0,
+    ms: 704,
+    builds: 0,
+    layouts: 0,
+    paints: 16,
+  ),
+  'button/liquid highlight-on': (
+    first: 0,
+    ms: 448,
+    builds: 0,
+    layouts: 0,
+    paints: 16,
+  ),
+  'navigation/flat push': (
+    first: 248,
+    ms: 960,
+    builds: 2,
+    layouts: 5,
+    paints: 47,
+  ),
+  'navigation/flat pop': (
+    first: 114,
+    ms: 944,
+    builds: 2,
+    layouts: 5,
+    paints: 49,
+  ),
+  'navigation/liquid push': (
+    first: 248,
+    ms: 960,
+    builds: 2,
+    layouts: 7,
+    paints: 48,
+  ),
+  'navigation/liquid pop': (
+    first: 137,
+    ms: 944,
+    builds: 2,
+    layouts: 7,
+    paints: 49,
+  ),
+  'sheet/flat detent-large': (
+    first: 20,
+    ms: 688,
+    builds: 0,
+    layouts: 19,
+    paints: 31,
+  ),
+  'sheet/flat detent-medium': (
+    first: 19,
+    ms: 688,
+    builds: 0,
+    layouts: 19,
+    paints: 27,
+  ),
+  'sheet/liquid detent-large': (
+    first: 20,
+    ms: 688,
+    builds: 0,
+    layouts: 24,
+    paints: 35,
+  ),
+  'alert/flat dismiss': (first: 76, ms: 432, builds: 0, layouts: 0, paints: 18),
   'alert/flat action-sheet-dismiss': (
     first: 74,
     ms: 544,
     builds: 0,
+    layouts: 0,
     paints: 11,
   ),
-  'alert/liquid dismiss': (first: 76, ms: 432, builds: 0, paints: 22),
+  'alert/liquid dismiss': (
+    first: 76,
+    ms: 432,
+    builds: 0,
+    layouts: 0,
+    paints: 22,
+  ),
+  'menu/flat open-inline': (
+    first: 60,
+    ms: 928,
+    builds: 0,
+    layouts: 1,
+    paints: 22,
+  ),
+  'menu/flat close-inline': (
+    first: 0,
+    ms: 960,
+    builds: 0,
+    layouts: 0,
+    paints: 8,
+  ),
+  'menu/liquid open-inline': (
+    first: 60,
+    ms: 928,
+    builds: 0,
+    layouts: 6,
+    paints: 29,
+  ),
+  'menu/liquid close-inline': (
+    first: 0,
+    ms: 960,
+    builds: 0,
+    layouts: 5,
+    paints: 15,
+  ),
 };
 
-typedef _Ceiling = ({int first, int ms, int builds, int paints});
+typedef _Ceiling = ({int first, int ms, int builds, int layouts, int paints});
 
 const _screen = Size(402, 874);
 const _frame = Duration(milliseconds: 16);
@@ -217,6 +358,40 @@ class _Recorder {
   Set<Element> _elements = {};
   final Map<String, int>? _dump =
       Platform.environment['LIFECYCLE_DUMP'] == 'true' ? {} : null;
+  final String? _who = Platform.environment['LIFECYCLE_WHO'];
+  final List<String> _laidOut = [];
+  final List<RenderObject> _painted = [];
+
+  static String _creator(RenderObject object) {
+    final creator = object.debugCreator;
+    if (creator is! DebugCreator) return '';
+    final chain = <String>[creator.element.widget.runtimeType.toString()];
+    creator.element.visitAncestorElements((Element e) {
+      chain.add(e.widget.runtimeType.toString());
+      return chain.length < 8;
+    });
+    return chain.join(' < ');
+  }
+
+  void _printWho(String step, int frame) {
+    if (_who != '$step:$frame') return;
+    final byName = <String, RenderObject>{};
+    void visit(RenderObject o) {
+      byName[describeIdentity(o)] = o;
+      o.visitChildren(visit);
+    }
+
+    for (final view in tester.binding.renderViews) {
+      visit(view);
+    }
+    for (final name in _laidOut) {
+      final o = byName[name];
+      debugPrint('layout $name ${o == null ? '' : _creator(o)}');
+    }
+    for (final o in _painted) {
+      debugPrint('paint ${describeIdentity(o)} ${_creator(o)}');
+    }
+  }
 
   static void _bump(Map<String, int> map, String key) =>
       map[key] = (map[key] ?? 0) + 1;
@@ -247,6 +422,7 @@ class _Recorder {
     debugOnProfilePaint = (RenderObject object) {
       if (object.isRepaintBoundary && !object.debugNeedsPaint) return;
       if (_dump != null) _bump(_dump, object.runtimeType.toString());
+      if (_who != null) _painted.add(object);
       _now.paints++;
       final type = object.runtimeType.toString();
       if (type.contains('Glass')) _now.glass++;
@@ -258,6 +434,9 @@ class _Recorder {
         _now.layouts++;
         final start = message.indexOf(') ') + 2;
         final end = message.indexOf('#', start);
+        if (_who != null) {
+          _laidOut.add(message.substring(start).split(' ').first);
+        }
         _bump(
           _layouts,
           message.substring(start, end < 0 ? message.length : end),
@@ -281,6 +460,9 @@ class _Recorder {
           debugPrint('frame ${frames.length - 1} ${step.name}: $_dump');
           _dump.clear();
         }
+        _printWho(step.name, frames.length - 1);
+        _laidOut.clear();
+        _painted.clear();
         _now = _Counts();
         if (step.frames == null &&
             i >= 3 &&
@@ -381,6 +563,7 @@ class _Result {
   List<String> over(_Ceiling ceiling) {
     final body = _body;
     final builds = _median([for (final f in body) f.builds]);
+    final layouts = _median([for (final f in body) f.layouts]);
     final paints = _median([for (final f in body) f.paints]);
     final first = frames.isEmpty ? 0 : frames.first.builds;
     return [
@@ -391,6 +574,8 @@ class _Result {
         '$name: last active $_lastActiveMs ms > ${ceiling.ms}',
       if (builds > ceiling.builds)
         '$name: median builds $builds > ${ceiling.builds}',
+      if (layouts > ceiling.layouts)
+        '$name: median layouts $layouts > ${ceiling.layouts}',
       if (paints > ceiling.paints)
         '$name: median paints $paints > ${ceiling.paints}',
     ];
