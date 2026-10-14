@@ -42,7 +42,7 @@ void main() {
     expect(changed, [1]);
   });
 
-  testWidgets('the selected icon shows inside the lens, badges on both', (
+  testWidgets('the selected icon shows inside the lens, with one crisp badge', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -68,6 +68,16 @@ void main() {
           w.text.toPlainText() == String.fromCharCode(_homeFilled.codePoint),
     );
     expect(selectedGlyph, findsOneWidget);
-    expect(find.text('4'), findsNWidgets(2));
+    expect(find.text('4'), findsOneWidget);
+    final badge = find.text('4');
+    final restSize = tester.getSize(badge);
+    final held = await tester.startGesture(tester.getCenter(find.text('One')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(find.text('4'), findsOneWidget);
+    expect(tester.getSize(badge), restSize);
+    expect(tester.takeException(), isNull);
+    await held.up();
+    await tester.pumpAndSettle();
   });
 }

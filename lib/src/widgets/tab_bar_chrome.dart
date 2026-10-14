@@ -698,7 +698,11 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
 
   void _searchTapped() {
     final search = _searchIndex;
-    if (search < 0 || widget.selected == search) return;
+    if (search < 0) return;
+    if (widget.selected == search) {
+      expandMinimized();
+      return;
+    }
     widget.onSelect?.call(search);
   }
 

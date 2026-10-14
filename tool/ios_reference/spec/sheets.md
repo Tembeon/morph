@@ -67,7 +67,7 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
 - A scrollable with `MorphSheet.scrollControllerOf` expands the sheet before
   it scrolls and moves it down from its top.
 
-## Spec - background [sim 2026-10-14, read from UIKit, notes private]
+## Spec - background [sim and device 2026-10-14, read from UIKit, notes private]
 
 - Floating: glass (a glass group under the content, no fill). Docked: the
   glass is removed and the sheet's own layer is systemBackground, light
@@ -89,6 +89,9 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   `MorphListBackground` (the page behind an inset grouped list) reads the
   sheet's fill live and paints the grouped gray at its opacity, so it
   switches with the sheet's background; outside a sheet it is opaque.
+  Device confirmation: `rec-plan-bg-ml-{1,2,native}` switches to white
+  at value 602.67 pt (drag progress 0.5025); table medium / large shots
+  confirm the clear / grouped background. Raw captures stay private.
 
 ## Spec - corners [sim 2026-10-14]
 
@@ -106,7 +109,7 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   pixel rounding). Programmatic and settle: from where it was to the end
   on the spring.
 
-## Spec - stretch above the largest detent [sim 2026-10-14]
+## Spec - stretch above the largest detent [sim and device 2026-10-14]
 
 - A floating largest detent rubber-bands upward (coefficient 0.55) with
   a dimension of clamp(maximum - detent, 0, 100): a medium-only sheet 100
@@ -117,9 +120,14 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   detent rubber-bands with 200 (a 200 pt detent pulled 134 pt fits 200 at
   0.3 pt rms); UIKit takes a quarter of the sheet height capped at 200
   (notes private). `refusedPullExtent` 200 (was an unmeasured 40).
+  Device held samples: medium 435.67 -> 491.67 pt for 240 pt of actual
+  travel; custom 700 -> 742.67 pt for 181.33 pt of travel (the planned
+  240 pt path reaches the screen edge). The existing 12 pt device slop
+  and 100 / 78 pt room reproduce both within 1.5 pt. A modal 200 pt
+  sheet stays 200 pt tall while pulled down, rather than resizing.
 - The area-keeping stretch above rides on top of both.
 
-## Spec - keyboard and scrolling [sim 2026-10-14]
+## Spec - keyboard and scrolling [sim and device 2026-10-14]
 
 - A text field focused in the sheet (keyboard 328 pt on 402 x 874, safe
   bottom 34): the maximum stays 778; every detent value grows by the
@@ -133,6 +141,11 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   false): a 250 pt drag up on a scroll view at medium scrolls it 250 pt
   and the sheet stays (value 435.68 throughout); default true expands
   first (value 435.68 -> 677, released to large), then scrolls.
+  Device confirmation: `rec-plan-kb-{m,ml,sml}` measures 435.67 ->
+  763.67 -> 435.67, 435.67 -> 778 -> 435.67, and 200 -> 778 -> 200
+  respectively. The three-detent case confirms choosing the largest,
+  with no detent callback. `rec-plan-se0-up` keeps medium at 435.67
+  through a 250 pt upward content drag. Raw data and film are private.
 
 ## Spec - zoom from a source [film, device; invisible to layer sampling]
 

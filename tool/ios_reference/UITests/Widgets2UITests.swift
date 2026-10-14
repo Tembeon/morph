@@ -324,6 +324,11 @@ final class Widgets2UITests: XCTestCase {
             shot("tab-minimize-reverse")
             tap(p(52, 822)); pause(1.0)
             shot("tab-minimize-main-circle")
+            let searchTab = app.tabBars.buttons["Search"].firstMatch
+            XCTAssertTrue(searchTab.exists)
+            tap(p(searchTab.frame.midX, searchTab.frame.midY)); pause(1.0)
+            path(p(201, 700), pressFor: 0.1, [(p(201, 250), 1.2, 0.5)])
+            pause(1.0)
             tap(p(350, 822)); pause(1.0)
             shot("tab-minimize-search-circle")
         }

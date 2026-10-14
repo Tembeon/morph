@@ -103,11 +103,14 @@ abstract final class MorphNavigationBarMetrics {
 /// Measured on the simulator (iPhone 17 Pro, iOS 27.0, 2026-10-14: five
 /// title lengths with and without a subtitle under a back button and zero
 /// to three trailing groups, 46 bars): every title within 1 point of this
-/// rule. A title with a subtitle places its two lines as one block
+/// rule. An iPhone 16 Pro's full matrix confirms 62 visible single-line
+/// title frames within 0.5 points, including wide leading groups.
+/// A title with a subtitle places its two lines as one block
 /// [textWidth] wide, both lines leading-aligned when the block is not
 /// centered (one bar of nine centers a fitting subtitle under a truncated
-/// title: not reproduced). Where between 0 and 131 points of room UIKit
-/// drops the title is not measured; morph drops it at no room.
+/// title: not reproduced). UIKit can drop a long title with 49 points of
+/// room and collapse overflowing button groups before allocating the
+/// title; those priority rules are not reproduced. Morph drops at no room.
 @internal
 ({double left, double width, bool centered})? morphInlineTitleFrame({
   required double barWidth,

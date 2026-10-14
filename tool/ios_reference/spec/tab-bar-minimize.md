@@ -2,7 +2,8 @@
 
 Status: read from UIKit (iOS 27.0.1, iPhone 16 Pro cache; notes private);
 ported; simulator film of the reverse scroll and the search tab circle
-(2026-10-14); NOT yet recorded on the device. See also [tab-bar.md](tab-bar.md),
+(2026-10-14); device follow-up confirms reverse scroll and the manual
+search tab's leading circle. See also [tab-bar.md](tab-bar.md),
 [search-tab-bar.md](search-tab-bar.md), API rows in
 [api/tab-bar.md](api/tab-bar.md).
 
@@ -43,8 +44,10 @@ the tab bar's animation settings.
   middle of the list, released and settled, left the bar minimized,
   although the SDK header says the bar "expands when scrolling back up".
   morph follows (until 2026-10-14 a 64 pt drag back expanded it, an
-  approximation now dropped). A device capture at several distances and
-  a long reverse fling is still due.
+  approximation now dropped). iPhone 16 Pro follow-up, 2026-10-14:
+  after 450 pt forward and 150 pt reverse travel, the two circles stay
+  minimized. Several reverse distances and a long reverse fling are
+  still unmeasured.
 
 ## Spec - motion (read from UIKit)
 
@@ -59,7 +62,10 @@ the tab bar's animation settings.
   glyph travelling to the circle's center) on the final one
   (APPROXIMATION).
 - A tap on the minimized circle expands it (no selection); morph's tap
-  does not lift the circle (not measured). Not what the code read says:
+  does not lift the circle (not measured). The manual Search tab's selected
+  trailing circle expands on a tap [iPhone 16 Pro, 2026-10-15,
+  `tab-minimize-search-circle`]; morph follows this capture.
+  The general circle's behavior differs from what the code read says:
   UIKit's `expandsOnTap` is NO and a quick release only selects the
   circle's tab (nothing when it is the selected one). morph keeps the tap
   until a recording shows what iOS does.
@@ -105,6 +111,8 @@ without automatic activation, selected), sweep stills s1-s4
   the last other tab (Home), untinted.
 - A tap on the leading circle expanded the bar with Home selected (the
   page switched).
+  Confirmed on iPhone 16 Pro by `testW2MinimizeFollowup`,
+  `tab-minimize-main-circle`, 2026-10-14 (raw attachment private).
 - morph: `MorphTabRole.search` on a `MorphTabItem`; the chrome's search
   circle grows from a bar-tall circle around the search tab's slot to
   `MorphTabBarGroupGeometry.searchCollapsed` on the collapse spring
@@ -115,6 +123,11 @@ without automatic activation, selected), sweep stills s1-s4
   circle tap selects the last other tab only while the search tab is
   selected (UIKit's selection gesture selects the circle's "weak" tab,
   read from UIKit, notes private).
+  A tap on the already-selected Search circle expands the bar and keeps
+  Search selected [device follow-up, 2026-10-15]. Morph now expands too;
+  previously it ignored this tap. The capture reselects Search in the
+  expanded bar and collapses it again before tapping, so the input
+  actually hits a circle.
 
 ## Spec - geometry
 
@@ -204,8 +217,8 @@ its collapsing tabs still follow by layout (shared with the search morph).
   search tab bar's hold.
 - `automatic` resolves to never (an iPhone tab bar that does not opt in);
   not read from UIKit.
-- Reverse-scroll: device distances (above); the search circle's tap and
-  path (above).
+- Reverse-scroll: further device distances (above); the search circle's
+  tap while another tab is selected and its motion path (above).
 - The accessory while searching (morph fades it), Reduce Motion.
 - `setBottomAccessory(_:animated:)`'s insertion animation (morph: the
   accessory appears in one frame).

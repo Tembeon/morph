@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
@@ -100,6 +102,22 @@ List<double> _dims(WidgetTester tester) => [
 ];
 
 void main() {
+  test('device dim samples pin the maximum and the linear cover law', () {
+    // iPhone 16 Pro pages-hold20/40/60/85, black alpha 0.1.
+    const samples = [
+      (65.33, 0.08375),
+      (145.67, 0.06376),
+      (229.0, 0.04303),
+      (327.33, 0.01857),
+    ];
+    for (final (x, alpha) in samples) {
+      expect(
+        MorphNavigationTuning.underDimOpacity * (1 - x / 402),
+        closeTo(alpha, 1e-5),
+      );
+    }
+  });
+
   testWidgets('the moving page is a card with the display corners and the '
       'page under it dims with the progress', (tester) async {
     await _pump(tester);
@@ -141,6 +159,33 @@ void main() {
   });
 
   group('the content back swipe', () {
+    for (final angle in [29.0, 30.0]) {
+      testWidgets('device content swipe at $angle degrees', (tester) async {
+        await _pump(tester);
+        final gesture = await tester.startGesture(const Offset(120, 700));
+        final radians = angle * math.pi / 180;
+        final step =
+            Offset(200 * math.cos(radians), -200 * math.sin(radians)) / 30;
+        for (var i = 0; i < 30; i++) {
+          await gesture.moveBy(step);
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await tester.pump(const Duration(milliseconds: 600));
+        final x = tester.getTopLeft(_scaffold('Message')).dx;
+        if (angle < 30) {
+          expect(x, greaterThan(120));
+        } else {
+          expect(x, closeTo(0, 0.5));
+        }
+        await gesture.up();
+        await _settle(tester);
+        expect(
+          _scaffold('Message'),
+          angle < 30 ? findsNothing : findsOneWidget,
+        );
+      });
+    }
+
     testWidgets('a drag toward the trailing side from inside the page pops '
         'it', (tester) async {
       await _pump(tester);

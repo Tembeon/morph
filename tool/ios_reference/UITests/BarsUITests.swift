@@ -302,7 +302,7 @@ final class BarsUITests: XCTestCase {
         }
         for frac in [0.35, 0.4, 0.45, 0.5, 0.57] {
             for dur in [0.25, 0.6] {
-                capture("pages-rel\(Int(frac * 100))-\(Int(dur * 100))", extra: pages) {
+                capture("pages-rel\(Int((frac * 100).rounded()))-\(Int((dur * 100).rounded()))", extra: pages) {
                     pushByRow()
                     pause(1.6)
                     let y = size.height * 0.75
@@ -324,7 +324,7 @@ final class BarsUITests: XCTestCase {
             }
         }
         let cy = 0.8
-        for (name, angle) in [("c0", 0.0), ("c20", 20.0), ("c30", 30.0), ("c40", 40.0), ("c50", 50.0), ("c60", 60.0)] {
+        for (name, angle) in [("c0", 0.0), ("c20", 20.0), ("c25", 25.0), ("c26", 26.0), ("c27", 27.0), ("c29", 29.0), ("c30", 30.0), ("c40", 40.0), ("c50", 50.0), ("c60", 60.0)] {
             capture("pages-\(name)", extra: pages) {
                 pushByRow()
                 pause(1.6)

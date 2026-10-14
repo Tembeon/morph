@@ -165,6 +165,17 @@ abstract final class MorphNavigationTuning {
   /// The width of the screen edge an interactive pop starts from.
   static const double edgeWidth = 20;
 
+  /// The touch travel before a content back swipe begins, in points.
+  /// iPhone 16 Pro content gestures at 0 / 20 / 25 / 26 degrees and a
+  /// slow horizontal drag start after 29.67–30 points of radial travel.
+  /// Deeper horizontal controls reach Flutter's touch slop first.
+  static const double contentPopTouchSlop = 30;
+
+  /// The limiting angle from horizontal of a content back swipe, in
+  /// degrees. Device captures accept 29 degrees and reject 30; the
+  /// boundary is fitted to that one-degree bracket (NEAR).
+  static const double contentPopMaxAngle = 30;
+
   /// The corner radius of a page while it slides, in points, when the
   /// platform reports no display corner radius: the moving page is a card
   /// with the display's continuous corners (fitted to a simulator film of
@@ -175,11 +186,11 @@ abstract final class MorphNavigationTuning {
 
   /// The opacity of the black over the page underneath when the page on
   /// top covers it fully; it follows the top page's progress linearly.
-  /// APPROXIMATION pending the iPhone: one simulator frame read 7 percent
-  /// (255 -> 238) at 0.6 progress of an edge swipe, so 0.11 at full cover
-  /// under a linear law; whether a push without a finger dims alike and
-  /// the exact law are not measured yet.
-  static const double underDimOpacity = 0.11;
+  /// iPhone 16 Pro, iOS 27.0.1: black alpha 0.1, with layer opacity
+  /// equal to the covering page's progress on a push and an edge or
+  /// content pop. Held edge samples at x 65.33 / 145.67 / 229 / 327.33
+  /// on a 402 point page give 0.8375 / 0.6376 / 0.4303 / 0.1857 opacity.
+  static const double underDimOpacity = 0.1;
 
   /// How far out, as a share of the width, a page released without a
   /// flick has to be for the swipe to pop it: device recordings stay at

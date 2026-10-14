@@ -40,6 +40,19 @@ double _drag(MorphSheetMotion motion, double travel, {double t = 3}) {
 
 void main() {
   group('stretch above the largest detent', () {
+    test('held device drags confirm the floating rubber-band dimensions', () {
+      // iPhone 16 Pro, iOS 27.0.1, rec-plan-stretch-{m,h}, 2026-10-14.
+      // Actual touch travel (the h gesture reaches the screen edge),
+      // held unscaled detent value, and the device's existing 12 pt slop.
+      const captures = [(435.67, 240.0, 491.67), (700.0, 181.333, 742.67)];
+      for (final (detent, travel, value) in captures) {
+        final motion = _motion([detent + _bottom]);
+        final t = _drag(motion, travel - 12);
+        motion.advance(t + 0.8);
+        expect(motion.height(t + 0.8) - _bottom, closeTo(value, 1.5));
+      }
+    });
+
     test('a floating largest detent rubber-bands toward the maximum', () {
       // Medium-only sheet (simulator): finger travel up, value above the
       // detent. UIKit's room is clamp(778 - 435.68, 0, 100) = 100.

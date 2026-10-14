@@ -667,7 +667,7 @@ void main() {
     );
   });
 
-  group('keyboard and scrolling (simulator capture, 402 x 874)', () {
+  group('keyboard and scrolling (simulator and device, 402 x 874)', () {
     void phone(WidgetTester tester) {
       tester.view.physicalSize = const Size(402, 874) * 3;
       tester.view.devicePixelRatio = 3;
@@ -730,6 +730,45 @@ void main() {
       expect(tester.getRect(find.byKey(_contentKey)).top, closeTo(415.0, 0.5));
       expect(changes, isEmpty);
     });
+
+    testWidgets(
+      'three detents choose large and return to small with the keyboard',
+      (WidgetTester tester) async {
+        // iPhone 16 Pro rec-plan-kb-sml: 200 -> 778 -> 200, no callback.
+        phone(tester);
+        final changes = <MorphSheetDetent>[];
+        await tester.pumpWidget(
+          _app(
+            onPresent: (BuildContext context) => showMorphSheet<void>(
+              context,
+              detents: const [
+                MorphSheetDetent.height(200),
+                MorphSheetDetent.medium,
+                MorphSheetDetent.large,
+              ],
+              onDetentChanged: changes.add,
+              builder: _content,
+            ),
+          ),
+        );
+        await tester.tap(find.text('present'));
+        await _settle(tester);
+        expect(
+          tester.getRect(find.byKey(_contentKey)).top,
+          closeTo(641.315, 0.5),
+        );
+        tester.view.viewInsets = const FakeViewPadding(bottom: 328 * 3);
+        await _settle(tester);
+        expect(tester.getRect(find.byKey(_contentKey)).top, closeTo(62, 0.5));
+        tester.view.resetViewInsets();
+        await _settle(tester);
+        expect(
+          tester.getRect(find.byKey(_contentKey)).top,
+          closeTo(641.315, 0.5),
+        );
+        expect(changes, isEmpty);
+      },
+    );
 
     testWidgets('scrollingExpandsSheet false scrolls the content at once', (
       WidgetTester tester,

@@ -1,0 +1,501 @@
+{
+  "source": "iPhone 16 Pro, iOS 27.0.1, 2026-10-15; navtitle full matrix; visible single-line titles only; raw notes private",
+  "samples": [
+    {
+      "case": 0,
+      "lo": 72,
+      "hi": 386,
+      "textWidth": 17,
+      "left": 192.33,
+      "width": 17
+    },
+    {
+      "case": 1,
+      "lo": 72,
+      "hi": 386,
+      "textWidth": 86.67,
+      "left": 157.67,
+      "width": 86.67
+    },
+    {
+      "case": 2,
+      "lo": 72,
+      "hi": 386,
+      "textWidth": 169.67,
+      "left": 116,
+      "width": 169.67
+    },
+    {
+      "case": 3,
+      "lo": 72,
+      "hi": 386,
+      "textWidth": 294.33,
+      "left": 72,
+      "width": 294.33
+    },
+    {
+      "case": 4,
+      "lo": 72,
+      "hi": 386,
+      "textWidth": 504,
+      "left": 72,
+      "width": 314
+    },
+    {
+      "case": 7,
+      "lo": 72,
+      "hi": 330,
+      "textWidth": 17,
+      "left": 192.33,
+      "width": 17
+    },
+    {
+      "case": 8,
+      "lo": 72,
+      "hi": 330,
+      "textWidth": 86.67,
+      "left": 157.67,
+      "width": 86.67
+    },
+    {
+      "case": 9,
+      "lo": 72,
+      "hi": 330,
+      "textWidth": 169.67,
+      "left": 116,
+      "width": 169.67
+    },
+    {
+      "case": 10,
+      "lo": 72,
+      "hi": 330,
+      "textWidth": 294.33,
+      "left": 72,
+      "width": 258
+    },
+    {
+      "case": 11,
+      "lo": 72,
+      "hi": 330,
+      "textWidth": 504,
+      "left": 72,
+      "width": 258
+    },
+    {
+      "case": 14,
+      "lo": 72,
+      "hi": 270.33,
+      "textWidth": 17,
+      "left": 192.33,
+      "width": 17
+    },
+    {
+      "case": 15,
+      "lo": 72,
+      "hi": 270.33,
+      "textWidth": 86.67,
+      "left": 157.67,
+      "width": 86.67
+    },
+    {
+      "case": 16,
+      "lo": 72,
+      "hi": 270.33,
+      "textWidth": 169.67,
+      "left": 72,
+      "width": 169.67
+    },
+    {
+      "case": 17,
+      "lo": 72,
+      "hi": 270.33,
+      "textWidth": 294.33,
+      "left": 72,
+      "width": 198.33
+    },
+    {
+      "case": 18,
+      "lo": 72,
+      "hi": 270.33,
+      "textWidth": 504,
+      "left": 72,
+      "width": 198.33
+    },
+    {
+      "case": 21,
+      "lo": 72,
+      "hi": 184.67,
+      "textWidth": 17,
+      "left": 72,
+      "width": 17
+    },
+    {
+      "case": 22,
+      "lo": 72,
+      "hi": 184.67,
+      "textWidth": 86.67,
+      "left": 72,
+      "width": 86.67
+    },
+    {
+      "case": 23,
+      "lo": 72,
+      "hi": 184.67,
+      "textWidth": 169.67,
+      "left": 72,
+      "width": 112.67
+    },
+    {
+      "case": 24,
+      "lo": 72,
+      "hi": 184.67,
+      "textWidth": 294.33,
+      "left": 72,
+      "width": 112.67
+    },
+    {
+      "case": 25,
+      "lo": 72,
+      "hi": 184.67,
+      "textWidth": 504,
+      "left": 72,
+      "width": 112.67
+    },
+    {
+      "case": 28,
+      "lo": 72,
+      "hi": 203.33,
+      "textWidth": 17,
+      "left": 72,
+      "width": 17
+    },
+    {
+      "case": 29,
+      "lo": 72,
+      "hi": 203.33,
+      "textWidth": 86.67,
+      "left": 72,
+      "width": 86.67
+    },
+    {
+      "case": 30,
+      "lo": 72,
+      "hi": 203.33,
+      "textWidth": 169.67,
+      "left": 72,
+      "width": 131.33
+    },
+    {
+      "case": 31,
+      "lo": 72,
+      "hi": 203.33,
+      "textWidth": 294.33,
+      "left": 72,
+      "width": 131.33
+    },
+    {
+      "case": 32,
+      "lo": 72,
+      "hi": 203.33,
+      "textWidth": 504,
+      "left": 72,
+      "width": 131.33
+    },
+    {
+      "case": 42,
+      "lo": 16,
+      "hi": 386,
+      "textWidth": 17,
+      "left": 192.33,
+      "width": 17
+    },
+    {
+      "case": 43,
+      "lo": 16,
+      "hi": 386,
+      "textWidth": 86.67,
+      "left": 157.67,
+      "width": 86.67
+    },
+    {
+      "case": 44,
+      "lo": 16,
+      "hi": 386,
+      "textWidth": 169.67,
+      "left": 116,
+      "width": 169.67
+    },
+    {
+      "case": 45,
+      "lo": 16,
+      "hi": 386,
+      "textWidth": 294.33,
+      "left": 53.67,
+      "width": 294.33
+    },
+    {
+      "case": 46,
+      "lo": 16,
+      "hi": 386,
+      "textWidth": 504,
+      "left": 16,
+      "width": 370
+    },
+    {
+      "case": 49,
+      "lo": 16,
+      "hi": 330,
+      "textWidth": 17,
+      "left": 192.33,
+      "width": 17
+    },
+    {
+      "case": 50,
+      "lo": 16,
+      "hi": 330,
+      "textWidth": 86.67,
+      "left": 157.67,
+      "width": 86.67
+    },
+    {
+      "case": 51,
+      "lo": 16,
+      "hi": 330,
+      "textWidth": 169.67,
+      "left": 116,
+      "width": 169.67
+    },
+    {
+      "case": 52,
+      "lo": 16,
+      "hi": 330,
+      "textWidth": 294.33,
+      "left": 16,
+      "width": 294.33
+    },
+    {
+      "case": 53,
+      "lo": 16,
+      "hi": 330,
+      "textWidth": 504,
+      "left": 16,
+      "width": 314
+    },
+    {
+      "case": 56,
+      "lo": 16,
+      "hi": 270.33,
+      "textWidth": 17,
+      "left": 192.33,
+      "width": 17
+    },
+    {
+      "case": 57,
+      "lo": 16,
+      "hi": 270.33,
+      "textWidth": 86.67,
+      "left": 157.67,
+      "width": 86.67
+    },
+    {
+      "case": 58,
+      "lo": 16,
+      "hi": 270.33,
+      "textWidth": 169.67,
+      "left": 16,
+      "width": 169.67
+    },
+    {
+      "case": 59,
+      "lo": 16,
+      "hi": 270.33,
+      "textWidth": 294.33,
+      "left": 16,
+      "width": 254.33
+    },
+    {
+      "case": 60,
+      "lo": 16,
+      "hi": 270.33,
+      "textWidth": 504,
+      "left": 16,
+      "width": 254.33
+    },
+    {
+      "case": 63,
+      "lo": 16,
+      "hi": 184.67,
+      "textWidth": 17,
+      "left": 16,
+      "width": 17
+    },
+    {
+      "case": 64,
+      "lo": 16,
+      "hi": 184.67,
+      "textWidth": 86.67,
+      "left": 16,
+      "width": 86.67
+    },
+    {
+      "case": 65,
+      "lo": 16,
+      "hi": 184.67,
+      "textWidth": 169.67,
+      "left": 16,
+      "width": 168.67
+    },
+    {
+      "case": 66,
+      "lo": 16,
+      "hi": 184.67,
+      "textWidth": 294.33,
+      "left": 16,
+      "width": 168.67
+    },
+    {
+      "case": 67,
+      "lo": 16,
+      "hi": 184.67,
+      "textWidth": 504,
+      "left": 16,
+      "width": 168.67
+    },
+    {
+      "case": 70,
+      "lo": 16,
+      "hi": 203.33,
+      "textWidth": 17,
+      "left": 16,
+      "width": 17
+    },
+    {
+      "case": 71,
+      "lo": 16,
+      "hi": 203.33,
+      "textWidth": 86.67,
+      "left": 16,
+      "width": 86.67
+    },
+    {
+      "case": 72,
+      "lo": 16,
+      "hi": 203.33,
+      "textWidth": 169.67,
+      "left": 16,
+      "width": 169.67
+    },
+    {
+      "case": 73,
+      "lo": 16,
+      "hi": 203.33,
+      "textWidth": 294.33,
+      "left": 16,
+      "width": 187.33
+    },
+    {
+      "case": 74,
+      "lo": 16,
+      "hi": 203.33,
+      "textWidth": 504,
+      "left": 16,
+      "width": 187.33
+    },
+    {
+      "case": 77,
+      "lo": 16,
+      "hi": 65.33,
+      "textWidth": 17,
+      "left": 16,
+      "width": 17
+    },
+    {
+      "case": 84,
+      "lo": 228.33,
+      "hi": 386,
+      "textWidth": 17,
+      "left": 228.33,
+      "width": 17
+    },
+    {
+      "case": 85,
+      "lo": 228.33,
+      "hi": 386,
+      "textWidth": 86.67,
+      "left": 228.33,
+      "width": 86.67
+    },
+    {
+      "case": 86,
+      "lo": 228.33,
+      "hi": 386,
+      "textWidth": 169.67,
+      "left": 228.33,
+      "width": 157.67
+    },
+    {
+      "case": 87,
+      "lo": 228.33,
+      "hi": 386,
+      "textWidth": 294.33,
+      "left": 228.33,
+      "width": 157.67
+    },
+    {
+      "case": 88,
+      "lo": 228.33,
+      "hi": 386,
+      "textWidth": 504,
+      "left": 228.33,
+      "width": 157.67
+    },
+    {
+      "case": 91,
+      "lo": 228.33,
+      "hi": 330,
+      "textWidth": 17,
+      "left": 228.33,
+      "width": 17
+    },
+    {
+      "case": 92,
+      "lo": 228.33,
+      "hi": 330,
+      "textWidth": 86.67,
+      "left": 228.33,
+      "width": 86.67
+    },
+    {
+      "case": 93,
+      "lo": 228.33,
+      "hi": 330,
+      "textWidth": 169.67,
+      "left": 228.33,
+      "width": 101.67
+    },
+    {
+      "case": 94,
+      "lo": 228.33,
+      "hi": 330,
+      "textWidth": 294.33,
+      "left": 228.33,
+      "width": 101.67
+    },
+    {
+      "case": 95,
+      "lo": 228.33,
+      "hi": 330,
+      "textWidth": 504,
+      "left": 228.33,
+      "width": 101.67
+    },
+    {
+      "case": 98,
+      "lo": 228.33,
+      "hi": 270.33,
+      "textWidth": 17,
+      "left": 228.33,
+      "width": 17
+    }
+  ]
+}

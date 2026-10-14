@@ -236,6 +236,7 @@ abstract final class MorphSheetTuning {
   /// Simulator capture: a medium-only sheet fits 100 (0.2 points rms over
   /// 240 points of travel), a 700 point detent with 78 points of room
   /// fits 78 (0.5 points rms).
+  /// Held iPhone 16 Pro drags confirm both dimensions within 1.5 points.
   static const double stretchLimit = 100;
 
   /// How far below the large detent, in unscaled points, a dragged sheet
@@ -252,6 +253,7 @@ abstract final class MorphSheetTuning {
   /// to it (read from UIKit, notes private); the simulator flips the
   /// background between 600.0 and 602.7 points both ways, where the drag's
   /// docking progress crosses one half.
+  /// The iPhone 16 Pro turns at 602.67 points (progress 0.5025).
   static const double backgroundSwitch = 0.5;
 
   /// The share of [refusedPullExtent] that a refused pull must exceed when

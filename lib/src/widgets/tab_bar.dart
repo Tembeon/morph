@@ -29,8 +29,9 @@ enum MorphTabRole {
   /// `automaticallyActivatesSearch`, SwiftUI `Tab(role: .search)`): an
   /// ordinary tab while the bar is expanded, whose page carries a stacked
   /// search field; a minimized bar sets it apart as a circle of its own at
-  /// the trailing side. For the search tab that turns into a field on
-  /// selection, use [MorphSearchTabBar].
+  /// the trailing side. Tapping that circle when selected expands the
+  /// bar without changing the page (iPhone 16 Pro capture). For the search
+  /// tab that turns into a field on selection, use [MorphSearchTabBar].
   search,
 }
 
@@ -60,7 +61,8 @@ class MorphTabItem {
 
   /// The badge at the top trailing corner of the glyph (UIKit
   /// `UITabBarItem.badgeValue`, SwiftUI `badge(_:)`), or null; see
-  /// [MorphBadge] for what is not yet measured.
+  /// [MorphBadge] for what is not yet measured. It rides the bar's swell
+  /// above the lens, without refraction (iPhone 16 Pro capture).
   final MorphBadge? badge;
 
   /// The item's title.
@@ -757,48 +759,66 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
               width: geometry.width,
               height: _barHeight,
               child: Stack(
-                children: glass == null
-                    ? [
-                        Positioned.fill(child: _Glass(style: style)),
-                        Positioned.fill(
-                          child: CustomPaint(painter: _GlowPainter(this)),
-                        ),
-                        Positioned.fill(
-                          child: CustomPaint(painter: _LensPainter(this)),
-                        ),
-                        Positioned.fill(
-                          left: MorphTabBarMetrics.sideInset,
-                          right: MorphTabBarMetrics.sideInset,
+                children: [
+                  if (glass == null) ...[
+                    Positioned.fill(child: _Glass(style: style)),
+                    Positioned.fill(
+                      child: CustomPaint(painter: _GlowPainter(this)),
+                    ),
+                    Positioned.fill(
+                      child: CustomPaint(painter: _LensPainter(this)),
+                    ),
+                    Positioned.fill(
+                      left: MorphTabBarMetrics.sideInset,
+                      right: MorphTabBarMetrics.sideInset,
+                      child: tabs,
+                    ),
+                  ] else ...[
+                    Positioned.fill(
+                      child: MorphGlassLayer(
+                        painter: glass,
+                        frames: frames,
+                        surfaces: _surfaces,
+                        content: Padding(
+                          padding: const .symmetric(
+                            horizontal: MorphTabBarMetrics.sideInset,
+                          ),
                           child: tabs,
                         ),
-                      ]
-                    : [
-                        Positioned.fill(
-                          child: MorphGlassLayer(
-                            painter: glass,
-                            frames: frames,
-                            surfaces: _surfaces,
-                            content: Padding(
-                              padding: const .symmetric(
-                                horizontal: MorphTabBarMetrics.sideInset,
+                        contentSlots: [
+                          for (var i = 0; i < widget.items.length; i++)
+                            Rect.fromCenter(
+                              center: Offset(
+                                MorphTabBarMetrics.sideInset +
+                                    geometry.pitch * (i + 0.5),
+                                _barHeight / 2,
                               ),
-                              child: tabs,
+                              width: geometry.pitch,
+                              height: _barHeight,
                             ),
-                            contentSlots: [
-                              for (var i = 0; i < widget.items.length; i++)
-                                Rect.fromCenter(
-                                  center: Offset(
-                                    MorphTabBarMetrics.sideInset +
-                                        geometry.pitch * (i + 0.5),
-                                    _barHeight / 2,
-                                  ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (widget.items.any((item) => item.badge?.visible ?? false))
+                    Positioned.fill(
+                      left: MorphTabBarMetrics.sideInset,
+                      right: MorphTabBarMetrics.sideInset,
+                      child: IgnorePointer(
+                        child: ExcludeSemantics(
+                          child: Row(
+                            children: [
+                              for (final item in widget.items)
+                                SizedBox(
                                   width: geometry.pitch,
-                                  height: _barHeight,
+                                  child: _TabBadge(item: item, scaler: scaler),
                                 ),
                             ],
                           ),
                         ),
-                      ],
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -907,7 +927,6 @@ class _TabLabel extends StatelessWidget {
     final style = MorphTypography.resolve(
       selected ? MorphTypography.tabLabelSelected : MorphTypography.tabLabel,
     ).copyWith(color: color);
-    final badge = item.badge;
     if (!selected) {
       final Widget glyph = Icon(
         item.icon,
@@ -917,14 +936,7 @@ class _TabLabel extends StatelessWidget {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (badge == null)
-            glyph
-          else
-            MorphBadged.glyph(
-              badge: badge,
-              glyphSize: const Size.square(MorphTabBarMetrics.iconSize),
-              child: glyph,
-            ),
+          glyph,
           const SizedBox(height: MorphTabBarMetrics.labelGap),
           Text(item.label, maxLines: 1, textScaler: scaler, style: style),
         ],
@@ -955,14 +967,7 @@ class _TabLabel extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (badge == null)
-          glyph
-        else
-          MorphBadged.glyph(
-            badge: badge,
-            glyphSize: const Size.square(MorphTabBarMetrics.iconSize),
-            child: glyph,
-          ),
+        glyph,
         const SizedBox(height: MorphTabBarMetrics.labelGap),
         RichText(
           maxLines: 1,
@@ -970,6 +975,42 @@ class _TabLabel extends StatelessWidget {
           text: TextSpan(
             text: item.label,
             style: DefaultTextStyle.of(context).style.merge(style),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Native badges ride the bar's swell but stay above the refracting lens.
+class _TabBadge extends StatelessWidget {
+  const _TabBadge({required this.item, required this.scaler});
+
+  final MorphTabItem item;
+  final TextScaler scaler;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!(item.badge?.visible ?? false)) return const SizedBox.shrink();
+    final style = MorphTypography.resolve(MorphTypography.tabLabel);
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        MorphBadged.glyph(
+          badge: item.badge,
+          glyphSize: const Size.square(MorphTabBarMetrics.iconSize),
+          child: const SizedBox.square(dimension: MorphTabBarMetrics.iconSize),
+        ),
+        const SizedBox(height: MorphTabBarMetrics.labelGap),
+        Opacity(
+          opacity: 0,
+          child: RichText(
+            maxLines: 1,
+            textScaler: scaler,
+            text: TextSpan(
+              text: item.label,
+              style: DefaultTextStyle.of(context).style.merge(style),
+            ),
           ),
         ),
       ],

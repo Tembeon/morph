@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/navigation_bar.dart'
@@ -31,6 +34,39 @@ const _pair = (282.0, 386.0, false);
 const _pairDone = (197.0, 386.0, false);
 
 void main() {
+  test('62 visible device title frames follow the room rule', () {
+    final fixture =
+        jsonDecode(
+              File(
+                'test/fixtures/ios27-device/navigation/title-room.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, Object?>;
+    final samples = fixture['samples']! as List<Object?>;
+    expect(samples, hasLength(62));
+    for (final sample in samples) {
+      final row = sample! as Map<String, Object?>;
+      double value(String key) => (row[key]! as num).toDouble();
+      final frame = morphInlineTitleFrame(
+        barWidth: 402,
+        textWidth: value('textWidth'),
+        lo: value('lo'),
+        hi: value('hi'),
+        rtl: false,
+      )!;
+      expect(
+        frame.left,
+        closeTo(value('left'), 0.5),
+        reason: 'case ${row['case']}',
+      );
+      expect(
+        frame.width,
+        closeTo(value('width'), 0.5),
+        reason: 'case ${row['case']}',
+      );
+    }
+  });
+
   group('the native title rule', () {
     test('a title that fits centered stays centered', () {
       // "Hi" ink 194.0 - 207.7 beside the pair.
@@ -67,6 +103,20 @@ void main() {
       expect(f.left, 72);
       expect(f.width, 60);
     });
+
+    test(
+      'device wide leading groups place even a short title at the bound',
+      () {
+        // iPhone 16 Pro navtitle config 84: Cancel / Organize, title Hi.
+        final frame = _frame(
+          17,
+          capsules: [(16, 102, true), (114, 216.33, true)],
+        )!;
+        expect(frame.left, closeTo(228.33, 0.5));
+        expect(frame.width, 17);
+        expect(frame.centered, isFalse);
+      },
+    );
 
     test('no room drops the title', () {
       // Select All / Share / Organize from 77 next to the back button.

@@ -485,6 +485,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(changes, [0, 2]);
       expect(find.byType(MorphCollapsingTabs), findsOneWidget);
+      // Device follow-up: tapping the already-selected Search circle
+      // expands the bar without changing the page.
+      await tester.tapAt(const Offset(402 - 28 - 24, 874 - 21 - 31));
+      await tester.pumpAndSettle();
+      expect(changes, [0, 2]);
+      expect(find.byType(MorphCollapsingTabs), findsNothing);
     });
 
     testWidgets('a programmatic scroll never minimizes; reaching the top '

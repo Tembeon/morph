@@ -29,40 +29,45 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
   popping one starts from rest ~0.03 s after the lift. +1.25 returned 3/3
   (synthesizer artifact or unmodelled rule - not reproduced).
 
-## Spec - the card and the dim [simulator film, 2026-10-14; iPhone pending]
+## Spec - the card and the dim [simulator film and device, 2026-10-15]
 
 - While a page slides it is a card with the display's continuous corners:
   in the native sweep's edge-swipe film (iPhone 17 Pro simulator, iOS 27.0)
   the moving page's leading edge is rounded top and bottom with a radius
   fitted at ~62 pt, the display's. At rest the page is square.
-- The page underneath darkens: 255 -> 238 (7 percent black) at ~0.4 of the
-  swipe (top page 0.6 in). Not yet known: the law along the progress,
-  whether a push without a finger dims alike, dark mode, a shadow.
+- The page underneath darkens with black alpha 0.1 and a layer opacity
+  equal to the covering page's progress. iPhone 16 Pro, iOS 27.0.1,
+  `pages-hold20/40/60/85`: actual card x 65.33 / 145.67 / 229 / 327.33
+  pt on a 402 pt page gives opacity 0.8375 / 0.6376 / 0.4303 / 0.1857.
+  Programmatic push and content-pop rows use the same 0.1 black.
+  The former 0.11 maximum was an estimate from one simulator pixel.
 - morph: the slide clips the moving page (its own animation running or
   held by a finger) to a rounded superellipse of
   `MediaQueryData.displayCornerRadii` (fallback
   `MorphNavigationTuning.fallbackCardRadius` = 62); the page underneath
-  takes black at `underDimOpacity` (0.11) x the top page's progress, on
-  pushes and pops with or without a finger. Declared APPROXIMATION: the
-  linear law and its maximum come from one frame; the push dim is assumed.
-  Pinned by navigation_card_test. Cost: one rounded-superellipse clip
-  layer on the moving page and one opacity layer on the page below, only
-  while the slide moves - frame time on the Pixel 6a not measured yet.
+  takes black at `underDimOpacity` (0.1) x the top page's progress, on
+  pushes and pops with or without a finger. Pinned by navigation_card_test.
+  Cost: one rounded-superellipse clip layer on the moving page and a
+  direct black paint below it, only while the slide moves. Pixel 6a
+  navigation measurements are in the branch-completion audit.
 
-## Spec - the content back swipe [not measured; iPhone pending]
+## Spec - the content back swipe [device, 2026-10-15]
 
 UINavigationController's `interactiveContentPopGestureRecognizer` (iOS 26,
 on by default) pops from a horizontal drag anywhere in the content. morph:
 `MorphNavigationStack.contentPopGestureEnabled` (default true) - past
-Flutter's pan slop (36 pt, so a pan or scale recognizer at the same spot
-reaches its slop first) toward the trailing side, the page follows and
+30 pt of radial touch travel toward the trailing side, the page follows and
 releases exactly as the edge swipe (same `popDistance` / `popVelocity`);
 a drag toward the leading side never claims the pointer; any horizontal
 drag, pan or scale recognizer deeper under the finger (scroll views,
 sliders, page views, draggable pieces, InteractiveViewer) wins the arena
-first and keeps the drag, at any offset. NEAR /
-assumed until the capture below: the angle cutoff, the slop, the commit
-rule and whether a scroll view at its leading end yields to the pop.
+first and keeps the drag, at any offset. Device `pages-c0/c20/c25/c26/cslow`
+place the radial start at 29.67–30 pt after subtracting the recognizer's
+reported translation from the delivered touch travel. `pages-c29` begins;
+`pages-c30/c40/c50/c60` do not. Morph's 30 degree angle boundary is NEAR,
+fitted to the 29..30 degree bracket; other pointer kinds keep Flutter's pan
+slop. Leftward drags do not begin. The horizontal strip scenarios retained
+their scroll gesture; end-to-end handoff at all offsets remains unmeasured.
 
 ## Spec - the commit rule, re-checked [simulator sweep, 2026-10-14]
 
@@ -183,8 +188,10 @@ bars no longer repaints with them. Host recorder, flat: push 6/5/75-97 ->
 
 ## Not reproduced / open
 
-- The dim law, the push dim, the content swipe's rules and the commit
-  re-check wait for the navpages capture (above).
+- The exact angle boundary within 29..30 degrees and scroll-to-pop
+  handoff rules outside the recorded horizontal-strip cases.
+- The commit rule's returning-flick anomaly below; synthesized gesture
+  commands must be compared with delivered touches, not requested paths.
 
 - +1.25 widths/s returning flicks.
 - Exact push curve is a fit (no read value for v0).

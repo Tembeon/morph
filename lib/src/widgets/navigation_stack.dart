@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -302,8 +303,10 @@ class MorphNavigationStack extends StatefulWidget {
   /// The content swipe moves and releases the page exactly as the edge
   /// swipe does. A horizontal scrollable, slider or other horizontal drag
   /// under the finger keeps its drag; a drag toward the leading side never
-  /// starts the swipe. Where UIKit hands such a drag to the pop gesture
-  /// instead (a scroll view already at its leading end) is not measured.
+  /// starts the swipe. A touch starts after 30 points of radial travel,
+  /// within 30 degrees of horizontal (device-fitted boundary, NEAR).
+  /// Native horizontal-strip captures keep the scroll gesture at its
+  /// leading end and when already scrolled.
   final bool contentPopGestureEnabled;
 
   /// The look of the bars; null resolves it from the theme.
@@ -1287,7 +1290,7 @@ class _EdgePopState extends State<_EdgePop> {
 }
 
 /// The back swipe from inside a page's content: a horizontal drag that
-/// claims the pointer only once it has travelled the pan slop toward the
+/// claims the pointer only once it has travelled the content-pop slop toward the
 /// trailing side ([forward] is 1 left to right, -1 right to left), so a
 /// drag the other way stays with whatever else wants it. A horizontal
 /// scrollable, pan or scale recognizer under the finger sits deeper in
@@ -1297,16 +1300,21 @@ class _ContentPopDrag extends HorizontalDragGestureRecognizer {
 
   double forward = 1;
   double _travel = 0;
+  double _crossTravel = 0;
 
   @override
   void addAllowedPointer(PointerDownEvent event) {
     _travel = 0;
+    _crossTravel = 0;
     super.addAllowedPointer(event);
   }
 
   @override
   void handleEvent(PointerEvent event) {
-    if (event is PointerMoveEvent) _travel += event.delta.dx * forward;
+    if (event is PointerMoveEvent) {
+      _travel += event.delta.dx * forward;
+      _crossTravel += event.delta.dy;
+    }
     super.handleEvent(event);
   }
 
@@ -1314,12 +1322,19 @@ class _ContentPopDrag extends HorizontalDragGestureRecognizer {
   bool hasSufficientGlobalDistanceToAccept(
     PointerDeviceKind pointerDeviceKind,
     double? deviceTouchSlop,
-  ) =>
-      _travel > computePanSlop(pointerDeviceKind, gestureSettings) &&
-      super.hasSufficientGlobalDistanceToAccept(
-        pointerDeviceKind,
-        deviceTouchSlop,
-      );
+  ) {
+    final slop = pointerDeviceKind == PointerDeviceKind.touch
+        ? MorphNavigationTuning.contentPopTouchSlop
+        : computePanSlop(pointerDeviceKind, gestureSettings);
+    final angle = math.atan2(_crossTravel.abs(), _travel) * 180 / math.pi;
+    return _travel > 0 &&
+        angle < MorphNavigationTuning.contentPopMaxAngle &&
+        _travel * _travel + _crossTravel * _crossTravel > slop * slop &&
+        super.hasSufficientGlobalDistanceToAccept(
+          pointerDeviceKind,
+          deviceTouchSlop,
+        );
+  }
 }
 
 /// When a [MorphNavigationScaffold] shows its title large, after UIKit's

@@ -226,7 +226,7 @@ release and on a 0.22 s hold like the inline menu button, its tap 0.013 s
 later [device, 2026-10-05]: see menu-button.md "Bar item menu as primary
 action".
 
-## Spec - inline title room [layout, sim 2026-10-14, scene navtitle]
+## Spec - inline title room [layout, sim 2026-10-14 and device 2026-10-15]
 
 Probe scene `navtitle` (tool/ios_reference/Sources/NavTitle.swift): a
 pushed page whose navigationItem cycles five titles ("Hi" to a 300+ pt
@@ -235,6 +235,11 @@ icon / an icon pair / pair + prominent Done / two / three text groups;
 iPhone 17 Pro simulator, iOS 27.0, 402 pt. 46 bars filmed (the run was
 cut by the shutdown of the simulators; the leading-group variants are
 missing). Title ink read from the stills (notes and stills private).
+The complete 126-case matrix ran on iPhone 16 Pro without XCTest.
+62 visible single-line title frames confirm the placement rule within
+0.5 pt (largest left-edge error 0.17 pt), including none and wide
+leading groups. Own numeric fixture:
+`ios27-device/navigation/title-room.json`; raw rows and PNGs private.
 
 - Bounds: `lo` = right edge of the leading groups + 12 (16 without
   them), `hi` = left edge of the trailing groups - 12 (width - 16 without
@@ -246,8 +251,12 @@ missing). Title ink read from the stills (notes and stills private).
   title" (168 pt) beside the pair starts at 72.7 although 101 - 269 would
   fit; even "Hi" goes to `lo` beside pair + Done (center 201 > hi 185).
   Truncated with an ellipsis at `hi`.
-- No room: dropped (three text groups reaching 77 pt). The threshold
-  between 0 and 131 pt of room is not measured.
+- No room: dropped (three text groups reaching 77 pt). Device: a 17 pt
+  short title remains in 49.33 pt of room but a longer title disappears;
+  a long title still truncates in 101.67 pt of room. The drop threshold
+  between these widths is not measured. Overfull groups can become an
+  overflow button before allocating the title; that priority rule is
+  not ported, so their final visible bounds do not recover the title room.
 - Title + subtitle: one block as wide as the wider line, placed by the
   same rule; both lines leading-aligned when the block sits at `lo`. One
   bar of nine (icon at the trailing side, long title truncated, subtitle
