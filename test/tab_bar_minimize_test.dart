@@ -165,6 +165,79 @@ void main() {
       expect(motion.restsExpanded(6), isTrue);
     });
 
+    MorphTabBarMinimizeMotion minimized() {
+      final motion = MorphTabBarMinimizeMotion();
+      motion.advance(0);
+      _drag(motion.scrollAway, 100);
+      motion.advance(3);
+      motion.settle(3);
+      expect(motion.minimized, isTrue);
+      return motion;
+    }
+
+    test('a finger held 0.22 s expands the bar; lifted, it collapses', () {
+      final motion = minimized();
+      motion.pressDown(3, 50);
+      motion.advance(3.2);
+      expect(motion.minimized, isTrue);
+      expect(motion.wakeTime(3.2), closeTo(3.22, 1e-9));
+      motion.advance(3.23);
+      expect(motion.minimized, isFalse);
+      expect(motion.pressMove(3.3, 53), isFalse);
+      motion.pressUp(3.4);
+      expect(motion.minimized, isTrue);
+      expect(motion.pressed, isFalse);
+    });
+
+    test('4 points along the bar expand it at once and scrub', () {
+      final motion = minimized();
+      motion.pressDown(3, 50);
+      expect(motion.pressMove(3.05, 53.9), isFalse);
+      expect(motion.minimized, isTrue);
+      expect(motion.pressMove(3.06, 46), isTrue);
+      expect(motion.minimized, isFalse);
+      expect(motion.scrubs, isTrue);
+      expect(motion.pressMove(3.1, 200), isFalse);
+      motion.advance(3.5);
+      motion.pressUp(3.5);
+      expect(motion.minimized, isFalse);
+    });
+
+    test('a move after the hold keeps the bar expanded', () {
+      final motion = minimized();
+      motion.pressDown(3, 50);
+      motion.advance(3.3);
+      expect(motion.minimized, isFalse);
+      expect(motion.pressMove(3.35, 60), isTrue);
+      motion.pressUp(3.5);
+      expect(motion.minimized, isFalse);
+    });
+
+    test('a quick tap expands; the late hold does nothing', () {
+      final motion = minimized();
+      motion.pressDown(3, 50);
+      motion.advance(3.1);
+      motion.pressUp(3.1);
+      expect(motion.minimized, isFalse);
+      motion.advance(3.5);
+      expect(motion.minimized, isFalse);
+    });
+
+    test('a cancelled hold collapses back', () {
+      final motion = minimized();
+      motion.pressDown(3, 50);
+      motion.advance(3.3);
+      motion.pressCancel(3.3);
+      expect(motion.minimized, isTrue);
+    });
+
+    test('a press on an expanded bar does nothing', () {
+      final motion = MorphTabBarMinimizeMotion();
+      motion.pressDown(0, 50);
+      expect(motion.pressed, isFalse);
+      expect(motion.pressMove(0.1, 90), isFalse);
+    });
+
     test('a behavior that stops minimizing expands the bar', () {
       final motion = MorphTabBarMinimizeMotion();
       motion.advance(0);
@@ -203,6 +276,7 @@ void main() {
           MorphTabBarMinimizeBehavior.onScrollDown,
       Widget? accessory,
       ScrollController? controller,
+      ValueChanged<int>? onChanged,
     }) => MaterialApp(
       home: MorphContentScrollScope(
         child: Stack(
@@ -222,7 +296,7 @@ void main() {
               child: MorphTabBar(
                 items: _items,
                 selected: 1,
-                onChanged: (_) {},
+                onChanged: onChanged ?? (_) {},
                 minimizeBehavior: behavior,
                 bottomAccessory: accessory,
               ),
@@ -258,6 +332,79 @@ void main() {
       await tester.tapAt(const Offset(28 + 24, 874 - 21 - 31));
       await tester.pumpAndSettle();
       expect(find.byType(MorphCollapsingTabs), findsNothing);
+    });
+
+    testWidgets('a held finger expands the bar, scrubs and selects on '
+        'release', (WidgetTester tester) async {
+      _phone(tester);
+      final changes = <int>[];
+      await tester.pumpWidget(app(onChanged: changes.add));
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      expect(find.byType(MorphCollapsingTabs), findsOneWidget);
+      final finger = await tester.startGesture(
+        const Offset(28 + 24, 874 - 21 - 31),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(MorphCollapsingTabs), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
+      // Held past 0.22 s: the bar expanded under the finger.
+      expect(find.byType(MorphCollapsingTabs), findsNothing);
+      for (var x = 52.0; x <= 280; x += 12) {
+        await finger.moveTo(Offset(x, 874 - 21 - 31));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      await finger.up();
+      await tester.pumpAndSettle();
+      expect(changes.last, 2);
+      expect(find.byType(MorphCollapsingTabs), findsNothing);
+    });
+
+    testWidgets('a drag from the circle expands at once and selects', (
+      WidgetTester tester,
+    ) async {
+      _phone(tester);
+      final changes = <int>[];
+      await tester.pumpWidget(app(onChanged: changes.add));
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      final finger = await tester.startGesture(
+        const Offset(28 + 24, 874 - 21 - 31),
+      );
+      await tester.pump(const Duration(milliseconds: 16));
+      for (var x = 52.0; x <= 370; x += 12) {
+        await finger.moveTo(Offset(x, 874 - 21 - 31));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      await finger.up();
+      await tester.pumpAndSettle();
+      expect(changes.last, 3);
+      expect(find.byType(MorphCollapsingTabs), findsNothing);
+    });
+
+    testWidgets('a hold released without moving collapses back', (
+      WidgetTester tester,
+    ) async {
+      _phone(tester);
+      final changes = <int>[];
+      await tester.pumpWidget(app(onChanged: changes.add));
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      final finger = await tester.startGesture(
+        const Offset(28 + 24, 874 - 21 - 31),
+      );
+      // The hold dozes on a timer, which pumpAndSettle does not wait for.
+      for (var i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.pumpAndSettle();
+      expect(find.byType(MorphCollapsingTabs), findsNothing);
+      await finger.up();
+      await tester.pumpAndSettle();
+      expect(find.byType(MorphCollapsingTabs), findsOneWidget);
+      expect(changes, isEmpty);
     });
 
     testWidgets('a programmatic scroll never minimizes; reaching the top '

@@ -119,15 +119,33 @@ abstract final class MorphTabBarMinimizeTuning {
   /// collapsed platter's 48 (an approximation, not measured).
   static const double accessoryHeight = 48;
 
-  /// The distance under which the minimized bar's glass and the inline
-  /// accessory's fuse into one body while they move past each other (a
-  /// glass container's spacing, an approximation: at rest they stand
-  /// [spacing] apart and do not touch).
-  static const double fusionSpacing = 4;
-
   /// The space between the screen's sides and the bar group: 21 (the
   /// measured tab bar inset).
   static const double sideInset = 21;
+
+  /// How long a finger rests on the minimized bar before the bar expands
+  /// under it: UIKit's `minimumPressDuration` of the tab bar's interactive
+  /// expansion, 0.22 s, read from UIKit.
+  static const double holdDuration = 0.22;
+
+  /// How far a finger on the minimized bar moves along the bar, in points,
+  /// before the bar expands at once and the touch becomes the bar's
+  /// selection drag: UIKit's `expansionHysteresis`, 4, read from UIKit
+  /// (the selection gesture of the floating tab bar applies the same 4
+  /// points).
+  static const double holdHysteresis = 4;
+
+  /// The spring of UIKit's interactive expansion under a held finger
+  /// (`expansionSpring`: damping 0.5, response 0.4), read from UIKit.
+  /// Which views it moves is not read: morph expands a held bar on
+  /// [expandShapeSpring] and [expandContentSpring] (an approximation).
+  static const expansionSpring = MorphSpring(0.4, 0.5);
+
+  /// The spring UIKit's interactive expansion returns on when the finger
+  /// lifts without moving (`collapsedSpring`: damping 0.75, response 0.4),
+  /// read from UIKit; morph collapses on [collapseShapeSpring] and
+  /// [collapseContentSpring] (an approximation, as [expansionSpring]).
+  static const collapsedSpring = MorphSpring(0.4, 0.75);
 }
 
 /// The scroll-away interaction of a minimizing tab bar: how far a user's
@@ -417,6 +435,98 @@ class MorphTabBarMinimizeMotion {
       },
     );
     onMinimizedChanged?.call(minimized: value);
+  }
+
+  double? _pressX;
+  bool _held = false;
+  bool _scrubs = false;
+  int _press = 0;
+
+  /// Whether a finger that went down on the minimized bar is still on it.
+  bool get pressed => _pressX != null;
+
+  /// Whether the finger on the bar has become the bar's selection drag
+  /// ([pressMove] returned true): it scrubs the tabs and its release
+  /// selects, as the expanded bar's own drag does.
+  bool get scrubs => _scrubs;
+
+  /// A finger went down at [x] along the minimized bar at time [t].
+  ///
+  /// Held for [MorphTabBarMinimizeTuning.holdDuration] without moving,
+  /// the bar expands under it (UIKit's interactive expansion of the
+  /// minimized tab bar). Nothing happens on a bar that is not minimized.
+  void pressDown(double t, double x) {
+    if (!_minimized) return;
+    _pressX = x;
+    _held = false;
+    _scrubs = false;
+    final press = ++_press;
+    _timeline.at(t + MorphTabBarMinimizeTuning.holdDuration, (double at) {
+      if (press != _press || _pressX == null || _scrubs) return;
+      _held = true;
+      setMinimized(at, minimized: false);
+    });
+  }
+
+  /// The finger moved to [x] along the bar at time [t]; true on the move
+  /// that makes it the bar's selection drag.
+  ///
+  /// A move of [MorphTabBarMinimizeTuning.holdHysteresis] from where the
+  /// finger went down, before or after the hold expanded the bar, expands
+  /// it for good: from then on the touch is the expanded bar's drag.
+  bool pressMove(double t, double x) {
+    final from = _pressX;
+    if (from == null || _scrubs) return false;
+    if ((x - from).abs() < MorphTabBarMinimizeTuning.holdHysteresis) {
+      return false;
+    }
+    _scrubs = true;
+    if (_minimized) setMinimized(t, minimized: false);
+    return true;
+  }
+
+  /// The finger lifted at time [t].
+  ///
+  /// After a hold that did not move, the bar collapses back, as UIKit's
+  /// interactive expansion ends; a drag leaves it expanded. A release
+  /// before the hold expands the bar: UIKit's tab bar does not
+  /// (`expandsOnTap` is NO), but a tap on the minimized bar has no other
+  /// path back to the tabs in the code read; this waits for a recording.
+  void pressUp(double t) {
+    if (_pressX == null) return;
+    final held = _held;
+    final scrubs = _scrubs;
+    _endPress();
+    if (scrubs) return;
+    setMinimized(t, minimized: held);
+  }
+
+  /// The touch was taken away at time [t]: a held bar collapses back.
+  void pressCancel(double t) {
+    if (_pressX == null) return;
+    final back = _held && !_scrubs;
+    _endPress();
+    if (back) setMinimized(t, minimized: true);
+  }
+
+  void _endPress() {
+    _press++;
+    _pressX = null;
+    _held = false;
+    _scrubs = false;
+  }
+
+  /// The time the motion next changes on its own (a held finger's
+  /// expansion) while every spring rests at time [t] within [MorphRest]
+  /// for a bar group [extent] points wide, or null.
+  double? wakeTime(double t, {double extent = 400}) {
+    final due = _timeline.nextDue;
+    if (due == null) return null;
+    return _hint.isWithin(t, MorphRest.scale(extent)) &&
+            _shape.isWithin(t, MorphRest.scale(extent)) &&
+            _content.isWithin(t, MorphRest.scale(extent))
+        ? due
+        : null;
   }
 
   /// Advances the motion to time [t]; feed scrolls stamped at [t] after.

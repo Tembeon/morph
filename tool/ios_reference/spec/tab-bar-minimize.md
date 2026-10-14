@@ -53,7 +53,39 @@ the tab bar's animation settings.
   glyph travelling to the circle's center) on the final one
   (APPROXIMATION).
 - A tap on the minimized circle expands it (no selection); morph's tap
-  does not lift the circle (not measured).
+  does not lift the circle (not measured). Not what the code read says:
+  UIKit's `expandsOnTap` is NO and a quick release only selects the
+  circle's tab (nothing when it is the selected one). morph keeps the tap
+  until a recording shows what iOS does.
+
+## Spec - hold and scrub (read from UIKit)
+
+- The minimized bar takes a finger through the tab bar's own selection
+  gesture (it begins on contact) and an interactive expansion beside it.
+- Held `minimumPressDuration` = 0.22 s without lifting, the interactive
+  expansion expands the bar under the finger.
+- A move of `expansionHysteresis` = 4 pt along the bar from where the
+  finger went down expands it at once; the selection gesture applies the
+  same 4 pt and moves the bar's morph target to expanded. From then the
+  touch is the bar's selection drag (lens lifted on the first move, the
+  tab under the finger highlighted) and its release selects that tab;
+  the bar stays expanded.
+- Lifted without having moved: the interactive expansion ends
+  (`minimumActiveDuration` 0) and the bar collapses back; the release
+  selects the circle's tab (nothing when it is the selected one).
+- Springs: the interactive expansion runs on `expansionSpring` (damping
+  0.5, response 0.4) and returns on `collapsedSpring` (0.75 / 0.4);
+  Reduce Motion 0.9 / 0.3. Which views they move is not read: morph
+  expands and collapses on the expand / collapse springs above
+  (APPROXIMATION).
+- morph: `MorphTabBarMinimizeMotion.pressDown / pressMove / pressUp /
+  pressCancel` (hold on the motion's timeline, the clock dozes until it);
+  `MorphTabBarChrome` follows the finger and, on the 4 pt move, hands it
+  to the expanded bar's press (`MorphTabBar`'s lens drag, the same
+  machinery, events mapped into the bar's box). The bar is hidden until
+  the morph rests expanded, so the lens shows from then on (about 0.4 s);
+  the tab bar selects on contact as the expanded bar does. The search tab
+  bar's minimized circle is not ported (tap only).
 
 ## Spec - geometry
 
@@ -67,17 +99,28 @@ the tab bar's animation settings.
   across the bar group (21 pt from the sides). Inline: between the
   minimized circle and the group's trailing side (or the search circle),
   8 pt apart, at the circle's height.
-- The minimized circle and the inline accessory of `MorphTabBar` are glass
-  of one container (fusion spacing 4 pt, APPROXIMATION): they fuse only
-  while the morph carries them closer than that. `MorphSearchTabBar` keeps
-  them apart (its circles are separate glass, as for the search morph).
+- The accessory is glass of its own on both bars, under the bar group
+  (as iOS shows it: the accessory keeps its own capsule next to the
+  circle). As one glass body they would fuse into one blob through most
+  of the morph: their straight paths overlap from about 14 to 98 percent
+  of it. They pass each other mid-morph, the bar's glass over the
+  accessory's (paths APPROXIMATION, not recorded). While they stand apart
+  `MorphTabBar` keeps both capsules as separate surfaces of one glass
+  layer (one backdrop read); while they overlap the accessory draws its
+  own glass and content under the bar's glass (the host builds again at
+  each switch, twice a morph). Perf scene `tab-bar-minimize`: captures a
+  frame 2.1 -> 2.4 (fake / liquid), builds 0.7 -> 0.9, paints 26.1 ->
+  26.4.
 
 ## Fixtures
 
 None yet. Recapture: probe scene `w2search` with `PROBE_MINIMIZE=1`
 (onScrollDown) on the device: film and layer rows of a drag that
 minimizes, a drag back, a fling, a scroll to the top, a tap on the
-circle, with and without an accessory.
+circle, with and without an accessory. Also: a quick tap on the circle
+(does it expand?), a hold of 0.3 s lifted in place (collapses back?), a
+hold that scrubs to another tab and lifts, a drag straight from the
+circle, and the accessory's path past the shrinking bar (film).
 
 ## morph
 
@@ -89,7 +132,9 @@ circle, with and without an accessory.
 morph), `MorphTabBarMinimizeTuning` (tab_bar_minimize.dart). Host:
 `MorphTabBarChrome` (tab_bar_chrome.dart) wraps the bar's cached build; the
 collapsing tabs are the search tab bar's (`MorphCollapsingTabs`,
-tab_collapse.dart). Test: tab_bar_minimize_test; lifecycle scene
+tab_collapse.dart). Tests: tab_bar_minimize_test,
+tab_bar_accessory_glass_test (every frame, every tier: the accessory's
+glass is its own body, drawn under its content); lifecycle scene
 `tabbar-minimize`; perf / glass frame scene `tab-bar-minimize`.
 
 Lifecycle (host recorder, 2026-10-14): a drag that only hints builds and
@@ -125,6 +170,9 @@ its collapsing tabs still follow by layout (shared with the search morph).
 
 - Every motion fit above waits for a recording (springs are read, their
   assignment and the geometry partly are not).
+- The quick tap on the minimized circle (expands in morph, not in the
+  code read), the views the interactive expansion springs move, the
+  search tab bar's hold.
 - `automatic` resolves to never (an iPhone tab bar that does not opt in);
   not read from UIKit.
 - Reverse-scroll expansion rule (above).

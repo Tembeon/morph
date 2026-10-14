@@ -143,7 +143,24 @@ New capabilities from the API parity audit (phase 2):
   app's widget in glass 8 points above the bar and moves it inline
   between the minimized circles; `MorphTabAccessoryEnvironment.of(context)`
   (`UITabAccessory.Environment`: none, regular, inline) lets the content
-  adapt. Its 48 point height and spacing are not yet measured.
+  adapt. Its 48 point height and spacing are not yet measured. The
+  accessory is glass of its own under the bar (as on iOS): it no longer
+  fuses with the minimizing bar into one body while the two pass each
+  other, and the search tab bar draws its accessory's glass under its
+  content (it drew at the bar group's top-left corner).
+- Tab bar minimize, hold: a finger held 0.22 s on the minimized circle
+  expands the bar under it, and one that moves 4 points along it expands
+  it at once; from that move the same touch is the bar's own selection
+  drag (lens and all) and its release selects. A hold lifted without
+  moving collapses the bar back. Duration and hysteresis are read from
+  UIKit's interactive expansion of the minimized tab bar (notes private);
+  its springs' assignment and the quick tap (UIKit's `expandsOnTap` is
+  off; morph's tap still expands) wait for a recording. `MorphTabBar`
+  only; the search tab bar's circle still expands on tap alone.
+  `MorphTabBarMinimizeMotion.pressDown / pressMove / pressUp /
+  pressCancel`; BREAKING: `MorphTabBarMinimizeTuning.fusionSpacing` is
+  gone (`holdDuration`, `holdHysteresis`, `expansionSpring`,
+  `collapsedSpring` are new).
 - Passport tool/ios_reference/spec/tab-bar-minimize.md; gallery page
   "Tab bar minimize"; lifecycle scene `tabbar-minimize` and perf scene
   `tab-bar-minimize` pinned.

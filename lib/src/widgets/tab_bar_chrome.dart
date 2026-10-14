@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/tab_bar.dart';
 import 'package:morph/src/widgets/tab_bar_minimize.dart';
 import 'package:morph/src/widgets/tab_collapse.dart';
@@ -278,15 +280,14 @@ Widget morphTabAccessoryContent({
 }
 
 /// A bottom accessory in a [Stack] that fills the screen: its glass and
-/// content at [rect], faded by [opacity], both read on every frame of
-/// [live].
+/// content at [rect], faded by [opacity] (none when null), both read on
+/// every frame of [live].
 @internal
 class MorphTabAccessorySlot extends StatelessWidget {
   /// Places [child].
   const MorphTabAccessorySlot({
     required this.live,
     required this.rect,
-    required this.opacity,
     required this.takesTouches,
     required this.environment,
     required this.style,
@@ -294,6 +295,7 @@ class MorphTabAccessorySlot extends StatelessWidget {
     required this.brightness,
     required this.child,
     required this.end,
+    this.opacity,
     super.key,
   });
 
@@ -303,8 +305,8 @@ class MorphTabAccessorySlot extends StatelessWidget {
   /// The accessory's box now.
   final Rect Function() rect;
 
-  /// The accessory's opacity now.
-  final double Function() opacity;
+  /// The accessory's opacity now; null keeps it opaque.
+  final double Function()? opacity;
 
   /// Whether the content takes touches.
   final bool takesTouches;
@@ -341,33 +343,40 @@ class MorphTabAccessorySlot extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
+            // A boundary of its own: a frame of the morph repaints the
+            // moving glass, not the bar group around it.
             Positioned.fill(
               child: IgnorePointer(
-                child: glass == null
-                    ? CustomPaint(
-                        painter: MorphCapsulePainter(
-                          live: live,
-                          shape: shape,
-                          color: () => style.barColor.withValues(
-                            alpha: style.barColor.a * opacity(),
+                child: RepaintBoundary(
+                  child: glass == null
+                      ? CustomPaint(
+                          painter: MorphCapsulePainter(
+                            live: live,
+                            shape: shape,
+                            color: () => style.barColor.withValues(
+                              alpha: style.barColor.a * (opacity?.call() ?? 1),
+                            ),
+                            shadow: style.shadowColor,
                           ),
-                          shadow: style.shadowColor,
+                        )
+                      // A layer, which draws its surfaces where they are in
+                      // its box: a surface host draws its one surface at its
+                      // own origin, and this host fills the bar group.
+                      : MorphGlassHost(
+                          painter: glass,
+                          mode: MorphGlassMode.layer,
+                          frames: live,
+                          frame: () => MorphGlassFrame([
+                            MorphGlassSurface(
+                              kind: MorphGlassKind.bar,
+                              shape: shape(),
+                              color: style.barColor,
+                              brightness: brightness,
+                              opacity: opacity?.call() ?? 1,
+                            ),
+                          ]),
                         ),
-                      )
-                    : MorphGlassHost(
-                        painter: glass,
-                        mode: MorphGlassMode.surface,
-                        frames: live,
-                        frame: () => MorphGlassFrame([
-                          MorphGlassSurface(
-                            kind: MorphGlassKind.bar,
-                            shape: shape(),
-                            color: style.barColor,
-                            brightness: brightness,
-                            opacity: opacity(),
-                          ),
-                        ]),
-                      ),
+                ),
               ),
             ),
             morphTabAccessoryContent(
@@ -481,11 +490,17 @@ class MorphTabBarChrome extends StatefulWidget {
     required this.behavior,
     required this.accessory,
     required this.contentScroll,
+    this.barPress,
     super.key,
   });
 
   /// The expanded bar, built by the tab bar.
   final Widget bar;
+
+  /// The press of the expanded bar: a finger held on the minimized bar
+  /// that moves on is handed to it, so the same touch scrubs the tabs and
+  /// its release selects (null: the minimized bar only expands).
+  final MorphPressTarget? barPress;
 
   /// The expanded bar's width.
   final double barWidth;
@@ -613,7 +628,7 @@ mixin MorphTabBarMinimizing<T extends StatefulWidget> on MorphClock<T>
   }
 }
 
-typedef _Structure = ({bool resting, bool minimized});
+typedef _Structure = ({bool resting, bool minimized, bool apart});
 
 class _MorphTabBarChromeState extends State<MorphTabBarChrome>
     with
@@ -636,6 +651,9 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
   late final MorphFrameSync<_Structure?> _ticks = MorphFrameSync<_Structure?>(
     structure: () => _geometry == null ? null : _readFrame(),
     rebuild: (_Structure? _) => setState(() {}),
+    // The parts a structure change keeps (_cached) follow on that frame
+    // too, or the accessory's content would trail its glass by one.
+    notifiesOnRebuild: true,
   );
 
   @override
@@ -677,7 +695,90 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
       _motion.isSettled(_motion.time, extent: _geometry?.size.width ?? 400);
 
   @override
+  double? get motionWakeTime =>
+      _motion.wakeTime(_motion.time, extent: _geometry?.size.width ?? 400);
+
+  @override
   void settleMotion() => _motion.settle(_motion.time);
+
+  // The finger on the minimized bar, followed here in the group's
+  // coordinates; once it moves on, its events go to the expanded bar's
+  // press, laid out under [_barKey].
+  final GlobalKey _barKey = GlobalKey();
+  int? _pointer;
+  bool _handed = false;
+
+  void _pointerDown(PointerDownEvent event) {
+    if (_pointer != null ||
+        event.buttons != kPrimaryButton ||
+        !_motion.minimized ||
+        !_bar.contains(event.localPosition)) {
+      return;
+    }
+    _pointer = event.pointer;
+    _handed = false;
+    final t = stamp(event);
+    _motion.advance(t);
+    _motion.pressDown(t, event.localPosition.dx);
+    wake();
+  }
+
+  void _pointerMove(PointerMoveEvent event) {
+    if (event.pointer != _pointer) return;
+    if (_handed) {
+      widget.barPress?.pressMove(_toBar(event) as PointerMoveEvent);
+      return;
+    }
+    final t = stamp(event);
+    _motion.advance(t);
+    final scrubs = _motion.pressMove(t, event.localPosition.dx);
+    wake();
+    final press = widget.barPress;
+    if (!scrubs || press == null) return;
+    _handed = true;
+    press.pressDown(
+      _toBar(
+            PointerDownEvent(
+              timeStamp: event.timeStamp,
+              pointer: event.pointer,
+              kind: event.kind,
+              device: event.device,
+              position: event.position,
+              buttons: event.buttons,
+            ),
+          )
+          as PointerDownEvent,
+    );
+  }
+
+  void _pointerUp(PointerUpEvent event) {
+    if (event.pointer != _pointer) return;
+    _pointer = null;
+    final t = stamp(event);
+    _motion.advance(t);
+    _motion.pressUp(t);
+    if (_handed) widget.barPress?.pressUp(_toBar(event) as PointerUpEvent);
+    _handed = false;
+    wake();
+  }
+
+  void _pointerCancel(PointerCancelEvent event) {
+    if (event.pointer != _pointer) return;
+    _pointer = null;
+    final t = stamp(event);
+    _motion.advance(t);
+    _motion.pressCancel(t);
+    if (_handed) widget.barPress?.pressCancel(event);
+    _handed = false;
+    wake();
+  }
+
+  PointerEvent _toBar(PointerEvent event) {
+    final box = _barKey.currentContext?.findRenderObject();
+    if (box is! RenderBox || !box.attached) return event;
+    final toBar = Matrix4.tryInvert(box.getTransformTo(null));
+    return toBar == null ? event : event.transformed(toBar);
+  }
 
   _Structure _readFrame() {
     final geometry = _geometry!;
@@ -693,7 +794,12 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
     final q = content.clamp(0.0, 1.0);
     _labelShown.value = (1 - q * 2).clamp(0.0, 1.0) > 0.01;
     _collapsedEnabled.value = _motion.minimized;
-    return (resting: _motion.restsExpanded(t), minimized: _motion.minimized);
+    final resting = _motion.restsExpanded(t);
+    return (
+      resting: resting,
+      minimized: _motion.minimized,
+      apart: resting || !_accessory.inflate(1).overlaps(_bar),
+    );
   }
 
   void _writeHint(Matrix4 into) {
@@ -707,24 +813,23 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
     Radius.circular((rect.shortestSide / 2).clamp(0.0, double.infinity)),
   );
 
-  List<MorphGlassSurface> _surfaces({required bool resting}) {
-    final style = widget.appearance;
-    return [
-      if (!resting)
-        MorphGlassSurface(
-          kind: MorphGlassKind.bar,
-          shape: _capsule(_bar),
-          color: style.barColor,
-          brightness: widget.brightness,
-        ),
-      if (widget.accessory != null)
-        MorphGlassSurface(
-          kind: MorphGlassKind.bar,
-          shape: _capsule(_accessory),
-          color: style.barColor,
-          brightness: widget.brightness,
-        ),
-    ];
+  MorphGlassSurface _capsuleSurface(Rect rect) => MorphGlassSurface(
+    kind: MorphGlassKind.bar,
+    shape: _capsule(rect),
+    color: widget.appearance.barColor,
+    brightness: widget.brightness,
+  );
+
+  final Map<String, (Object, Widget)> _parts = {};
+
+  // A part of the group built once for what it reads: a structure change
+  // that only reorders or swaps parts builds nothing inside the others.
+  Widget _cached(String slot, Object key, Widget Function() build) {
+    final cached = _parts[slot];
+    if (cached != null && cached.$1 == key) return cached.$2;
+    final built = build();
+    _parts[slot] = (key, built);
+    return built;
   }
 
   // The collapsing tabs, built once for what they draw.
@@ -780,10 +885,20 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
     final style = widget.appearance;
     final selected = widget.selected.clamp(0, widget.items.length - 1);
     // Each part is a repaint boundary of its own: a frame of the morph
-    // repaints the moving glass and composites the rest.
-    final children = <Widget>[
-      if (glass != null && (!resting || accessory != null))
-        Positioned.fill(
+    // repaints the moving glass and composites the rest. The accessory is
+    // glass of its own, never one body with the bar's (as on iOS: fused,
+    // the two capsules became one blob while they passed each other
+    // mid-morph). While they stand apart both are surfaces of one layer
+    // under the accessory's content, which reads the backdrop once; while
+    // they overlap the accessory draws its own glass under the bar's.
+    final shared = glass != null && structure.apart;
+    final minimized = structure.minimized;
+    Widget? glassLayer;
+    if (glass != null && (!resting || accessory != null)) {
+      glassLayer = _cached(
+        'glass',
+        (glass, resting, shared, accessory != null),
+        () => Positioned.fill(
           key: const ValueKey<String>('glass'),
           child: RepaintBoundary(
             child: IgnorePointer(
@@ -791,30 +906,78 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
                 painter: glass,
                 mode: MorphGlassMode.layer,
                 frames: _ticks,
-                frame: () => MorphGlassFrame(
-                  _surfaces(resting: resting),
-                  spacing: MorphTabBarMinimizeTuning.fusionSpacing,
-                ),
-              ),
-            ),
-          ),
-        )
-      else if (glass == null && accessory != null)
-        Positioned.fill(
-          key: const ValueKey<String>('glass'),
-          child: RepaintBoundary(
-            child: IgnorePointer(
-              child: CustomPaint(
-                painter: MorphCapsulePainter(
-                  live: _ticks,
-                  shape: () => _capsule(_accessory),
-                  color: () => style.barColor,
-                  shadow: style.shadowColor,
-                ),
+                frame: () => MorphGlassFrame([
+                  if (!resting) _capsuleSurface(_bar),
+                  if (shared && accessory != null) _capsuleSurface(_accessory),
+                ]),
               ),
             ),
           ),
         ),
+      );
+    }
+    Widget? accessoryGlass;
+    Widget? accessoryContent;
+    if (accessory != null) {
+      if (!shared) {
+        accessoryGlass = _cached(
+          'accessoryGlass',
+          (glass, style, widget.brightness),
+          () => Positioned.fill(
+            key: const ValueKey<String>('accessoryGlass'),
+            child: RepaintBoundary(
+              child: IgnorePointer(
+                child: glass == null
+                    ? CustomPaint(
+                        painter: MorphCapsulePainter(
+                          live: _ticks,
+                          shape: () => _capsule(_accessory),
+                          color: () => style.barColor,
+                          shadow: style.shadowColor,
+                        ),
+                      )
+                    : MorphGlassHost(
+                        painter: glass,
+                        mode: MorphGlassMode.layer,
+                        frames: _ticks,
+                        frame: () =>
+                            MorphGlassFrame([_capsuleSurface(_accessory)]),
+                      ),
+              ),
+            ),
+          ),
+        );
+      }
+      accessoryContent = _cached(
+        'accessory',
+        (
+          accessory,
+          minimized,
+          geometry.accessory,
+          geometry.inlineAccessory,
+          style,
+        ),
+        () => KeyedSubtree(
+          key: const ValueKey<String>('accessory'),
+          child: morphTabAccessoryContent(
+            live: _ticks,
+            rect: () => _accessory,
+            end: minimized ? geometry.inlineAccessory : geometry.accessory,
+            environment: minimized
+                ? MorphTabAccessoryEnvironment.inline
+                : MorphTabAccessoryEnvironment.regular,
+            style: style,
+            child: accessory,
+          ),
+        ),
+      );
+    }
+    // While apart: one layer under the content. While they overlap: the
+    // accessory's glass and content, then the bar's glass over them.
+    final children = <Widget>[
+      if (shared) ?glassLayer else ?accessoryGlass,
+      ?accessoryContent,
+      if (!shared) ?glassLayer,
       // Hidden while it collapses, but kept: the expanded bar returns at
       // the end of the morph without building again.
       Positioned.fromRect(
@@ -825,7 +988,10 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
             excluding: !resting,
             child: IgnorePointer(
               ignoring: !resting,
-              child: Opacity(opacity: resting ? 1 : 0, child: widget.bar),
+              child: Opacity(
+                opacity: resting ? 1 : 0,
+                child: KeyedSubtree(key: _barKey, child: widget.bar),
+              ),
             ),
           ),
         ),
@@ -859,6 +1025,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
           onTap: expandMinimized,
           enabled: _collapsedEnabled,
           drawsGlass: glass == null,
+          tapsOnTouch: false,
           layoutBox: geometry.bar.expandToInclude(geometry.collapsed),
         );
       }
@@ -872,33 +1039,20 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
         ),
       );
     }
-    if (accessory != null) {
-      children.add(
-        KeyedSubtree(
-          key: const ValueKey<String>('accessory'),
-          child: morphTabAccessoryContent(
-            live: _ticks,
-            rect: () => _accessory,
-            end: structure.minimized
-                ? geometry.inlineAccessory
-                : geometry.accessory,
-            environment: structure.minimized
-                ? MorphTabAccessoryEnvironment.inline
-                : MorphTabAccessoryEnvironment.regular,
-            style: style,
-            child: accessory,
-          ),
-        ),
-      );
-    }
     return RepaintBoundary(
       child: MorphChromeBackdrop(
         child: MorphLiveTransform(
           live: _ticks,
           writeInto: _writeHint,
-          child: SizedBox.fromSize(
-            size: geometry.size,
-            child: Stack(clipBehavior: Clip.none, children: children),
+          child: Listener(
+            onPointerDown: _pointerDown,
+            onPointerMove: _pointerMove,
+            onPointerUp: _pointerUp,
+            onPointerCancel: _pointerCancel,
+            child: SizedBox.fromSize(
+              size: geometry.size,
+              child: Stack(clipBehavior: Clip.none, children: children),
+            ),
           ),
         ),
       ),
