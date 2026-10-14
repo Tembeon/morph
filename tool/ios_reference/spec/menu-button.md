@@ -3,6 +3,11 @@
 Status: measured device (layers, traces, film) + simulator; ported;
 replayed (menu_button_test, menu_fusion_test, menu_look_test).
 
+
+The context menu shares this implementation (context-menu.md, unified
+2026-10-14): the same controller, motion, layer, rows and haptics on the
+context morph (`MorphMenuMorphSpec.context`) with a
+`MorphMenuAttachment` instead of a source shape.
 ## Native
 
 `UIButton` with `menu` + `showsMenuAsPrimaryAction` (glass configuration),

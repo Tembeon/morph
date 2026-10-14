@@ -315,6 +315,14 @@ tool/ios_reference/spec/lifecycle.md "Closed"):
   0.80 / 0.39 (was 0.73 / 0.58); hero and dim replays unchanged.
 - A vessel flight's dim repaints its scrim box per frame instead of
   rebuilding the vessel's frame chain.
+- `MorphContextMenuRegion.preview` (+ `previewSize`) previews a
+  different view than the held one (`previewProvider`), crossfading as it
+  grows; `onPreviewTap` runs on a tap on the open preview and closes the
+  menu (`willPerformPreviewAction`). The preview is a copy laid out once
+  and moved by a paint-time transform (NEAR: its text is resampled from
+  one raster while it moves): a context menu frame costs the button
+  menu's budget (flat release / close 0/1/23 / 0/1/21 builds / layouts /
+  paints, was 0/19/30).
 
 Migration, old -> new:
 
