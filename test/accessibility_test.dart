@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/switch_motion.dart';
 
 Future<T> _resolve<T>(
@@ -61,6 +62,70 @@ void main() {
       motion.pointerDown(1, 10);
       motion.pointerUp(1.1, 10);
       expect(shown, [true, false, true, false]);
+    });
+  });
+
+  group('lens, Reduce Motion', () {
+    const slots = <MorphLensSlot>[
+      (center: 50, width: 100),
+      (center: 150, width: 100),
+      (center: 250, width: 100),
+    ];
+
+    MorphLensMotion lens(MorphLensTuning tuning) {
+      final motion = MorphLensMotion(
+        tuning: tuning,
+        slots: slots,
+        selected: 0,
+        height: 28,
+      );
+      motion.reducedMotion = true;
+      return motion;
+    }
+
+    test('the segmented selection appears on the new segment', () {
+      final motion = lens(MorphLensTuning.segmented);
+      motion.pointerDown(0, 250);
+      motion.pointerUp(0.1, 250);
+      motion.advance(0.1 + motion.startDelay);
+      expect(motion.center, 250);
+      expect(motion.lift, 0);
+      motion.advance(2);
+      expect(motion.center, 250);
+    });
+
+    test('a press on the selected segment neither lifts nor drags it', () {
+      final motion = lens(MorphLensTuning.segmented);
+      motion.pointerDown(0, 50);
+      motion.pointerMove(0.2, 160);
+      motion.advance(0.4);
+      expect(motion.center, 50);
+      expect(motion.lift, 0);
+      motion.pointerUp(0.5, 160);
+      motion.advance(0.5 + motion.startDelay);
+      expect(motion.center, 150);
+    });
+
+    test('the tab bar selection travels on 0.9 over 0.2, unlifted', () {
+      final reduced = lens(MorphLensTuning.tabBar);
+      final normal = MorphLensMotion(
+        tuning: MorphLensTuning.tabBar,
+        slots: slots,
+        selected: 0,
+        height: 28,
+      );
+      for (final motion in [reduced, normal]) {
+        motion.pointerDown(0, 250);
+        motion.pointerUp(0.05, 250);
+      }
+      final t = 0.15 + reduced.startDelay;
+      reduced.advance(t);
+      normal.advance(t);
+      expect(reduced.lift, 0);
+      expect(normal.lift, greaterThan(0.5));
+      final reducedLeft = (reduced.travelCenter - 250).abs();
+      final normalLeft = (normal.travelCenter - 250).abs();
+      expect(reducedLeft, lessThan(normalLeft / 2));
     });
   });
 
