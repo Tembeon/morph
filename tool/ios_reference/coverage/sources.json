@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "policy": "Research leads only. Public data is not imported evidence until artifacts, provenance, configuration and observations have been reviewed.",
+  "sources": [
+    {
+      "id": "upstream-apple-match",
+      "url": "https://github.com/whynotmake-it/flutter_liquid_glass/tree/main/packages/liquid_glass_renderer/example/tool/apple_match",
+      "scope": ["optics", "tab-bar", "selection-loupe", "capture-integrity"],
+      "limitations": ["Pinned simulator configurations", "Different tab configurations must not be compared as identical", "Does not establish all widget or API behavior"],
+      "next": "Pin commit and retrieve original LFS objects with hash verification; map each usable scene to an obligation."
+    },
+    {
+      "id": "liquidglass-calibration",
+      "url": "https://github.com/shayann07/liquidglass/blob/main/docs/research/measured-model.md",
+      "scope": ["device-optics", "backdrop-transfer", "material"],
+      "limitations": ["Use measured model rather than superseded authored motion hypotheses", "Published summaries do not substitute for absent original captures", "Some traces lack finger input timing"],
+      "next": "Separate measured constants from hypotheses; retain source color-space and capture-quality caveats."
+    },
+    {
+      "id": "swift-backport",
+      "url": "https://github.com/DnV1eX/LiquidGlassKit",
+      "scope": ["architecture", "slider", "switch", "selection-lens"],
+      "limitations": ["Implementation is not a measured fidelity corpus", "Private compatibility mechanisms cannot be assumed portable"],
+      "next": "Inspect as architecture hypotheses; verify behavior independently."
+    },
+    {
+      "id": "apple-adoption",
+      "url": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass",
+      "scope": ["public-api", "system-design"],
+      "limitations": ["Guidance does not specify every timing, pixel or interruption behavior"],
+      "next": "Inventory public API and availability against the installed SDK."
+    },
+    {
+      "id": "nist-combinations",
+      "url": "https://csrc.nist.gov/pubs/ir/7878/final",
+      "scope": ["configuration-coverage-method"],
+      "limitations": ["A covering array only covers its declared factors and strength"],
+      "next": "Define risk groups and constraints before extending combination strength."
+    },
+    {
+      "id": "nist-ordered-combinations",
+      "url": "https://csrc.nist.gov/pubs/cswp/26/ordered-t-way-combinations-for-testing-state-based/final",
+      "scope": ["state-sequence-coverage-method"],
+      "limitations": ["Sequence coverage does not prove the model includes every native state"],
+      "next": "Expand observed state graphs and preserve reproducible failure sequences."
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "id": "menu",
+  "nativeStatus": "hypothesis-to-observe",
+  "states": [
+    "closed",
+    "opening",
+    "root",
+    "submenu",
+    "nested",
+    "closing",
+    "disabled"
+  ],
+  "initial": "closed",
+  "transitions": [
+    {
+      "id": "open",
+      "from": "closed",
+      "to": "opening",
+      "action": "tap-source"
+    },
+    {
+      "id": "settle-open",
+      "from": "opening",
+      "to": "root",
+      "action": "wait-open"
+    },
+    {
+      "id": "interrupt-open",
+      "from": "opening",
+      "to": "closing",
+      "action": "dismiss"
+    },
+    {
+      "id": "push",
+      "from": "root",
+      "to": "submenu",
+      "action": "tap-submenu"
+    },
+    {
+      "id": "push-nested",
+      "from": "submenu",
+      "to": "nested",
+      "action": "tap-nested-submenu"
+    },
+    {
+      "id": "return-nested",
+      "from": "nested",
+      "to": "submenu",
+      "action": "tap-back"
+    },
+    {
+      "id": "return",
+      "from": "submenu",
+      "to": "root",
+      "action": "tap-back"
+    },
+    {
+      "id": "dismiss-root",
+      "from": "root",
+      "to": "closing",
+      "action": "tap-outside"
+    },
+    {
+      "id": "dismiss-submenu",
+      "from": "submenu",
+      "to": "closing",
+      "action": "tap-outside"
+    },
+    {
+      "id": "dismiss-nested",
+      "from": "nested",
+      "to": "closing",
+      "action": "tap-outside"
+    },
+    {
+      "id": "settle-close",
+      "from": "closing",
+      "to": "closed",
+      "action": "wait-close"
+    },
+    {
+      "id": "reopen",
+      "from": "closing",
+      "to": "opening",
+      "action": "tap-source"
+    },
+    {
+      "id": "disable",
+      "from": "closed",
+      "to": "disabled",
+      "action": "set-enabled-false"
+    },
+    {
+      "id": "enable",
+      "from": "disabled",
+      "to": "closed",
+      "action": "set-enabled-true"
+    },
+    {
+      "id": "tap-disabled",
+      "from": "disabled",
+      "to": "disabled",
+      "action": "tap-source"
+    },
+    {
+      "id": "disable-held",
+      "from": "opening",
+      "to": "disabled",
+      "action": "set-enabled-false"
+    },
+    {
+      "id": "background",
+      "from": "root",
+      "to": "closing",
+      "action": "background-app"
+    }
+  ],
+  "factors": {
+    "appearance": [
+      "light",
+      "dark"
+    ],
+    "direction": [
+      "ltr",
+      "rtl"
+    ],
+    "sourcePosition": [
+      "center",
+      "top-edge",
+      "bottom-edge",
+      "left-edge",
+      "right-edge"
+    ],
+    "textSize": [
+      "default",
+      "accessibility-largest"
+    ],
+    "content": [
+      "short",
+      "overflow"
+    ],
+    "effects": [
+      "default",
+      "reduce-motion",
+      "reduce-transparency"
+    ]
+  },
+  "adaptedActions": []
+}

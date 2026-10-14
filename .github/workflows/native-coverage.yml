@@ -1,0 +1,28 @@
+name: native coverage integrity
+
+on:
+  pull_request:
+  push:
+    branches: [wip/measured-liquid-glass]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.2
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Resolve current public API
+        run: dart run tool/ios_reference/coverage/export_api.dart > /tmp/morph-api.json
+      - name: Check ledger and API drift (not native fidelity)
+        run: python3 tool/ios_reference/coverage/coverage.py check --api /tmp/morph-api.json
+      - name: Test false-positive protection and scenario planning
+        run: python3 -m unittest discover -s tool/ios_reference/coverage/tests -v

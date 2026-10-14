@@ -1,0 +1,1178 @@
+{
+  "schema": 1,
+  "scope": "Complete Liquid Glass UI kit ambition; draft inventory is a lower bound, not an exhaustive UIKit claim. Platform-service controllers need explicit adapters.",
+  "requirements": [
+    {
+      "id": "api",
+      "dimension": "api",
+      "question": "Have all public variants, properties, methods, defaults, availability and callback semantics been inventoried?",
+      "oracle": "api-review"
+    },
+    {
+      "id": "layout",
+      "dimension": "geometry",
+      "question": "What are intrinsic size, compression, overflow, alignment and safe-area rules?",
+      "oracle": "geometry-contract"
+    },
+    {
+      "id": "states",
+      "dimension": "state",
+      "question": "Which states are reachable and what is visible and enabled in each?",
+      "oracle": "state-contract"
+    },
+    {
+      "id": "transitions",
+      "dimension": "transition",
+      "question": "How do every transition, return path and interrupted transition behave?",
+      "oracle": "transition-contract"
+    },
+    {
+      "id": "boundaries",
+      "dimension": "boundary",
+      "question": "What happens below, at and above every numeric, content and timing boundary?",
+      "oracle": "boundary-contract"
+    },
+    {
+      "id": "configuration",
+      "dimension": "configuration",
+      "question": "Which configuration combinations change behavior, and which are incompatible?",
+      "oracle": "configuration-contract"
+    },
+    {
+      "id": "events",
+      "dimension": "events",
+      "question": "Which callbacks fire, in what order, with what values and how many times?",
+      "oracle": "event-contract"
+    },
+    {
+      "id": "input",
+      "dimension": "input",
+      "question": "How do drag out/back, second pointers, cancellation and gesture competition behave?",
+      "oracle": "input-contract"
+    },
+    {
+      "id": "mutation",
+      "dimension": "lifecycle",
+      "question": "What happens when content, value, enabled state or layout changes during interaction?",
+      "oracle": "lifecycle-contract"
+    },
+    {
+      "id": "accessibility",
+      "dimension": "accessibility",
+      "question": "Are semantics, focus, large text, VoiceOver and reduced effects correct?",
+      "oracle": "accessibility-contract"
+    },
+    {
+      "id": "optics",
+      "dimension": "optics",
+      "question": "How do geometry, material, color space, backdrop and motion affect pixels?",
+      "oracle": "optical-contract"
+    },
+    {
+      "id": "platform",
+      "dimension": "platform",
+      "question": "Are phone/tablet, resizing, RTL, locales, keyboard and Flutter platform fallbacks covered?",
+      "oracle": "platform-contract"
+    },
+    {
+      "id": "performance",
+      "dimension": "performance",
+      "question": "Are frame time, memory, sampling cost and energy acceptable under stress?",
+      "oracle": "performance-contract"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "ios27-simulator-light",
+      "environment": {
+        "nativeOSMajor": 27,
+        "nativeTarget": "simulator",
+        "appearance": "light"
+      },
+      "readBack": {
+        "rm": false,
+        "rt": false
+      }
+    },
+    {
+      "id": "ios27-simulator-dark",
+      "environment": {
+        "nativeOSMajor": 27,
+        "nativeTarget": "simulator",
+        "appearance": "dark"
+      },
+      "readBack": {
+        "rm": false,
+        "rt": false
+      }
+    },
+    {
+      "id": "ios27-device-light",
+      "environment": {
+        "nativeOSMajor": 27,
+        "nativeTarget": "device",
+        "appearance": "light"
+      },
+      "readBack": {
+        "rm": false,
+        "rt": false
+      }
+    },
+    {
+      "id": "ios27-device-dark",
+      "environment": {
+        "nativeOSMajor": 27,
+        "nativeTarget": "device",
+        "appearance": "dark"
+      },
+      "readBack": {
+        "rm": false,
+        "rt": false
+      }
+    }
+  ],
+  "families": [
+    {
+      "id": "glass-material",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIGlassEffect",
+        "UIGlassContainerEffect"
+      ],
+      "purpose": "Optics, fusion, tint, backgrounds and compositing",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "geometry",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIShape",
+        "UIView"
+      ],
+      "purpose": "Shapes, corners, clipping, safe areas and placement",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "typography",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIFont",
+        "UIFontMetrics"
+      ],
+      "purpose": "Fonts, tracking, baselines and Dynamic Type",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "appearance",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UITraitCollection",
+        "UIAppearance"
+      ],
+      "purpose": "Light/dark, tint, contrast and configuration inheritance",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "input",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIControl",
+        "UIGestureRecognizer"
+      ],
+      "purpose": "Hit testing, arbitration, cancellation and concurrent input",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "accessibility",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIAccessibility"
+      ],
+      "purpose": "Semantics, focus, VoiceOver, Switch Control and settings",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "haptics",
+      "delivery": "platform-adapter",
+      "nativeApis": [
+        "UIFeedbackGenerator"
+      ],
+      "purpose": "Supported feedback and platform fallbacks",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "lifecycle",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIViewController",
+        "UIScene"
+      ],
+      "purpose": "Focus, background, disposal, interruptions and restoration",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "adaptive-layout",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIWindowScene",
+        "UISplitViewController"
+      ],
+      "purpose": "iPhone/iPad, rotation, resizing, keyboard and multitasking",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "renderer-tiers",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIVisualEffectView"
+      ],
+      "purpose": "Glass, fake and flat contracts across Flutter platforms",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "button",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIButton"
+      ],
+      "purpose": "Button styles, configurations and interactions",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "switch",
+      "delivery": "widget",
+      "nativeApis": [
+        "UISwitch"
+      ],
+      "purpose": "Switch values, drag paths and events",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "slider",
+      "delivery": "widget",
+      "nativeApis": [
+        "UISlider"
+      ],
+      "purpose": "Continuous/discrete values, ticks, images and reversals",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "stepper",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIStepper"
+      ],
+      "purpose": "Repeat, autorepeat, wrap and boundaries",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "segmented-control",
+      "delivery": "widget",
+      "nativeApis": [
+        "UISegmentedControl"
+      ],
+      "purpose": "Selection, momentary mode, dynamic items and overflow",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "page-control",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIPageControl"
+      ],
+      "purpose": "Paging, scrubbing, preferred images and backgrounds",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "menu",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIMenu",
+        "UIAction",
+        "UIDeferredMenuElement"
+      ],
+      "purpose": "All menu rows, hierarchy, lazy content and updates",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": [
+        {
+          "id": "root-geometry",
+          "dimension": "geometry",
+          "question": "Root placement, size and attachment at each screen edge",
+          "oracle": "telemetry",
+          "scenarioHashes": []
+        },
+        {
+          "id": "submenu-return",
+          "dimension": "transition",
+          "question": "Push two submenu levels and return through both headers; retain source identity",
+          "oracle": "telemetry",
+          "scenarioHashes": []
+        },
+        {
+          "id": "disabled-hidden",
+          "dimension": "state",
+          "question": "Disabled, hidden, destructive, selected and mixed rows with images/subtitles",
+          "oracle": "state-contract",
+          "scenarioHashes": []
+        },
+        {
+          "id": "deferred-update",
+          "dimension": "lifecycle",
+          "question": "Resolve lazy content, update while visible, dismiss before resolution and handle empty results",
+          "oracle": "lifecycle-contract",
+          "scenarioHashes": []
+        },
+        {
+          "id": "hold-drag-release",
+          "dimension": "input",
+          "question": "Open by hold, drag between rows, leave/reenter and release or cancel",
+          "oracle": "input-contract",
+          "scenarioHashes": []
+        },
+        {
+          "id": "overflow-scroll",
+          "dimension": "boundary",
+          "question": "Long menus, long text, maximum text size and menus larger than available space",
+          "oracle": "geometry-contract",
+          "scenarioHashes": []
+        },
+        {
+          "id": "rapid-reopen",
+          "dimension": "transition",
+          "question": "Dismiss/reopen while source and menu animations are still running",
+          "oracle": "transition-contract",
+          "scenarioHashes": []
+        },
+        {
+          "id": "system-content",
+          "dimension": "configuration",
+          "question": "Detect OS-added rows rather than assuming content exactly matches the requested model",
+          "oracle": "state-contract",
+          "scenarioHashes": []
+        }
+      ]
+    },
+    {
+      "id": "context-menu",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIContextMenuInteraction",
+        "UIContextMenuConfiguration",
+        "UITargetedPreview"
+      ],
+      "purpose": "Preview, commit, actions, dismissal and transitions",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": [
+        {
+          "id": "preview-actions",
+          "dimension": "api",
+          "question": "Standard preview and menu rows, custom preview, alternate previews and suggested actions",
+          "oracle": "api-review",
+          "scenarioHashes": []
+        },
+        {
+          "id": "preview-commit",
+          "dimension": "transition",
+          "question": "Tap/commit preview and interrupt its transition",
+          "oracle": "transition-contract",
+          "scenarioHashes": []
+        },
+        {
+          "id": "source-change",
+          "dimension": "lifecycle",
+          "question": "Move, resize, remove or rebuild source while menu is active",
+          "oracle": "lifecycle-contract",
+          "scenarioHashes": []
+        },
+        {
+          "id": "presentation-geometry",
+          "dimension": "geometry",
+          "question": "Preview lift, container placement and source return at all edges",
+          "oracle": "telemetry",
+          "scenarioHashes": []
+        }
+      ]
+    },
+    {
+      "id": "edit-menu",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIEditMenuInteraction"
+      ],
+      "purpose": "Selection-related editing actions and suggestions",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "text-field",
+      "delivery": "widget",
+      "nativeApis": [
+        "UITextField"
+      ],
+      "purpose": "Editing, clear, secure input, selection and validation",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "text-view",
+      "delivery": "widget",
+      "nativeApis": [
+        "UITextView"
+      ],
+      "purpose": "Multiline input, selection, links and scrolling",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "search",
+      "delivery": "widget",
+      "nativeApis": [
+        "UISearchBar",
+        "UISearchController",
+        "UISearchTextField",
+        "UISearchToken"
+      ],
+      "purpose": "Scopes, tokens, suggestions and presentation",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "keyboard-input",
+      "delivery": "platform-adapter",
+      "nativeApis": [
+        "UIKeyCommand",
+        "UITextInput",
+        "UIInputView"
+      ],
+      "purpose": "IME, dictation, hardware keyboard and accessories",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "date-picker",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIDatePicker"
+      ],
+      "purpose": "All styles, calendars, locales, DST and boundaries",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "picker",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIPickerView"
+      ],
+      "purpose": "Multiple wheels, selection and dynamic contents",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "color-picker",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIColorPickerViewController"
+      ],
+      "purpose": "Color space, alpha and interactive selection",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "font-picker",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIFontPickerViewController"
+      ],
+      "purpose": "Font selection and availability",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "progress",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIProgressView"
+      ],
+      "purpose": "Progress styles, bounds and animation",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "activity-indicator",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIActivityIndicatorView"
+      ],
+      "purpose": "Sizes, hiding, activity and reduced motion",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "badge",
+      "delivery": "widget",
+      "nativeApis": [
+        "UITabBarItem"
+      ],
+      "purpose": "Badge value, placement and updates",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "navigation-bar",
+      "delivery": "widget",
+      "nativeApis": [
+        "UINavigationBar",
+        "UINavigationItem",
+        "UIBarButtonItem"
+      ],
+      "purpose": "Titles, bar buttons, back menus and scrolling",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "navigation-stack",
+      "delivery": "widget",
+      "nativeApis": [
+        "UINavigationController"
+      ],
+      "purpose": "Push/pop, interactive interruption and restoration",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "zoom-transition",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIViewControllerTransition"
+      ],
+      "purpose": "Source identity, zoom, interactive dismissal and interruption",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "tab-bar",
+      "delivery": "widget",
+      "nativeApis": [
+        "UITabBar",
+        "UITabBarController",
+        "UITab"
+      ],
+      "purpose": "Tabs, customization, overflow and selection",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "tab-minimize-accessory",
+      "delivery": "widget",
+      "nativeApis": [
+        "UITabBarController"
+      ],
+      "purpose": "Minimization, content scrolling and bottom accessory",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "toolbar",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIToolbar",
+        "UIBarButtonItem"
+      ],
+      "purpose": "Grouping, spacing, menus and overflow",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "sidebar",
+      "delivery": "widget",
+      "nativeApis": [
+        "UISplitViewController"
+      ],
+      "purpose": "Selection, collapse, expansion and adaptivity",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "sheet",
+      "delivery": "widget",
+      "nativeApis": [
+        "UISheetPresentationController"
+      ],
+      "purpose": "Detents, drag, scroll ownership and keyboard",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "alert",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIAlertController"
+      ],
+      "purpose": "Actions, text inputs, preferred action and layout",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "action-sheet",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIAlertController"
+      ],
+      "purpose": "Cancel, destructive actions and anchored presentation",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "popover",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIPopoverPresentationController"
+      ],
+      "purpose": "Anchor, arrow, adaptive presentation and dismissal",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "presentation",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIPresentationController"
+      ],
+      "purpose": "Presentation styles, interactive dismissal and stacking",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "scroll-view",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIScrollView"
+      ],
+      "purpose": "Physics, bounce, zoom, inset adjustment and nested scrolling",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "scroll-edge",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIScrollEdgeEffect"
+      ],
+      "purpose": "Edge styles, overlap and scroll coupling",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "refresh-control",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIRefreshControl"
+      ],
+      "purpose": "Pull, thresholds, programmatic activity and interruption",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "list",
+      "delivery": "widget",
+      "nativeApis": [
+        "UITableView",
+        "UIListContentConfiguration"
+      ],
+      "purpose": "Rows, sections, accessories, selection and separators",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "collection",
+      "delivery": "widget",
+      "nativeApis": [
+        "UICollectionView",
+        "UICollectionViewCompositionalLayout"
+      ],
+      "purpose": "Grid, lists, layouts, reuse and self-sizing",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "swipe-actions",
+      "delivery": "widget",
+      "nativeApis": [
+        "UISwipeActionsConfiguration"
+      ],
+      "purpose": "Full swipe, destructive actions and dismissal",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "drag-drop",
+      "delivery": "platform-adapter",
+      "nativeApis": [
+        "UIDragInteraction",
+        "UIDropInteraction"
+      ],
+      "purpose": "Reordering, sessions, previews and cancellation",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "empty-content",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIContentUnavailableConfiguration"
+      ],
+      "purpose": "Empty, loading, error and search states",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "page-view",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIPageViewController"
+      ],
+      "purpose": "Page transitions, interactive cancellation and orientation",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "image-symbol",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIImageView",
+        "UIImageSymbolConfiguration"
+      ],
+      "purpose": "Rendering, sizing, symbol effects and unavailable symbols",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "share",
+      "delivery": "platform-adapter",
+      "nativeApis": [
+        "UIActivityViewController"
+      ],
+      "purpose": "Share sheet and platform capabilities",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "document-picker",
+      "delivery": "platform-adapter",
+      "nativeApis": [
+        "UIDocumentPickerViewController"
+      ],
+      "purpose": "Files, cancellation, permissions and restoration",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "photo-picker",
+      "delivery": "platform-adapter",
+      "nativeApis": [
+        "PHPickerViewController",
+        "UIImagePickerController"
+      ],
+      "purpose": "Selection, camera, permissions and cancellation",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "printing",
+      "delivery": "platform-adapter",
+      "nativeApis": [
+        "UIPrintInteractionController"
+      ],
+      "purpose": "Print presentation and availability",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "tooltips-pointer",
+      "delivery": "widget",
+      "nativeApis": [
+        "UIPointerInteraction",
+        "UIToolTipInteraction"
+      ],
+      "purpose": "Hover, pointer shapes and tooltip presentation",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    },
+    {
+      "id": "focus",
+      "delivery": "foundation",
+      "nativeApis": [
+        "UIFocusSystem"
+      ],
+      "purpose": "Keyboard/pointer focus, preferred focus and restoration",
+      "decomposed": false,
+      "profiles": [
+        "ios27-simulator-light",
+        "ios27-simulator-dark",
+        "ios27-device-light",
+        "ios27-device-dark"
+      ],
+      "obligations": []
+    }
+  ],
+  "evidence": []
+}

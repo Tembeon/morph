@@ -21,6 +21,7 @@ dependencies:
   motor: ^1.1.0
 
 dev_dependencies:
+  analyzer: ^10.1.0
   benchmark_harness: ^2.2.2
   flutter_test:
     sdk: flutter

@@ -1,5 +1,9 @@
 # Morph measurement laboratory
 
+The [coverage programme](../coverage/README.md) inventories the complete UI kit,
+tracks missing contracts and keeps research plans separate from verified native
+fidelity. A passing laboratory comparison only certifies its reviewed scope.
+
 One shared scenario drives UIKit and Flutter with real XCUITest touches on
 the same phone. A capture contains received touches, semantic events,
 presentation-layer or render-tree geometry, clips, sampler costs, frame
