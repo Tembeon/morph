@@ -342,14 +342,25 @@ class MorphLensMotion {
   /// How many pixels the whole control is widened by the press.
   double get chromeGrowth => tuning.chromeGrowth * _chrome.value(_now);
 
+  /// How many pixels the press widens the control once [chromeSteady].
+  double get chromeTarget => tuning.chromeGrowth * _chrome.target;
+
+  /// Whether the press's widening rests, swollen or not: its remaining
+  /// swing is under [MorphRest].
+  bool get chromeSteady => _chrome.isWithin(
+    _now,
+    MorphRest.length / math.max(tuning.chromeGrowth, 1),
+  );
+
   /// Whether the finger currently drags the lens.
   bool get isDragging => _pointer?.dragging ?? false;
 
-  /// Whether what remains of the motion is invisible: no touch, nothing
-  /// pending, and every spring's remaining swing below [MorphRest]
-  /// (NEAR, invisible; [settle] snaps the rest).
+  /// Whether what remains of the motion is invisible: nothing pending and
+  /// every spring's remaining swing below [MorphRest] (NEAR, invisible;
+  /// [settle] snaps the rest). A finger held still counts: the lens rests
+  /// lifted under it until the finger moves or lifts.
   bool get isSettled {
-    if (_pointer != null || !_timeline.isEmpty) return false;
+    if (!_timeline.isEmpty || (_pointer?.unfollowed ?? false)) return false;
     const length = MorphRest.length;
     final lifted = math.max(tuning.liftWidth, tuning.liftHeight);
     final scale = MorphRest.scale(_restWidth + tuning.liftWidth);
@@ -433,6 +444,7 @@ class MorphLensMotion {
     if (pointer == null || !pointer.pressedSelected) return;
     pointer.dragging = true;
     pointer.x = x;
+    pointer.unfollowed = true;
   }
 
   /// The finger left the track at [x]; the slot nearest the finger wins.
@@ -539,7 +551,10 @@ class MorphLensMotion {
   void _frame(double t) {
     _timeline.runDue(t);
     final pointer = _pointer;
-    if (pointer != null && pointer.dragging) _follow(t, pointer);
+    if (pointer != null && pointer.dragging) {
+      _follow(t, pointer);
+      pointer.unfollowed = false;
+    }
     final visible = _travel.value(t) + _drift.value(t);
     final previous = _previousVisible ?? visible;
     if (_flex.pf != null) {
@@ -662,4 +677,7 @@ class _Pointer {
   bool inert = false;
   double x;
   double unliftNotBefore = 0;
+
+  // A move the lens has not followed yet: the next frame follows it.
+  bool unfollowed = false;
 }

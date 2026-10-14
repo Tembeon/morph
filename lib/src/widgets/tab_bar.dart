@@ -522,16 +522,22 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
 
   late final Listenable _rowChanges = MorphChanges<(double, bool)>(
     frames,
-    () => (motion.chromeGrowth, _rowsApart),
+    () => (
+      motion.chromeSteady ? motion.chromeTarget : motion.chromeGrowth,
+      _rowsApart,
+    ),
   );
 
-  // A row is a repaint boundary of its own while neither the bar swells
-  // (its glyphs then snap to the screen scale at paint, every frame) nor
-  // a painter records the content to copy it into a lifted lens (the copy
-  // replays the content's pictures): then a lens that travels only moves
-  // the clips over the rows, and the rows are composited again.
+  // A row is a repaint boundary of its own while neither the bar's swell
+  // changes (its glyphs then snap to the screen scale at paint, every
+  // frame) nor a painter records the content to copy it into a lifted
+  // lens (the copy replays the content's pictures): then a lens that
+  // travels only moves the clips over the rows, and the rows are
+  // composited again. A swell whose remaining swing is under [MorphRest]
+  // counts as still: the rows keep the glyphs they snapped at most 0.1 pt
+  // away (NEAR, invisible), so a bar held swollen repaints no label.
   bool get _rowsApart =>
-      motion.chromeGrowth == 0 &&
+      motion.chromeSteady &&
       (morphGlassKeepsContentLive(_glass) ||
           motion.lift <= MorphGlassRenderer.restingLift);
 

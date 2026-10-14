@@ -260,14 +260,15 @@ class MorphSliderMotion {
   /// The track height, thinner while stretched.
   double get currentTrackHeight => trackHeight - squish * stretch.abs();
 
-  /// Whether every part of the slider is at rest.
+  /// Whether every part of the slider is at rest. A finger held still
+  /// counts: the lifted thumb rests until the finger moves or lifts.
   bool get isSettled =>
-      _press == null &&
       _glide == null &&
       _timeline.isEmpty &&
       _stretch.isAtRest(_now, 0.01) &&
       _settle.isAtRest(_now, 1e-4) &&
-      lens.isSettled(_now);
+      lens.isSettled(_now) &&
+      lens.hasSampled(_now, _thumbAt(_now));
 
   /// Puts a settled thumb lens onto its targets.
   void settle() => lens.settle(_now, _thumbAt(_now));

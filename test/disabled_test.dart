@@ -712,18 +712,13 @@ void main() {
         final ok = tester.widget<Text>(find.text('OK'));
         expect(ok.style?.color, _sameColor(title));
         expect(ok.style?.fontWeight, FontWeight.w600);
-        final fill = tester
-            .widgetList<Container>(
-              find.ancestor(
-                of: find.text('OK'),
-                matching: find.byType(Container),
-              ),
-            )
-            .map((Container c) => c.decoration)
-            .whereType<ShapeDecoration>()
-            .first
-            .color;
-        expect(fill, style.buttonColor);
+        final fill = find
+            .ancestor(of: find.text('OK'), matching: find.byType(CustomPaint))
+            .first;
+        expect(
+          tester.renderObject(fill),
+          paints..rrect(color: style.buttonColor),
+        );
       });
     }
   });

@@ -243,6 +243,15 @@ class MorphSmallLens {
   /// UIKit scales the drifted lens.
   double shift(double t) => _drift.value(t) * _scaleX.value(t);
 
+  /// Whether the deformation loop has sampled the lens at [position]: a
+  /// lens whose track moved under a held finger since its last frame has
+  /// a frame of following left.
+  bool hasSampled(double t, double position) {
+    final previous = _previous;
+    return previous == null ||
+        (position + shift(t) - previous).abs() < MorphRest.length;
+  }
+
   /// Whether what remains of the lens's motion at time [t] is invisible:
   /// every spring's remaining swing is below [MorphRest] (NEAR,
   /// invisible; [settle] snaps the rest).

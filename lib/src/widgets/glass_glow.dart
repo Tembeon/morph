@@ -366,13 +366,14 @@ class MorphTouchGlowMotion {
     );
   }
 
-  /// Whether nothing is left to animate at time [t].
+  /// Whether nothing is left to animate at time [t]. Under a finger held
+  /// still the glow rests lit until the finger moves or lifts.
   bool isSettled(double t) {
     _due(t);
-    return _down == null &&
-        _timeline.isEmpty &&
-        _progress.isAtRest(t, 0.002) &&
-        washOpacity(t) == 0 &&
-        spotOpacity(t) == 0;
+    if (!_timeline.isEmpty || !_progress.isAtRest(t, 0.002)) return false;
+    if (_down != null) {
+      return _scale.isAtRest(t, 0.001) && _strength.isAtRest(t, 0.002);
+    }
+    return washOpacity(t) == 0 && spotOpacity(t) == 0;
   }
 }

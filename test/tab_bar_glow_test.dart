@@ -137,7 +137,10 @@ void main() {
     expect(motion.washOpacity(1), closeTo(0.845, 1e-3));
     expect(motion.spotOpacity(1), closeTo(0.2845, 1e-3));
     expect(motion.spotScale(1), 1);
-    expect(motion.isSettled(1), isFalse);
+    expect(motion.isSettled(0.1), isFalse);
+    expect(motion.isSettled(1), isTrue, reason: 'rests lit under the finger');
+    expect(motion.washOpacity(5), closeTo(0.845, 1e-3));
+    expect(motion.spotOpacity(5), closeTo(0.2845, 1e-3));
   });
 
   test('a drag past 50 px spreads the spot at half strength', () {

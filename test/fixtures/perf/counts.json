@@ -11,9 +11,9 @@
     "idle": 0
   },
   "lens-held/flat": {
-    "frames": 97,
-    "builds": 0.2,
-    "paints": 10.3,
+    "frames": 78,
+    "builds": 0.3,
+    "paints": 10.6,
     "pictures": 1.1,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -24,8 +24,8 @@
   "tab-bar/flat": {
     "frames": 218,
     "builds": 0.1,
-    "paints": 79.8,
-    "pictures": 1.0,
+    "paints": 67.9,
+    "pictures": 1.5,
     "captures": 0.0,
     "offscreen": 0.0,
     "snapshotImages": 0.0,
@@ -275,7 +275,7 @@
     "idle": 0
   },
   "lens-held/fake": {
-    "frames": 97,
+    "frames": 98,
     "builds": 0.5,
     "paints": 38.2,
     "pictures": 4.1,
@@ -288,8 +288,8 @@
   "tab-bar/fake": {
     "frames": 218,
     "builds": 0.5,
-    "paints": 87.8,
-    "pictures": 3.2,
+    "paints": 76.0,
+    "pictures": 3.1,
     "captures": 2.6,
     "offscreen": 2.6,
     "snapshotImages": 0.0,
@@ -539,7 +539,7 @@
     "idle": 0
   },
   "lens-held/liquid": {
-    "frames": 97,
+    "frames": 98,
     "builds": 0.5,
     "paints": 38.2,
     "pictures": 4.1,
@@ -552,8 +552,8 @@
   "tab-bar/liquid": {
     "frames": 218,
     "builds": 0.5,
-    "paints": 87.8,
-    "pictures": 3.2,
+    "paints": 76.0,
+    "pictures": 3.1,
     "captures": 2.6,
     "offscreen": 2.6,
     "snapshotImages": 0.0,
