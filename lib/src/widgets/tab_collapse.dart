@@ -45,6 +45,7 @@ class MorphCollapsingTabs extends StatelessWidget {
     required this.enabled,
     this.drawsGlass = true,
     this.layoutBox,
+    this.tapsOnTouch = true,
     super.key,
   });
 
@@ -93,6 +94,12 @@ class MorphCollapsingTabs extends StatelessWidget {
 
   /// Whether the widget draws its glass itself.
   final bool drawsGlass;
+
+  /// Whether a tap on the circle calls [onTap]; false leaves its touches to
+  /// an ancestor that follows them (the minimized tab bar's hold), while
+  /// the circle still takes them from what lies under it. The keyboard and
+  /// screen readers call [onTap] either way. Applies with [layoutBox].
+  final bool tapsOnTouch;
 
   /// The box the widget is laid out at once, holding both ends of [rect]
   /// (the parent places it there); it then follows [rect] by paint alone:
@@ -314,7 +321,7 @@ extension on MorphCollapsingTabs {
                     ),
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: onTap,
+                  onTap: tapsOnTouch ? onTap : null,
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [

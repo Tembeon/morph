@@ -120,30 +120,33 @@ const _ceilings = <String, _Ceiling>{
   ),
   // A fling that minimizes the bar: the list's own deceleration runs
   // past the morph to 2.7 s (0/3/23 a frame, the scroll's cost); the
-  // collapse itself adds 3 layouts (the glass host) and 12-21 paints.
+  // collapse itself adds 3 layouts (the glass host) and 12-21 paints. The
+  // accessory's glass leaves the bar's layer while the two overlap (never
+  // one body): the glass host builds again then (10-26 builds, twice a
+  // morph), so the capsules share one backdrop read while apart.
   'tabbar-minimize/flat minimize': (
-    first: 82,
+    first: 92,
     ms: 2736,
     builds: 0,
     layouts: 3,
     paints: 23,
   ),
   'tabbar-minimize/liquid minimize': (
-    first: 98,
+    first: 114,
     ms: 2736,
     builds: 0,
     layouts: 3,
     paints: 23,
   ),
   'tabbar-minimize/flat expand': (
-    first: 14,
+    first: 15,
     ms: 768,
     builds: 0,
     layouts: 7,
     paints: 15,
   ),
   'tabbar-minimize/liquid expand': (
-    first: 14,
+    first: 15,
     ms: 768,
     builds: 0,
     layouts: 9,

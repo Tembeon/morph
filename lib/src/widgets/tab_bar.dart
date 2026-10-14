@@ -98,9 +98,14 @@ class MorphTabItem {
 /// direction shrinks the bar slightly as it goes and, after 64 points,
 /// collapses the bar into a circle holding the selected tab's glyph
 /// ([MorphTabBarMinimizeMotion]); scrolling back, a scroll to the top or a
-/// tap on the circle expands it. A [bottomAccessory] floats in glass above
-/// the bar and moves inline next to the minimized circle; its content
-/// reads where it is from [MorphTabAccessoryEnvironment.of].
+/// tap on the circle expands it. A finger held on the circle for 0.22 s
+/// expands the bar under it, and one that moves 4 points along it expands
+/// it at once; from that move the touch scrubs the tabs as the expanded
+/// bar's drag does and its release selects, while a hold lifted in place
+/// lets the bar collapse back (UIKit's interactive expansion). A
+/// [bottomAccessory] floats in its own glass above the bar and moves
+/// inline next to the minimized circle; its content reads where it is
+/// from [MorphTabAccessoryEnvironment.of].
 ///
 /// With either, the bar lays itself out across the width it is given, as
 /// UIKit's tab bar group spans the screen: place it at the bottom of a
@@ -587,6 +592,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       behavior: widget.minimizeBehavior,
       accessory: widget.bottomAccessory,
       contentScroll: widget.contentScroll,
+      barPress: this,
     );
   }
 

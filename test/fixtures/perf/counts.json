@@ -34,9 +34,9 @@
   },
   "tab-bar-minimize/flat": {
     "frames": 205,
-    "builds": 0.4,
-    "paints": 23.3,
-    "pictures": 1.9,
+    "builds": 0.6,
+    "paints": 24.4,
+    "pictures": 2.1,
     "captures": 0.0,
     "offscreen": 0.6,
     "snapshotImages": 0.0,
@@ -298,13 +298,13 @@
   },
   "tab-bar-minimize/fake": {
     "frames": 205,
-    "builds": 0.7,
-    "paints": 26.1,
-    "pictures": 3.0,
-    "captures": 2.1,
-    "offscreen": 2.6,
+    "builds": 0.9,
+    "paints": 26.4,
+    "pictures": 3.2,
+    "captures": 2.4,
+    "offscreen": 3.0,
     "snapshotImages": 0.0,
-    "traces": 0.2,
+    "traces": 0.0,
     "idle": 0
   },
   "switch/fake": {
@@ -562,13 +562,13 @@
   },
   "tab-bar-minimize/liquid": {
     "frames": 205,
-    "builds": 0.7,
-    "paints": 26.1,
-    "pictures": 3.0,
-    "captures": 2.1,
-    "offscreen": 2.6,
+    "builds": 0.9,
+    "paints": 26.4,
+    "pictures": 3.2,
+    "captures": 2.4,
+    "offscreen": 3.0,
     "snapshotImages": 0.0,
-    "traces": 0.2,
+    "traces": 0.0,
     "idle": 0
   },
   "switch/liquid": {
