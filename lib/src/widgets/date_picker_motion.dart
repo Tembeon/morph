@@ -58,6 +58,16 @@ abstract final class MorphDatePickerTuning {
   /// The scale of the hidden overlay about its anchor.
   static const double hiddenScale = 0.2;
 
+  /// The seconds the overlay fades in or out for under Reduce Motion, at
+  /// its full size, on [reducedMotionCurve]. Read from UIKit, notes
+  /// private: UIDatePicker's overlay presentation replaces its spring by
+  /// this fade under Reduce Motion (and switches pickers with it too,
+  /// which morph does not follow yet).
+  static const double reducedMotionDuration = 0.3;
+
+  /// The easing of the Reduce Motion fade: UIView's default curve.
+  static const Curve reducedMotionCurve = Curves.easeInOut;
+
   /// The height of the hidden overlay's box before the scale: the overlay
   /// grows its box from this height to its own while it scales, so its
   /// content is revealed from the anchored edge.
@@ -265,10 +275,27 @@ class MorphDatePickerMotion {
   double _pageStart = double.negativeInfinity;
   int _pageDirection = 0;
 
-  /// Whether the label skips its press dimming. Overlay springs and page
-  /// turns retain their measured timing. This Reduce Motion approximation
-  /// is not measured on the device.
+  /// Whether the motion follows Reduce Motion: the overlay fades in and
+  /// out at its full size over [MorphDatePickerTuning.reducedMotionDuration]
+  /// (read from UIKit, notes private), and the label skips its press
+  /// dimming and page turns keep their timing (approximations, not
+  /// recorded on the device).
   bool reducedMotion = false;
+
+  double _fadeStart = double.negativeInfinity;
+  double _fadeFrom = 0;
+  double _fadeTo = 0;
+
+  double _fade(double t) {
+    final k = ((t - _fadeStart) / MorphDatePickerTuning.reducedMotionDuration)
+        .clamp(0.0, 1.0);
+    return _fadeFrom +
+        (_fadeTo - _fadeFrom) *
+            MorphDatePickerTuning.reducedMotionCurve.transform(k);
+  }
+
+  bool _fadeDone(double t) =>
+      t >= _fadeStart + MorphDatePickerTuning.reducedMotionDuration;
 
   /// The time the motion was last advanced to.
   double get time => _now;
@@ -278,15 +305,18 @@ class MorphDatePickerMotion {
 
   /// Whether the overlay has closed and nothing moves.
   bool get isClosed {
+    if (reducedMotion) return !_open && _pendingAt == null && _fadeDone(_now);
     final spring = _spring(_now);
     return !_open && _pendingAt == null && spring.isAtRest(_now, 0.002);
   }
 
+  bool get _overlaySettled =>
+      reducedMotion ? _fadeDone(_now) : _spring(_now).isAtRest(_now, 0.001);
+
   /// Whether nothing moves.
   bool get isSettled {
-    final spring = _spring(_now);
     return _pendingAt == null &&
-        spring.isAtRest(_now, 0.001) &&
+        _overlaySettled &&
         _now >= _highlightStart + MorphDatePickerTuning.highlightDuration &&
         _now >= _pageStart + MorphDatePickerTuning.pageDuration &&
         yearPickerSettled(_now);
@@ -314,8 +344,9 @@ class MorphDatePickerMotion {
   /// still opens.
   void close(double t, {double? delay}) {
     advance(t);
-    final spring = _spring(t);
-    final opening = _pendingAt != null || !spring.isAtRest(t, 0.002);
+    final opening =
+        _pendingAt != null ||
+        (reducedMotion ? !_fadeDone(t) : !_spring(t).isAtRest(t, 0.002));
     _open = false;
     _schedule(
       t +
@@ -344,6 +375,13 @@ class MorphDatePickerMotion {
     final at = _pendingAt;
     if (at == null || t < at) return;
     _pendingAt = null;
+    if (reducedMotion) {
+      _fadeFrom = _fade(at);
+      _fadeTo = _pendingTarget;
+      _fadeStart = at;
+      _progress.snap(at, _pendingTarget);
+      return;
+    }
     _progress.retarget(at, _pendingTarget, spring: _pendingSpring);
   }
 
@@ -357,21 +395,35 @@ class MorphDatePickerMotion {
   }
 
   /// The overlay's progress at time [t]: 0 hidden, 1 open.
-  double progress(double t) => _spring(t).value(t);
+  double progress(double t) {
+    if (!reducedMotion) return _spring(t).value(t);
+    final at = _pendingAt;
+    if (at == null || t < at) return _fade(t);
+    final from = _fade(at);
+    final k = ((t - at) / MorphDatePickerTuning.reducedMotionDuration).clamp(
+      0.0,
+      1.0,
+    );
+    return from +
+        (_pendingTarget - from) *
+            MorphDatePickerTuning.reducedMotionCurve.transform(k);
+  }
 
   /// The overlay's scale about its anchor at time [t].
-  double scale(double t) =>
-      MorphDatePickerTuning.hiddenScale +
-      (1 - MorphDatePickerTuning.hiddenScale) * progress(t);
+  double scale(double t) => reducedMotion
+      ? 1
+      : MorphDatePickerTuning.hiddenScale +
+            (1 - MorphDatePickerTuning.hiddenScale) * progress(t);
 
   /// The overlay's opacity at time [t].
   double opacity(double t) => progress(t).clamp(0.0, 1.0);
 
   /// The height of the overlay's box before the scale at time [t], for an
   /// overlay [full] points tall.
-  double height(double t, double full) =>
-      MorphDatePickerTuning.hiddenHeight +
-      (full - MorphDatePickerTuning.hiddenHeight) * progress(t);
+  double height(double t, double full) => reducedMotion
+      ? full
+      : MorphDatePickerTuning.hiddenHeight +
+            (full - MorphDatePickerTuning.hiddenHeight) * progress(t);
 
   /// The label's text dims under a finger at time [t].
   void press(double t) => _highlight(t, MorphDatePickerTuning.highlightOpacity);
