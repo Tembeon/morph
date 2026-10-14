@@ -85,6 +85,16 @@ search_field.dart (`MorphSearchField`, `MorphSearchFieldAppearance`,
 and `activationDelay` = `pressDelay`); a drag on the field is not
 measured, so it lifts without the stretch.
 
+Per-frame work (lifecycle.md, 2026-10-14): the toolbar is a repaint
+boundary; its close button and side items travel at their size to the
+bit (`morphLerpRect`), so only the field (whose width changes) lays out
+during the focus transition: 32-55 layouts and 66-74 paints a frame to
+32-35 and 36-38 (native SwiftUI: 25-27 layouts). The transition lands at
+rest (`MorphSearchMotion.land`, NEAR as in search-tab-bar.md). The 18
+idle frames before the transition on the host are the keyboard wait
+(`keyboardWaitLimit`: the host has no keyboard); a device's keyboard
+starts it.
+
 ## Not reproduced / open
 
 - UIKit moves the close button two frames behind the field.

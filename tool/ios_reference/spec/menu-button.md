@@ -330,6 +330,20 @@ that slides beyond the same slop before `holdDuration` forfeits the hold
 too: the menu never opens under a finger that is cancelling. No capture
 releases a menu button tap outside; the bound is the glass button's.
 
+Per-frame work (lifecycle.md, 2026-10-14): the content shows through a
+`MorphLiveWindow` laid out once over the overlay (it moves, resizes and
+clips by paint), and the button's look is centered by `MorphLiveCenter`,
+laid out in the source's box of the frame but again only when that can
+change it: the ellipsis is the same 24 pt box in any box as large, and a
+look the fade hides keeps its layout. Pixels identical (control
+goldens). Host: open 11 layouts a frame to 1 (flat; liquid 16 to 6, the
+glass host's surfaces), the landing after the close 6 to 0. Side effect,
+policy-declared: the ellipsis now holds still while it shows, so while
+its scale sweeps fast the glyph policy may draw it from its raster
+(`MorphGlyphMode.raster`, NEAR) where the per-frame layout made it snap
+before. A look whose layout depends on its box (a glass button's label)
+still follows the box every frame while it shows.
+
 ## Not reproduced (deliberate)
 
 - The second deterministic kick variant (two curves per height,

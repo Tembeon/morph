@@ -64,6 +64,24 @@ tool/ios_reference/spec/lifecycle.md "Closed"):
 - A sheet's detent change rebuilds only what reads the sheet through
   `MorphSheet.of` (`scrollControllerOf` no longer depends on the detent);
   an alert's dismissal no longer rebuilds its card.
+- A button menu's open and close lay nothing out per frame: the content
+  shows through a live window laid out once, and the button's look is
+  laid out again only when its box can change it (11 layouts a frame to
+  1, the landing 6 to 0).
+- The search tab bar and the search toolbar are repaint boundaries and
+  no longer repaint the page under them; a box that only travels keeps
+  its size to the bit, so it is not laid out every frame; the tab bar's
+  morph and the focus transition land on their targets at rest
+  (`MorphSearchMotion.land`, NEAR: at most 0.001 of the travel, once); a
+  change of what the tabs or the search circle show rebuilds only that
+  part (36-59-element bursts to 2-32).
+- Every flight's shuttle is a repaint boundary: a frame of a flight
+  repaints the shuttle, not the overlay and the app under it. A context
+  menu's hidden source returns to its natural size at once instead of
+  springing for a second (release 1.4 to 0.37 s), and the source repaints
+  alone while it grows under the finger or lands.
+- An alert settles at a visible rest and lands on its targets (show 0.51
+  to 0.42 s); the resting card's text is drawn live and exact.
 
 Migration, old -> new:
 
