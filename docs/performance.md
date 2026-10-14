@@ -206,6 +206,11 @@ result, report locations). Compare an experiment only with its parent,
 same SDK, flags, warm-up and action protocol; never merge the integration
 snapshot as a shortcut.
 
+The remote experiment branches are archived under tags
+`archive/2026-10-14/<branch>`; the names below remain as local branches.
+Origin carries only `main` and `wip/measured-liquid-glass`. Each archive
+tag points to the experiment's original tip, preserving its full history.
+
 | branch | parent | state |
 |---|---|---|
 | `codex/exp-glyph-atlas` | baseline | retained foreground blur atlas; cadence not admitted |
