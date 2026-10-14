@@ -328,6 +328,60 @@ void main() {
       expect(environment, MorphTabAccessoryEnvironment.none);
     });
 
+    testWidgets('the search tab bar minimizes both circles', (
+      WidgetTester tester,
+    ) async {
+      _phone(tester);
+      final active = <bool>[];
+      MorphTabAccessoryEnvironment? environment;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MorphContentScrollScope(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ListView.builder(
+                    itemCount: 100,
+                    itemBuilder: (BuildContext context, int i) =>
+                        SizedBox(height: 60, child: Text('Row $i')),
+                  ),
+                ),
+                Positioned.fill(
+                  child: MorphSearchTabBar(
+                    items: _items.take(3).toList(),
+                    selected: 0,
+                    onChanged: (_) {},
+                    active: false,
+                    onActiveChanged: active.add,
+                    minimizeBehavior: MorphTabBarMinimizeBehavior.onScrollDown,
+                    bottomAccessory: Builder(
+                      builder: (BuildContext context) {
+                        environment = MorphTabAccessoryEnvironment.of(context);
+                        return const SizedBox.expand();
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(environment, MorphTabAccessoryEnvironment.regular);
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      expect(environment, MorphTabAccessoryEnvironment.inline);
+      final circle = find.byType(MorphCollapsingTabs);
+      expect(tester.getRect(circle), const Rect.fromLTWH(28, 874 - 76, 48, 48));
+      await tester.tapAt(const Offset(402 - 52, 874 - 52));
+      await tester.pump();
+      expect(active, [true]);
+      await tester.tap(circle);
+      await tester.pumpAndSettle();
+      expect(environment, MorphTabAccessoryEnvironment.regular);
+      expect(find.byType(MorphCollapsingTabs), findsNothing);
+    });
+
     testWidgets('a drag that hints builds nothing', (
       WidgetTester tester,
     ) async {

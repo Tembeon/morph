@@ -19,6 +19,19 @@ class _MinimizeTabBarPageState extends State<MinimizeTabBarPage> {
   int _behavior = 0;
   bool _accessory = true;
   bool _playing = false;
+  bool _search = false;
+  bool _searching = false;
+
+  Widget _toggle(String label, bool value, ValueChanged<bool> onChanged) =>
+      Padding(
+        padding: const .only(bottom: 12),
+        child: Row(
+          children: [
+            Expanded(child: Text(label)),
+            MorphSwitch(value: value, onChanged: onChanged),
+          ],
+        ),
+      );
 
   static const _behaviors = [
     MorphTabBarMinimizeBehavior.onScrollDown,
@@ -66,18 +79,20 @@ class _MinimizeTabBarPageState extends State<MinimizeTabBarPage> {
                       );
                     }
                     if (i == 1) {
-                      return Padding(
-                        padding: const .only(bottom: 12),
-                        child: Row(
-                          children: [
-                            const Expanded(child: Text('Bottom accessory')),
-                            MorphSwitch(
-                              value: _accessory,
-                              onChanged: (bool v) =>
-                                  setState(() => _accessory = v),
-                            ),
-                          ],
-                        ),
+                      return _toggle(
+                        'Bottom accessory',
+                        _accessory,
+                        (bool v) => setState(() => _accessory = v),
+                      );
+                    }
+                    if (i == 2) {
+                      return _toggle(
+                        'Search tab',
+                        _search,
+                        (bool v) => setState(() {
+                          _search = v;
+                          _searching = false;
+                        }),
                       );
                     }
                     return Container(
@@ -107,21 +122,37 @@ class _MinimizeTabBarPageState extends State<MinimizeTabBarPage> {
               ),
             ],
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 21,
-            child: MorphTabBar(
-              items: _items,
-              selected: _selected,
-              onChanged: GalleryGlassScope.enabled(
-                context,
-                (int i) => setState(() => _selected = i),
+          if (_search)
+            Positioned.fill(
+              child: MorphSearchTabBar(
+                items: _items.take(3).toList(),
+                selected: _selected.clamp(0, 2),
+                onChanged: GalleryGlassScope.enabled(
+                  context,
+                  (int i) => setState(() => _selected = i),
+                ),
+                active: _searching,
+                onActiveChanged: (bool on) => setState(() => _searching = on),
+                minimizeBehavior: _behaviors[_behavior],
+                bottomAccessory: _accessory ? _player() : null,
               ),
-              minimizeBehavior: _behaviors[_behavior],
-              bottomAccessory: _accessory ? _player() : null,
+            )
+          else
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 21,
+              child: MorphTabBar(
+                items: _items,
+                selected: _selected,
+                onChanged: GalleryGlassScope.enabled(
+                  context,
+                  (int i) => setState(() => _selected = i),
+                ),
+                minimizeBehavior: _behaviors[_behavior],
+                bottomAccessory: _accessory ? _player() : null,
+              ),
             ),
-          ),
         ],
       ),
     );

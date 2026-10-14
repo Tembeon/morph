@@ -205,6 +205,134 @@ class _TabAccessoryScope extends InheritedWidget {
       oldWidget.environment != environment;
 }
 
+/// The content of a bottom accessory as the bar group shows it: in the
+/// [environment] it reads, with the body text style and the bar's content
+/// color, clipped to the accessory's capsule.
+@internal
+Widget morphTabAccessoryContent({
+  required MorphTabAccessoryEnvironment environment,
+  required MorphTabBarAppearance style,
+  required Widget child,
+}) => RepaintBoundary(
+  child: ClipRRect(
+    borderRadius: const BorderRadius.all(
+      Radius.circular(MorphTabBarMinimizeTuning.accessoryHeight / 2),
+    ),
+    child: _TabAccessoryScope(
+      environment: environment,
+      child: DefaultTextStyle(
+        style: MorphTypography.resolve(
+          MorphTypography.body.copyWith(color: style.color),
+        ),
+        child: IconTheme.merge(
+          data: IconThemeData(color: style.color),
+          child: child,
+        ),
+      ),
+    ),
+  ),
+);
+
+/// A bottom accessory in a [Stack] that fills the screen: its glass and
+/// content at [rect], faded by [opacity], both read on every frame of
+/// [live].
+@internal
+class MorphTabAccessorySlot extends StatelessWidget {
+  /// Places [child].
+  const MorphTabAccessorySlot({
+    required this.live,
+    required this.rect,
+    required this.opacity,
+    required this.takesTouches,
+    required this.environment,
+    required this.style,
+    required this.glass,
+    required this.brightness,
+    required this.child,
+    super.key,
+  });
+
+  /// Notifies on every frame of the motion.
+  final Listenable live;
+
+  /// The accessory's box now.
+  final Rect Function() rect;
+
+  /// The accessory's opacity now.
+  final double Function() opacity;
+
+  /// Whether the content takes touches.
+  final bool takesTouches;
+
+  /// Where the accessory is laid out.
+  final MorphTabAccessoryEnvironment environment;
+
+  /// The bar's look.
+  final MorphTabBarAppearance style;
+
+  /// The installed glass painter, if any.
+  final MorphGlassPainter? glass;
+
+  /// The glass's brightness.
+  final Brightness brightness;
+
+  /// The accessory's content.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final glass = this.glass;
+    return MorphLivePositionedTemplate(
+      live: live,
+      template: () => Positioned.fromRect(rect: rect(), child: morphLiveSlot),
+      child: IgnorePointer(
+        ignoring: !takesTouches,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            IgnorePointer(
+              child: glass == null
+                  ? CustomPaint(
+                      painter: MorphCapsulePainter(
+                        live: live,
+                        shape: () => morphCapsuleIn(rect()),
+                        color: () => style.barColor.withValues(
+                          alpha: style.barColor.a * opacity(),
+                        ),
+                        shadow: style.shadowColor,
+                      ),
+                    )
+                  : MorphGlassHost(
+                      painter: glass,
+                      mode: MorphGlassMode.surface,
+                      frames: live,
+                      frame: () => MorphGlassFrame([
+                        MorphGlassSurface(
+                          kind: MorphGlassKind.bar,
+                          shape: morphCapsuleIn(rect()),
+                          color: style.barColor,
+                          brightness: brightness,
+                          opacity: opacity(),
+                        ),
+                      ]),
+                    ),
+            ),
+            MorphLiveOpacity(
+              live: live,
+              opacityOf: opacity,
+              child: morphTabAccessoryContent(
+                environment: environment,
+                style: style,
+                child: child,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// The geometry of a tab bar group: the expanded bar, its minimized
 /// circle and the bottom accessory in both placements.
 @internal
@@ -340,17 +468,112 @@ class MorphTabBarChrome extends StatefulWidget {
   State<MorphTabBarChrome> createState() => _MorphTabBarChromeState();
 }
 
+/// A tab bar host that minimizes: it follows a [MorphContentScroll] and
+/// feeds [minimizeMotion] the content's scrolls on its clock.
+@internal
+mixin MorphTabBarMinimizing<T extends StatefulWidget> on MorphClock<T>
+    implements MorphContentScrollClient {
+  /// The motion the scrolls drive.
+  MorphTabBarMinimizeMotion get minimizeMotion;
+
+  MorphContentScroll? _followed;
+
+  /// Follows [source] instead of the scroll followed before.
+  void followContentScroll(MorphContentScroll? source) {
+    if (identical(source, _followed)) return;
+    _followed?.removeClient(this);
+    _followed = source;
+    source?.addClient(this);
+  }
+
+  /// Expands a minimized bar: a tap on its circle.
+  void expandMinimized() {
+    if (!minimizeMotion.minimized) return;
+    _minimizeInput(
+      (double t) => minimizeMotion.setMinimized(t, minimized: false),
+    );
+  }
+
+  /// Changes the behavior to [behavior].
+  void changeMinimizeBehavior(MorphTabBarMinimizeBehavior behavior) {
+    if (behavior == minimizeMotion.behavior) return;
+    _minimizeInput((double t) => minimizeMotion.setBehavior(t, behavior));
+  }
+
+  @override
+  void dispose() {
+    _followed?.removeClient(this);
+    _followed = null;
+    super.dispose();
+  }
+
+  void _minimizeInput(void Function(double t) action) {
+    final t = clock;
+    minimizeMotion.advance(t);
+    action(t);
+    wake();
+  }
+
+  @override
+  void contentDragStarted() =>
+      _minimizeInput((_) => minimizeMotion.scrollAway.beginDrag());
+
+  @override
+  void contentScrolled(
+    double offset, {
+    required double min,
+    required double max,
+    required bool tracking,
+  }) {
+    final motion = minimizeMotion;
+    if (!motion.behavior.minimizes) {
+      motion.scrollAway.record(offset);
+      return;
+    }
+    _minimizeInput(
+      (_) => motion.scrollAway.scroll(
+        offset,
+        min: min,
+        max: max,
+        tracking: tracking,
+      ),
+    );
+  }
+
+  @override
+  void contentDragEnded({required bool decelerates}) => _minimizeInput(
+    (_) => minimizeMotion.scrollAway.endDrag(decelerates: decelerates),
+  );
+
+  @override
+  void contentDecelerationEnded() =>
+      _minimizeInput((_) => minimizeMotion.scrollAway.endDeceleration());
+
+  @override
+  void contentRecorded(double offset) =>
+      minimizeMotion.scrollAway.record(offset);
+
+  @override
+  void contentReachedTop() {
+    if (!minimizeMotion.minimized) return;
+    _minimizeInput((_) => minimizeMotion.scrollAway.scrollToTop());
+  }
+}
+
 typedef _Structure = ({bool resting, bool minimized});
 
 class _MorphTabBarChromeState extends State<MorphTabBarChrome>
     with
         SingleTickerProviderStateMixin<MorphTabBarChrome>,
-        MorphClock<MorphTabBarChrome>
-    implements MorphContentScrollClient {
+        MorphClock<MorphTabBarChrome>,
+        MorphTabBarMinimizing<MorphTabBarChrome> {
   late final MorphTabBarMinimizeMotion _motion = MorphTabBarMinimizeMotion(
     behavior: widget.behavior,
   );
-  MorphContentScroll? _source;
+
+  @override
+  MorphTabBarMinimizeMotion get minimizeMotion => _motion;
+
   MorphTabBarGroupGeometry? _geometry;
   Rect _bar = Rect.zero;
   Rect _accessory = Rect.zero;
@@ -378,24 +601,15 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
   void didUpdateWidget(MorphTabBarChrome oldWidget) {
     super.didUpdateWidget(oldWidget);
     _follow();
-    if (oldWidget.behavior != widget.behavior) {
-      _motion.setBehavior(clock, widget.behavior);
-      wake();
-    }
+    changeMinimizeBehavior(widget.behavior);
   }
 
-  void _follow() {
-    final source =
-        widget.contentScroll ?? MorphContentScrollScope.maybeOf(context);
-    if (identical(source, _source)) return;
-    _source?.removeClient(this);
-    _source = source;
-    source?.addClient(this);
-  }
+  void _follow() => followContentScroll(
+    widget.contentScroll ?? MorphContentScrollScope.maybeOf(context),
+  );
 
   @override
   void dispose() {
-    _source?.removeClient(this);
     _ticks.dispose();
     _labelShown.dispose();
     _collapsedEnabled.dispose();
@@ -411,59 +625,6 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
 
   @override
   void settleMotion() => _motion.settle(_motion.time);
-
-  void _input(void Function(double t) action) {
-    final t = clock;
-    _motion.advance(t);
-    action(t);
-    wake();
-  }
-
-  @override
-  void contentDragStarted() => _input((_) => _motion.scrollAway.beginDrag());
-
-  @override
-  void contentScrolled(
-    double offset, {
-    required double min,
-    required double max,
-    required bool tracking,
-  }) {
-    if (!_motion.behavior.minimizes) {
-      _motion.scrollAway.record(offset);
-      return;
-    }
-    _input(
-      (_) => _motion.scrollAway.scroll(
-        offset,
-        min: min,
-        max: max,
-        tracking: tracking,
-      ),
-    );
-  }
-
-  @override
-  void contentDragEnded({required bool decelerates}) =>
-      _input((_) => _motion.scrollAway.endDrag(decelerates: decelerates));
-
-  @override
-  void contentDecelerationEnded() =>
-      _input((_) => _motion.scrollAway.endDeceleration());
-
-  @override
-  void contentRecorded(double offset) => _motion.scrollAway.record(offset);
-
-  @override
-  void contentReachedTop() {
-    if (!_motion.minimized) return;
-    _input((_) => _motion.scrollAway.scrollToTop());
-  }
-
-  void _expand() {
-    if (!_motion.minimized) return;
-    _input((double t) => _motion.setMinimized(t, minimized: false));
-  }
 
   _Structure _readFrame() {
     final geometry = _geometry!;
@@ -634,7 +795,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
           brightness: widget.brightness,
           rtl: widget.rtl,
           label: widget.items[selected].label,
-          onTap: _expand,
+          onTap: expandMinimized,
           enabled: _collapsedEnabled,
           drawsGlass: glass == null,
         );
@@ -655,26 +816,12 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
           live: _ticks,
           template: () =>
               Positioned.fromRect(rect: _accessory, child: morphLiveSlot),
-          child: RepaintBoundary(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.all(
-                Radius.circular(MorphTabBarMinimizeTuning.accessoryHeight / 2),
-              ),
-              child: _TabAccessoryScope(
-                environment: structure.minimized
-                    ? MorphTabAccessoryEnvironment.inline
-                    : MorphTabAccessoryEnvironment.regular,
-                child: DefaultTextStyle(
-                  style: MorphTypography.resolve(
-                    MorphTypography.body.copyWith(color: style.color),
-                  ),
-                  child: IconTheme.merge(
-                    data: IconThemeData(color: style.color),
-                    child: accessory,
-                  ),
-                ),
-              ),
-            ),
+          child: morphTabAccessoryContent(
+            environment: structure.minimized
+                ? MorphTabAccessoryEnvironment.inline
+                : MorphTabAccessoryEnvironment.regular,
+            style: style,
+            child: accessory,
           ),
         ),
       );
