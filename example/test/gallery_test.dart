@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph_example/gallery/knobs.dart';
 
 /// Every text on screen that fell through to the app's error text style:
 /// a yellow double underline marks text outside any Material.
@@ -43,6 +45,16 @@ NavigatorState _pages(WidgetTester tester) => tester.state<NavigatorState>(
 /// Leaves a gallery page through the navigation bar's back button.
 Future<void> _back(WidgetTester tester) async {
   await tester.tap(find.bySemanticsLabel('Back').last);
+}
+
+/// Opens the home entry [title]: scrolls its row to the middle of the
+/// screen, clear of the bars, and taps it.
+Future<void> _open(WidgetTester tester, String title) async {
+  final entry = find.widgetWithText(MorphListRow, title);
+  await Scrollable.ensureVisible(tester.element(entry), alignment: 0.5);
+  await _settle(tester);
+  await tester.tap(entry);
+  await _settle(tester);
 }
 
 Finder _slowMotion(String factor) =>
@@ -87,17 +99,7 @@ void main() {
         galleryBackgroundColor(brightness),
       );
       for (final entry in galleryEntries) {
-        await tester.scrollUntilVisible(
-          find.text(entry.title),
-          200,
-          scrollable: find.byType(Scrollable).first,
-        );
-        await tester.tap(find.text(entry.title));
-        await tester.pumpAndSettle(
-          const Duration(milliseconds: 100),
-          EnginePhase.sendSemanticsUpdate,
-          const Duration(seconds: 10),
-        );
+        await _open(tester, entry.title);
         expect(_unstyledTexts(tester), isEmpty, reason: entry.title);
         expect(_slowMotion('1x'), findsOneWidget, reason: entry.title);
         _pages(tester).popUntil((Route<Object?> route) => route.isFirst);
@@ -113,12 +115,7 @@ void main() {
 
   testWidgets('the open menu has styled rows', (tester) async {
     await _pumpGallery(tester);
-    await tester.tap(find.text('Menu'));
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 10),
-    );
+    await _open(tester, 'Menu');
     final center = find
         .byType(MorphMenuButton)
         .evaluate()
@@ -141,8 +138,7 @@ void main() {
     tester,
   ) async {
     await _pumpGallery(tester);
-    await tester.tap(find.text('Tab bar'));
-    await _settle(tester);
+    await _open(tester, 'Tab bar');
     final toggle = tester.getRect(_slowMotion('1x'));
     final bar = tester.getRect(find.byType(MorphTabBar));
     expect(toggle.overlaps(bar), isFalse);
@@ -170,8 +166,7 @@ void main() {
     tester,
   ) async {
     await _pumpGallery(tester);
-    await tester.tap(find.text('Menu'));
-    await _settle(tester);
+    await _open(tester, 'Menu');
     final gesture = await tester.startGesture(
       tester.getCenter(find.bySemanticsLabel('More')),
     );
@@ -188,23 +183,7 @@ void main() {
   testWidgets('the glass page settings reach every page', (tester) async {
     await _pumpGallery(tester);
     expect(find.byType(MorphGlassScope), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('Glass renderer'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.ensureVisible(find.text('Glass renderer'));
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 10),
-    );
-    await tester.tap(find.text('Glass renderer'));
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 10),
-    );
+    await _open(tester, 'Glass renderer');
     await tester.tap(find.text('Flat'));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
@@ -238,22 +217,7 @@ void main() {
       EnginePhase.sendSemanticsUpdate,
       const Duration(seconds: 10),
     );
-    await tester.scrollUntilVisible(
-      find.text('Controls'),
-      -200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 10),
-    );
-    await tester.tap(find.text('Controls'));
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 10),
-    );
+    await _open(tester, 'Controls');
     expect(
       MorphAdaptiveGlass.tierOf(tester.element(find.byType(MorphSwitch).first)),
       MorphGlassTier.flat,
@@ -264,4 +228,123 @@ void main() {
     );
     expect(_unstyledTexts(tester), isEmpty);
   });
+
+  testWidgets('section headers differ from entry titles, titles are unique', (
+    tester,
+  ) async {
+    final titles = [for (final e in galleryEntries) e.title];
+    expect(titles.toSet(), hasLength(titles.length));
+    final headers = [for (final f in GalleryFamily.values) f.header];
+    expect(headers.toSet(), hasLength(headers.length));
+    expect(headers.toSet().intersection(titles.toSet()), isEmpty);
+    final order = [for (final e in galleryEntries) e.family.index];
+    final sorted = [...order];
+    sorted.sort();
+    expect(
+      order,
+      orderedEquals(sorted),
+      reason: 'galleryEntries lists the families in the order of the home',
+    );
+    await _pumpGallery(tester);
+    for (final family in GalleryFamily.values) {
+      expect(find.text(family.header), findsOneWidget, reason: family.header);
+    }
+    for (final title in titles) {
+      expect(find.text(title), findsOneWidget, reason: title);
+    }
+  });
+
+  testWidgets('the global settings reach the theme and the media query', (
+    tester,
+  ) async {
+    await _pumpGallery(tester);
+    BuildContext home() => tester.element(find.byType(GalleryHome));
+    var theme = Theme.of(home()).extension<MorphWidgetsTheme>()!;
+    expect(theme.tint, isNull);
+    expect(theme.haptics, isNull);
+    expect(MediaQuery.disableAnimationsOf(home()), isFalse);
+    expect(MediaQuery.highContrastOf(home()), isFalse);
+    final settings = GalleryGlassScope.read(home());
+    settings.reduceMotion = true;
+    settings.highContrast = true;
+    settings.haptics = false;
+    settings.accent = const Color(0xFFFF9500);
+    await _settle(tester);
+    theme = Theme.of(home()).extension<MorphWidgetsTheme>()!;
+    expect(theme.tint, const Color(0xFFFF9500));
+    expect(theme.haptics, isFalse);
+    expect(MediaQuery.disableAnimationsOf(home()), isTrue);
+    expect(MediaQuery.highContrastOf(home()), isTrue);
+  });
+
+  testWidgets('a page with options opens them in a sheet that follows it', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      const GalleryApp(home: MorphNavigationStack(home: _OptionsProbe())),
+    );
+    await _settle(tester);
+    expect(find.text('Probe off'), findsOneWidget);
+    expect(find.byType(GalleryToggle), findsNothing);
+    await tester.tap(find.bySemanticsLabel('Page options'));
+    await _settle(tester);
+    expect(find.byType(GalleryToggle), findsOneWidget);
+    await tester.tap(find.byType(MorphSwitch).last);
+    await _settle(tester);
+    expect(find.text('Probe on'), findsOneWidget);
+    expect(
+      tester.widget<MorphSwitch>(find.byType(MorphSwitch).last).value,
+      isTrue,
+    );
+    await tester.tap(find.bySemanticsLabel('Orange'));
+    await _settle(tester);
+    expect(find.text('Probe orange'), findsOneWidget);
+    expect(_unstyledTexts(tester), isEmpty);
+  });
+}
+
+class _OptionsProbe extends StatefulWidget {
+  const _OptionsProbe();
+
+  @override
+  State<_OptionsProbe> createState() => _OptionsProbeState();
+}
+
+class _OptionsProbeState extends State<_OptionsProbe> {
+  bool _on = false;
+  Color? _color;
+
+  @override
+  Widget build(BuildContext context) {
+    return GalleryPage(
+      title: 'Probe',
+      options: (BuildContext context) => [
+        MorphListSection(
+          header: const Text('Probe options'),
+          children: [
+            GalleryToggle(
+              label: 'Probe switch',
+              value: _on,
+              onChanged: (bool v) => setState(() => _on = v),
+            ),
+            GalleryColorChoice(
+              label: 'Probe color',
+              value: _color,
+              onChanged: (Color? c) => setState(() => _color = c),
+            ),
+          ],
+        ),
+      ],
+      slivers: [
+        SliverToBoxAdapter(
+          child: GalleryCaption(
+            _color == null ? 'Probe ${_on ? 'on' : 'off'}' : 'Probe orange',
+          ),
+        ),
+      ],
+    );
+  }
 }

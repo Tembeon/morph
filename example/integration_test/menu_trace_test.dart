@@ -165,6 +165,11 @@ class _Trace {
     if (_scene == 'gallery') {
       runApp(const GalleryApp());
       await tester.pump(const Duration(seconds: 2));
+      await Scrollable.ensureVisible(
+        tester.element(find.text('Menu')),
+        alignment: 0.5,
+      );
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.text('Menu'));
       await tester.pump(const Duration(seconds: 1));
       final screen = (tester.view.physicalSize / tester.view.devicePixelRatio)

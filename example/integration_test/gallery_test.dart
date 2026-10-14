@@ -134,7 +134,10 @@ class _Qa {
       finger(at, const [], holdBefore: Duration(milliseconds: holdMs));
 
   Future<void> open(String title) async {
-    await tester.tap(find.text(title));
+    final entry = find.text(title);
+    await Scrollable.ensureVisible(tester.element(entry), alignment: 0.5);
+    await settle(300);
+    await tester.tap(entry);
     await settle(700);
   }
 

@@ -467,7 +467,7 @@ class _Audit implements MatrixDriver {
     final entry = find.text(title);
     final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
     if (!(Offset.zero & screen).deflate(40).contains(tester.getCenter(entry))) {
-      await tester.ensureVisible(entry);
+      await Scrollable.ensureVisible(tester.element(entry), alignment: 0.5);
       await settle(300);
     }
     _enteredAt = timings.length;
@@ -790,7 +790,7 @@ class _Audit implements MatrixDriver {
     await measure('page-open', () async {
       for (final title in const ['Menu', 'Navigation']) {
         final entry = find.text(title);
-        await tester.ensureVisible(entry);
+        await Scrollable.ensureVisible(tester.element(entry), alignment: 0.5);
         await settle(300);
         await tester.tap(entry);
         await settle(1200);

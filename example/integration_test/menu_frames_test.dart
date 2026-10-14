@@ -148,7 +148,10 @@ class _Frames {
     runApp(const GalleryApp());
     await settle(1500);
     await settle(300);
-    await tester.tap(find.text(_scene == 'controls' ? 'Controls' : 'Menu'));
+    final entry = find.text(_scene == 'controls' ? 'Controls' : 'Menu');
+    await Scrollable.ensureVisible(tester.element(entry), alignment: 0.5);
+    await settle(300);
+    await tester.tap(entry);
     await settle(800);
     Future<void> Function() gesture;
     if (_scene == 'controls') {

@@ -1,11 +1,10 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/foundation.dart';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph_example/gallery/knobs.dart';
 
 /// The gallery's glass settings and a sample of every control over a
 /// colorful backdrop.
@@ -29,14 +28,31 @@ class _GlassPageState extends State<GlassPage> {
   double _count = 3;
   int _page = 1;
 
-  static const _tiers = ['Auto', 'Liquid', 'Fake', 'Flat'];
-  static const _materials = ['Regular', 'Toolbar', 'Clear'];
+  static const _tiers = <MorphGlassTier?, String>{
+    null: 'Auto',
+    MorphGlassTier.liquid: 'Liquid',
+    MorphGlassTier.fake: 'Fake',
+    MorphGlassTier.flat: 'Flat',
+  };
+  static const _materials = {
+    MorphGlassMaterial.regular: 'Regular',
+    MorphGlassMaterial.toolbar: 'Toolbar',
+    MorphGlassMaterial.clear: 'Clear',
+  };
 
   /// The iOS Settings > Display & Brightness > Liquid Glass choice; the
   /// knob below sets any position between the two.
-  static const _liquidGlass = ['Clear', 'Tinted'];
-  static const _appearances = ['System', 'Light', 'Dark'];
-  static const _frameRates = ['Auto', '60 Hz', '120 Hz'];
+  static final _liquidGlass = {0.0: 'Clear', 1.0: 'Tinted'};
+  static const _appearances = {
+    ThemeMode.system: 'System',
+    ThemeMode.light: 'Light',
+    ThemeMode.dark: 'Dark',
+  };
+  static const _frameRates = {
+    GalleryFrameRate.auto: 'Auto',
+    GalleryFrameRate.hz60: '60 Hz',
+    GalleryFrameRate.hz120: '120 Hz',
+  };
 
   Widget _scene(BuildContext context) {
     T? on<T extends Function>(T callback) =>
@@ -217,42 +233,31 @@ class _GlassPageState extends State<GlassPage> {
             child: MorphListSection(
               header: const Text('Renderer'),
               children: [
-                _Choice(
+                GalleryChoice<MorphGlassTier?>(
                   label: 'Tier',
-                  segments: _tiers,
-                  selected: switch (settings.tier) {
-                    null => 0,
-                    MorphGlassTier.liquid => 1,
-                    MorphGlassTier.fake => 2,
-                    MorphGlassTier.flat => 3,
-                  },
-                  onChanged: (int i) => settings.tier = switch (i) {
-                    1 => MorphGlassTier.liquid,
-                    2 => MorphGlassTier.fake,
-                    3 => MorphGlassTier.flat,
-                    _ => null,
-                  },
+                  options: _tiers,
+                  value: settings.tier,
+                  onChanged: (MorphGlassTier? tier) => settings.tier = tier,
                 ),
                 MorphListRow(
                   title: const Text('Drawing'),
                   detail: Text(drawn?.name ?? 'none'),
                 ),
-                _Choice(
+                GalleryChoice<MorphGlassMaterial>(
                   label: 'Material',
-                  segments: _materials,
-                  selected: settings.material.index,
+                  options: _materials,
+                  value: settings.material,
                   onChanged: liquid
-                      ? (int i) =>
-                            settings.material = MorphGlassMaterial.values[i]
+                      ? (MorphGlassMaterial m) => settings.material = m
                       : null,
                 ),
-                _Knob(
+                GallerySliderKnob(
                   label: 'Blur',
                   value: settings.blur,
                   max: 3,
                   onChanged: liquid ? (double v) => settings.blur = v : null,
                 ),
-                _Knob(
+                GallerySliderKnob(
                   label: 'Refraction',
                   value: settings.refraction,
                   max: 2,
@@ -260,27 +265,25 @@ class _GlassPageState extends State<GlassPage> {
                       ? (double v) => settings.refraction = v
                       : null,
                 ),
-                _Knob(
+                GallerySliderKnob(
                   label: 'Rim light',
                   value: settings.light,
                   max: 2,
                   onChanged: liquid ? (double v) => settings.light = v : null,
                 ),
-                _Choice(
+                GalleryChoice<double>(
                   label: 'Liquid Glass',
-                  segments: _liquidGlass,
-                  selected: settings.tint < 0.5 ? 0 : 1,
-                  onChanged: liquid
-                      ? (int i) => settings.tint = i.toDouble()
-                      : null,
+                  options: _liquidGlass,
+                  value: settings.tint < 0.5 ? 0 : 1,
+                  onChanged: liquid ? (double v) => settings.tint = v : null,
                 ),
-                _Knob(
+                GallerySliderKnob(
                   label: 'Clear to tinted',
                   value: settings.tint,
                   max: 1,
                   onChanged: liquid ? (double v) => settings.tint = v : null,
                 ),
-                _Toggle(
+                GalleryToggle(
                   label: 'Frost controls',
                   value: settings.frostControls,
                   onChanged: liquid
@@ -300,145 +303,65 @@ class _GlassPageState extends State<GlassPage> {
                 'glass inspector counts the glass layers of each frame '
                 'and names neighbouring resting glass that one '
                 'MorphGlassContainer could shade together. Frame rate asks '
-                'an Android display for that rate.',
+                'an Android display for that rate. Reduce motion and '
+                'increase contrast add to the system settings; accent '
+                'and haptics set the theme of every control.',
               ),
               children: [
-                _Choice(
+                GalleryChoice<ThemeMode>(
                   label: 'Appearance',
-                  segments: _appearances,
-                  selected: settings.appearance.index,
-                  onChanged: (int i) =>
-                      settings.appearance = ThemeMode.values[i],
+                  options: _appearances,
+                  value: settings.appearance,
+                  onChanged: (ThemeMode mode) => settings.appearance = mode,
                 ),
-                _Toggle(
+                GalleryToggle(
                   label: 'Right to left',
                   value: settings.rtl,
                   onChanged: (bool v) => settings.rtl = v,
                 ),
-                _Toggle(
+                GalleryToggle(
                   label: 'Disabled',
                   value: settings.disabled,
                   onChanged: (bool v) => settings.disabled = v,
                 ),
-                _Choice(
+                GalleryChoice<GalleryFrameRate>(
                   label: 'Frame rate',
-                  segments: _frameRates,
-                  selected: settings.frameRate.index,
-                  onChanged: (int i) =>
-                      settings.frameRate = GalleryFrameRate.values[i],
+                  options: _frameRates,
+                  value: settings.frameRate,
+                  onChanged: (GalleryFrameRate rate) =>
+                      settings.frameRate = rate,
                 ),
                 if (!kReleaseMode)
-                  _Toggle(
+                  GalleryToggle(
                     label: 'Glass inspector',
                     value: settings.inspector,
                     onChanged: (bool v) => settings.inspector = v,
                   ),
+                GalleryToggle(
+                  label: 'Reduce motion',
+                  value: settings.reduceMotion,
+                  onChanged: (bool v) => settings.reduceMotion = v,
+                ),
+                GalleryToggle(
+                  label: 'Increase contrast',
+                  value: settings.highContrast,
+                  onChanged: (bool v) => settings.highContrast = v,
+                ),
+                GalleryToggle(
+                  label: 'Haptics',
+                  value: settings.haptics,
+                  onChanged: (bool v) => settings.haptics = v,
+                ),
+                GalleryColorChoice(
+                  label: 'Accent',
+                  value: settings.accent,
+                  onChanged: (Color? c) => settings.accent = c,
+                ),
               ],
             ),
           ),
         ),
       ],
-    );
-  }
-}
-
-class _Choice extends StatelessWidget {
-  const _Choice({
-    required this.label,
-    required this.segments,
-    required this.selected,
-    required this.onChanged,
-  });
-
-  final String label;
-  final List<String> segments;
-  final int selected;
-  final ValueChanged<int>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return MorphListRow(
-      child: Row(
-        children: [
-          SizedBox(width: 96, child: Text(label)),
-          Expanded(
-            child: MorphSegmentedControl(
-              segments: [for (final s in segments) MorphSegment(s)],
-              selectedIndex: selected,
-              onChanged: onChanged,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Knob extends StatelessWidget {
-  const _Knob({
-    required this.label,
-    required this.value,
-    required this.max,
-    required this.onChanged,
-  });
-
-  final String label;
-  final double value;
-  final double max;
-  final ValueChanged<double>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final onChanged = this.onChanged;
-    return MorphListRow(
-      child: Row(
-        children: [
-          SizedBox(width: 96, child: Text(label)),
-          Expanded(
-            child: MorphSlider(
-              value: value / max,
-              semanticLabel: label,
-              onChanged: onChanged == null
-                  ? null
-                  : (double v) => onChanged(v * max),
-            ),
-          ),
-          SizedBox(
-            width: 48,
-            child: Text(
-              value.toStringAsFixed(2),
-              textAlign: .end,
-              style: const TextStyle(
-                fontFeatures: [ui.FontFeature.tabularFigures()],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Toggle extends StatelessWidget {
-  const _Toggle({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String label;
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return MorphListRow(
-      title: Text(label),
-      trailing: MorphSwitch(
-        value: value,
-        semanticLabel: label,
-        onChanged: onChanged,
-      ),
     );
   }
 }

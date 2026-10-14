@@ -60,6 +60,10 @@ class GalleryGlassSettings extends ChangeNotifier {
   bool _disabled = false;
   bool _inspector = false;
   GalleryFrameRate _frameRate = GalleryFrameRate.auto;
+  bool _reduceMotion = false;
+  bool _highContrast = false;
+  bool _haptics = true;
+  Color? _accent;
 
   void _set<T>(T current, T next, void Function() write) {
     if (current == next) return;
@@ -127,6 +131,27 @@ class GalleryGlassSettings extends ChangeNotifier {
     _applyFrameRate(value);
   });
 
+  /// Whether the gallery reduces motion as iOS Settings > Accessibility >
+  /// Motion > Reduce Motion does, on top of the platform's own setting.
+  bool get reduceMotion => _reduceMotion;
+  set reduceMotion(bool value) =>
+      _set(_reduceMotion, value, () => _reduceMotion = value);
+
+  /// Whether the controls draw their high-contrast looks, as iOS Settings
+  /// > Accessibility > Display > Increase Contrast does, on top of the
+  /// platform's own setting.
+  bool get highContrast => _highContrast;
+  set highContrast(bool value) =>
+      _set(_highContrast, value, () => _highContrast = value);
+
+  /// Whether the controls play their haptics.
+  bool get haptics => _haptics;
+  set haptics(bool value) => _set(_haptics, value, () => _haptics = value);
+
+  /// The accent of every control that draws one, or null for systemBlue.
+  Color? get accent => _accent;
+  set accent(Color? value) => _set(_accent, value, () => _accent = value);
+
   Future<void> _applyFrameRate(GalleryFrameRate value) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
@@ -174,6 +199,12 @@ enum GalleryGlassAspect {
 
   /// The display refresh rate.
   frameRate,
+
+  /// Reduce Motion and Increase Contrast.
+  accessibility,
+
+  /// The haptics and the accent.
+  theming,
 }
 
 /// Rebuilds the [GalleryGlassScope] under it whenever [settings] change,
@@ -233,7 +264,9 @@ class GalleryGlassScope extends InheritedModel<GalleryGlassAspect> {
       _rtl = settings.rtl,
       _disabled = settings.disabled,
       _inspector = settings.inspector,
-      _frameRate = settings.frameRate;
+      _frameRate = settings.frameRate,
+      _accessibility = (settings.reduceMotion, settings.highContrast),
+      _theming = (settings.haptics, settings.accent);
 
   /// The settings handed down.
   final GalleryGlassSettings settings;
@@ -244,6 +277,8 @@ class GalleryGlassScope extends InheritedModel<GalleryGlassAspect> {
   final bool _disabled;
   final bool _inspector;
   final GalleryFrameRate _frameRate;
+  final (bool, bool) _accessibility;
+  final (bool, Color?) _theming;
 
   static final _defaults = GalleryGlassSettings();
 
@@ -254,6 +289,8 @@ class GalleryGlassScope extends InheritedModel<GalleryGlassAspect> {
     .disabled => _disabled,
     .inspector => _inspector,
     .frameRate => _frameRate,
+    .accessibility => _accessibility,
+    .theming => _theming,
   };
 
   @override
