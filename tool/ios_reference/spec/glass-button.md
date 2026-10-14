@@ -93,8 +93,10 @@ Scenes `gb<W>x<H>`, `gbp<W>x<H>` (prominent); `PROBE_TINT`. Device plan
 `MorphGlassButton`, `MorphGlassButton.prominent(tint:)` (tint defaults to the
 accent, `MorphGlassButtonAppearance.prominentColor` / `MorphWidgetsTheme.tint`),
 `.clear` and `.prominentClear` (the liquid tier's fitted clear material; the
-press is the regular button's, NOT measured apart; flat stand-in
-`clearFillColor` is an approximation) (`padding`, `minSize`), `MorphGlassButtonAppearance`,
+press is the regular button's - UIKit's clear configurations carry style
+behaviors (colors, material, corner style) but no press of their own [read
+from UIKit, notes private]; flat stand-in `clearFillColor` is an
+approximation) (`padding`, `minSize`), `MorphGlassButtonAppearance`,
 `MorphGlassButtonMotion` (`reducedMotion`) (glass_button.dart) on
 `MorphFlexInteraction` (flex_interaction.dart, `glows: true`). Tests:
 controls_test (hold and drag-off replays, simulator and device),
@@ -115,9 +117,15 @@ the lift.
 
 ## API gaps
 
-- Clear glass variants exist as constructors; their press and their rim on
-  the device are not recorded (capture `clearGlass` / `prominentClearGlass`
-  scenes to confirm the press equals `.glass()`).
+- Clear glass variants exist as constructors. Touch glow white levels
+  [read from UIKit, notes private; ported in
+  `MorphTouchGlowMotion.spotGainFor`]: regular dark 0.75 / light 0.4 (the
+  measured spot gains 4.0 / 1.667 are `1 / (1 - white)`), clear glass 0.7 in
+  both appearances (gain 3.33), tinted glass (`.prominent`,
+  `.prominentClear`) `lerp(0.7, 0.25, L^1.25)` with L the tint's Rec. 709
+  luminance times alpha. The rim on the device and the glow of tinted /
+  clear buttons are not recorded: capture `clearGlass` /
+  `prominentClearGlass` scenes to confirm.
 - `buttonSize` presets and `cornerStyle` (morph: capsule only, padding).
 - Subtitle, image placement, activity indicator, selection toggling.
 - `menu` / `showsMenuAsPrimaryAction` on an arbitrary glass button (morph

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/glass_painter.dart';
+import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/widgets.dart';
 
 class _Recording extends MorphGlassPainter {
@@ -91,5 +92,30 @@ void main() {
       tint: const Color(0xFF34C759),
     );
     expect(surface.color, const Color(0xFFFF3B30));
+  });
+
+  test('the touch glow gain follows the glass', () {
+    const dark = Brightness.dark;
+    const light = Brightness.light;
+    expect(MorphTouchGlowMotion.spotGainOfWhite(0.75), closeTo(3, 1e-9));
+    expect(MorphTouchGlowMotion.spotGainOfWhite(0.4), closeTo(0.667, 1e-3));
+    expect(MorphTouchGlowMotion.spotGainFor(dark), 3);
+    expect(MorphTouchGlowMotion.spotGainFor(light), 0.667);
+    expect(
+      MorphTouchGlowMotion.spotGainFor(light, clear: true),
+      closeTo(7 / 3, 1e-9),
+    );
+    expect(
+      MorphTouchGlowMotion.spotGainFor(
+        dark,
+        tint: const Color(0xFF000000),
+        clear: true,
+      ),
+      closeTo(7 / 3, 1e-9),
+    );
+    expect(
+      MorphTouchGlowMotion.spotGainFor(dark, tint: const Color(0xFFFFFFFF)),
+      closeTo(1 / 3, 1e-9),
+    );
   });
 }
