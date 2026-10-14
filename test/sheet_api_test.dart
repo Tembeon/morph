@@ -81,6 +81,37 @@ void main() {
     expect(find.byKey(_contentKey), findsOneWidget);
   });
 
+  testWidgets('a short refused pull is not an attempt', (tester) async {
+    var attempts = 0;
+    await tester.pumpWidget(
+      _app(
+        (context) => showMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium],
+          dismissible: false,
+          onDismissAttempt: () => attempts++,
+          builder: _content,
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    await tester.timedDrag(
+      find.text('sheet'),
+      const Offset(0, 12),
+      const Duration(milliseconds: 600),
+    );
+    await _settle(tester);
+    expect(attempts, 0);
+    await tester.timedDrag(
+      find.text('sheet'),
+      const Offset(0, 200),
+      const Duration(milliseconds: 1500),
+    );
+    await _settle(tester);
+    expect(attempts, 1);
+  });
+
   testWidgets('a pop scope that cannot pop also holds the drag', (
     tester,
   ) async {

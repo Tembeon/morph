@@ -220,6 +220,19 @@ abstract final class MorphSheetTuning {
   /// cycles the detents as a tap on the grabber does; a tap 25 points
   /// below the top edge cycled them.
   static const double grabberHitHeight = 40;
+
+  /// The limit, in unscaled points, that a sheet which cannot be dismissed
+  /// approaches while it is pulled down: the drag is rubber-banded with
+  /// this dimension. Not measured on a device.
+  static const double refusedPullExtent = 40;
+
+  /// The share of [refusedPullExtent] that a refused pull must exceed when
+  /// the finger lifts for the sheet to report a dismiss attempt: UIKit
+  /// tests the pull beyond the edge against a quarter of its rubber-band
+  /// extent once the drag has ended, then calls
+  /// `presentationControllerDidAttemptToDismiss` (read from UIKit, notes
+  /// private).
+  static const double dismissAttemptShare = 0.25;
 }
 
 /// The motion of an iOS 27 sheet: its height between detents, its
@@ -599,7 +612,12 @@ class MorphSheetMotion {
       _height.snap(t, lowest);
       _offset.snap(
         t,
-        dismissible ? below : morphRubberband(below, dimension: 40),
+        dismissible
+            ? below
+            : morphRubberband(
+                below,
+                dimension: MorphSheetTuning.refusedPullExtent,
+              ),
       );
     }
   }
@@ -659,8 +677,9 @@ class MorphSheetMotion {
         return;
       }
       if (!dismissible &&
-          (projected > hidden / 2 ||
-              velocity > MorphSheetTuning.dismissVelocity)) {
+          below >
+              MorphSheetTuning.refusedPullExtent *
+                  MorphSheetTuning.dismissAttemptShare) {
         onDismissAttempt?.call();
       }
       _offset.setState(t, below, velocity * gain);
