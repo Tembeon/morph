@@ -389,6 +389,31 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets('a spinning activity indicator asks for one frame per image', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(child: MorphActivityIndicator()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+    var frames = 0;
+    var counting = true;
+    tester.binding.addPersistentFrameCallback((_) {
+      if (counting) frames++;
+    });
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    counting = false;
+    // 0.96 s of a 16-image, 0.8 s turn: 19.2 images. The doze used to end
+    // half a frame early and take a frame that drew nothing new (31).
+    expect(frames, lessThanOrEqualTo(21));
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('page control: taps on either half step, arrows step too', (
     WidgetTester tester,
   ) async {

@@ -46,6 +46,14 @@ activity_indicator.dart (`MorphActivityIndicator`,
 `MorphActivityIndicatorSize`, `MorphActivityIndicatorFrames`,
 `MorphActivityIndicatorAppearance`). Test: indicators_test.
 
+Frames: the spin is 20 images a second, each drawn by one paint inside a
+repaint boundary. The clock dozes between images and wakes for the frame
+that shows the next one: one frame an image (host: 31 -> 20 frames a
+second; the doze used to end half a frame early, before the image was
+due, and spend a frame drawing nothing new). Native spends no main-thread
+frame at all (a keyframe animation in the render server); a rotating
+layer cannot replace the images, whose odd half steps sit between spokes.
+
 ## Open
 
 - Start/stop: measured (cuts, see Device).

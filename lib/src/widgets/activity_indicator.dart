@@ -189,13 +189,20 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
   @override
   bool get motionSettled => !widget.animating;
 
+  // The clock ends a doze half a frame early; a doze that ended there
+  // would get a frame before the next image is due and draw nothing new in
+  // it. Waking half a frame later gives the image's own frame first: the
+  // frame after the doze is stamped at or after the timer, which never
+  // fires early, so one frame is scheduled per image.
   @override
   double? get motionWakeTime {
     const period =
         MorphActivityIndicatorFrames.loopDuration /
         MorphActivityIndicatorFrames.frameCount;
     final shown = clock - _startedAt;
-    return _startedAt + ((shown / period).floor() + 1) * period;
+    return _startedAt +
+        ((shown / period).floor() + 1) * period +
+        0.5 / motionFrameRate;
   }
 
   @override
