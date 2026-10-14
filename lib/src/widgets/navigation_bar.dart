@@ -14,6 +14,15 @@ import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
+/// Whether the inline title paints in a layer of its own, so its fade
+/// and rise repaint only the title and not the bar and the page around
+/// it. On by default; `--dart-define=MORPH_TITLE_LAYER=false` paints it
+/// with the bar, for an A/B.
+bool debugMorphInlineTitleLayer = const bool.fromEnvironment(
+  'MORPH_TITLE_LAYER',
+  defaultValue: true,
+);
+
 /// The measured geometry of an iOS 27 navigation bar on a phone.
 abstract final class MorphNavigationBarMetrics {
   /// The height of the bar below the status bar.
@@ -549,6 +558,7 @@ class _InlineTitleState extends State<_InlineTitle> {
         },
         child: out,
       );
+      if (debugMorphInlineTitleLayer) out = RepaintBoundary(child: out);
     }
     return Positioned(
       left: left,

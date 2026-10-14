@@ -345,6 +345,48 @@ void main() {
     expect(_blurLayers(), 2, reason: 'the backdrop copy and its blur');
   }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
+  testWidgets('the inline title\'s motion repaints only the title', (
+    tester,
+  ) async {
+    await _setScreen(tester);
+    Widget bar({required bool visible}) => _app(
+      Align(
+        alignment: Alignment.topCenter,
+        child: MorphNavigationBar(
+          title: 'Inbox',
+          titleVisible: visible,
+          scrolledUnder: visible,
+          trailing: [
+            MorphBarButtonGroup([
+              MorphBarButton(
+                id: 'add',
+                icon: const Icon(Icons.add),
+                semanticLabel: 'Add',
+                onPressed: () {},
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpWidget(bar(visible: false));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(bar(visible: true));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    final painted = <String>[];
+    debugOnProfilePaint = (RenderObject object) {
+      if (object.isRepaintBoundary && !object.debugNeedsPaint) return;
+      painted.add(object.runtimeType.toString());
+    };
+    addTearDown(() => debugOnProfilePaint = null);
+    await tester.pump(const Duration(milliseconds: 16));
+    debugOnProfilePaint = null;
+    expect(painted, isNotEmpty);
+    expect(painted.length, lessThanOrEqualTo(3), reason: '$painted');
+    await tester.pumpAndSettle();
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
   testWidgets('a screen arriving with its inline title hidden never shows '
       'it', (tester) async {
     await _setScreen(tester);

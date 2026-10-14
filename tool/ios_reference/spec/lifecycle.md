@@ -87,10 +87,14 @@ programmatic change: a fidelity gap, not a frame-time one.
    field and the tabs once in the first frame, then push the morph into live render
    objects as transforms and clips; no build or layout in between.
 4. Scroll edge effect. The 300 ms scroll itself is at parity; afterwards 30 paints per
-   frame continue for 0.5-1 s with no layout, and the visible rows' wrappers are among the
-   painted objects: the bar's fade shares a layer with the list. Give the edge effect its
-   own repaint boundary (or drive it with an opacity layer) and settle it with the
-   scroll.
+   frame continued for 0.5-1 s with no layout. The tail is the inline title's spring
+   (fade, rise, unblur: 0.45 s in, 0.7 s out), not the edge effect, which is its own
+   repaint boundary and fades by layer updates without a paint. The title's transform
+   repainted the bar and the overlay above it every frame. Since 2026-10-14 the title
+   paints in a layer of its own (`MORPH_TITLE_LAYER=false` for an A/B): the tail is 1
+   paint per frame (scroll-300 1709 -> 577 paints, scroll-top 2383 -> 654), and the
+   scroll frames paint 22-27 instead of 49-54. The tail's length is the spring's; UIKit
+   runs the same animation on the render server, outside these counts.
 5. Segmented. Same pattern as the tab bar at a smaller scale (4 labels and their wrappers
    repainted per frame, plus the page in the flat tier). Same remedy.
 6. Context menu. 19 layouts per frame for the whole lift and settle: the shuttle and the
