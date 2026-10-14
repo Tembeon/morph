@@ -86,7 +86,9 @@ class MorphScrollEdgeEffectAppearance {
   final double softBlurRadius;
 
   /// The blur of the hard style, in logical pixels; raised slightly
-  /// where that halves its cost (see [MorphScrollEdgeEffect]).
+  /// where that halves its cost (see [MorphScrollEdgeEffect]). UIKit uses
+  /// 2 under a navigation bar; a band at the bottom of the screen takes 2
+  /// to 2.5 by its height, which this effect does not draw.
   final double hardBlurRadius;
 
   /// How far the soft band reaches past the bar's edge.
@@ -192,7 +194,10 @@ class MorphScrollEdgeEffectAppearance {
 /// median of 4 and at most 19 channel steps along sharp edges under the
 /// fade (host Impeller). Nothing changes at 3x, where 2 points already
 /// blur at half resolution, nor for the soft style's 1.5 points at 2x to
-/// 3x, which would need more than 12 percent.
+/// 3x, which would need more than 12 percent. UIKit blurs the band at half
+/// resolution too: its blur reads a backdrop captured at scale 0.5 (read
+/// from UIKit, notes private, iOS 27.0 simulator), and the blur is uniform
+/// over the band (its mask is opaque).
 class MorphScrollEdgeEffect extends StatelessWidget {
   /// Creates the effect for the [edge] of a scroll view.
   const MorphScrollEdgeEffect({

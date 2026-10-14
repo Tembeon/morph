@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/highlight_motion.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
@@ -472,10 +474,11 @@ enum MorphListAccessory {
 /// area with any content.
 ///
 /// With [onTap] the row is a button: it fills with the highlight color
-/// while a finger is down on it (UIKit's grouped cell highlighted color;
-/// the highlight's timing is not measured, the row follows Flutter's tap
-/// recognizer) and while it has the keyboard focus, and Space or Enter
-/// tap it. A disabled row ([enabled] false) ignores touches and keeps its
+/// (UIKit's grouped cell highlighted color) while a finger is down on it,
+/// with UIKit's timing ([MorphListRowHighlightMotion]: inside a
+/// scrollable after its 0.15 s touch delay, gone at once when a scroll
+/// takes the touch, faded out over 0.5 s after a tap), and while it has
+/// the keyboard focus, and Space or Enter tap it. A disabled row ([enabled] false) ignores touches and keeps its
 /// look: the disabled cell look is not measured.
 ///
 /// Inside a [MorphListSection] the row draws the separator below itself,
@@ -542,20 +545,59 @@ class MorphListRow extends StatefulWidget {
   State<MorphListRow> createState() => _MorphListRowState();
 }
 
-class _MorphListRowState extends State<MorphListRow> {
-  bool _pressed = false;
+class _MorphListRowState extends State<MorphListRow>
+    with SingleTickerProviderStateMixin, MorphClock {
+  final MorphListRowHighlightMotion _highlight = MorphListRowHighlightMotion();
+  final ValueNotifier<double> _strength = ValueNotifier(0);
   bool _focused = false;
+  double? _downAt;
+  double? _upAt;
 
   bool get _active => widget.onTap != null && widget.enabled;
 
-  void _press(bool pressed) {
-    if (_pressed != pressed) setState(() => _pressed = pressed);
+  @override
+  void advanceMotion(double t) => _strength.value = _highlight.opacity(t);
+
+  @override
+  bool get motionSettled => _highlight.isSettled(clock);
+
+  @override
+  double? get motionWakeTime => _highlight.wakeTime(clock);
+
+  void _pointerDown(PointerDownEvent event) {
+    final t = _downAt = stamp(event);
+    _highlight.touch(t);
+    wake();
+  }
+
+  void _tapDown() {
+    final delay = Scrollable.maybeOf(context) == null
+        ? 0.0
+        : MorphListRowHighlightMotion.touchDelay;
+    _highlight.press(_downAt ?? clock, clock, delay: delay);
+    wake();
+  }
+
+  void _tapUp() {
+    _highlight.release(_upAt ?? clock);
+    wake();
+  }
+
+  void _tapCancel() {
+    _highlight.cancel();
+    _strength.value = 0;
   }
 
   @override
   void didUpdateWidget(MorphListRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_active) _pressed = false;
+    if (!_active) _tapCancel();
+  }
+
+  @override
+  void dispose() {
+    _strength.dispose();
+    super.dispose();
   }
 
   @override
@@ -682,25 +724,37 @@ class _MorphListRowState extends State<MorphListRow> {
         ),
       ),
     );
-    final highlighted = _active && (_pressed || _focused);
-    Widget body = DecoratedBox(
-      decoration: BoxDecoration(
-        color: highlighted ? look.highlightColor : null,
-      ),
-      position: DecorationPosition.background,
+    final separator = place != null && !place.last
+        ? _SeparatorPainter(
+            color: look.separatorColor,
+            start: textStart,
+            direction: Directionality.of(context),
+          )
+        : null;
+    final focused = _active && _focused;
+    final Widget body = ValueListenableBuilder<double>(
+      valueListenable: _strength,
       child: row,
+      builder: (BuildContext context, double strength, Widget? row) {
+        final shown = focused ? 1.0 : strength;
+        final color = look.highlightColor;
+        Widget body = DecoratedBox(
+          decoration: BoxDecoration(
+            color: shown <= 0
+                ? null
+                : shown >= 1
+                ? color
+                : color.withValues(alpha: color.a * shown),
+          ),
+          position: DecorationPosition.background,
+          child: row,
+        );
+        if (separator != null) {
+          body = CustomPaint(foregroundPainter: separator, child: body);
+        }
+        return MorphGlassContainerBarrier(clear: shown <= 0, child: body);
+      },
     );
-    if (place != null && !place.last) {
-      body = CustomPaint(
-        foregroundPainter: _SeparatorPainter(
-          color: look.separatorColor,
-          start: textStart,
-          direction: Directionality.of(context),
-        ),
-        child: body,
-      );
-    }
-    body = MorphGlassContainerBarrier(clear: !highlighted, child: body);
     final onTap = widget.onTap;
     return Semantics(
       container: true,
@@ -713,14 +767,18 @@ class _MorphListRowState extends State<MorphListRow> {
           if (_focused != on) setState(() => _focused = on);
         },
         onActivate: _active ? onTap : null,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          excludeFromSemantics: true,
-          onTapDown: _active ? (_) => _press(true) : null,
-          onTapUp: _active ? (_) => _press(false) : null,
-          onTapCancel: _active ? () => _press(false) : null,
-          onTap: _active ? onTap : null,
-          child: body,
+        child: Listener(
+          onPointerDown: _active ? _pointerDown : null,
+          onPointerUp: _active ? (event) => _upAt = stamp(event) : null,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            excludeFromSemantics: true,
+            onTapDown: _active ? (_) => _tapDown() : null,
+            onTapUp: _active ? (_) => _tapUp() : null,
+            onTapCancel: _active ? _tapCancel : null,
+            onTap: _active ? onTap : null,
+            child: body,
+          ),
         ),
       ),
     );

@@ -14,7 +14,7 @@ Nothing new in iOS 27.
 |---|---|---|---|---|
 | `value` (iOS 2+, Float, pinned to min/max) | current value | `MorphSlider.value` (double, 0..1) | - | keep |
 | `minimumValue` / `maximumValue` (iOS 2+, default 0 / 1) | range | none (fixed 0..1) | app must map; Flutter `Slider`/`CupertinoSlider` take `min`/`max` | add `min` / `max` (default 0 / 1; same names as `MorphStepper`) |
-| `setValue(_:animated:)` (iOS 2+), fixed velocity, no action | programmatic change | a new `value` from the parent: thumb JUMPS (`MorphSliderMotion.setValue`) | no animated path; native fixed-velocity animation unmeasured | skip until measured; low |
+| `setValue(_:animated:)` (iOS 2+), no action | programmatic change | a new `value` from the parent jumps; with `MorphSlider.animated` it springs (`MorphSliderMotion.setValue(animated:)`, `programmaticSpring` 0.4 / 0.8, read from UIKit) | the end overshoot does not stretch the track (clamped) | done (2026-10-14) |
 | `isContinuous` (iOS 2+, default YES) | NO = valueChanged only at the end of tracking | `onChanged` (continuous) + `onChangeEnd` | covered by Flutter idiom | skip (use `onChangeEnd`) |
 | `.touchDown` / `.valueChanged` / `.touchUpInside` + `.touchUpOutside` events | begin / change / end tracking | `onChanged`, `onChangeEnd`; no begin | no start callback | add `onChangeStart` (Flutter Slider/CupertinoSlider; SwiftUI `onEditingChanged(true)`) |
 | `isEnabled` (UIControl) | disabled | `onChanged: null` -> `MorphSliderStyle.disabledOpacity` 0.5 | - | keep |

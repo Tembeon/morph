@@ -112,8 +112,15 @@ class MorphSlider extends StatefulWidget {
     this.appearance,
     this.semanticLabel,
     this.ticks = 0,
+    this.animated = false,
     super.key,
   }) : assert(min < max, 'min must be less than max');
+
+  /// Whether a [value] the parent changes moves the thumb on a spring, as
+  /// UIKit's `setValue(_:animated: true)` does
+  /// ([MorphSliderMotion.programmaticSpring]), instead of jumping as the
+  /// `value` setter does. A stepped slider always jumps.
+  final bool animated;
 
   /// The number of tick marks the value snaps to, like UIKit's
   /// `numberOfTicks`; below two the slider is continuous.
@@ -268,7 +275,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
       _reconcile();
       return;
     }
-    _motion.setValue(clock, _unit(widget.value));
+    _motion.setValue(clock, _unit(widget.value), animated: widget.animated);
     _reportedOut = widget.value;
     wake();
   }

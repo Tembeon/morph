@@ -266,7 +266,7 @@
   "segmented-drag/fake": {
     "frames": 198,
     "builds": 0.3,
-    "paints": 24.8,
+    "paints": 26.5,
     "pictures": 2.8,
     "captures": 0.6,
     "offscreen": 0.6,
@@ -277,7 +277,7 @@
   "lens-held/fake": {
     "frames": 97,
     "builds": 0.5,
-    "paints": 35.2,
+    "paints": 38.2,
     "pictures": 4.1,
     "captures": 1.0,
     "offscreen": 1.0,
@@ -530,7 +530,7 @@
   "segmented-drag/liquid": {
     "frames": 198,
     "builds": 0.2,
-    "paints": 24.7,
+    "paints": 26.4,
     "pictures": 2.8,
     "captures": 0.6,
     "offscreen": 0.6,
@@ -541,7 +541,7 @@
   "lens-held/liquid": {
     "frames": 97,
     "builds": 0.5,
-    "paints": 35.2,
+    "paints": 38.2,
     "pictures": 4.1,
     "captures": 1.0,
     "offscreen": 1.0,

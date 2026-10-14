@@ -122,6 +122,14 @@ class MorphSliderMotion {
   /// Seconds between the release and the settle of a stepped slider.
   static const double tickReleaseDelay = 0.035;
 
+  /// The spring an animated [setValue] moves the thumb and fill on: UIKit's
+  /// `_UIFluidSliderSettings.programmaticUpdate`, response 0.4, damping
+  /// 0.8, read from UIKit (notes private) on the iOS 27.0 simulator; the
+  /// glass slider's fill replays it within 0.16 pt on a 300 pt track for
+  /// jumps of 0.01 to 0.8. The duration does not depend on the distance
+  /// (the header's "fixed velocity" does not describe iOS 27).
+  static const programmaticSpring = MorphSpring(0.4, 0.8);
+
   /// The diameter of a tick mark.
   static const double tickSize = 3;
 
@@ -146,6 +154,7 @@ class MorphSliderMotion {
     final wasStepped = _stepped;
     _ticks = value;
     if (wasStepped || !_stepped) return;
+    _programmatic = false;
     _settle.snap(_now, this.value);
     lens.resetFlex(_now, _thumbAt(_now));
   }
@@ -165,6 +174,7 @@ class MorphSliderMotion {
 
   double _value;
   double _reported;
+  bool _programmatic = false;
   final MorphSpringState _stretch = MorphSpringState(releaseSpring, 0);
   _Glide? _glide;
   final MorphSpringState _settle;
@@ -201,6 +211,10 @@ class MorphSliderMotion {
 
   /// Whether the value glides on after a release.
   bool get isGliding => _glide != null;
+
+  /// Whether an animated [setValue] is moving the thumb.
+  bool get isAnimatingValueChange =>
+      _programmatic && !_settle.isAtRest(_now, 1e-4);
 
   /// How far the stretched track's near end has moved: positive past the
   /// maximum end, negative past the minimum end.
@@ -268,6 +282,7 @@ class MorphSliderMotion {
     _timeline.flush(t);
     if (!hitsThumb(x)) return;
     _stopGlide();
+    _stopProgrammatic(t);
     _press = _Press(x);
     lens.lift(t);
   }
@@ -361,16 +376,37 @@ class MorphSliderMotion {
     );
   }
 
-  /// Sets the value without a touch; the thumb jumps there.
-  void setValue(double t, double value) {
+  /// Sets the value without a touch: the thumb jumps there, or with
+  /// [animated] travels there on [programmaticSpring] from where it shows,
+  /// as UIKit's `setValue(_:animated: true)` does.
+  ///
+  /// The animated thumb stays between the ends; on iOS the spring's
+  /// overshoot at an end stretches the track instead (not reproduced). A
+  /// stepped slider jumps.
+  void setValue(double t, double value, {bool animated = false}) {
     advance(t);
+    final shown = _positionAt(t);
     _timeline.clear();
     _glide = null;
     _value = value.clamp(0.0, 1.0);
     _reported = _value;
-    _settle.snap(t, _value);
     _stretch.snap(t, 0);
+    if (animated && !_stepped && shown != _value) {
+      if (!_programmatic) _settle.snap(t, shown);
+      _programmatic = true;
+      _settle.retarget(t, _value, spring: programmaticSpring);
+      return;
+    }
+    _programmatic = false;
+    _settle.snap(t, _value);
     lens.resetFlex(t, _thumbAt(t));
+  }
+
+  void _stopProgrammatic(double t) {
+    if (!_programmatic) return;
+    _programmatic = false;
+    _value = _settle.value(t).clamp(0.0, 1.0);
+    _settle.snap(t, _value);
   }
 
   /// Advances the motion to time [t].
@@ -438,6 +474,7 @@ class MorphSliderMotion {
   double _valueAt(double t) => _glide?.value(t).clamp(0.0, 1.0) ?? _value;
 
   double _positionAt(double t) {
+    if (_programmatic) return _settle.value(t).clamp(0.0, 1.0);
     if (!_stepped) return _valueAt(t);
     return _settle.value(t);
   }

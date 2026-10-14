@@ -26,6 +26,18 @@ ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
   bound with the far edges excluded (`CGRectContainsPoint`) also gives
   the glass button's four measured edges. A selected-segment drag that
   leaves, and the other sides, are not measured.
+- Title highlight [sim 2026-10-14, XCUITest tap and 1 s hold, the
+  CABasicAnimations UIKit adds to `UISegmentLabel` read live]: a touch on
+  a NON-selected segment dims its title 1 -> 0.2 over 0.47 s, timing
+  (0.25, 0.1, 0.25, 1), from the touch-down frame; the release returns it
+  to 1 over 0.2 s on the same curve from where it is (a quick tap reaches
+  about 0.93 first). `MorphSegmentHighlightMotion`; the selected segment
+  and a finger sliding to another segment are not measured (the dim
+  stays on the pressed segment). test/highlight_motion_test.dart. The dim
+  sets the alpha of the title's own layer (no build, no repaint); each
+  title adds one proxy paint where the glass records the labels (perf
+  counts segmented-drag / lens-held fake and liquid +1.7 / +3 paints,
+  ceilings re-pinned).
 - Unlift anchored 0.25 s after the touch-up (`hangFromTouch`); the lift
   start varies with input latency, the touch-up anchor does not [device].
 - Press on the SELECTED segment lifts in place after `pressDelay` 40 ms and

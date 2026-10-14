@@ -261,6 +261,37 @@ action".
   energy pending. Only the top edge exists in morph (nothing under a
   floating toolbar, as on iOS), so there is no second band to share a
   backdrop copy with.
+- Capture and mask [layout, sim 2026-10-14, iOS 27.0 iPhone 17 sim, layer
+  properties read live; derivation notes private]: the pocket's blur
+  backdrop (`Pocket`, a CABackdropLayer) has scale 0.5 on every edge and
+  style: UIKit blurs the band at HALF RESOLUTION, so morph's half
+  resolution blur is the same kind (the raise above only reaches
+  Impeller's threshold; at 3x nothing changes). The pocket has no group
+  name (its own capture, not shared top / bottom). Its variableBlur mask
+  is an opaque gray ramp; a rendering experiment with the same filter
+  showed that only the mask's alpha modulates the blur, so the blur is
+  UNIFORM over the band (confirms the device reading above). The
+  `Replay` backdrop: scale 1, opacity 0.5, `enabled` NO in every scene
+  read (table, light) - when it draws is open. The BackdropView under the
+  cells is captureOnly, group `backgroundGroup-<ptr>`, scale 1. The
+  device (iPhone 16 Pro, 2026-10-14 dump, large-title nav scene) shows
+  the same tree, names, frames, group names and an opaque mask; its
+  numeric reads (scale, radii) failed, so the 0.5 scale and the bottom
+  radius law below are simulator readings until a rerun.
+- Bar glass groups [layout, sim]: the navigation bar's item glass reads a
+  backdrop group `UINavigationBar-<ptr>` at scale 0.25, the floating
+  toolbar's `SwiftUI:<n>` at 0.5. No bar shares the pocket's capture:
+  every bar captures the band after the edge effect drew it.
+- Bottom edge [layout, sim; morph has no bottom band]: automatic under a
+  floating toolbar or a tab bar = no effect (`empty`). Explicit hard:
+  band 86 pt under the toolbar (glass 798 - 846 on 874), 93 pt under a
+  tab bar, hairline at its top; explicit soft: 120 pt. Hard radius by
+  band height h: 2 + (h - 54) / 88 clamped to 2 - 2.5 at the bottom
+  (86 -> 2.3636, 93 -> 2.4432, 100+ -> 2.5), 2 + (h - 116) / 88 at the
+  top (the navigation bar's 116 -> 2; a 150 pt custom top band ->
+  2.3864). Soft is 1.5 everywhere. A custom bar
+  (`UIScrollEdgeElementContainerInteraction`, h tall): top hard band
+  max(h, 62), bottom h; soft adds 30 - 40.
 
 ## Disabled items [device, light + dark, 2026-10-03, scene x4disbars]
 
@@ -341,11 +372,23 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 - The edge-swipe commit's bar transition starts 0.027 s after the lift's
   time stamp on the device; morph starts it from the stack's setLayout at
   the commit with the navigation delays (not replayed).
-- The stack's toolbar on a push uses the toolbar timing (`.standard`);
-  a toolbar changing with a push is not measured.
+- The stack's toolbar on a push uses the toolbar timing (`.standard`).
+  A toolbar whose items CHANGE with a push [fit, sim 2026-10-14,
+  programmatic push, per-frame presentation rows]: the toolbar is a
+  SwiftUI host; each outgoing item scales to 0.2 about its center while
+  its opacity goes 1 -> 0 and a gaussian blur 0 -> 10 pt, each incoming
+  one the reverse (opacity 0 -> 1, blur 10 -> 0, scale 0.2 -> 1), from
+  one frame after the push. Opacity and blur share one progress, a
+  spring of response 0.41, damping 0.76 (rms 0.006, outgoing opacity
+  dips to -0.024); the incoming scale overshoots to 1.13 (fit 0.35 /
+  0.52, looser); group capsules resize on their own spring. Not ported:
+  morph's stack does not swap toolbar items with a push.
 
 - Large title's tall-bar inset bookkeeping (ours scrolls as content).
-- Toolbar drift during an edge swipe (not measured).
+- Toolbar during an edge swipe [sim 2026-10-14, XCUITest]: the items
+  neither move nor fade while the finger drags (a cancelled swipe held
+  0.6 s changed nothing); a committed swipe runs the push swap above
+  from the release (+0.04 s).
 
 ## API gaps
 

@@ -38,6 +38,8 @@ export 'src/widgets/date_picker_motion.dart'
 export 'src/widgets/flex_spec.dart' show MorphFlexSpec;
 export 'src/widgets/glass_button.dart' show MorphGlassButtonMotion;
 export 'src/widgets/glass_glow.dart' show MorphTouchGlowMotion;
+export 'src/widgets/highlight_motion.dart'
+    show MorphListRowHighlightMotion, MorphSegmentHighlightMotion;
 export 'src/widgets/lens_motion.dart'
     show MorphLensMotion, MorphLensSlot, MorphLensTuning;
 export 'src/widgets/menu_morph_spec.dart' show MorphMenuMorphSpec;
