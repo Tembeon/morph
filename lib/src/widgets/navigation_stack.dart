@@ -696,12 +696,14 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     if (c == null || _zooms) return future;
     return c.animateWith(
       MorphFirstFrameStart(
-        SpringSimulation(
-          MorphNavigationTuning.pushSpring.description,
-          c.value,
-          1,
-          _reduced ? 0 : MorphNavigationTuning.pushVelocity,
-        ),
+        _reduced
+            ? _CrossFade(c.value, 1)
+            : SpringSimulation(
+                MorphNavigationTuning.pushSpring.description,
+                c.value,
+                1,
+                MorphNavigationTuning.pushVelocity,
+              ),
         period: _framePeriod,
       ),
     );
@@ -720,6 +722,28 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     return context != null && morphReducedMotionOf(context);
   }
 
+  // Under Reduce Motion the pages cross-fade, except while an edge swipe
+  // drags them and settles them: UIKit keeps the slide for a finger.
+  bool _crossFades(BuildContext context) =>
+      morphReducedMotionOf(context) &&
+      !(navigator?.userGestureInProgress ?? false);
+
+  Animation<double>? _leavingFrom;
+  Animation<double>? _leaving;
+
+  // The swipe's state survives the switch between the cross-fade and the
+  // slide when a finger takes a page under Reduce Motion.
+  final GlobalKey _edgeKey = GlobalKey();
+
+  Animation<double> _leavingOf(Animation<double> secondaryAnimation) {
+    final leaving = _leaving;
+    if (leaving != null && identical(_leavingFrom, secondaryAnimation)) {
+      return leaving;
+    }
+    _leavingFrom = secondaryAnimation;
+    return _leaving = ReverseAnimation(secondaryAnimation);
+  }
+
   @override
   bool didPop(T? result) {
     final popped = super.didPop(result);
@@ -729,14 +753,16 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     final interactive = _interactivePop;
     _interactivePop = false;
     c.animateBackWith(
-      SpringSimulation(
-        interactive
-            ? MorphNavigationTuning.interactiveSpring.description
-            : MorphNavigationTuning.pushSpring.description,
-        c.value,
-        0,
-        interactive || _reduced ? 0 : -MorphNavigationTuning.pushVelocity,
-      ),
+      !interactive && _reduced
+          ? _CrossFade(c.value, 0)
+          : SpringSimulation(
+              interactive
+                  ? MorphNavigationTuning.interactiveSpring.description
+                  : MorphNavigationTuning.pushSpring.description,
+              c.value,
+              0,
+              interactive ? 0 : -MorphNavigationTuning.pushVelocity,
+            ),
     );
     return popped;
   }
@@ -780,7 +806,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
             secondaryAnimation,
             animation.status,
             Directionality.maybeOf(context),
-            morphReducedMotionOf(context),
+            _crossFades(context),
             MorphNavigationSnapshot.enabled,
           );
     final kept = _transition;
@@ -806,14 +832,17 @@ class MorphNavigationRoute<T> extends PageRoute<T>
       _zoomSource ??= MorphZoomSource.resolve(context, from);
       return MorphPushZoomPage(host: _zoomHost, child: child);
     }
-    if (morphReducedMotionOf(context)) {
+    if (_crossFades(context)) {
       return FadeTransition(
         opacity: animation,
-        child: _EdgePop(route: this, child: child),
+        child: FadeTransition(
+          opacity: _leavingOf(secondaryAnimation),
+          child: _EdgePop(key: _edgeKey, route: this, child: child),
+        ),
       );
     }
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
-    final page = _EdgePop(route: this, child: child);
+    final page = _EdgePop(key: _edgeKey, route: this, child: child);
     final slid = MorphNavigationSnapshot.enabled
         ? MorphNavigationSnapshotHost(
             animation: animation,
@@ -944,7 +973,7 @@ class _NavigationZoomHost<T> implements MorphPushZoomHost {
 }
 
 class _EdgePop extends StatefulWidget {
-  const _EdgePop({required this.route, required this.child});
+  const _EdgePop({required this.route, required this.child, super.key});
 
   final MorphNavigationRoute<Object?> route;
   final Widget child;
@@ -1467,6 +1496,33 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
       ],
     );
   }
+}
+
+// A push or pop under Reduce Motion: progress eases from [from] to [to]
+// over MorphNavigationTuning.crossFadeDuration.
+class _CrossFade extends Simulation {
+  _CrossFade(this.from, this.to);
+
+  final double from;
+  final double to;
+
+  double get _duration => MorphNavigationTuning.crossFadeDuration;
+
+  @override
+  double x(double time) {
+    final f = (time / _duration).clamp(0.0, 1.0);
+    return from +
+        (to - from) * MorphNavigationTuning.crossFadeCurve.transform(f);
+  }
+
+  @override
+  double dx(double time) {
+    const step = 1e-3;
+    return (x(time + step) - x(time)) / step;
+  }
+
+  @override
+  bool isDone(double time) => time >= _duration;
 }
 
 /// Starts [inner] as UIKit starts a push: the frame that builds the new

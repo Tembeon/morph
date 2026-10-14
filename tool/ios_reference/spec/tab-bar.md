@@ -186,7 +186,7 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
 
 - Slow lift (above). Bar-local glitch (deliberate).
 - Tab bar deformation replay only on undeformed frames.
-- Reduce Motion unmeasured (plan in states.md).
+- Reduce Motion read from UIKit (notes private): no lift, selection on (0.9, 0.2) for taps and scrubs; ported, device pass pending ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)). No haptics.
 
 ## API gaps
 

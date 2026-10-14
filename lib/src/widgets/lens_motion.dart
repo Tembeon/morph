@@ -43,6 +43,7 @@ class MorphLensTuning {
     this.chromeGrowth = 0,
     this.chromeSpring = const MorphSpring(0.356, 0.593),
     this.chromeLag = 0.02,
+    this.reducedMotionTravelSpring,
   });
 
   /// Whether a touch selects on contact (tab bar) or on release
@@ -136,6 +137,20 @@ class MorphLensTuning {
   /// Seconds the press growth lags behind the finger.
   final double chromeLag;
 
+  /// The spring that carries the lens between slots, and after a dragging
+  /// finger, for Reduce Motion; null when the selection does not travel
+  /// then.
+  ///
+  /// UITabBar keeps moving its selection under Reduce Motion on dampingRatio
+  /// 0.9, response 0.2 for taps and scrubs alike (its own springs are 0.85
+  /// over 0.4 for a tap, which [travelSpring] fits, and 0.85 over 0.2 while
+  /// scrubbing). UISegmentedControl disables its sliding selection: each
+  /// segment shows its own, so the selection appears on the new segment
+  /// and a press on the selected one neither lifts nor drags it. Read
+  /// from UIKit, notes private; whether the segment's selection fades in
+  /// is not recorded yet (it appears at once here).
+  final MorphSpring? reducedMotionTravelSpring;
+
   /// The lens of a UISegmentedControl.
   static const segmented = MorphLensTuning(
     selectsOnPointerDown: false,
@@ -164,6 +179,7 @@ class MorphLensTuning {
     pressDelay: 0.05,
     dragGain: 1.013,
     chromeGrowth: 14.6,
+    reducedMotionTravelSpring: MorphSpring(0.2, 0.9),
   );
 }
 
@@ -231,10 +247,29 @@ class MorphLensMotion {
   /// Seconds between a selecting touch and the start of the motion.
   final double startDelay;
 
-  /// Whether the lens moves for Reduce Motion: it travels between slots
-  /// but never lifts, deforms or grows the control. This approximates
-  /// the platform's behavior; it is not measured.
+  /// Whether the lens moves for Reduce Motion: it never lifts, as UIKit's
+  /// lens does not (read from UIKit, notes private), and travels on the
+  /// tuning's [MorphLensTuning.reducedMotionTravelSpring] or not at all.
+  /// Its deformation and the control's press growth staying off are
+  /// approximations, not recorded yet.
   bool reducedMotion;
+
+  bool get _slides =>
+      !reducedMotion || tuning.reducedMotionTravelSpring != null;
+
+  MorphSpring get _travelSpring => reducedMotion
+      ? tuning.reducedMotionTravelSpring ?? tuning.travelSpring
+      : tuning.travelSpring;
+
+  void _travelTo(double t, MorphLensSlot slot) {
+    if (_slides) {
+      _travel.retarget(t, slot.center, spring: _travelSpring);
+      _width.retarget(t, slot.width);
+    } else {
+      _travel.snap(t, slot.center);
+      _width.snap(t, slot.width);
+    }
+  }
 
   List<MorphLensSlot> _slots;
   int _selected;
@@ -404,7 +439,7 @@ class MorphLensMotion {
       _chromeTo(t + tuning.chromeLag, 1);
       return;
     }
-    final onSelected = index == _selected;
+    final onSelected = index == _selected && _slides;
     final pointer = _Pointer(
       offset: center - x,
       pressedSelected: onSelected,
@@ -449,14 +484,10 @@ class MorphLensMotion {
       if (index != _selected) _setSelected(index);
       final slot = _slots[_selected];
       _restWidth = slot.width;
-      _timeline.at(t + tuning.releaseDelay, (double s) {
-        _travel.retarget(
-          s,
-          _slotFor(index).center,
-          spring: tuning.travelSpring,
-        );
-        _width.retarget(s, _slotFor(index).width);
-      });
+      _timeline.at(
+        t + tuning.releaseDelay,
+        (double s) => _travelTo(s, _slotFor(index)),
+      );
       final unliftAt = math.max(
         t + tuning.releaseDelay,
         pointer.unliftNotBefore,
@@ -478,8 +509,7 @@ class MorphLensMotion {
     _chromeTo(t + tuning.chromeLag, 0);
     if (!pointer.pressedSelected) return;
     final slot = _slots[_selected];
-    _travel.retarget(t, slot.center, spring: tuning.travelSpring);
-    _width.retarget(t, slot.width);
+    _travelTo(t, slot);
     _restWidth = slot.width;
     _flag = false;
     _lift.retarget(t, 0);
@@ -502,8 +532,7 @@ class MorphLensMotion {
     if (notify) onSelect?.call(selected);
     final slot = _slots[selected];
     _resetFlex();
-    _travel.retarget(t, slot.center, spring: tuning.travelSpring);
-    _width.retarget(t, slot.width);
+    _travelTo(t, slot);
     _restWidth = slot.width;
   }
 
@@ -589,7 +618,13 @@ class MorphLensMotion {
         excess.sign *
         morphRubberband(excess.abs(), dimension: limit, coefficient: stiffness);
     final target = anchor + tuning.dragGain * (inside - anchor) + band;
-    _travel.retarget(t, target, spring: tuning.followSpring);
+    _travel.retarget(
+      t,
+      target,
+      spring: reducedMotion
+          ? tuning.reducedMotionTravelSpring ?? tuning.followSpring
+          : tuning.followSpring,
+    );
     final under = slotAt(_travel.value(t));
     if (_slots[under].width != _width.target) {
       _width.retarget(t, _slots[under].width);
@@ -610,8 +645,7 @@ class MorphLensMotion {
             math.max(0, distance - tuning.hangReferenceDistance);
     _restWidth = slot.width;
     _timeline.at(start, (s) {
-      _travel.retarget(s, _slotFor(index).center, spring: tuning.travelSpring);
-      _width.retarget(s, _slotFor(index).width);
+      _travelTo(s, _slotFor(index));
       _liftTo(s, 1);
     });
     final landing = (tuning.hangFromTouch ? t : start) + hang;

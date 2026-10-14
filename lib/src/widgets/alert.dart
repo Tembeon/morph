@@ -14,6 +14,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
+import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -213,6 +214,34 @@ class MorphAlertAppearance {
     disabledLabelColor: Color(0x4CEBEBF5),
   );
 
+  /// The light appearance under Increase Contrast: the button fill
+  /// (tertiarySystemFill) turns from 12 to 20 percent and the destructive
+  /// and preferred accents take systemRed's and systemBlue's
+  /// increased-contrast variants (read from UIKit's color tables, notes
+  /// private). UIKit also darkens the title and message under it; those
+  /// keep their standard colors here until the device records them.
+  static const lightHighContrast = MorphAlertAppearance(
+    buttonColor: Color(0x33767680),
+    destructiveColor: Color(0xFFE9152D),
+    preferredColor: Color(0xFF1E6EF4),
+  );
+
+  /// The dark appearance under Increase Contrast: the button fill turns
+  /// from 24 to 32 percent, the accents take their increased-contrast
+  /// variants (read from UIKit's color tables, notes private).
+  static const darkHighContrast = MorphAlertAppearance(
+    platterColor: Color(0xCC282828),
+    titleColor: Color(0xFFFFFFFF),
+    messageColor: Color(0x99EBEBF5),
+    buttonColor: Color(0x52767680),
+    labelColor: Color(0xFFFFFFFF),
+    destructiveColor: Color(0xFFFF6165),
+    preferredColor: Color(0xFF5CB8FF),
+    shadowColor: Color(0x4D000000),
+    placeholderColor: Color(0x4CEBEBF5),
+    disabledLabelColor: Color(0x4CEBEBF5),
+  );
+
   /// Copies this appearance with the given fields replaced.
   MorphAlertAppearance copyWith({
     Color? platterColor,
@@ -243,8 +272,8 @@ class MorphAlertAppearance {
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
-  /// [preferredColor].
+  /// table for the ambient brightness and contrast with
+  /// [MorphWidgetsTheme.tint] as its [preferredColor].
   static MorphAlertAppearance resolve(
     BuildContext context,
     MorphAlertAppearance? explicit,
@@ -254,6 +283,8 @@ class MorphAlertAppearance {
     themed: (theme) => theme.alert,
     light: light,
     dark: dark,
+    lightHighContrast: lightHighContrast,
+    darkHighContrast: darkHighContrast,
     tinted: (table, tint) => table.copyWith(preferredColor: tint),
   );
 }
@@ -681,7 +712,9 @@ class _AlertViewState extends State<_AlertView>
     if (local == null) return;
     if (!_route.isPopover) _press.pointerMove(stamp(event), local);
     final over = _buttonAt(event.position);
-    if (over != _highlighted) setState(() => _highlighted = over);
+    if (over == _highlighted) return;
+    if (over != null) morphPlayHaptic(context, MorphHaptic.selection);
+    setState(() => _highlighted = over);
   }
 
   void _up(PointerUpEvent event) {
@@ -721,6 +754,9 @@ class _AlertViewState extends State<_AlertView>
 
   @override
   Widget build(BuildContext context) {
+    final reduced = morphReducedMotionOf(context);
+    _alert?.reducedMotion = reduced;
+    _popover?.reducedMotion = reduced;
     final style = MorphAlertAppearance.resolve(context, _route.appearance);
     final popover = _route.isPopover;
     final rowCandidate =

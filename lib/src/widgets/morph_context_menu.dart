@@ -12,6 +12,7 @@ import 'package:morph/src/live.dart';
 import 'package:morph/src/measure.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
@@ -176,6 +177,9 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// (a small hero shrinks a little, a large one keeps growing) and back
   /// to its natural size on the way home. Off, the hero keeps its
   /// natural size throughout.
+  ///
+  /// Under Reduce Motion the held hero keeps its natural size, as UIKit
+  /// holds its preview at scale 1 then (read from UIKit, notes private).
   final bool lifts;
 
   /// UIKit's growth of a held context menu preview before its menu opens,
@@ -332,8 +336,13 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// Accessibility name of the open menu.
   final String? semanticLabel;
 
-  /// The hold threshold was crossed and the menu is about to fly: the
-  /// moment for a haptic. Not called for [open] or a secondary click.
+  /// The hold threshold was crossed and the menu is about to fly. Not
+  /// called for [open] or a secondary click.
+  ///
+  /// The region itself plays UIKit's preview haptic at this moment
+  /// ([MorphWidgetsTheme.haptics]): UIKit's context menu plays its
+  /// full-strength preview pattern when the hold reaches its preview
+  /// (read from UIKit, notes private).
   final VoidCallback? onHold;
 
   /// A new flight took off, whichever door opened it - subscribe to
@@ -392,6 +401,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   // tap is down (past a scrollable's touch deadline).
   late final Ticker _holdClock = createTicker(_onHoldTick);
   bool _growing = false;
+  // Under Reduce Motion the held hero keeps its size.
+  bool _still = false;
   int? _clockPointer;
   Duration _holdOrigin = Duration.zero;
   Duration? _holdOffset;
@@ -554,6 +565,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     }
     _flex = MorphFlexSpec.forSize(_size);
     _growing = true;
+    _still = morphReducedMotionOf(context);
   }
 
   void _onHoldTick(Duration elapsed) {
@@ -566,7 +578,9 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     );
     final held = elapsed + _holdOffset!;
     if (_growing) {
-      _press.value = MorphContextMenuRegion.measuredHoldGrowth(held);
+      _press.value = _still
+          ? 0
+          : MorphContextMenuRegion.measuredHoldGrowth(held);
     }
     if (!widget.enabled || _clockPointer == null) return;
     // A hold that lost the arena (a scroll took the touch before the tap
@@ -646,6 +660,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   void _onHold() {
     if (!mounted || !widget.enabled || !_holdClock.isActive) return;
     _committed = false;
+    morphPlayHaptic(context, MorphHaptic.preview);
     widget.onHold?.call();
     // The tap cancel may run immediately before or after this callback.
     // Freeze whichever press value is on screen and hand that one stable

@@ -295,3 +295,5 @@ backdrop.
   44). Light: native 249,248,255 over the film's page vs ours 247,246,249
   with 0xF2F9F9FB - 2 darker and less blue; now 0xF2F9F9FF, the light
   menu material (testDateOverlay shot, 2026-10-03).
+
+- Reduce Motion and haptics, read from UIKit (notes private): the overlay fades at full size over 0.3 s (ported for open / close; the picker switch is not yet); each wheel row plays a selection haptic; Increase Contrast table. See states.md.

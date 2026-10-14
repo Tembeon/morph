@@ -7,6 +7,7 @@ import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/slider_motion.dart';
 import 'package:morph/src/widgets/small_lens.dart';
@@ -53,6 +54,23 @@ class MorphSliderAppearance {
     tickColor: Color(0xFF38383A),
   );
 
+  /// The light appearance under Increase Contrast: the fill takes
+  /// systemBlue's increased-contrast variant; the tick color has none
+  /// (read from UIKit's color tables, notes private). The unfilled track
+  /// keeps its standard color until the device records it.
+  static const lightHighContrast = MorphSliderAppearance(
+    activeTrackColor: Color(0xFF1E6EF4),
+  );
+
+  /// The dark appearance under Increase Contrast: the fill takes the dark
+  /// systemBlue's increased-contrast variant (read from UIKit's color
+  /// tables, notes private).
+  static const darkHighContrast = MorphSliderAppearance(
+    activeTrackColor: Color(0xFF5CB8FF),
+    inactiveTrackColor: Color(0x1AFFFFFF),
+    tickColor: Color(0xFF38383A),
+  );
+
   /// Copies this appearance with the given fields replaced.
   MorphSliderAppearance copyWith({
     Color? activeTrackColor,
@@ -69,8 +87,8 @@ class MorphSliderAppearance {
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
-  /// [activeTrackColor].
+  /// table for the ambient brightness and contrast with
+  /// [MorphWidgetsTheme.tint] as its [activeTrackColor].
   static MorphSliderAppearance resolve(
     BuildContext context,
     MorphSliderAppearance? explicit,
@@ -80,6 +98,8 @@ class MorphSliderAppearance {
     themed: (theme) => theme.slider,
     light: light,
     dark: dark,
+    lightHighContrast: lightHighContrast,
+    darkHighContrast: darkHighContrast,
     tinted: (table, tint) => table.copyWith(activeTrackColor: tint),
   );
 }
@@ -215,7 +235,13 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
     );
     motion.onChanged = _changed;
     motion.onChangeEnd = _ended;
+    motion.onFeel = _feel;
     return motion;
+  }
+
+  void _feel(bool detent) {
+    if (!mounted) return;
+    morphPlayHaptic(context, detent ? MorphHaptic.detent : MorphHaptic.edge);
   }
 
   /// [value] in the track's 0 to 1.

@@ -9,6 +9,7 @@ import 'package:morph/src/motion.dart';
 import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
@@ -244,9 +245,17 @@ class MorphMenuController implements MorphMenuHost {
       ),
     );
     morphConnectMenu(motion, menuContent, dismissOnSelect: dismissOnSelect);
+    motion.onTrackedHighlight = _trackedHighlight;
     motion.advance(menuClock);
     _motion = motion;
     return motion;
+  }
+
+  void _trackedHighlight() {
+    final context = _sourceGone ? null : scopeContext();
+    if (context != null && context.mounted) {
+      morphPlayHaptic(context, MorphHaptic.selection);
+    }
   }
 
   /// Applies declarative entries and resizes an already presented menu; a
@@ -471,6 +480,7 @@ class MorphMenuController implements MorphMenuHost {
     menuContent.dispose();
     _motion?.onActivate = null;
     _motion?.onHighlight = null;
+    _motion?.onTrackedHighlight = null;
     final flight = _flight;
     if (flight == null || flight.isFinished) {
       _motion?.close(_detachedTime);

@@ -695,7 +695,55 @@ void main() {
       );
     });
 
-    testWidgets('reduced motion fades a pushed page in place', (tester) async {
+    testWidgets('reduced motion keeps the slide for an edge swipe', (
+      tester,
+    ) async {
+      await _setScreen(tester);
+      late BuildContext context;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(size: _screen, disableAnimations: true),
+            child: MorphNavigationStack(
+              home: Builder(
+                builder: (BuildContext c) {
+                  context = c;
+                  return page('Inbox');
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      Navigator.of(
+        context,
+      ).push(MorphNavigationRoute<void>(builder: (_) => page('Message')));
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      final message = find.byWidgetPredicate(
+        (w) => w is MorphNavigationScaffold && w.title == 'Message',
+      );
+      final gesture = await tester.startGesture(const Offset(4, 500));
+      for (var i = 0; i < 6; i++) {
+        await gesture.moveBy(const Offset(10, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(tester.getTopLeft(message).dx, inInclusiveRange(30, 61));
+      await gesture.up();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      expect(tester.getTopLeft(message).dx, closeTo(0, 0.5));
+    });
+
+    testWidgets('reduced motion cross-fades a pushed page in place', (
+      tester,
+    ) async {
       await _setScreen(tester);
       late BuildContext context;
       await tester.pumpWidget(
@@ -724,17 +772,26 @@ void main() {
       await tester.pump();
       // Steady frames: one long pump would be a slow first frame, which
       // delays the push (MorphFirstFrameStart).
-      for (var i = 0; i < 6; i++) {
+      for (var i = 0; i < 16; i++) {
         await tester.pump(const Duration(milliseconds: 16));
       }
       final message = find.byWidgetPredicate(
         (w) => w is MorphNavigationScaffold && w.title == 'Message',
       );
-      expect(tester.getTopLeft(message).dx, 0);
-      final fade = tester.widget<FadeTransition>(
-        find.ancestor(of: message, matching: find.byType(FadeTransition)).first,
+      final inbox = find.byWidgetPredicate(
+        (w) => w is MorphNavigationScaffold && w.title == 'Inbox',
       );
-      expect(fade.opacity.value, inExclusiveRange(0.05, 0.95));
+      expect(tester.getTopLeft(message).dx, 0);
+      expect(tester.getTopLeft(inbox).dx, 0);
+      double opacity(Finder page) => tester
+          .widgetList<FadeTransition>(
+            find.ancestor(of: page, matching: find.byType(FadeTransition)),
+          )
+          .fold(1.0, (double o, FadeTransition f) => o * f.opacity.value);
+      final arriving = opacity(message);
+      final leaving = opacity(inbox);
+      expect(arriving, inExclusiveRange(0.05, 0.95));
+      expect(leaving, closeTo(1 - arriving, 1e-9));
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),
         EnginePhase.sendSemanticsUpdate,

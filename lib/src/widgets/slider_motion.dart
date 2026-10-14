@@ -194,6 +194,13 @@ class MorphSliderMotion {
   /// Called with the final value when a drag and its fling end.
   ValueChanged<double>? onChangeEnd;
 
+  /// Called when a dragging finger takes the value onto either end, and,
+  /// on a stepped slider, with true when it takes the value onto another
+  /// inner stop: the moments UIKit's slider plays its end and detent
+  /// haptics (read from UIKit, notes private). A fling gliding into an
+  /// end does not call it.
+  ValueChanged<bool>? onFeel;
+
   /// How far the thumb center travels between the ends.
   double get travel => math.max(0, width - thumbSize.width);
 
@@ -305,6 +312,9 @@ class MorphSliderMotion {
     _stretch.snap(t, _stretchFor(raw));
     final clamped = raw.clamp(0.0, 1.0);
     if (!_stepped) {
+      if (clamped != _value && (clamped == 0 || clamped == 1)) {
+        onFeel?.call(false);
+      }
       _set(clamped);
       return;
     }
@@ -318,6 +328,7 @@ class MorphSliderMotion {
             half *
             math.min(tickHold, math.pow(f, tickCurve));
     _settle.retarget(t, detent, spring: tickFollowSpring);
+    if (stop != _value) onFeel?.call(stop > 0 && stop < 1);
     _set(stop);
   }
 

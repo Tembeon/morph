@@ -201,3 +201,5 @@ bars no longer repaints with them. Host recorder, flat: push 6/5/75-97 ->
   on the device. The bars are not part of the page and stay live. Pinned
   by test/navigation_snapshot_test.dart; no device numbers yet - the
   Redmi 6A pop raster measurement is pending.
+
+- Reduce Motion, read from UIKit (notes private): pushes and pops without a finger cross-fade both pages over 0.5 s (UIView ease-in-out); an edge swipe keeps the slide. Ported (`MorphNavigationTuning.crossFadeDuration`); see states.md.
