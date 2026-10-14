@@ -8,6 +8,7 @@ import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/slider_motion.dart';
 
+import 'support/slider_feed.dart';
 import 'support/trace.dart';
 
 /// The flex movement law against the targets UIKit recorded on an iPhone
@@ -137,20 +138,17 @@ void main() {
       );
       final left = 201 - width / 2;
       motion.advance(trace.touches.first.t - 1);
+      final feed = feedSlider(
+        motion,
+        left,
+        waitedBegins(trace, width, value, deviceDeliveryLag),
+      );
       var next = 0;
       for (final f in trace.frames) {
         if (f.t < trace.touches.first.t) continue;
-        while (next < trace.touches.length && trace.touches[next].t <= f.t) {
-          final touch = trace.touches[next++];
-          final x = touch.x - left;
-          switch (touch.phase) {
-            case 0:
-              motion.pointerDown(touch.t, x);
-            case 3:
-              motion.pointerUp(touch.t, x);
-            case _:
-              motion.pointerMove(touch.t, x);
-          }
+        while (next < trace.touches.length &&
+            trace.touches[next].t + deviceDeliveryLag <= f.t) {
+          feed(trace.touches[next++]);
         }
         motion.advance(f.t);
         if (f.raw['lifted'] != 1) continue;
@@ -160,8 +158,8 @@ void main() {
       }
     }
     expect(sx.length, greaterThan(800));
-    expect(_rms(sx), lessThan(0.021));
-    expect(_rms(sy), lessThan(0.021));
-    expect(_rms(shift), lessThan(0.65));
+    expect(_rms(sx), lessThan(0.017));
+    expect(_rms(sy), lessThan(0.017));
+    expect(_rms(shift), lessThan(0.5));
   });
 }

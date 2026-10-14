@@ -65,9 +65,13 @@ void main() {
     motion.advance(0);
     final x = motion.thumbCenter;
     motion.pointerDown(0.1, x);
-    motion.pointerMove(0.2, x + 20);
-    motion.pointerMove(0.3, x + 20 + 0.5 * 300);
-    motion.pointerUp(0.4, x + 20 + 0.5 * 300, velocity: 0);
+    motion.pointerMove(0.2, x + MorphSliderMotion.panSlop);
+    motion.pointerMove(0.3, x + MorphSliderMotion.panSlop + 0.5 * 300);
+    motion.pointerUp(
+      0.4,
+      x + MorphSliderMotion.panSlop + 0.5 * 300,
+      velocity: 0,
+    );
     for (var i = 1; i <= 120; i++) {
       motion.advance(0.4 + i / 120);
     }
