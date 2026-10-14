@@ -78,7 +78,8 @@ export 'src/widgets/list.dart'
         MorphListAppearance,
         MorphListMetrics,
         MorphListRow,
-        MorphListSection;
+        MorphListSection,
+        MorphSliverListSection;
 export 'src/widgets/menu.dart'
     show
         MorphMenuAppearance,

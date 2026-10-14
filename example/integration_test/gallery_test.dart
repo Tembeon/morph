@@ -250,7 +250,7 @@ class _Qa {
   }
 
   int _selectedOf(Finder control) =>
-      tester.widget<MorphSegmentedControl>(control).selectedIndex;
+      tester.widget<MorphSegmentedControl>(control).selectedIndex!;
 
   Future<void> _tabBar() async {
     await open('Tab bar');

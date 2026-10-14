@@ -94,7 +94,12 @@ keeps them in its picture.
 ## API gaps (UIKit has, morph lacks)
 
 - Image segments (and image + title), UIAction segments.
-- Per-segment enabled, per-segment fixed width, content offset.
+- Per-segment enabled and fixed width exist (`MorphSegment.enabled`,
+  `.width`); a disabled label's look (drawn at `disabledOpacity`) is NOT
+  measured. Content offset is missing.
+- No selection exists (`selectedIndex: null`, `noSegment`): the lens is
+  hidden; the first selection appears at rest on its segment - UIKit's
+  appearance animation is NOT measured.
 - `momentary` mode.
 - Animated insert/remove of segments (is there a lens/width animation? not
   measured).

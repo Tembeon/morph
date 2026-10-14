@@ -507,6 +507,20 @@ class MorphLensMotion {
     _restWidth = slot.width;
   }
 
+  /// Puts the lens at rest on the clamped [index] at once, without
+  /// travel, lift or [onSelect]: where a control that showed no selection
+  /// shows one appear. Cancels a touch and pending reactions.
+  void place(double t, int index) {
+    advance(t);
+    if (_slots.isEmpty) return;
+    _timeline.clear();
+    _pointer = null;
+    _flag = false;
+    _selected = _index(index, _slots.length);
+    _lift.snap(t, 0);
+    slots = _slots;
+  }
+
   /// Advances the lens to time [t], stepping the deformation loop once
   /// for every frame of [frameRate] on the way.
   void advance(double t) {

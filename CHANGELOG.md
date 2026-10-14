@@ -123,6 +123,16 @@ New capabilities from the API parity audit (phase 2):
   `MorphAlertTextField` gains `onChanged`, `autofocus` (null focuses the
   first field, as before), `autocorrect`, `enableSuggestions`,
   `textCapitalization`, `inputFormatters` and `semanticLabel`.
+- Segmented control: `selectedIndex` is nullable (UIKit `noSegment`):
+  the lens hides, and a tap's selection appears at rest on its segment
+  (not measured; `MorphLensMotion.place`). `MorphSegment(title, enabled:,
+  width:)`: a disabled segment does not select and the arrow keys skip
+  it; a fixed width keeps its points and the others share the rest.
+- Lists: `MorphListAccessory.checkmark`, `.detailButton` and
+  `.detailDisclosureButton` (UIKit `accessoryType`; glyphs by eye, not
+  measured) with `MorphListRow.onAccessoryTap`; a checkmarked row reads
+  as selected. New `MorphSliverListSection(itemBuilder:, itemCount:)`
+  builds a long section's rows lazily in a `CustomScrollView`.
 
 Per-frame work, closer to the native main thread (lifecycle passports,
 tool/ios_reference/spec/lifecycle.md "Closed"):

@@ -262,28 +262,7 @@ class MorphListSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (header == null)
-              const SizedBox(height: MorphListMetrics.noHeaderTop)
-            else
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  MorphListMetrics.contentInset,
-                  MorphListMetrics.headerTop,
-                  MorphListMetrics.contentInset,
-                  MorphListMetrics.headerBottom,
-                ),
-                child: Semantics(
-                  header: true,
-                  child: DefaultTextStyle.merge(
-                    style: MorphTypography.resolve(
-                      MorphTypography.listHeader.copyWith(
-                        color: look.secondaryColor,
-                      ),
-                    ),
-                    child: header,
-                  ),
-                ),
-              ),
+            _sectionHeader(look, header),
             ClipRRect(
               borderRadius: const BorderRadius.all(
                 Radius.circular(MorphListMetrics.cornerRadius),
@@ -310,27 +289,131 @@ class MorphListSection extends StatelessWidget {
                 ),
               ),
             ),
-            if (footer == null)
-              const SizedBox(height: MorphListMetrics.noFooterBottom)
-            else
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  MorphListMetrics.contentInset,
-                  MorphListMetrics.footerTop,
-                  MorphListMetrics.contentInset,
-                  MorphListMetrics.footerBottom,
-                ),
-                child: DefaultTextStyle.merge(
-                  style: MorphTypography.resolve(
-                    MorphTypography.listFooter.copyWith(
-                      color: look.secondaryColor,
-                    ),
-                  ),
-                  child: footer,
-                ),
-              ),
+            _sectionFooter(look, footer),
           ],
         ),
+      ),
+    );
+  }
+}
+
+Widget _sectionHeader(MorphListAppearance look, Widget? header) =>
+    header == null
+    ? const SizedBox(height: MorphListMetrics.noHeaderTop)
+    : Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          MorphListMetrics.contentInset,
+          MorphListMetrics.headerTop,
+          MorphListMetrics.contentInset,
+          MorphListMetrics.headerBottom,
+        ),
+        child: Semantics(
+          header: true,
+          child: DefaultTextStyle.merge(
+            style: MorphTypography.resolve(
+              MorphTypography.listHeader.copyWith(color: look.secondaryColor),
+            ),
+            child: header,
+          ),
+        ),
+      );
+
+Widget _sectionFooter(MorphListAppearance look, Widget? footer) =>
+    footer == null
+    ? const SizedBox(height: MorphListMetrics.noFooterBottom)
+    : Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          MorphListMetrics.contentInset,
+          MorphListMetrics.footerTop,
+          MorphListMetrics.contentInset,
+          MorphListMetrics.footerBottom,
+        ),
+        child: DefaultTextStyle.merge(
+          style: MorphTypography.resolve(
+            MorphTypography.listFooter.copyWith(color: look.secondaryColor),
+          ),
+          child: footer,
+        ),
+      );
+
+/// A [MorphListSection] as a sliver that builds its rows lazily, for a
+/// long list in a [CustomScrollView] (a `UITableView` section of many
+/// cells, SwiftUI `Section` in a `List`).
+///
+/// It looks like [MorphListSection]: [header], the [itemCount] rows that
+/// [itemBuilder] builds on one rounded card, [footer]. Rows are built only
+/// while they are in view. Each row shades its resting glass over the
+/// card's color in a layer of its own, where the column section shades
+/// all of them in one.
+class MorphSliverListSection extends StatelessWidget {
+  /// Creates a section of [itemCount] rows built by [itemBuilder].
+  const MorphSliverListSection({
+    required this.itemBuilder,
+    required this.itemCount,
+    this.header,
+    this.footer,
+    this.appearance,
+    super.key,
+  });
+
+  /// Builds the row at an index, usually a [MorphListRow].
+  final IndexedWidgetBuilder itemBuilder;
+
+  /// The number of rows.
+  final int itemCount;
+
+  /// The label above the card; see [MorphListSection.header].
+  final Widget? header;
+
+  /// The label below the card; see [MorphListSection.footer].
+  final Widget? footer;
+
+  /// The look; null resolves it from the theme.
+  final MorphListAppearance? appearance;
+
+  @override
+  Widget build(BuildContext context) {
+    final look = MorphListAppearance.resolve(context, appearance);
+    const radius = Radius.circular(MorphListMetrics.cornerRadius);
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: MorphListMetrics.sectionInset,
+      ),
+      sliver: SliverMainAxisGroup(
+        slivers: [
+          SliverToBoxAdapter(child: _sectionHeader(look, header)),
+          SliverList.builder(
+            itemCount: itemCount,
+            itemBuilder: (BuildContext context, int i) {
+              final first = i == 0;
+              final last = i == itemCount - 1;
+              return RepaintBoundary(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: first ? radius : Radius.zero,
+                    topRight: first ? radius : Radius.zero,
+                    bottomLeft: last ? radius : Radius.zero,
+                    bottomRight: last ? radius : Radius.zero,
+                  ),
+                  child: ColoredBox(
+                    color: look.cellColor,
+                    child: MorphGlassStage(
+                      open: true,
+                      sharpOnly: true,
+                      solidBackdrop: look.cellColor,
+                      child: _RowPlace(
+                        last: last,
+                        style: look,
+                        child: itemBuilder(context, i),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          SliverToBoxAdapter(child: _sectionFooter(look, footer)),
+        ],
       ),
     );
   }
@@ -356,9 +439,23 @@ class _RowPlace extends InheritedWidget {
 
 /// The standard accessory of a [MorphListRow], after UIKit's
 /// `UITableViewCell.AccessoryType`.
+///
+/// The checkmark and the detail button are drawn in the tint
+/// ([MorphListAppearance.iconColor]); their glyphs and sizes follow the
+/// SF symbols by eye and are not yet measured on a device.
 enum MorphListAccessory {
   /// The disclosure chevron of a row that pushes a screen.
   disclosureIndicator,
+
+  /// A checkmark: the row is the chosen one of a list of options.
+  checkmark,
+
+  /// An info button ("i" in a circle); a tap on it calls
+  /// [MorphListRow.onAccessoryTap] instead of the row's [MorphListRow.onTap].
+  detailButton,
+
+  /// An info button followed by the disclosure chevron.
+  detailDisclosureButton,
 }
 
 /// A row of an inset grouped list in the manner of a UIKit list cell
@@ -393,6 +490,7 @@ class MorphListRow extends StatefulWidget {
     this.leading,
     this.trailing,
     this.accessory,
+    this.onAccessoryTap,
     this.child,
     this.onTap,
     this.enabled = true,
@@ -422,6 +520,11 @@ class MorphListRow extends StatefulWidget {
   /// The standard accessory at the trailing edge, after [trailing]
   /// (UIKit `accessoryType`); null shows none.
   final MorphListAccessory? accessory;
+
+  /// Called when the info button of a [MorphListAccessory.detailButton] or
+  /// [MorphListAccessory.detailDisclosureButton] is tapped (UIKit
+  /// `accessoryButtonTappedForRowWith`).
+  final VoidCallback? onAccessoryTap;
 
   /// Content that fills the text area instead of [title] and [subtitle].
   final Widget? child;
@@ -476,8 +579,16 @@ class _MorphListRowState extends State<MorphListRow> {
     final subtitle = widget.subtitle;
     final detail = widget.detail;
     final trailing = widget.trailing;
-    final chevron = widget.accessory == MorphListAccessory.disclosureIndicator;
-    final accessory = trailing != null || chevron;
+    final kind = widget.accessory;
+    final chevron =
+        kind == MorphListAccessory.disclosureIndicator ||
+        kind == MorphListAccessory.detailDisclosureButton;
+    final info =
+        kind == MorphListAccessory.detailButton ||
+        kind == MorphListAccessory.detailDisclosureButton;
+    final check = kind == MorphListAccessory.checkmark;
+    final mark = chevron || info || check;
+    final accessory = trailing != null || mark;
     final textStart =
         MorphListMetrics.contentInset +
         (leading == null
@@ -529,8 +640,23 @@ class _MorphListRowState extends State<MorphListRow> {
         ],
         if (accessory) const SizedBox(width: MorphListMetrics.gap),
         ?trailing,
-        if (trailing != null && chevron)
+        if (trailing != null && mark)
           const SizedBox(width: MorphListMetrics.gap),
+        if (check) _Glyph(painter: _CheckPainter(look.iconColor)),
+        if (info)
+          Semantics(
+            container: true,
+            button: true,
+            label: 'More info',
+            onTap: widget.onAccessoryTap,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              excludeFromSemantics: true,
+              onTap: widget.onAccessoryTap,
+              child: _Glyph(painter: _InfoPainter(look.iconColor)),
+            ),
+          ),
+        if (info && chevron) const SizedBox(width: MorphListMetrics.gap),
         if (chevron) _Chevron(color: look.chevronColor),
       ],
     );
@@ -579,6 +705,7 @@ class _MorphListRowState extends State<MorphListRow> {
     return Semantics(
       container: true,
       button: onTap != null,
+      selected: check ? true : null,
       enabled: onTap == null ? null : widget.enabled,
       child: MorphControlFocus(
         enabled: _active,
@@ -678,4 +805,72 @@ class _ChevronPainter extends CustomPainter {
   @override
   bool shouldRepaint(_ChevronPainter oldDelegate) =>
       color != oldDelegate.color || mirrored != oldDelegate.mirrored;
+}
+
+/// The box of a checkmark or an info button: 22 pt, the size of a body
+/// symbol (by eye, not measured).
+class _Glyph extends StatelessWidget {
+  const _Glyph({required this.painter});
+
+  final CustomPainter painter;
+
+  @override
+  Widget build(BuildContext context) =>
+      CustomPaint(size: const Size.square(22), painter: painter);
+}
+
+class _CheckPainter extends CustomPainter {
+  const _CheckPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path();
+    path.moveTo(size.width * 0.2, size.height * 0.52);
+    path.lineTo(size.width * 0.42, size.height * 0.74);
+    path.lineTo(size.width * 0.82, size.height * 0.26);
+    final paint = Paint();
+    paint.color = color;
+    paint.style = PaintingStyle.stroke;
+    paint.strokeWidth = 2.2;
+    paint.strokeCap = StrokeCap.round;
+    paint.strokeJoin = StrokeJoin.round;
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_CheckPainter oldDelegate) => color != oldDelegate.color;
+}
+
+class _InfoPainter extends CustomPainter {
+  const _InfoPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2 - 0.75;
+    final ring = Paint();
+    ring.color = color;
+    ring.style = PaintingStyle.stroke;
+    ring.strokeWidth = 1.5;
+    canvas.drawCircle(center, radius, ring);
+    final fill = Paint();
+    fill.color = color;
+    canvas.drawCircle(center.translate(0, -radius * 0.45), 1.3, fill);
+    final stem = Paint();
+    stem.color = color;
+    stem.strokeWidth = 2;
+    stem.strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      center.translate(0, -radius * 0.12),
+      center.translate(0, radius * 0.5),
+      stem,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_InfoPainter oldDelegate) => color != oldDelegate.color;
 }

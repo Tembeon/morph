@@ -117,4 +117,9 @@ section does not repaint its rows).
 ## API gaps
 
 - Plain and grouped (non-inset) styles, swipe actions, reordering,
-  checkmark accessory, section index, sliver form for long sections.
+  section index.
+- Checkmark, detail button and detail disclosure accessories exist
+  (`MorphListAccessory`), drawn in the tint by eye: glyph shapes and sizes
+  NOT measured. A sliver form exists (`MorphSliverListSection`): rows built
+  lazily, each row's resting glass in its own solid-backdrop layer instead
+  of the card's one.

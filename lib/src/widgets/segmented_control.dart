@@ -40,8 +40,14 @@ class MorphSegmentedControl extends StatefulWidget {
   final List<MorphSegment> segments;
 
   /// The index of the selected segment, clamped to the available segments
-  /// (UIKit `selectedSegmentIndex`).
-  final int selectedIndex;
+  /// (UIKit `selectedSegmentIndex`), or null for none
+  /// (`UISegmentedControl.noSegment`).
+  ///
+  /// With none selected the lens is hidden and every label plain. A tap
+  /// selects on release, as on a control with a selection, and the lens
+  /// appears at rest on the chosen segment, without travel or lift: how
+  /// UIKit shows the first selection is not yet measured.
+  final int? selectedIndex;
 
   /// Called with the new index when the user selects a segment; null
   /// disables the control.
@@ -80,17 +86,30 @@ class MorphSegmentedControl extends StatefulWidget {
 @immutable
 class MorphSegment {
   /// Creates a segment labelled [title].
-  const MorphSegment(this.title);
+  const MorphSegment(this.title, {this.enabled = true, this.width});
 
   /// The label of the segment.
   final String title;
 
-  @override
-  bool operator ==(Object other) =>
-      other is MorphSegment && other.title == title;
+  /// Whether the segment can be selected (UIKit
+  /// `setEnabled(_:forSegmentAt:)`). A disabled segment draws its label at
+  /// the appearance's disabled opacity (not yet measured on a device); a
+  /// touch on it selects nothing and the arrow keys skip it.
+  final bool enabled;
+
+  /// The width of the segment in points, or null to share the room with
+  /// the other segments (UIKit `setWidth(_:forSegmentAt:)`, 0 there).
+  final double? width;
 
   @override
-  int get hashCode => title.hashCode;
+  bool operator ==(Object other) =>
+      other is MorphSegment &&
+      other.title == title &&
+      other.enabled == enabled &&
+      other.width == width;
+
+  @override
+  int get hashCode => Object.hash(title, enabled, width);
 }
 
 /// The look of a [MorphSegmentedControl].
@@ -223,16 +242,28 @@ class _MorphSegmentedControlState
 
   List<MorphLensSlot> _layout(double width) {
     final style = _style;
-    final count = widget.segments.length;
+    final segments = widget.segments;
+    final count = segments.length;
+    final fixed = segments.fold<double>(0, (a, s) => a + (s.width ?? 0));
+    final free = count - segments.where((s) => s.width != null).length;
+    final room = width - fixed;
     final List<double> widths;
     if (widget.proportionalWidth) {
       final natural = [
         for (final w in _labelSpans()) w + 2 * style.contentPadding,
       ];
-      final total = natural.fold<double>(0, (a, b) => a + b);
-      widths = [for (final w in natural) w * width / total];
-    } else {
+      var total = 0.0;
+      for (var i = 0; i < count; i++) {
+        if (segments[i].width == null) total += natural[i];
+      }
+      widths = [
+        for (var i = 0; i < count; i++)
+          segments[i].width ?? natural[i] * room / total,
+      ];
+    } else if (free == count) {
       widths = List.filled(count, width / count);
+    } else {
+      widths = [for (final s in segments) s.width ?? room / free];
     }
     final slots = <MorphLensSlot>[];
     var left = 0.0;
@@ -256,36 +287,59 @@ class _MorphSegmentedControlState
       final created = MorphLensMotion(
         tuning: MorphLensTuning.segmented,
         slots: slots,
-        selected: widget.selectedIndex,
+        selected: widget.selectedIndex ?? 0,
         height: _style.height - 2 * _style.inset,
         frameRate: motionFrameRate,
       );
       created.onSelect = _selected;
+      created.isSelectable = _selectable;
       _motion = created;
     } else if (!_sameSlots(slots, _slots)) {
       current.slots = slots;
     }
     _slots = slots;
-    final selected = slots.isEmpty
-        ? -1
-        : widget.selectedIndex.clamp(0, slots.length - 1);
-    if (motion.selected != selected) {
+    final index = widget.selectedIndex;
+    final wasNone = _shownNone;
+    _shownNone = index == null;
+    if (index == null || slots.isEmpty) return;
+    final selected = index.clamp(0, slots.length - 1);
+    if (wasNone) {
+      motion.place(clock, selected);
+      wake();
+    } else if (motion.selected != selected) {
       motion.select(clock, selected, notify: false);
       wake();
     }
   }
 
+  bool _shownNone = false;
+
+  bool get _none => widget.selectedIndex == null;
+
+  bool _selectable(int index) =>
+      index >= 0 &&
+      index < widget.segments.length &&
+      widget.segments[index].enabled;
+
   void _selected(int index) {
     if (index != widget.selectedIndex) widget.onChanged?.call(index);
-    reconcileSelection(
-      () => widget.segments.isEmpty
-          ? -1
-          : widget.selectedIndex.clamp(0, widget.segments.length - 1),
-    );
+    reconcileSelection(() {
+      final selected = widget.selectedIndex;
+      if (widget.segments.isEmpty) return -1;
+      if (selected == null) return motion.selected;
+      return selected.clamp(0, widget.segments.length - 1);
+    });
   }
 
   void _select(int index) {
-    if (!_enabled || _motion == null) return;
+    if (!_enabled || _motion == null || !_selectable(index)) return;
+    if (_none) {
+      motion.place(clock, index);
+      setState(() {});
+      widget.onChanged?.call(index);
+      wake();
+      return;
+    }
     motion.select(clock, index);
     wake();
   }
@@ -293,11 +347,50 @@ class _MorphSegmentedControlState
   void _step(int delta) {
     final current = _motion;
     if (current == null || _slots.isEmpty) return;
-    final next = (current.selected + (_rtl ? -delta : delta)).clamp(
-      0,
-      _slots.length - 1,
-    );
-    if (next != current.selected) _select(next);
+    final direction = (_rtl ? -delta : delta).sign;
+    var next = _none
+        ? (direction > 0 ? 0 : _slots.length - 1)
+        : current.selected + direction;
+    while (next >= 0 && next < _slots.length && !_selectable(next)) {
+      next += direction;
+    }
+    if (next < 0 || next >= _slots.length) return;
+    if (_none || next != current.selected) _select(next);
+  }
+
+  int? _noneDown;
+
+  @override
+  void onControlDown(double t, PointerDownEvent event) {
+    if (!_none) {
+      super.onControlDown(t, event);
+      return;
+    }
+    _noneDown = motion.slotAt(trackPosition(event.localPosition));
+  }
+
+  @override
+  void onControlMove(double t, PointerMoveEvent event) {
+    if (_noneDown == null) super.onControlMove(t, event);
+  }
+
+  @override
+  void onControlUp(double t, PointerUpEvent event) {
+    if (_noneDown == null) {
+      super.onControlUp(t, event);
+      return;
+    }
+    _noneDown = null;
+    _select(motion.slotAt(trackPosition(event.localPosition)));
+  }
+
+  @override
+  void onControlCancel(double t) {
+    if (_noneDown == null) {
+      super.onControlCancel(t);
+      return;
+    }
+    _noneDown = null;
   }
 
   static bool _sameSlots(List<MorphLensSlot> a, List<MorphLensSlot> b) {
@@ -341,17 +434,22 @@ class _MorphSegmentedControlState
         enabled: _enabled,
         glass: false,
       ),
-      MorphGlassSurface(
-        kind: MorphGlassKind.lens,
-        shape: frame.lens,
-        color: Color.lerp(style.lensColor, style.liftedLensColor, frame.lift)!,
-        brightness: _brightness,
-        lift: frame.lift,
-        scaleX: motion.scaleX,
-        scaleY: motion.scaleY,
-        optics: MorphGlassOptics.large,
-        enabled: _enabled,
-      ),
+      if (!_none)
+        MorphGlassSurface(
+          kind: MorphGlassKind.lens,
+          shape: frame.lens,
+          color: Color.lerp(
+            style.lensColor,
+            style.liftedLensColor,
+            frame.lift,
+          )!,
+          brightness: _brightness,
+          lift: frame.lift,
+          scaleX: motion.scaleX,
+          scaleY: motion.scaleY,
+          optics: MorphGlassOptics.large,
+          enabled: _enabled,
+        ),
     ];
   }
 
@@ -372,8 +470,9 @@ class _MorphSegmentedControlState
       oldWidget.proportionalWidth == widget.proportionalWidth &&
       oldWidget.appearance == widget.appearance;
 
+  // The labels read whether a selection shows besides the motion's.
   @override
-  Object? get buildInputs => _motion?.selected;
+  Object? get buildInputs => (_motion?.selected, _none);
 
   @override
   Widget buildControl(BuildContext context) {
@@ -398,7 +497,7 @@ class _MorphSegmentedControlState
           return SizedBox(width: width, height: style.height);
         }
         motion.reducedMotion = morphReducedMotionOf(context);
-        final selected = motion.selected;
+        final selected = _none ? -1 : motion.selected;
         final labels = Row(
           children: [
             for (var i = 0; i < widget.segments.length; i++)
@@ -409,20 +508,24 @@ class _MorphSegmentedControlState
                   button: true,
                   inMutuallyExclusiveGroup: true,
                   selected: i == selected,
-                  enabled: _enabled,
+                  enabled: _enabled && _selectable(i),
                   label: widget.segments[i].title,
-                  onTap: _enabled ? () => _select(i) : null,
+                  onTap: _enabled && _selectable(i) ? () => _select(i) : null,
                   child: ExcludeSemantics(
                     child: Center(
-                      child: Text(
-                        widget.segments[i].title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textScaler: _scaler,
-                        style: MorphTypography.resolve(
-                          i == selected
-                              ? style.selectedTextStyle
-                              : style.textStyle,
+                      child: _dimmed(
+                        !widget.segments[i].enabled,
+                        style.disabledOpacity,
+                        Text(
+                          widget.segments[i].title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textScaler: _scaler,
+                          style: MorphTypography.resolve(
+                            i == selected
+                                ? style.selectedTextStyle
+                                : style.textStyle,
+                          ),
                         ),
                       ),
                     ),
@@ -486,6 +589,7 @@ class _SegmentedPainter extends CustomPainter {
     final trackPaint = Paint();
     trackPaint.color = style.trackColor;
     canvas.drawRRect(frame.track, trackPaint);
+    if (state._none) return;
     final lift = frame.lift;
     final lens = frame.lens;
     final shadow = Paint();
@@ -509,3 +613,6 @@ class _SegmentedPainter extends CustomPainter {
   @override
   bool shouldRepaint(_SegmentedPainter oldDelegate) => true;
 }
+
+Widget _dimmed(bool dimmed, double opacity, Widget child) =>
+    dimmed ? Opacity(opacity: opacity, child: child) : child;
