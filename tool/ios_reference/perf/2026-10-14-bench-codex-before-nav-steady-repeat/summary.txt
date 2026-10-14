@@ -1,0 +1,8 @@
+708e9103  runs 5  fixed-perf False  2026-10-14 20:49
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+nav/nav-navigation-title-flat       455   2.1   4.0   6.4   8.4   1.8   0.0    0   526  
+nav/nav-navigation-title-liquid     455   2.5   4.8   8.6  11.3   5.1   0.2    1   644  raster-cpu:1 bad raster: QueueSubmit 7.7, Canvas::saveLayer 7.0, SurfaceFrame::Encode 3.7
+nav/nav-navigation-steady-flat      451   1.8   3.4   5.9   8.1   1.5   0.0    0   531    [power_mw 608->531]
+nav/nav-navigation-steady-liquid    451   2.0   3.7   8.5  10.7   4.9   0.0    0   760    [=]

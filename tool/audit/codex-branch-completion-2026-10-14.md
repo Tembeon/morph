@@ -1,7 +1,9 @@
 # Interrupted Claude branches: completion, 2026-10-14
 
 Scope: finish the four agents interrupted by the session limit, integrate them
-into `wip/measured-liquid-glass`, and continue the physical iPhone checks.
+into `wip/measured-liquid-glass`, and continue physical-device checks. The owner temporarily replaced the iPhone with a Pixel
+6a; Pixel validation is complete. The returned iPhone supplies the UIKit
+follow-up captures during the autonomous continuation on 2026-10-15.
 No release to `main`, tag or push is part of this work.
 
 ## Preserved and integrated work
@@ -26,23 +28,150 @@ Search/scaffold conflicts were resolved by retaining both stacked search's
 presentation and toolbar search's animated bar hiding. Neither moves the
 content twice. Documentation and migration entries from both branches remain.
 
-## Checks and remaining work (in progress)
+## Host verification
 
-Initial combined analysis found no production-code issues. Four independent
-full suites had overloaded the host; two orphaned testers were still alive.
-They were terminated. A single combined `flutter test -j 2` run is used to
-separate actual regressions from overloaded software screenshot rendering.
-Raw logs: `/tmp/morph-codex-root-tests.log`, `/tmp/morph-codex-analyze.log`.
+The combined root suite completed: 2,293 passed, two intentionally skipped and
+five count regressions. All glyph pixel tests passed with their original
+thresholds. The count failures were fixed, not accepted by raising ceilings.
+Two orphaned testers from the interrupted sessions were terminated before the
+single combined run.
 
-Initial confirmed failures: nav-scroll rebuild counts and navigation lifecycle
-ceilings, including values that independently changed branches could not
-combine arithmetically. Glyph image tests retain their original pixel thresholds.
-
-Follow-up changes under verification:
+Follow-up fixes:
 - Live hit testing for the hiding bar instead of a rebuilding value builder.
 - Controlled toolbar hiding updates deferred out of ancestor builds.
 - Stacked search shares its query controller at rest and mirrors its close
   button and field layout in right-to-left text.
-- Phone capture scenarios cover the pending sheet plan and held tab badges.
+- Six unnecessary proxy builds removed from the scaffold's indicator and hiding
+  layout. The extended viewport keeps the scroll view mounted during hiding.
+- The navigation dim draws black directly, with the former opacity layer's
+  exact eight-bit alpha, avoiding extra layer wrappers. The clip reads the
+  page's final layout size when painting and hit testing.
+- The native sheet plan's medium screenshot is now scheduled before switching
+  to the large detent.
 
-Device observations, final check results and commits are appended when verified.
+Verification after fixes: all 153 focused performance, lifecycle and integration
+checks passed; the final navigation recheck passed 81 tests. The card's actual
+paint alpha is checked with the original `1e-3` tolerance (against the renderer's
+quantized alpha), and all lifecycle ceilings stay at their integrated values.
+Analysis reports zero issues. The example suite passed all 90 tests.
+
+The two intentionally changed golden cells (`m/nav-bar/scroll` and
+`m/context-menu/hold-close`, flat and fake) were compared with the pre-branch
+version. They show the new scroll indicator and unified menu animation. Only
+those four hash sequences were updated; the other 38 sequences stayed exact.
+Temporary diagnostic code was restored. Captures and logs are in
+`/tmp/morph-codex-goldens-{base,current}` and `/tmp/morph-codex-*.log`.
+
+Code checkpoint: `0dd81ce2`.
+
+## Pixel 6a
+
+Real Vulkan/Impeller liquid and flat modes, automatic performance governor,
+Thermal Status 0, no fixed clocks. Navigation: three repeats of six motions;
+changed controls: three repeats of ten matrix cells per tier. The liquid
+control raster p95 is 9.31–13.60 ms, below 16.67 ms. Transitional first-use
+frames still occasionally miss the budget; this is not a claim of zero jank.
+
+The first navigation run's steady/title energy varied; a five-repeat comparison
+in reverse source order checked it again:
+
+| scene | raster p95 before / after (ms) | rail power before / after (mW) |
+|---|---|---|
+| steady, liquid | 10.74 / 10.94 | 760 / 693 |
+| steady, flat | 8.05 / 7.06 | 531 / 525 |
+| title, liquid | 11.34 / 11.41 | 644 / 651 |
+| title, flat | 8.35 / 7.63 | 526 / 559 |
+
+These are bounded scene measurements, including whole-device power rails;
+small differences are not statistically established improvements. No sustained
+regression was confirmed. Source before fixes: `708e9103`; after: `0dd81ce2`.
+Trace data stays in `/tmp/morph-perf/bench/codex-*`; reports sit under
+`tool/ios_reference/perf/2026-10-14-bench-codex-*`.
+
+76 navigation snapshots were compared. 48 are exact; differences are localized
+mostly to animated glyph/title samples (the two-frame, real-time title capture
+is not a frozen phase). Largest mean RGB byte difference is 0.080 out of 255;
+this is descriptive, not a replacement golden tolerance or UIKit certification.
+Comparison data: `/tmp/morph-codex-navigation-pixel-comparison.json`.
+
+The forced-liquid profile autodemo visited all 22 gallery pages, reached
+`AUTODEMO done` and logged no framework exceptions. A normal release APK was
+then built and installed, leaving the gallery on the Pixel. Its lock is released.
+
+
+## UIKit follow-up and device-derived corrections
+
+The owner enabled UI Automation and entered the required passcode. No phone
+settings were changed by the agent. Search follow-up passed both stacked and
+toolbar activation/close with keyboard-disappearance assertions. Native badge,
+minimize and all 13 sheet-plan scenarios ran successfully. The minimize helper
+was corrected to reselect Search and minimize again before its final circle tap;
+that real scenario passed and supplied five retained screenshots.
+
+The iPhone measurements now confirm:
+- Badges stay crisp above the lifted lens, growing only with the bar: count
+  18.33 -> 19.29 pt, dot 18 -> 18.94 pt. The port draws one badge above glass
+  content instead of refracting two copies. Placement remains the declared
+  approximation against a 24 pt glyph box.
+- A tap on the already-selected minimized Search circle expands the bar
+  without changing its page; the port previously ignored it.
+- Medium-only sheet keyboard values 435.67 -> 763.67 -> 435.67; medium/large
+  435.67 -> 778 -> 435.67; small/medium/large 200 -> 778 -> 200, without a
+  detent callback. Device held stretches confirm 100 / 78 pt rubber-band room;
+  background flips at value 602.67 (drag docking progress 0.5025).
+- Navigation dim is black alpha 0.1 with opacity following page cover
+  linearly, on programmatic push, edge pop and content pop. The former 0.11
+  was a single-frame simulator estimate. The direct paint still preserves
+  the renderer's exact eight-bit alpha.
+- Content-pop touch slop is 30 pt radial travel (29.67–30 measured in the
+  first four angle/slow captures); 29 degrees begins, 30 does not. The port
+  follows that bracket; the angle boundary remains declared NEAR. Deeper
+  horizontal controls retain their drag, including at the leading end.
+- The complete 126-case native title matrix ran without XCTest. Its 62
+  visible single-line title frames fit the placement rule within 0.5 pt
+  (worst left edge 0.17 pt), including wide leading groups. A zero-width
+  label is excluded as not visible. Own numeric geometry is committed;
+  raw UIKit rows and screenshots stay private. Small-room title drop and
+  automatic button-overflow priorities remain explicit unported rules.
+
+The broad navigation test supplied 25 selected captures but reported three
+Probe crashes. An angle refinement passed after fixing a floating-point capture
+name (57 percent had been named 56). Retrying problematic captures reproduced
+an abort on Apple's asynchronous renderer thread, with no recorder frame on the
+crashing stack. A speculative recording-buffer lock did not resolve it and was
+reverted. An isolated private clone keeps the same native UI while omitting the
+unrelated deep bar-layer sampler. Its repeat timed out enabling UI Automation
+before any scenario; the owner-dependent gate is not bypassed.
+The failed broad run is not counted as a passing gate.
+
+The live Flutter badge capture checks actual selection on contact/release and
+requires the real liquid renderer. Its explicit result marker reports success.
+However, a persistent local-network permission dialog obstructs the physical
+screen; final film verification is pending the owner closing it. A release
+build and a temporary swap under the registered Probe identity did not remove
+the system dialog. No permission choice was made. Native data survived that
+swap, and Probe was restored. Early profile PNGs show crisp badges, but the
+blocked final films and blank snapshots are not counted as final parity proof.
+
+Raw evidence: ~/morph-re/runs/codex-branch-followup-20261014/. The private
+capture clone and crash reports stay outside all Git repositories.
+
+Verification so far: 200 device-derived navigation/sheet/integration/count
+checks passed, followed by 39 minimize/title checks after filtering the
+zero-width title. Original count ceilings and pixel/replay tolerances remain.
+Device-derived code checkpoint: `764c330c`.
+Final root suite: 2,308 passed, two intentionally skipped, zero failures
+(4m28s, /tmp/morph-codex-root-final.log). The earlier five count regressions
+are all resolved with their original ceilings. The final example suite and
+builds complete the independent host gate below.
+The owner has a pending morning question to close the system dialog and unlock
+the screen; independent host verification continues meanwhile.
+
+## Preserved history and cleanup
+
+The four interrupted agent worktrees and the sheets-device worktree were clean,
+contained no capture directories and were fully merged before removal. Their
+branch tips remain reachable through the merge commits in
+`wip/measured-liquid-glass`. Other historical or locked worktrees were left alone.
+The temporary before-fix benchmark checkout was also removed after measurements.
+Capture helper checkpoint: `7454a600`.

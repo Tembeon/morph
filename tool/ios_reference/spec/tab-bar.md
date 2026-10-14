@@ -213,7 +213,7 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
   `rec-followup-tab-badges` and held-number / held-dot attachments
   (raw data private). Placement remains NEAR as described above.
 - `tabBarMinimizeBehavior` and `bottomAccessory`: ported from UIKit's
-  code, not yet recorded; passport [tab-bar-minimize.md](tab-bar-minimize.md)
+  code, partly device-confirmed; passport [tab-bar-minimize.md](tab-bar-minimize.md)
   (the probe sets it: `w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
 - `prominentTabIdentifier`, leading/trailing accessory views.
 - Sidebar mode (iPad), `setTabBarHidden:animated:`.

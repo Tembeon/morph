@@ -1,0 +1,16 @@
+708e9103  runs 3  fixed-perf False  2026-10-14 20:37
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+nav/nav-navigation-title-flat       273   2.2   4.2   6.2   8.1   1.7   0.0    2   710  
+nav/nav-navigation-enter-liquid     176   4.7   8.0   8.2  11.2   7.7   1.7    5   712  ui-layout:2 raster-sched:1 bad ui: layout 15.2, paint 2.7, compositing 1.8  [gpu 5.642->7.747]
+nav/nav-navigation-nested-push-fla  173   4.3   8.4   5.7   7.9   4.6   1.2    9   611  ui-layout:2 bad ui: layout 14.6, paint 4.6, build 4.3  [ui 7.263->8.442, gpu 2.918->4.561]
+nav/nav-navigation-nested-pop-flat  164   3.7   8.0   5.7   7.9   3.4   1.8    1   572  ui-layout:3 bad ui: layout 27.8, build 4.3, paint 4.1  [ui 6.906->7.996, gpu 2.394->3.409, power_mw 622->572]
+nav/nav-navigation-nested-push-liq  177   5.9  12.0   8.1  11.9   9.0   3.4    4   705  ui-layout:5 ui-paint:1 bad ui: layout 11.6, paint 4.6, compositing 3.1  [ui 10.68->11.99, gpu 6.831->9.034, over_pct 2->3.4]
+nav/nav-navigation-nested-pop-liqu  169   6.2  11.3   8.2  12.3   7.1   2.4    5   634  ui-layout:3 ui-paint:1 bad ui: layout 18.3, paint 6.2, other 2.9  [ui 8.576->11.3, raster 10.98->12.31, gpu 5.442->7.139, over_pct 1.3->2.4, power_mw 715->634]
+nav/nav-navigation-toolbar-flat     174   2.2   5.1   5.6   8.2   1.9   0.0    5   543    [=]
+nav/nav-navigation-enter-flat       174   3.0   4.8   6.0   9.1   4.7   1.1    4   588  ui-layout:2 bad ui: layout 14.7, paint 2.5, build 1.9  [ui 5.496->4.764, gpu 3.317->4.69]
+nav/nav-navigation-toolbar-liquid   177   3.2   8.0   7.3   9.7   4.7   1.1    2   620  ui-layout:2 bad ui: layout 15.2, compositing 3.4, other 1.4  [ui 5.465->8.016, gpu 4.144->4.661, over_pct 0->1.1, power_mw 653->620]
+nav/nav-navigation-title-liquid     273   2.5   4.7   8.4  11.5   5.2   1.1    3   736  raster-cpu:3 bad raster: Canvas::saveLayer 5.9, QueueSubmit 4.2, SurfaceFrame::Encode 4.2
+nav/nav-navigation-steady-flat      271   1.7   3.0   5.4   6.8   1.5   0.0    0   652    [ui 3.923->2.993, power_mw 608->652]
+nav/nav-navigation-steady-liquid    271   2.0   3.7   8.3  10.6   4.9   0.0    0   788    [raster 11.77->10.58]

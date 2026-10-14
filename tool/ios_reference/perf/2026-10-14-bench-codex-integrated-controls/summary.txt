@@ -1,0 +1,24 @@
+0dd81ce2  runs 3  fixed-perf False  2026-10-14 20:42
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/m/empty/frames         335   1.0   1.9   5.9   7.4   1.0   0.0    0   532  
+audit/liquid/m/tab-bar/tap          444   3.1   7.0   8.3  12.8   5.6   0.9   12   612  raster-cpu:4 bad raster: UpdateAtlasBitmap 6.4, SurfaceFrame::Encode 3.8, QueueSubmit 2.6
+audit/liquid/m/tab-bar/drag         616   3.3   6.5   7.9  11.4   5.8   0.3    6   846  raster-cpu:2 bad raster: UpdateAtlasBitmap 11.7, SurfaceFrame::Encode 3.8, QueueSubmit 2.6
+audit/liquid/m/menu/open-close      419   4.4  10.0   8.0  11.9   5.3   2.4   13   659  ui-layout:3 ui-other:3 raster-cpu:3 ui-paint:1 bad ui: paint 6.7, other 5.1, layout 4.6
+audit/liquid/m/menu/held            550   4.1   9.2   8.6  12.9   5.3   0.7   11   596  raster-cpu:1 raster-sched:1 raster-wait:1 ui-other:1 bad raster: QueueSubmit 6.6, SurfaceFrame::Encode 5.6, Canvas::saveLayer 2.3
+audit/liquid/m/search/press         306   2.7   5.4   6.6   9.3   2.6   0.0    6   750  
+audit/liquid/m/nav-bar/scroll       674   2.2   4.3   9.5  13.6   4.6   0.3    2   590  raster-cpu:2 bad raster: PipelineVK::Create 5.4, Canvas::saveLayer 4.1, SurfaceFrame::Encode 3.8
+audit/liquid/m/sheet/open-close     353   1.5   2.9   6.6  11.6   7.9   0.0    1   677  
+audit/liquid/m/sheet/drag           898   1.8   6.3   6.5  10.8  12.6   0.8    8   820  gpu:4 raster-wait:2 raster-cpu:1 bad raster: waitForBufferRelease 7.3, SurfaceFrame::Encode 4.0, QueueSubmit 2.1
+audit/liquid/m/context-menu/hold-c  728   1.6   4.6   7.5  12.4   4.9   0.4    7   560  raster-cpu:3 bad raster: SurfaceFrame::Encode 5.7, Canvas::saveLayer 4.5, QueueSubmit 3.1
+audit/flat/m/empty/frames           335   1.0   2.5   6.2   7.6   1.0   0.0    0   489  
+audit/flat/m/tab-bar/tap            443   2.3   3.8   6.8   9.1   2.2   0.2    5   520  raster-cpu:1 bad raster: UpdateAtlasBitmap 8.2, SurfaceFrame::Encode 5.0, CreateGlyphAtlas 3.2
+audit/flat/m/tab-bar/drag           606   2.4   3.9   7.0   9.3   2.3   0.0    2   507  
+audit/flat/m/menu/open-close        369   2.9   6.2   6.6   9.7   2.2   0.5    8   515  ui-layout:2 bad ui: layout 14.2, paint 4.6, build 2.0
+audit/flat/m/menu/held              547   2.7   5.6   6.9  11.2   2.0   0.5    8   469  ui-other:1 ui-layout:1 raster-wait:1 bad ui: other 6.1, layout 5.5, paint 4.7
+audit/flat/m/search/press           305   2.6   4.6   5.4   7.4   1.2   0.0    6   609  
+audit/flat/m/nav-bar/scroll         677   2.0   4.3   7.6   9.5   1.9   0.0    1   469  
+audit/flat/m/sheet/open-close       353   1.1   2.1   6.0   7.7   2.3   0.0    1   514  
+audit/flat/m/sheet/drag             883   1.3   2.6   6.5  10.8   3.4   0.0    0   491  
+audit/flat/m/context-menu/hold-clo  726   1.3   3.5   6.4   9.2   2.0   0.1    4   517  ui-layout:1 bad ui: layout 11.8, other 5.8, build 3.0
