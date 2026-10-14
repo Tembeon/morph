@@ -553,7 +553,9 @@ class _AlertViewState extends State<_AlertView>
   // The tracked finger scrolled the card's content: it chooses nothing
   // and moves nothing until it lifts.
   bool _scrolled = false;
-  int? _highlighted;
+  // The highlighted action repaints its own fill; the card does not rebuild
+  // as the finger slides from action to action.
+  final ValueNotifier<int?> _highlighted = ValueNotifier<int?>(null);
   List<MorphAlertAction> _shown = const [];
 
   MorphAlertRoute get _route => widget.route;
@@ -573,6 +575,7 @@ class _AlertViewState extends State<_AlertView>
     for (final c in _ownControllers) {
       c.dispose();
     }
+    _highlighted.dispose();
     super.dispose();
   }
 
@@ -606,7 +609,8 @@ class _AlertViewState extends State<_AlertView>
     _popover?.dismiss(clock);
     if (_press.isPressed) _press.pointerCancel(clock);
     _pointer = null;
-    setState(() => _highlighted = null);
+    _highlighted.value = null;
+    setState(() {});
     wake();
   }
 
@@ -672,7 +676,7 @@ class _AlertViewState extends State<_AlertView>
     _scrolled = false;
     _press.reducedMotion = morphReducedMotionOf(context);
     if (!_route.isPopover) _press.pointerDown(stamp(event), local);
-    setState(() => _highlighted = _buttonAt(event.position));
+    _highlighted.value = _buttonAt(event.position);
   }
 
   void _move(PointerMoveEvent event) {
@@ -681,7 +685,7 @@ class _AlertViewState extends State<_AlertView>
     if (local == null) return;
     if (!_route.isPopover) _press.pointerMove(stamp(event), local);
     final over = _buttonAt(event.position);
-    if (over != _highlighted) setState(() => _highlighted = over);
+    _highlighted.value = over;
   }
 
   void _up(PointerUpEvent event) {
@@ -693,7 +697,7 @@ class _AlertViewState extends State<_AlertView>
       _press.pointerUp(stamp(event), local);
     }
     final chosen = _buttonAt(event.position);
-    if (_highlighted != null) setState(() => _highlighted = null);
+    _highlighted.value = null;
     if (chosen != null) _choose(_shown[chosen]);
   }
 
@@ -702,7 +706,7 @@ class _AlertViewState extends State<_AlertView>
     _pointer = null;
     if (_scrolled) return;
     if (!_route.isPopover) _press.pointerCancel(stamp(event));
-    if (_highlighted != null) setState(() => _highlighted = null);
+    _highlighted.value = null;
   }
 
   bool _contentScrolled(ScrollNotification notification) {
@@ -714,7 +718,7 @@ class _AlertViewState extends State<_AlertView>
     }
     _scrolled = true;
     if (!_route.isPopover) _press.pointerCancel(clock);
-    if (_highlighted != null) setState(() => _highlighted = null);
+    _highlighted.value = null;
     wake();
     return false;
   }
@@ -745,7 +749,6 @@ class _AlertViewState extends State<_AlertView>
         kept != null &&
             kept.row == row &&
             kept.width == width &&
-            kept.highlighted == _highlighted &&
             kept.style == style &&
             listEquals(kept.actions, shown)
         ? kept
@@ -1153,7 +1156,7 @@ class _AlertCard extends StatelessWidget {
   final List<TextEditingController> controllers;
   final bool row;
   final double width;
-  final int? highlighted;
+  final ValueListenable<int?> highlighted;
   final MorphAlertAppearance style;
   final double radius;
   final ValueChanged<MorphAlertAction> onChoose;
@@ -1220,7 +1223,8 @@ class _AlertCard extends StatelessWidget {
         _AlertButton(
           key: buttonKeys[i],
           action: actions[i],
-          highlighted: highlighted == i,
+          index: i,
+          highlighted: highlighted,
           style: style,
           onChoose: onChoose,
         ),
@@ -1401,6 +1405,7 @@ class _PlatterPainter extends CustomPainter {
 class _AlertButton extends StatefulWidget {
   const _AlertButton({
     required this.action,
+    required this.index,
     required this.highlighted,
     required this.style,
     required this.onChoose,
@@ -1408,7 +1413,12 @@ class _AlertButton extends StatefulWidget {
   });
 
   final MorphAlertAction action;
-  final bool highlighted;
+
+  /// The button's place among the card's actions.
+  final int index;
+
+  /// The index of the highlighted action, if any.
+  final ValueListenable<int?> highlighted;
   final MorphAlertAppearance style;
   final ValueChanged<MorphAlertAction> onChoose;
 
@@ -1451,9 +1461,6 @@ class _AlertButtonState extends State<_AlertButton> {
     final base = action.isPreferred && action.isEnabled
         ? style.preferredColor
         : style.buttonColor;
-    final fill = widget.highlighted
-        ? base.withValues(alpha: base.a * MorphAlertTuning.pressedFillOpacity)
-        : base;
     void activate() => widget.onChoose(action);
     return MorphControlFocus(
       enabled: action.isEnabled,
@@ -1468,22 +1475,29 @@ class _AlertButtonState extends State<_AlertButton> {
         child: ExcludeSemantics(
           child: MorphFocusRing(
             visible: _focused,
-            child: Container(
-              constraints: const BoxConstraints(
-                minHeight: MorphAlertTuning.buttonHeight,
-              ),
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(
-                horizontal: MorphAlertTuning.buttonTextInset,
-              ),
-              decoration: ShapeDecoration(
-                color: fill,
-                shape: const StadiumBorder(),
-              ),
-              child: Text(
-                action.title,
-                textAlign: TextAlign.center,
-                style: _buttonText(action, style),
+            // A boundary of its own: a highlight change repaints this
+            // button's fill and title, not the card.
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _ButtonFillPainter(
+                  color: base,
+                  index: widget.index,
+                  highlighted: widget.highlighted,
+                ),
+                child: Container(
+                  constraints: const BoxConstraints(
+                    minHeight: MorphAlertTuning.buttonHeight,
+                  ),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: MorphAlertTuning.buttonTextInset,
+                  ),
+                  child: Text(
+                    action.title,
+                    textAlign: TextAlign.center,
+                    style: _buttonText(action, style),
+                  ),
+                ),
               ),
             ),
           ),
@@ -1491,6 +1505,40 @@ class _AlertButtonState extends State<_AlertButton> {
       ),
     );
   }
+}
+
+/// An action's stadium fill, dimmed while the finger is on it.
+class _ButtonFillPainter extends CustomPainter {
+  _ButtonFillPainter({
+    required this.color,
+    required this.index,
+    required this.highlighted,
+  }) : super(repaint: highlighted);
+
+  final Color color;
+  final int index;
+  final ValueListenable<int?> highlighted;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final fill = Paint();
+    fill.color = highlighted.value == index
+        ? color.withValues(alpha: color.a * MorphAlertTuning.pressedFillOpacity)
+        : color;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Offset.zero & size,
+        Radius.circular(size.shortestSide / 2),
+      ),
+      fill,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ButtonFillPainter oldDelegate) =>
+      oldDelegate.color != color ||
+      oldDelegate.index != index ||
+      oldDelegate.highlighted != highlighted;
 }
 
 class _AlertField extends StatefulWidget {
