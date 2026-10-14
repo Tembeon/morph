@@ -34,6 +34,16 @@ def file_hash(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def candidate_sources(root):
+    paths = []
+    for directory in (root / "lib", root / "hook", root / "example/lib"):
+        paths.extend(path for path in directory.rglob("*") if path.is_file()
+                     and (directory == root / "lib" or path.suffix in (".dart", ".frag", ".glsl", ".swift")))
+    paths.extend(root / name for name in ("pubspec.yaml", "pubspec.lock", "example/pubspec.yaml", "example/pubspec.lock")
+                 if (root / name).is_file())
+    return {str(path.relative_to(root)): file_hash(path) for path in paths}
+
+
 def require(condition, message):
     if not condition:
         raise CoverageError(message)
@@ -131,8 +141,10 @@ def verify_evidence(record, obligations, profiles, root=ROOT):
         if side == "candidate":
             # A change anywhere in production sources invalidates this proof.
             hashes = manifest.get("sourceHashes", {})
-            current = {str(p.relative_to(root)): file_hash(p) for p in (root / "lib").rglob("*") if p.is_file()}
-            require(current and {p: h for p, h in hashes.items() if p.startswith("lib/")} == current, "candidate source proof is stale or incomplete")
+            current = candidate_sources(root)
+            def relevant(path):
+                return path.startswith(("lib/", "hook/", "example/lib/")) or path in ("pubspec.yaml", "pubspec.lock", "example/pubspec.yaml", "example/pubspec.lock")
+            require(current and {p: h for p, h in hashes.items() if relevant(p)} == current, "candidate source proof is stale or incomplete")
     claims = record.get("claims")
     require(isinstance(claims, list) and claims, "individual claims required")
     accepted = set()
@@ -148,6 +160,7 @@ def verify_evidence(record, obligations, profiles, root=ROOT):
     for claim in claims:
         obligation = claim.get("obligation")
         require(obligation in obligations, f"unknown obligation {obligation}")
+        require(obligations[obligation].get("contractApproved") is True, "broad/unreviewed question cannot be certified")
         require(record["profile"] in obligations[obligation].get("profiles", []), "profile is not applicable to this obligation")
         require(obligations[obligation].get("oracle") == "telemetry", f"{obligation}: this oracle cannot certify it")
         require(obligation not in accepted, f"duplicate claim {obligation}")

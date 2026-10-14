@@ -7,6 +7,18 @@ final class LabUITests: XCTestCase {
 
     override func setUp() { continueAfterFailure = false }
 
+    override func tearDown() {
+        app.terminate()
+        // Retain settings, actions and failed assertions even if the test aborts.
+        if let data = try? JSONSerialization.data(withJSONObject: journal, options: [.sortedKeys]) {
+            let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+            attachment.name = "lab-runner-events"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+        super.tearDown()
+    }
+
     func testScenario() throws {
         let env = ProcessInfo.processInfo.environment
         let raw = try XCTUnwrap(env["PROBE_LAB_JSON"])
@@ -60,11 +72,6 @@ final class LabUITests: XCTestCase {
             Thread.sleep(forTimeInterval: (step["after"] as? Double) ?? 0)
         }
         Thread.sleep(forTimeInterval: 1)
-        app.terminate()
-        let attachment = XCTAttachment(data: try JSONSerialization.data(withJSONObject: journal, options: [.sortedKeys]), uniformTypeIdentifier: "public.json")
-        attachment.name = "lab-runner-events"
-        attachment.lifetime = .keepAlways
-        add(attachment)
     }
 
     private func mark(_ id: String, _ phase: String, _ action: String) {

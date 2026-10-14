@@ -19,6 +19,29 @@ Python 3. Install `requirements.txt` in a virtual environment if necessary.
 The default target is the owner's iPhone 16 Pro, 402 x 874 pt at 3x.
 No command starts a simulator. Unlock the phone and enable UI Automation.
 
+The separate, explicitly requested simulator adapter boots the specified UDID
+and runs the same native XCUITest input protocol:
+
+```sh
+python3 -m morph_lab.simulator scenarios/menu-return-simulator.json \
+  --simulator <available-ios-simulator-udid> --out /tmp/menu-simulator-001
+```
+
+It captures native telemetry, runner journals and screenshot attachments with
+source/environment provenance. It does not capture a candidate or films and
+prints `OBSERVED`, never a fidelity pass. Outputs are append-only; a per-simulator
+lock protects concurrent runs. It leaves the simulator booted and does not use
+the phone lock, install on a phone or change accessibility settings. This native
+adapter is the first stage; paired simulator capture and optical comparison are
+still pending. Simulator behavior must be confirmed on physical hardware for
+device-dependent effects.
+
+`menu-return-simulator.json` uses the same submenu-return input protocol but
+explicitly asserts that the Ask Siri footer is absent. The original phone
+scenario explicitly expects it. The iOS 27 iPhone 17 simulator observation on
+2026-10-14 failed the phone assumption; this is an environment-specific fixture,
+not a production rule that simulators never show that row.
+
 ```sh
 cd tool/ios_reference/lab
 python3 -m unittest discover -s tests -v

@@ -84,13 +84,17 @@ An evidence record binds an external append-only `bundle`, a catalog `profile`,
 the exact `environment`, SHA-256 references for `scenario`, `report`,
 `nativeManifest`, `candidateManifest`, `nativeTrace`, `candidateTrace`, and
 individual `claims` containing `obligation`, `gate` and `metric`. Artifacts must
-stay inside the bundle. Each obligation must list reviewed `scenarioHashes`.
+stay inside the bundle. Each obligation must be narrowed to an approved contract
+(`contractApproved: true`) and list reviewed `scenarioHashes`. Broad questions
+cannot be closed by attaching one successful scenario.
 The report must pass, contain no quality errors, have matching scenario hashes,
 read-back settings and an actual declared gate related to the claimed metric.
 Both manifests must record the exact `coverageEnvironment`; older captures
 without this annotation need reviewed provenance, never an automatic label.
-Candidate production-source hashes must match the current files, including
-deleted files. Changes invalidate the proof until comparison is rerun.
+Candidate source hashes (production, build hooks, Flutter harness and dependency
+manifests/locks) must match the current files, including deleted files. Changes
+invalidate the proof until comparison is rerun. Flutter SDK/backend changes
+also require revalidation; SDK drift checking is still a pending layer.
 
 The current four profiles distinguish light/dark and simulator/device. They are
 the starting baseline. Reduced motion/transparency, contrast, Dynamic Type,

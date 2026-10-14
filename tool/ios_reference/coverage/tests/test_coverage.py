@@ -68,7 +68,7 @@ class EvidenceTests(unittest.TestCase):
         self.scenario = {"schema": 1, "id": "menu-test", "gates": {"geometryMaxPt": 1.0}}
         self.environment = {"nativeOSMajor": 27, "nativeTarget": "simulator", "appearance": "light"}
         self.profiles = {"sim": {"environment": self.environment, "readBack": {"rm": False, "rt": False}}}
-        self.obligations = {"menu.root": {"oracle": "telemetry", "profiles": ["sim"], "scenarioHashes": [ledger.digest(self.scenario)]}}
+        self.obligations = {"menu.root": {"oracle": "telemetry", "contractApproved": True, "profiles": ["sim"], "scenarioHashes": [ledger.digest(self.scenario)]}}
         self.record = {"kind": "lab-telemetry", "bundle": str(self.root), "profile": "sim", "environment": self.environment,
                        "claims": [{"obligation": "menu.root", "gate": "geometryMaxPt", "metric": "geometry/boundsErrorPt/max"}]}
         self.report = {"schema": 1, "scenario": "menu-test", "passed": True, "failures": [], "fidelityGatesDeclared": True,
@@ -122,11 +122,16 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ledger.CoverageError, "stale"):
             self.verify()
 
+    def test_dependency_or_harness_change_invalidates_evidence(self):
+        (self.root / "pubspec.lock").write_text("new dependency resolution")
+        with self.assertRaisesRegex(ledger.CoverageError, "stale"):
+            self.verify()
+
     def test_geometry_cannot_certify_optics_or_unreviewed_scenario(self):
         self.obligations["menu.root"]["oracle"] = "optical-contract"
         with self.assertRaisesRegex(ledger.CoverageError, "oracle"):
             self.verify()
-        self.obligations["menu.root"] = {"oracle": "telemetry", "profiles": ["sim"], "scenarioHashes": []}
+        self.obligations["menu.root"] = {"oracle": "telemetry", "contractApproved": True, "profiles": ["sim"], "scenarioHashes": []}
         with self.assertRaisesRegex(ledger.CoverageError, "not reviewed"):
             self.verify()
 
@@ -139,6 +144,11 @@ class EvidenceTests(unittest.TestCase):
     def test_path_escape_is_rejected(self):
         self.record["report"]["path"] = "../report.json"
         with self.assertRaisesRegex(ledger.CoverageError, "inside evidence bundle"):
+            self.verify()
+
+    def test_approved_scenario_does_not_close_a_broad_unreviewed_question(self):
+        self.obligations["menu.root"]["contractApproved"] = False
+        with self.assertRaisesRegex(ledger.CoverageError, "unreviewed question"):
             self.verify()
 
 

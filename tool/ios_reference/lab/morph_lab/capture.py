@@ -59,10 +59,11 @@ def provenance(scenario):
     for directory in (ROOT / "lib", ROOT / "example/lib", ROOT / "hook", PROBE / "Sources", PROBE / "UITests", PROBE / "lab/morph_lab", PROBE / "screen_recorder"):
         if directory.exists():
             for path in sorted(directory.rglob("*")):
-                if path.suffix in (".dart", ".swift", ".glsl", ".frag", ".py", ".plist", ".vert"):
+                if path.is_file() and (directory == ROOT / "lib" or path.suffix in (".dart", ".swift", ".glsl", ".frag", ".py", ".plist", ".vert")):
                     files[str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()
-    for path in (ROOT / "pubspec.yaml", ROOT / "example/pubspec.yaml", ROOT / "example/ios/Runner/Info.plist", ROOT / "example/ios/Runner/AppDelegate.swift"):
-        files[str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()
+    for path in (ROOT / "pubspec.yaml", ROOT / "pubspec.lock", ROOT / "example/pubspec.yaml", ROOT / "example/pubspec.lock", ROOT / "example/ios/Runner/Info.plist", ROOT / "example/ios/Runner/AppDelegate.swift"):
+        if path.is_file():
+            files[str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()
     return {"schema": 1, "scenarioSha256": digest(scenario), "scenario": scenario,
             "createdUtc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "gitHead": command(["git", "rev-parse", "HEAD"], cwd=ROOT).strip(),
