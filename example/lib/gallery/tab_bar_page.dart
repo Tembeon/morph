@@ -2,9 +2,16 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph_example/gallery/knobs.dart';
+
+enum _Badge { none, count, text, dot }
 
 /// The floating tab bar with two to five tabs over scrolling content; Library
 /// carries a count badge, Radio a dot.
+///
+/// Page options pick each badge and its color, outlined icons with filled
+/// selected ones, a disabled Profile tab and the selection tint, and count
+/// the taps on the selected tab (`onReselected`).
 class TabBarPage extends StatefulWidget {
   /// Creates the page.
   const TabBarPage({super.key});
@@ -16,29 +23,130 @@ class TabBarPage extends StatefulWidget {
 class _TabBarPageState extends State<TabBarPage> {
   int _count = 4;
   int _selected = 0;
+  int _reselected = 0;
+  _Badge _libraryBadge = .count;
+  _Badge _radioBadge = .dot;
+  Color? _badgeColor;
+  bool _selectedIcons = false;
+  bool _disabledProfile = false;
+  Color? _tint;
 
-  static const _items = [
-    MorphTabItem(icon: Icons.home_rounded, label: 'Home'),
-    MorphTabItem(
-      icon: Icons.library_music_rounded,
-      label: 'Library',
-      badge: MorphBadge.count(3),
+  MorphBadge? _badge(_Badge badge, int count) => switch (badge) {
+    _Badge.none => null,
+    _Badge.count => MorphBadge.count(count, backgroundColor: _badgeColor),
+    _Badge.text => MorphBadge.string('New', backgroundColor: _badgeColor),
+    _Badge.dot => MorphBadge.indicator(backgroundColor: _badgeColor),
+  };
+
+  /// The tabs: with selected icons, each tab shows an outlined glyph and
+  /// its filled one inside the lens.
+  List<MorphTabItem> get _items {
+    final outlined = _selectedIcons;
+    return [
+      MorphTabItem(
+        icon: outlined ? Icons.home_outlined : Icons.home_rounded,
+        selectedIcon: outlined ? Icons.home_rounded : null,
+        label: 'Home',
+      ),
+      MorphTabItem(
+        icon: outlined
+            ? Icons.library_music_outlined
+            : Icons.library_music_rounded,
+        selectedIcon: outlined ? Icons.library_music_rounded : null,
+        label: 'Library',
+        badge: _badge(_libraryBadge, 3),
+      ),
+      MorphTabItem(
+        icon: outlined ? Icons.radio_outlined : Icons.radio_rounded,
+        selectedIcon: outlined ? Icons.radio_rounded : null,
+        label: 'Radio',
+        badge: _badge(_radioBadge, 12),
+      ),
+      MorphTabItem(
+        icon: outlined ? Icons.person_outline_rounded : Icons.person_rounded,
+        selectedIcon: outlined ? Icons.person_rounded : null,
+        label: 'Profile',
+        enabled: !_disabledProfile,
+      ),
+      MorphTabItem(
+        icon: outlined ? Icons.settings_outlined : Icons.settings_rounded,
+        selectedIcon: outlined ? Icons.settings_rounded : null,
+        label: 'Settings',
+      ),
+    ];
+  }
+
+  static const Map<_Badge, String> _badges = {
+    _Badge.none: 'None',
+    _Badge.count: 'Count',
+    _Badge.text: 'Text',
+    _Badge.dot: 'Dot',
+  };
+
+  List<Widget> _options(BuildContext context) => [
+    MorphListSection(
+      header: const Text('Tabs'),
+      children: [
+        GalleryChoice<_Badge>(
+          label: 'Library',
+          options: _badges,
+          value: _libraryBadge,
+          onChanged: (v) => setState(() => _libraryBadge = v),
+        ),
+        GalleryChoice<_Badge>(
+          label: 'Radio',
+          options: _badges,
+          value: _radioBadge,
+          onChanged: (v) => setState(() => _radioBadge = v),
+        ),
+        GalleryColorChoice(
+          label: 'Badge color',
+          value: _badgeColor,
+          onChanged: (v) => setState(() => _badgeColor = v),
+        ),
+        GalleryToggle(
+          label: 'Selected icons',
+          value: _selectedIcons,
+          onChanged: (v) => setState(() => _selectedIcons = v),
+        ),
+        GalleryToggle(
+          label: 'Disable Profile',
+          value: _disabledProfile,
+          onChanged: (v) => setState(() => _disabledProfile = v),
+        ),
+      ],
     ),
-    MorphTabItem(
-      icon: Icons.radio_rounded,
-      label: 'Radio',
-      badge: MorphBadge.indicator(),
+    MorphListSection(
+      header: const Text('Appearance'),
+      children: [
+        GalleryColorChoice(
+          label: 'Tint',
+          value: _tint,
+          onChanged: (v) => setState(() => _tint = v),
+        ),
+      ],
     ),
-    MorphTabItem(icon: Icons.person_rounded, label: 'Profile'),
-    MorphTabItem(icon: Icons.settings_rounded, label: 'Settings'),
+    MorphListSection(
+      header: const Text('Reselection'),
+      footer: const Text('Tap the selected tab again.'),
+      children: [
+        MorphListRow(
+          title: const Text('Reselected'),
+          detail: Text('$_reselected'),
+        ),
+      ],
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final items = _items;
+    final tint = _tint;
     return Stack(
       children: [
         GalleryPage(
           title: 'Tab bar',
+          options: _options,
           slivers: [
             SliverPadding(
               padding: const .fromLTRB(16, 8, 16, 120),
@@ -78,7 +186,7 @@ class _TabBarPageState extends State<TabBarPage> {
                     alignment: .centerLeft,
                     padding: const .symmetric(horizontal: 16),
                     child: Text(
-                      '${_items[_selected].label} row $i',
+                      '${items[_selected].label} row $i',
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   );
@@ -94,12 +202,22 @@ class _TabBarPageState extends State<TabBarPage> {
           child: Center(
             child: MorphTabBar(
               key: ValueKey(_count),
-              items: _items.sublist(0, _count),
+              items: items.sublist(0, _count),
               selected: _selected,
               onChanged: GalleryGlassScope.enabled(
                 context,
                 (int i) => setState(() => _selected = i),
               ),
+              onReselected: GalleryGlassScope.enabled(
+                context,
+                (int _) => setState(() => _reselected++),
+              ),
+              appearance: tint == null
+                  ? null
+                  : MorphTabBarAppearance.resolve(
+                      context,
+                      null,
+                    ).copyWith(selectedColor: tint),
             ),
           ),
         ),
