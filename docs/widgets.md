@@ -30,7 +30,11 @@ statics, ...) with the measurement in their dartdoc, never as a bare
 literal in a widget. Motions use `MorphSpringState` for every spring,
 `MorphChannel` for every value UIKit drives as an animatable channel (a
 flex scale or drift, a pulse), `MorphTimeline` for every delay and
-`MorphSubClock` for every per-frame filter. A control's ticker sleeps when its motion settles.
+`MorphSubClock` for every per-frame filter. A control's ticker sleeps when its motion settles:
+at a visible rest (`MorphRest`, spring_state.dart: every spring's remaining
+swing, `MorphSpringState.reach`, under 0.1 pt, an opacity's under half an
+8-bit step), after which `MorphClock.settleMotion` snaps the motion onto its
+targets before the last frame paints (NEAR, invisible).
 
 `MorphControlHost` hosts build in `buildControl`; `build` hands back the
 last result while `buildsLike(oldWidget)` holds (every field the build

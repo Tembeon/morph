@@ -62,6 +62,12 @@ Scenes `sw`, `swOn` (control at y 400, knob off 210 / on 232 on the sim
 switch_motion.dart), small_lens.dart. Tests: switch_test, controls_test,
 controls_platform_test, release_bounds_test (replays release-outside.jsonl).
 
+Rest: settles once every spring's remaining swing (`MorphSpringState.reach`)
+is under `MorphRest` - 0.1 pt (0.3 device px at 3x, 0.26 at 2.625x), a scale
+over its surface's extent, an opacity under half an 8-bit step - and snaps
+onto its targets: invisible, NEAR. A set value
+settles in 0.83-0.94 s instead of 1.23 s.
+
 ## Not reproduced / open
 
 - Reduce Motion unmeasured (plan in states.md).

@@ -33,6 +33,12 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// the touch point grows.
 ///
 /// Times are seconds and positions pixels in the button's own space.
+///
+/// The button settles once every part's remaining swing is below
+/// [MorphRest] (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
+/// step) and snaps onto its targets: invisible, NEAR.
+/// A finger held still counts: a held button stops ticking once its lift
+/// and glow are in place and wakes on the finger's next move or its lift.
 class MorphGlassButtonMotion {
   /// Creates the motion of a button of [size].
   MorphGlassButtonMotion({required Size size})
@@ -133,8 +139,16 @@ class MorphGlassButtonMotion {
     );
   }
 
-  /// Whether every part of the button is at rest.
-  bool get isSettled => !_flex.isPressed && _flex.isAtRest(_now);
+  /// Whether what remains of the button's motion is invisible
+  /// ([MorphRest], NEAR); a button held still under a finger settles too
+  /// and wakes on the finger's next move or its lift.
+  bool get isSettled => _flex.isSettled(_now);
+
+  /// Whether the button rests undeformed: settled with no finger on it.
+  bool get isAtRest => !_flex.isPressed && isSettled;
+
+  /// Puts a settled button onto its targets.
+  void settle() => _flex.settle(_now);
 
   /// Advances the motion to time [t].
   void advance(double t) {
@@ -356,6 +370,9 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
   @override
   bool get motionSettled => _motion.isSettled;
 
+  @override
+  void settleMotion() => _motion.settle();
+
   bool get _enabled =>
       widget.enabled && (widget.onPressed != null || widget.menu != null);
 
@@ -493,7 +510,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
         child: MorphLiveTransform(
           live: frames,
           writeInto: (Matrix4 into) {
-            if (_motion.isSettled) return;
+            if (_motion.isAtRest) return;
             final lean = _motion.lean;
             into.translateByDouble(lean.dx, lean.dy, 0, 1);
             into.scaleByDouble(_motion.scaleX, _motion.scaleY, 1, 1);

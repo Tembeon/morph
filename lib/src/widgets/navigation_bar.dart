@@ -251,6 +251,9 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
   bool get motionSettled =>
       _motion.isSettled && (_outgoing == null || _swap.isAtRest(clock, 1e-3));
 
+  @override
+  void settleMotion() => _motion.settle();
+
   double get _swapProgress {
     if (_outgoing == null) return 1;
     if (_swap.isAtRest(clock, 1e-3)) return 1;

@@ -95,6 +95,9 @@ mixin MorphLensDriver<T extends StatefulWidget> on MorphControlHost<T> {
   @override
   bool get motionSettled => motion.isSettled;
 
+  @override
+  void settleMotion() => motion.settle();
+
   /// Reconciles a user selection with the parent's current [selected]
   /// after callbacks and the resulting rebuild have finished.
   void reconcileSelection(int Function() selected) => reconcileAfterFrame(() {

@@ -65,6 +65,10 @@ void paintMorphSmallLens(
 /// as a function of time; the stretch filter steps once per frame of
 /// [frameRate] in motion time, at the position of each frame. The
 /// outputs can be read at any time.
+///
+/// The lens settles once every part's remaining swing is below
+/// [MorphRest] (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
+/// step) and snaps onto its targets: invisible, NEAR.
 class MorphSmallLens {
   /// Creates a lens that rests at [restSize] and lifts to [liftedSize],
   /// filtering its motion at [frameRate] frames per second.
@@ -239,12 +243,32 @@ class MorphSmallLens {
   /// UIKit scales the drifted lens.
   double shift(double t) => _drift.value(t) * _scaleX.value(t);
 
-  /// Whether the lens is at rest at time [t].
-  bool isSettled(double t) =>
-      _timeline.isEmpty &&
-      _progress.isAtRest(t, 0.002) &&
-      _size.isAtRest(t, 0.002) &&
-      _scaleX.isAtRest(t, 1e-4) &&
-      _scaleY.isAtRest(t, 1e-4) &&
-      _drift.isAtRest(t, 0.01);
+  /// Whether what remains of the lens's motion at time [t] is invisible:
+  /// every spring's remaining swing is below [MorphRest] (NEAR,
+  /// invisible; [settle] snaps the rest).
+  bool isSettled(double t) {
+    if (!_timeline.isEmpty) return false;
+    const length = MorphRest.length;
+    final growth = math.max(
+      liftedSize.width - restSize.width,
+      liftedSize.height - restSize.height,
+    );
+    final scale = MorphRest.scale(liftedSize.width);
+    return _progress.isWithin(t, MorphRest.opacity) &&
+        _size.isWithin(t, length / math.max(growth, 1)) &&
+        _scaleX.isWithin(t, scale) &&
+        (_scaleX.target - 1).abs() < scale &&
+        _scaleY.isWithin(t, scale) &&
+        (_scaleY.target - 1).abs() < scale &&
+        _drift.isWithin(t, length) &&
+        _drift.target.abs() < length;
+  }
+
+  /// Puts a settled lens onto its targets at time [t], undeformed, its
+  /// filter primed at [position].
+  void settle(double t, double position) {
+    _progress.settle(t);
+    _size.settle(t);
+    resetFlex(t, position);
+  }
 }

@@ -996,6 +996,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
   }
 
   @override
+  void settleMotion() => _motion.settle();
+
+  @override
   bool get motionSettled =>
       _motion.isSettled &&
       _presses.values.every((p) => p.isSettled) &&

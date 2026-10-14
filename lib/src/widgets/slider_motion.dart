@@ -255,6 +255,9 @@ class MorphSliderMotion {
       _settle.isAtRest(_now, 1e-4) &&
       lens.isSettled(_now);
 
+  /// Puts a settled thumb lens onto its targets.
+  void settle() => lens.settle(_now, _thumbAt(_now));
+
   /// Whether a press at [x] grabs the thumb.
   bool hitsThumb(double x) =>
       (x - thumbCenter).abs() <= thumbSize.width / 2 + thumbSlop;

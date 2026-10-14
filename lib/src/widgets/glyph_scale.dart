@@ -324,6 +324,10 @@ class MorphGlyphTracker {
   /// not the exact one.
   void settleNext() => _settle();
 
+  /// Records that the last observed frame, though not live, was drawn
+  /// exactly as a live one would be: it is live from here on.
+  void drewExact() => _mode = MorphGlyphMode.live;
+
   void _settle() {
     if (_callback != null) return;
     _callback = SchedulerBinding.instance.scheduleFrameCallback((_) {
@@ -1315,6 +1319,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
         final shift = _aligned ? _alignment(factor) : 0.0;
         if (factor == 1 && (shift * screen).abs() < _exactShift) {
           // Drawn exactly: no paint is needed to return to live.
+          _tracker.drewExact();
           _transformLayer.layer = null;
           _noteGlyphs();
           context.paintChild(child, offset);

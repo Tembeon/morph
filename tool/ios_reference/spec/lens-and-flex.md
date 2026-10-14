@@ -133,6 +133,15 @@ lens_motion.dart, lens_driver.dart, small_lens.dart,
 lib/src/spring.dart. Tests: lens_test, lens_scrub_test, switch_test,
 controls_test, timeline_test, spec_test.
 
+Rest: settles once every spring's remaining swing (`MorphSpringState.reach`)
+is under `MorphRest` - 0.1 pt (0.3 device px at 3x, 0.26 at 2.625x), a scale
+over its surface's extent, an opacity under half an 8-bit step - and snaps
+onto its targets: invisible, NEAR. Lens tails end 0.2-0.4 s earlier
+(segmented 1.63 -> 1.30 s, tab bar 1.55-1.86 -> 1.33-1.46 s after a
+programmatic selection); a lens left lifted by a residue now returns to its
+resting (non-glass) drawing. The replays read the motions directly and are
+unaffected.
+
 Sub-clock runs at the DEVICE refresh rate (`motionFrameRate` 120, 60 on a
 60 Hz display), in motion time (timeDilation-aware). Widget tests run at
 60; device replays pass 120 explicitly.

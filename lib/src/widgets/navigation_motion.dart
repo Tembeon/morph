@@ -15,6 +15,10 @@ import 'package:morph/src/widgets/spring_state.dart';
 /// ways. A content offset set without a finger (a programmatic scroll)
 /// switches both at once, as UIKit does.
 ///
+/// The motion settles once every part's remaining swing is below
+/// [MorphRest] (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
+/// step) and snaps onto its targets: invisible, NEAR.
+///
 /// Times are seconds.
 class MorphNavigationTitleMotion {
   /// Creates the motion; [titleVisible] and [scrolledUnder] are the
@@ -117,9 +121,19 @@ class MorphNavigationTitleMotion {
   /// The opacity of the scroll edge effect.
   double get edgeOpacity => _edge.value(_now).clamp(0.0, 1.0);
 
-  /// Whether nothing is moving.
+  /// Whether what remains of the motion is invisible: the title's and the
+  /// edge effect's remaining change is below [MorphRest.opacity] (the
+  /// title's rise then stays under [MorphRest.length]; NEAR, invisible).
+  /// [settle] snaps the rest.
   bool get isSettled =>
-      _title.isAtRest(_now, 0.001) && _edge.isAtRest(_now, 0.001);
+      _title.isWithin(_now, MorphRest.opacity) &&
+      _edge.isWithin(_now, MorphRest.opacity);
+
+  /// Puts a settled motion exactly onto its targets.
+  void settle() {
+    _title.settle(_now);
+    _edge.settle(_now);
+  }
 }
 
 /// The springs and geometry of a navigation stack's page transitions on

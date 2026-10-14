@@ -138,6 +138,9 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
   bool get motionSettled => _motion.isSettled;
 
   @override
+  void settleMotion() => _motion.settle();
+
+  @override
   void didUpdateWidget(MorphSwitch oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.value != _motion.value) {

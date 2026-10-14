@@ -15,6 +15,10 @@ import 'package:morph/src/widgets/timeline.dart';
 /// UISegmentedControl and UITabBar on iOS 27; the two controls share the
 /// travel and lift springs and differ in when they react, how far the lens
 /// lifts and how strongly it deforms.
+///
+/// The lens settles once every part's remaining swing is below
+/// [MorphRest] (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
+/// step) and snaps onto its targets: invisible, NEAR.
 class MorphLensTuning {
   /// Creates a tuning from explicit values.
   const MorphLensTuning({
@@ -341,17 +345,38 @@ class MorphLensMotion {
   /// Whether the finger currently drags the lens.
   bool get isDragging => _pointer?.dragging ?? false;
 
-  /// Whether every spring is at rest.
-  bool get isSettled =>
-      _pointer == null &&
-      _timeline.isEmpty &&
-      _travel.isAtRest(_now) &&
-      _width.isAtRest(_now) &&
-      _lift.isAtRest(_now) &&
-      _chrome.isAtRest(_now) &&
-      _drift.isAtRest(_now, 0.01) &&
-      _scaleX.isAtRest(_now, 1e-4) &&
-      _scaleY.isAtRest(_now, 1e-4);
+  /// Whether what remains of the motion is invisible: no touch, nothing
+  /// pending, and every spring's remaining swing below [MorphRest]
+  /// (NEAR, invisible; [settle] snaps the rest).
+  bool get isSettled {
+    if (_pointer != null || !_timeline.isEmpty) return false;
+    const length = MorphRest.length;
+    final lifted = math.max(tuning.liftWidth, tuning.liftHeight);
+    final scale = MorphRest.scale(_restWidth + tuning.liftWidth);
+    return _travel.isWithin(_now, length) &&
+        _width.isWithin(_now, length) &&
+        _lift.isWithin(_now, length / math.max(lifted, 1)) &&
+        _chrome.isWithin(_now, length / math.max(tuning.chromeGrowth, 1)) &&
+        _drift.isWithin(_now, length) &&
+        _drift.target.abs() < length &&
+        _scaleX.isWithin(_now, scale) &&
+        (_scaleX.target - 1).abs() < scale &&
+        _scaleY.isWithin(_now, scale) &&
+        (_scaleY.target - 1).abs() < scale;
+  }
+
+  /// Puts a settled lens exactly onto its slot, flat and undeformed.
+  void settle() {
+    _travel.settle(_now);
+    _width.settle(_now);
+    _lift.settle(_now);
+    _chrome.settle(_now);
+    _drift.snap(_now, 0);
+    _scaleX.snap(_now, 1);
+    _scaleY.snap(_now, 1);
+    _previousVisible = _travel.target;
+    _flex.reset(_travel.target);
+  }
 
   /// The index of the slot nearest to [x].
   int slotAt(double x) {

@@ -97,6 +97,14 @@ controls_test (hold and drag-off replays, simulator and device),
 flex_interaction_test, release_bounds_test (replays release-outside.jsonl
 through the widget).
 
+Rest: settles once every spring's remaining swing (`MorphSpringState.reach`)
+is under `MorphRest` - 0.1 pt (0.3 device px at 3x, 0.26 at 2.625x), a scale
+over its surface's extent, an opacity under half an 8-bit step - and snaps
+onto its targets: invisible, NEAR. A finger held
+still counts: the press sleeps once lift and glow are in place (0.45 s; it
+ticked for as long as the finger stayed down) and wakes on the next move or
+the lift.
+
 ## Not reproduced / open
 
 - Reduce Motion unmeasured (plan in states.md).

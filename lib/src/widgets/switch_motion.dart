@@ -22,6 +22,10 @@ import 'package:morph/src/widgets/timeline.dart';
 /// the drag ever committed and toggles like a tap otherwise.
 ///
 /// Times are seconds and positions pixels along the track.
+///
+/// The switch settles once every part's remaining swing is below
+/// [MorphRest] (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
+/// step) and snaps onto its targets: invisible, NEAR.
 class MorphSwitchMotion {
   /// Creates a switch resting at [value] whose knob lens filters its
   /// motion at [frameRate] frames per second of motion time.
@@ -112,13 +116,22 @@ class MorphSwitchMotion {
   /// How far the track color has turned toward on, 0 to 1.
   double get color => _color.value(_now).clamp(0.0, 1.0);
 
-  /// Whether every part of the switch is at rest.
+  /// Whether what remains of the switch's motion is invisible: no touch,
+  /// nothing pending, and every spring's remaining swing below
+  /// [MorphRest] (NEAR, invisible; [settle] snaps the rest).
   bool get isSettled =>
       _downX == null &&
       _timeline.isEmpty &&
-      _knob.isAtRest(_now, 0.01) &&
-      _color.isAtRest(_now, 0.002) &&
+      _knob.isWithin(_now, MorphRest.length) &&
+      _color.isWithin(_now, MorphRest.opacity) &&
       lens.isSettled(_now);
+
+  /// Puts a settled switch exactly onto its targets.
+  void settle() {
+    _knob.settle(_now);
+    _color.settle(_now);
+    lens.settle(_now, _knob.target);
+  }
 
   /// A finger touched the switch at [x].
   void pointerDown(double t, double x) {

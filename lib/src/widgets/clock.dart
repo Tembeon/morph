@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/widgets/spring_state.dart' show MorphRest;
 import 'package:morph/src/widgets/pointer_clock_stub.dart'
     if (dart.library.ffi) 'package:morph/src/widgets/pointer_clock_io.dart';
 
@@ -143,6 +144,11 @@ mixin MorphClock<T extends StatefulWidget>
   /// Whether the motion has nothing left to animate.
   bool get motionSettled;
 
+  /// Puts a settled motion onto its targets before its last frame paints;
+  /// a motion that settles at a visible threshold ([MorphRest]) snaps
+  /// what remains here.
+  void settleMotion() {}
+
   /// The motion time before which the motion draws nothing new, or null
   /// when it changes every frame.
   double? get motionWakeTime => null;
@@ -209,8 +215,10 @@ mixin MorphClock<T extends StatefulWidget>
     _ticking = true;
     _stampFrom = null;
     advanceMotion(_clock);
+    final settled = motionSettled;
+    if (settled) settleMotion();
     _frames.value++;
-    if (motionSettled) {
+    if (settled) {
       _base = _clock;
       _ticking = false;
       _ticker.stop();

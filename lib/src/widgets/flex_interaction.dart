@@ -35,6 +35,10 @@ typedef MorphFlexValues = ({
 /// and retarget impulse.
 ///
 /// Times are seconds, positions pixels in the surface's own space.
+///
+/// A surface settles ([isSettled]) once every part's remaining swing is below
+/// [MorphRest] (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
+/// step) and snaps onto its targets: invisible, NEAR.
 @internal
 class MorphFlexInteraction {
   /// Creates the flex of a surface of [size] at rest.
@@ -319,6 +323,47 @@ class MorphFlexInteraction {
       _driftY.isAtRest(t, driftTolerance) &&
       (!glows ||
           (_glowOut.isAtRest(t, 0.002) && _littleScale.isAtRest(t, 0.002)));
+
+  /// Whether what remains of the surface's motion at time [t] is
+  /// invisible ([MorphRest], NEAR): the scales' swing over the surface's
+  /// longer side, the drifts' swing and the glow's change (fading in under
+  /// a finger or out after it) below a visible step, and no reaction
+  /// pending. A finger held still counts: a held surface sleeps until the
+  /// finger moves or lifts.
+  bool isSettled(double t) {
+    if (_ownsTimeline && !_timeline.isEmpty) return false;
+    const length = MorphRest.length;
+    final scale = MorphRest.scale(math.max(_size.width, _size.height));
+    final still =
+        _scaleX.isWithin(t, scale) &&
+        _scaleY.isWithin(t, scale) &&
+        _driftX.isWithin(t, length) &&
+        _driftY.isWithin(t, length);
+    if (!still || !glows) return still;
+    if (_down == null) return _glowOut.isWithin(t, MorphRest.opacity);
+    final peak = math.max(_spec.bigGlowOpacity, _spec.littleGlowOpacity);
+    return (1 - glow(t)) * peak < MorphRest.opacity &&
+        _glowX.isWithin(t, length) &&
+        _glowY.isWithin(t, length);
+  }
+
+  /// Puts a settled surface onto its targets at time [t]; a held glow
+  /// shows at full strength.
+  void settle(double t) {
+    for (final channel in _channels) {
+      channel.snap(t, channel.target);
+    }
+    if (!glows) return;
+    _glowX.settle(t);
+    _glowY.settle(t);
+    if (_down != null) {
+      _glowFrom = 1;
+      _glowStart = t;
+    } else {
+      _glowOut.snap(t, 0);
+      _littleScale.settle(t);
+    }
+  }
 
   Offset _clamped(Offset p) =>
       Offset(p.dx.clamp(0.0, _size.width), p.dy.clamp(0.0, _size.height));

@@ -55,6 +55,11 @@ on push/pop (with the navigation timing below). Replay: capsules 0.96 pt
 rms center, 1.6 width, 0.8 height. Groups without id continue the NEAREST
 group without id of their side (`MorphBarCapsuleLayout.anonymous`); the
 back button morphs out of the leading capsule.
+Rest: the bar settles once every frame and item spring swings less than
+0.1 pt (0.3 device px at 3x), a pulse less than 0.1 pt over its capsule's
+length and a presence less than half an 8-bit step, and snaps onto its
+layout (`MorphRest`, lens-and-flex.md "Rest"): invisible, NEAR. The pulse
+tail of a push ends at 0.96 s instead of 1.26 s.
 
 ## Spec - per-segment transitions [device, 2026-10-05, scene navseg]
 
@@ -225,7 +230,9 @@ action".
 
 - Inline title: crit 0.45 in / 0.7 out, +15 pt rise, blur 4; edge effect
   alpha crit 0.35; programmatic offsets switch at once (UIKit animates only
-  with a finger). Title opacity replay <= 0.06 rms.
+  with a finger). Title opacity replay <= 0.06 rms. Both settle once
+  their remaining change is under half an 8-bit step and snap (`MorphRest`):
+  invisible, NEAR.
 - Large title: device 10 pt slop; 25 pt scrolled snaps back, 30 under
   (threshold half the title, 26).
 - On `MorphGlassTier.flat` the edge effect draws only its background fade

@@ -188,6 +188,9 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   bool get motionSettled => _motion.isSettled;
 
   @override
+  void settleMotion() => _motion.settle();
+
+  @override
   void didUpdateWidget(MorphSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
     _semanticValue.value = widget.value;

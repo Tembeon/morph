@@ -16,6 +16,10 @@ import 'package:morph/src/widgets/timeline.dart';
 /// terms, here as response / damping ratio = 1 - bounce) and placed in
 /// time by the frame-by-frame recordings of `setToolbarItems(_:animated:)`
 /// and of pushes.
+///
+/// A bar ([MorphBarMotion]) settles once every part's remaining swing is below
+/// [MorphRest] (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
+/// step) and snaps onto its targets: invisible, NEAR.
 @immutable
 class MorphBarTransitionSpec {
   /// Creates a spec from explicit values.
@@ -424,30 +428,49 @@ class MorphBarMotion {
         c.h.isAtRest(_now, 0.05);
   }
 
-  /// Whether nothing is moving.
+  /// Whether what remains of the motion is invisible: nothing comes or
+  /// goes, and every spring's remaining swing is below [MorphRest] (a
+  /// pulse's over its capsule's length; NEAR, invisible). [settle] snaps
+  /// the rest.
   bool get isSettled {
     if (!_timeline.isEmpty) return false;
+    const length = MorphRest.length;
     for (final c in _capsules) {
       if (c.leaving || c.presence != null) return false;
-      if (!c.cx.isAtRest(_now, 0.01) ||
-          !c.cy.isAtRest(_now, 0.01) ||
-          !c.w.isAtRest(_now, 0.01) ||
-          !c.h.isAtRest(_now, 0.01)) {
+      if (!c.cx.isWithin(_now, length) ||
+          !c.cy.isWithin(_now, length) ||
+          !c.w.isWithin(_now, length) ||
+          !c.h.isWithin(_now, length)) {
         return false;
       }
-      if (!c.pulseW.isAtRest(_now, 1e-4) || !c.pulseH.isAtRest(_now, 1e-4)) {
+      if (!c.pulseW.isWithin(_now, MorphRest.scale(c.w.target)) ||
+          !c.pulseH.isWithin(_now, MorphRest.scale(c.h.target))) {
         return false;
       }
     }
     for (final i in _items) {
       if (i.leaving) return false;
-      if (!i.cx.isAtRest(_now, 0.01) ||
-          !i.cy.isAtRest(_now, 0.01) ||
-          !i.presence.isAtRest(_now, 0.001)) {
+      if (!i.cx.isWithin(_now, length) ||
+          !i.cy.isWithin(_now, length) ||
+          !i.presence.isWithin(_now, MorphRest.opacity)) {
         return false;
       }
     }
     return true;
+  }
+
+  /// Puts a settled bar exactly onto its layout.
+  void settle() {
+    for (final c in _capsules) {
+      for (final spring in [c.cx, c.cy, c.w, c.h, c.pulseW, c.pulseH]) {
+        spring.settle(_now);
+      }
+    }
+    for (final i in _items) {
+      i.cx.settle(_now);
+      i.cy.settle(_now);
+      i.presence.settle(_now);
+    }
   }
 
   _Item? _item(Object id) {

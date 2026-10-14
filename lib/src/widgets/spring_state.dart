@@ -3,6 +3,29 @@ import 'dart:math' as math;
 import 'package:meta/meta.dart';
 import 'package:morph/src/spring.dart';
 
+/// The visible rest of a motion: how close every part must stay to its
+/// target before the motion stops ticking and snaps onto it.
+///
+/// A spring that rests at 0.01 pt keeps a ticker alive for up to a second
+/// after its last visible step. These thresholds end it when what remains
+/// cannot be seen. Fidelity: NEAR, invisible. A motion settles once every
+/// part's remaining swing ([MorphSpringState.reach]) is below [length]
+/// (0.3 device px at 3x, 0.26 px on a 2.625x Pixel 6a), a scale's swing
+/// times its surface's extent below [length], and an opacity's below
+/// [opacity] (half an 8-bit step); the snap moves no edge by more than
+/// that.
+@internal
+abstract final class MorphRest {
+  /// The remaining swing of a position or length, in logical pixels.
+  static const double length = 0.1;
+
+  /// The remaining swing of an opacity or color mix, 0 to 1.
+  static const double opacity = 0.002;
+
+  /// The remaining swing of a scale of a surface [extent] pixels long.
+  static double scale(double extent) => length / math.max(extent, 1);
+}
+
 /// A damped spring evaluated in closed form from its last retarget.
 ///
 /// Time is an explicit argument everywhere, so a motion built from these
@@ -80,6 +103,38 @@ class MorphSpringState {
     final (y, v) = _state(t);
     return (y - _target).abs() < tolerance && v.abs() < tolerance * 10;
   }
+
+  /// A bound on how far the spring still swings from its target at any
+  /// time from [t] on, until the next change.
+  ///
+  /// An underdamped spring's offset stays inside its decaying envelope;
+  /// a critically or overdamped one inside the sum of its modes' sizes.
+  double reach(double t) {
+    final (y, v) = _state(t);
+    final a = y - _target;
+    final k = _spring.stiffness;
+    final c = _spring.damping;
+    final w0 = math.sqrt(k);
+    final zeta = c / (2 * w0);
+    if (zeta < 1 - 1e-9) {
+      final wd = w0 * math.sqrt(1 - zeta * zeta);
+      final b = (v + zeta * w0 * a) / wd;
+      return math.sqrt(a * a + b * b);
+    }
+    if (zeta <= 1 + 1e-9) return a.abs() + (v + w0 * a).abs() / (w0 * math.e);
+    final s = w0 * math.sqrt(zeta * zeta - 1);
+    final r1 = -zeta * w0 + s;
+    final r2 = -zeta * w0 - s;
+    final c2 = (v - r1 * a) / (r2 - r1);
+    return (a - c2).abs() + c2.abs();
+  }
+
+  /// Whether the spring's remaining swing ([reach]) stays below
+  /// [tolerance] from time [t] on.
+  bool isWithin(double t, double tolerance) => reach(t) < tolerance;
+
+  /// Puts the spring at rest on its target at time [t].
+  void settle(double t) => snap(t, _target);
 
   double _since(double t) {
     if (_moved && t < _origin) return _origin;

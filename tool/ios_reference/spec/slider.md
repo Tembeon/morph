@@ -82,6 +82,9 @@ example/integration_test/slider_video_test.dart.
 controls_test, controls_scroll_test (a drag taken over by the list returns
 to its start value).
 
+The thumb lens settles as the switch knob does (`MorphSmallLens`,
+lens-and-flex.md "Rest").
+
 ## Not reproduced / open
 
 - Two frames of white resting platter at the release of a drag held
