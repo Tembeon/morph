@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/live.dart';
@@ -160,6 +161,14 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       _focusMotion.focus(t, delay: 0);
     }
     _focusMotion.advance(t);
+    _focusMotion.land(t);
+    // At rest the morph lands on its target, so the tail it would still
+    // swing through (under 0.001 of the morph) neither moves nor lays out
+    // anything while the focus transition runs on. NEAR: the shapes jump
+    // by at most 0.001 of their travel, once.
+    if (_morph.value(t) != _morph.target && _morph.isAtRest(t, 0.001)) {
+      _morph.settle(t);
+    }
     final activate = _activateAt;
     if (activate != null && t >= activate) {
       _activateAt = null;
@@ -215,6 +224,10 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
 
   @override
   void dispose() {
+    _tabLabel.dispose();
+    _placeholder.dispose();
+    _tabEnabled.dispose();
+    _searchEnabled.dispose();
     _ticks.dispose();
     _listening?.removeListener(_focusChanged);
     _ownController?.dispose();
@@ -251,6 +264,18 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
 
   MorphSearchTabGeometry? _geometry;
   _TabFrame _frame = _TabFrame.zero;
+  final ValueNotifier<bool> _tabLabel = ValueNotifier<bool>(true);
+  final ValueNotifier<bool> _placeholder = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _tabEnabled = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _searchEnabled = ValueNotifier<bool>(true);
+
+  // The tabs and the search circle, built once for what they draw: a
+  // change of what they show or take (a label gone, touches on or off)
+  // rebuilds only the part that reads it, not the whole morph.
+  Object? _tabsKey;
+  Widget? _tabs;
+  Object? _circleKey;
+  Widget? _circle;
   // A keyboard frame rebuilds and reads again with the new geometry.
   late final MorphFrameSync<_TabStructure?> _ticks =
       MorphFrameSync<_TabStructure?>(
@@ -271,7 +296,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       bar: Rect.lerp(geometry.bar, geometry.tab, q)!,
       field: fieldRect,
       search: Rect.lerp(geometry.search, fieldRect, q)!,
-      close: Rect.lerp(
+      close: morphLerpRect(
         Rect.fromLTWH(
           geometry.field.right - MorphSearchTuning.height,
           geometry.field.top,
@@ -280,15 +305,20 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
         ),
         geometry.close,
         p,
-      )!,
+      ),
     );
     final shown = q.clamp(0.0, 1.0);
+    final resting = q.abs() < 0.001 && !widget.active;
+    final tabIgnoring = !widget.active || p >= 0.5;
+    // Each of these rebuilds only the part that reads it.
+    _tabLabel.value = (1 - shown * 2).clamp(0.0, 1.0) > 0.01;
+    _placeholder.value = shown > 0.01;
+    _tabEnabled.value = !tabIgnoring;
+    _searchEnabled.value = resting;
     return (
-      resting: q.abs() < 0.001 && !widget.active,
+      resting: resting,
       settled: settled,
-      tabIgnoring: !widget.active || p >= 0.5,
-      tabLabel: (1 - shown * 2).clamp(0.0, 1.0) > 0.01,
-      placeholder: shown > 0.01,
+      tabIgnoring: tabIgnoring,
       closeShown: settled && (p > 0.001 || focused),
       focused: focused,
     );
@@ -307,6 +337,8 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
   void reassemble() {
     super.reassemble();
     _partsFor = null;
+    _tabsKey = null;
+    _circleKey = null;
   }
 
   void _measureBar() {
@@ -390,6 +422,34 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
               ),
             );
           } else if (widget.items.isNotEmpty) {
+            final key = (
+              widget.items,
+              selected,
+              geometry.bar,
+              tabStyle,
+              glass,
+              brightness,
+              rtl,
+            );
+            if (_tabsKey != key) {
+              _tabsKey = key;
+              _tabs = _MorphingTabs(
+                live: _ticks,
+                items: widget.items,
+                selected: selected,
+                progress: () => _frame.q,
+                restRect: geometry.bar,
+                rect: () => _frame.bar,
+                labelShown: _tabLabel,
+                style: tabStyle,
+                glass: glass,
+                brightness: brightness,
+                rtl: rtl,
+                label: widget.items[selected].label,
+                onTap: () => widget.onActiveChanged(false),
+                enabled: _tabEnabled,
+              );
+            }
             children.add(
               MorphLivePositionedTemplate(
                 key: const ValueKey<String>('tab'),
@@ -401,28 +461,42 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                   child: MorphLiveOpacity(
                     live: _ticks,
                     opacityOf: () => (1 - _frame.p).clamp(0.0, 1.0),
-                    child: _MorphingTabs(
-                      live: _ticks,
-                      items: widget.items,
-                      selected: selected,
-                      progress: () => _frame.q,
-                      restRect: geometry.bar,
-                      rect: () => _frame.bar,
-                      labelShown: structure.tabLabel,
-                      style: tabStyle,
-                      glass: glass,
-                      brightness: brightness,
-                      rtl: rtl,
-                      label: widget.items[selected].label,
-                      onTap: () => widget.onActiveChanged(false),
-                      enabled: !structure.tabIgnoring,
-                    ),
+                    child: _tabs,
                   ),
                 ),
               ),
             );
           }
           if (!settled) {
+            final key = (
+              widget.placeholder,
+              widget.searchLabel,
+              geometry.search,
+              searchStyle,
+              tabStyle,
+              glass,
+              brightness,
+              rtl,
+            );
+            if (_circleKey != key) {
+              _circleKey = key;
+              _circle = _SearchCircle(
+                live: _ticks,
+                progress: () => _frame.q,
+                rect: () => _frame.search,
+                restRect: geometry.search,
+                placeholderShown: _placeholder,
+                placeholder: widget.placeholder,
+                label: widget.searchLabel,
+                style: searchStyle,
+                tabStyle: tabStyle,
+                glass: glass,
+                brightness: brightness,
+                rtl: rtl,
+                onTap: () => widget.onActiveChanged(true),
+                enabled: _searchEnabled,
+              );
+            }
             children.add(
               MorphLivePositionedTemplate(
                 key: const ValueKey<String>('search'),
@@ -433,22 +507,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                 ),
                 child: IgnorePointer(
                   ignoring: !structure.resting,
-                  child: _SearchCircle(
-                    live: _ticks,
-                    progress: () => _frame.q,
-                    rect: () => _frame.search,
-                    restRect: geometry.search,
-                    placeholderShown: structure.placeholder,
-                    placeholder: widget.placeholder,
-                    label: widget.searchLabel,
-                    style: searchStyle,
-                    tabStyle: tabStyle,
-                    glass: glass,
-                    brightness: brightness,
-                    rtl: rtl,
-                    onTap: () => widget.onActiveChanged(true),
-                    enabled: structure.resting,
-                  ),
+                  child: _circle,
                 ),
               ),
             );
@@ -512,7 +571,9 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
         },
       ),
     );
-    return MorphChromeBackdrop(child: shortcuts);
+    // A repaint boundary of its own: a frame of the morph repaints the
+    // bar, not the page under it.
+    return RepaintBoundary(child: MorphChromeBackdrop(child: shortcuts));
   }
 }
 
@@ -547,8 +608,6 @@ typedef _TabStructure = ({
   bool resting,
   bool settled,
   bool tabIgnoring,
-  bool tabLabel,
-  bool placeholder,
   bool closeShown,
   bool focused,
 });
@@ -582,7 +641,7 @@ class _MorphingTabs extends StatelessWidget {
   final double Function() progress;
   final Rect restRect;
   final Rect Function() rect;
-  final bool labelShown;
+  final ValueListenable<bool> labelShown;
   final MorphTabBarAppearance style;
   final MorphGlassPainter? glass;
   final Brightness brightness;
@@ -592,7 +651,7 @@ class _MorphingTabs extends StatelessWidget {
 
   /// Whether the circle takes keyboard focus; it does while it takes
   /// touches.
-  final bool enabled;
+  final ValueListenable<bool> enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -611,11 +670,16 @@ class _MorphingTabs extends StatelessWidget {
       label: label,
       onTap: onTap,
       excludeSemantics: true,
-      child: MorphPress(
-        enabled: enabled,
-        onActivate: onTap,
-        focusRing: true,
-        focusSemantics: false,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: enabled,
+        builder: (BuildContext context, bool enabled, Widget? child) =>
+            MorphPress(
+              enabled: enabled,
+              onActivate: onTap,
+              focusRing: true,
+              focusSemantics: false,
+              child: child!,
+            ),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
@@ -699,16 +763,21 @@ class _MorphingTabs extends StatelessWidget {
                             child: morphLiveSlot,
                           );
                         },
-                        child: _SelectedGlyph(
-                          live: live,
-                          item: items[selected],
-                          color: () => Color.lerp(
-                            style.selectedColor,
-                            style.color,
-                            q(),
-                          )!,
-                          fade: fade,
-                          labelShown: labelShown,
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: labelShown,
+                          builder:
+                              (BuildContext context, bool shown, Widget? _) =>
+                                  _SelectedGlyph(
+                                    live: live,
+                                    item: items[selected],
+                                    color: () => Color.lerp(
+                                      style.selectedColor,
+                                      style.color,
+                                      q(),
+                                    )!,
+                                    fade: fade,
+                                    labelShown: shown,
+                                  ),
                         ),
                       ),
                     ],
@@ -938,7 +1007,7 @@ class _SearchCircle extends StatelessWidget {
   final double Function() progress;
   final Rect Function() rect;
   final Rect restRect;
-  final bool placeholderShown;
+  final ValueListenable<bool> placeholderShown;
   final String placeholder;
   final String label;
   final MorphSearchFieldAppearance style;
@@ -950,7 +1019,7 @@ class _SearchCircle extends StatelessWidget {
 
   /// Whether the circle takes keyboard focus; it does while it takes
   /// touches.
-  final bool enabled;
+  final ValueListenable<bool> enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -963,11 +1032,16 @@ class _SearchCircle extends StatelessWidget {
       label: label,
       onTap: onTap,
       excludeSemantics: true,
-      child: MorphPress(
-        enabled: enabled,
-        onActivate: onTap,
-        focusRing: true,
-        focusSemantics: false,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: enabled,
+        builder: (BuildContext context, bool enabled, Widget? child) =>
+            MorphPress(
+              enabled: enabled,
+              onActivate: onTap,
+              focusRing: true,
+              focusSemantics: false,
+              child: child!,
+            ),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
@@ -1032,12 +1106,15 @@ class _SearchCircle extends StatelessWidget {
                   ),
                 ),
               ),
-              if (placeholderShown)
-                PositionedDirectional(
-                  start: MorphSearchTuning.textInset,
-                  end: 8,
-                  top: 0,
-                  bottom: 0,
+              PositionedDirectional(
+                start: MorphSearchTuning.textInset,
+                end: 8,
+                top: 0,
+                bottom: 0,
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: placeholderShown,
+                  builder: (BuildContext context, bool shown, Widget? text) =>
+                      shown ? text! : const SizedBox.shrink(),
                   child: ClipRect(
                     child: Align(
                       alignment: AlignmentDirectional.centerStart,
@@ -1060,6 +1137,7 @@ class _SearchCircle extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
             ],
           ),
         ),

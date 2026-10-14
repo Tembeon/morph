@@ -238,6 +238,17 @@ MorphSearchTabGeometry morphSearchTabLayout({
   );
 }
 
+/// [Rect.lerp] of [a] and [b] at [t] that keeps a size both share exactly:
+/// the corners move as [Rect.lerp] moves them, but a box that only
+/// travels keeps its width and height to the bit, so what it holds is not
+/// laid out again for rounding.
+@internal
+Rect morphLerpRect(Rect a, Rect b, double t) {
+  if (a.size != b.size) return Rect.lerp(a, b, t)!;
+  final at = Rect.lerp(a, b, t)!;
+  return Rect.fromLTWH(at.left, at.top, a.width, a.height);
+}
+
 /// The motion of an iOS 27 search field: the focus transition and the
 /// touch lift.
 ///
@@ -312,6 +323,19 @@ class MorphSearchMotion {
   void advance(double t) {
     _timeline.runDue(t);
     if (t > _now) _now = t;
+  }
+
+  /// Lands the transition on its target at time [t] once it rests within
+  /// 0.001 of it, instead of swinging through its last thousandth, which
+  /// would move the field for nothing; a host calls it after [advance].
+  /// NEAR: the field jumps by at most 0.001 of its travel (0.3 points over
+  /// a 300 point rise), once.
+  void land(double t) {
+    if (_timeline.isEmpty &&
+        _progress.value(t) != _progress.target &&
+        _progress.isAtRest(t, 0.001)) {
+      _progress.settle(t);
+    }
   }
 
   /// Focuses the field at time [t]; the transition starts [delay] seconds

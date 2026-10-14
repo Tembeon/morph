@@ -38,8 +38,9 @@ import 'package:morph/widgets.dart';
 /// `LIFECYCLE_OUT=<file>` writes them to a file; `LIFECYCLE_TOP=<n>` lists
 /// n render object classes per step instead of 8, `LIFECYCLE_DUMP=true`
 /// prints the classes painted in every frame, and
-/// `LIFECYCLE_WHO=<step>:<frame>` prints every render object laid out or
-/// painted in that frame with the widgets that made it.
+/// `LIFECYCLE_WHO=<step>:<frame>` prints every element built and every
+/// render object laid out or painted in that frame with the widgets above
+/// it.
 void main() {
   final log = Platform.environment['LIFECYCLE_LOG'] == 'true';
   final out = Platform.environment['LIFECYCLE_OUT'];
@@ -261,6 +262,55 @@ const _ceilings = <String, _Ceiling>{
     layouts: 5,
     paints: 15,
   ),
+  'search/flat tab-search': (
+    first: 77,
+    ms: 960,
+    builds: 1,
+    layouts: 34,
+    paints: 41,
+  ),
+  'search/flat resign': (
+    first: 42,
+    ms: 544,
+    builds: 1,
+    layouts: 34,
+    paints: 52,
+  ),
+  'search/flat cancel': (
+    first: 54,
+    ms: 448,
+    builds: 0,
+    layouts: 21,
+    paints: 25,
+  ),
+  'search/liquid tab-search': (
+    first: 91,
+    ms: 960,
+    builds: 1,
+    layouts: 39,
+    paints: 45,
+  ),
+  'search/liquid cancel': (
+    first: 61,
+    ms: 448,
+    builds: 0,
+    layouts: 31,
+    paints: 33,
+  ),
+  'search-bar/flat focus': (
+    first: 28,
+    ms: 704,
+    builds: 1,
+    layouts: 32,
+    paints: 36,
+  ),
+  'search-bar/liquid focus': (
+    first: 34,
+    ms: 704,
+    builds: 1,
+    layouts: 37,
+    paints: 39,
+  ),
 };
 
 typedef _Ceiling = ({int first, int ms, int builds, int layouts, int paints});
@@ -360,6 +410,7 @@ class _Recorder {
       Platform.environment['LIFECYCLE_DUMP'] == 'true' ? {} : null;
   final String? _who = Platform.environment['LIFECYCLE_WHO'];
   final List<String> _laidOut = [];
+  final List<Element> _built = [];
   final List<RenderObject> _painted = [];
 
   static String _creator(RenderObject object) {
@@ -383,6 +434,14 @@ class _Recorder {
 
     for (final view in tester.binding.renderViews) {
       visit(view);
+    }
+    for (final element in _built) {
+      final chain = <String>[element.widget.runtimeType.toString()];
+      element.visitAncestorElements((Element e) {
+        chain.add(e.widget.runtimeType.toString());
+        return chain.length < 8;
+      });
+      debugPrint('build ${chain.join(' < ')}');
     }
     for (final name in _laidOut) {
       final o = byName[name];
@@ -417,6 +476,7 @@ class _Recorder {
     final print = debugPrint;
     debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
       _now.builds++;
+      if (_who != null) _built.add(element);
       _bump(_builders, element.widget.runtimeType.toString());
     };
     debugOnProfilePaint = (RenderObject object) {
@@ -463,6 +523,7 @@ class _Recorder {
         _printWho(step.name, frames.length - 1);
         _laidOut.clear();
         _painted.clear();
+        _built.clear();
         _now = _Counts();
         if (step.frames == null &&
             i >= 3 &&
