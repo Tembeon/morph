@@ -44,8 +44,8 @@ no behaviour or pixel change: every rename keeps what the old name did.
   - `MorphNavigationStack.contentPopGestureEnabled` (on by default, as
     UIKit's `interactiveContentPopGestureRecognizer`): a drag toward the
     trailing side from anywhere in a pushed page pops it like the edge
-    swipe; horizontal scrollables and sliders under the finger keep
-    their drags. Set it false for the edge swipe alone.
+    swipe once it has travelled the pan slop; horizontal scrollables,
+    sliders and pan or scale gestures under the finger keep their drags. Set it false for the edge swipe alone.
 
 - Accessibility read from UIKit: Reduce Motion branches for the switch,
   slider, segmented control, tab bar, alert, popover, navigation

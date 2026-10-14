@@ -138,10 +138,10 @@ void main() {
     testWidgets('a drag toward the trailing side from inside the page pops '
         'it', (tester) async {
       await _pump(tester);
-      final gesture = await _drag(tester, const Offset(150, 700), 160);
+      final gesture = await _drag(tester, const Offset(150, 700), 200);
       expect(
         tester.getTopLeft(_scaffold('Message')).dx,
-        inInclusiveRange(120, 161),
+        inInclusiveRange(140, 201),
       );
       await gesture.up();
       await _settle(tester);

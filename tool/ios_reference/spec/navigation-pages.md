@@ -54,11 +54,13 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
 UINavigationController's `interactiveContentPopGestureRecognizer` (iOS 26,
 on by default) pops from a horizontal drag anywhere in the content. morph:
 `MorphNavigationStack.contentPopGestureEnabled` (default true) - past
-Flutter's touch slop toward the trailing side, the page follows and
+Flutter's pan slop (36 pt, so a pan or scale recognizer at the same spot
+reaches its slop first) toward the trailing side, the page follows and
 releases exactly as the edge swipe (same `popDistance` / `popVelocity`);
 a drag toward the leading side never claims the pointer; any horizontal
-drag recognizer deeper under the finger (scroll views, sliders, page
-views) wins the arena first and keeps the drag, at any offset. NEAR /
+drag, pan or scale recognizer deeper under the finger (scroll views,
+sliders, page views, draggable pieces, InteractiveViewer) wins the arena
+first and keeps the drag, at any offset. NEAR /
 assumed until the capture below: the angle cutoff, the slop, the commit
 rule and whether a scroll view at its leading end yields to the pop.
 

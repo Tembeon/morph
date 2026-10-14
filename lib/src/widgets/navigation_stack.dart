@@ -1208,11 +1208,11 @@ class _EdgePopState extends State<_EdgePop> {
 }
 
 /// The back swipe from inside a page's content: a horizontal drag that
-/// claims the pointer only once it has travelled past the slop toward the
+/// claims the pointer only once it has travelled the pan slop toward the
 /// trailing side ([forward] is 1 left to right, -1 right to left), so a
 /// drag the other way stays with whatever else wants it. A horizontal
-/// scrollable under the finger sits deeper in the hit test and accepts
-/// first, so it keeps its drags.
+/// scrollable, pan or scale recognizer under the finger sits deeper in
+/// the hit test and reaches its own slop no later, so it keeps its drags.
 class _ContentPopDrag extends HorizontalDragGestureRecognizer {
   _ContentPopDrag({super.debugOwner});
 
@@ -1236,7 +1236,7 @@ class _ContentPopDrag extends HorizontalDragGestureRecognizer {
     PointerDeviceKind pointerDeviceKind,
     double? deviceTouchSlop,
   ) =>
-      _travel > 0 &&
+      _travel > computePanSlop(pointerDeviceKind, gestureSettings) &&
       super.hasSufficientGlobalDistanceToAccept(
         pointerDeviceKind,
         deviceTouchSlop,
