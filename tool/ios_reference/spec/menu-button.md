@@ -344,6 +344,105 @@ its scale sweeps fast the glyph policy may draw it from its raster
 before. A look whose layout depends on its box (a glass button's label)
 still follows the box every frame while it shows.
 
+## How UIKit renders it [simulator 2026-10-14 + device lifecycle runs]
+
+Read from UIKit, notes private. iOS 27.0 simulator (iPhone 17 Pro, its display at 60 Hz)
+with every layer write, layout, draw and added animation logged per frame, plus the
+device lifecycle runs of lifecycle.md (iPhone 16 Pro, iOS 27.0.1). Counts and threads
+are evidence; simulator times are not timings (the host was heavily loaded).
+
+- Built once, at the final size. The frame that opens the menu creates and lays out the
+  whole menu (device: 150 layouts + 269 view and layer creations; simulator 141 - 182
+  layouts) at its final size and place, draws each row's text once (one draw per row),
+  and never lays it out again during the open or the close. The real menu sits at its
+  final place, hidden, which is why it takes touches from its first frame.
+- Scaled, not revealed. The morph shows the laid-out menu through a live mirror inside
+  the menu blob: the mirror is scaled with the blob by a layer transform (scale, height,
+  vertical position), blurred and cross-faded against the blob's plain shape, and
+  clipped by the blob. There is no growing mask over unscaled content and no layout at
+  intermediate sizes. The button's look rides the small blob the same way.
+- Text. Row labels and icons are bitmaps drawn once at 3x at pixel-aligned final
+  positions. While the morph scales them the render server resamples those bitmaps:
+  no re-layout, no new glyph rasters, no snapping, no rasterized copy and no snapshot.
+  That is why the text does not jitter. At rest the same bitmap is shown 1:1; text is
+  drawn again only when a row's state changes (2 - 3 labels per highlight change).
+- Where the motion runs. The open and the close add no spring or basic animation to any
+  layer; the only render-server animations bind the glass shape to the two blobs. Every
+  moving value (blob scale, height, position, kick, corner radius, shadow, content blur
+  and fade, fusion radius, lens, glass parameters: 25 - 35 values) is evaluated each
+  frame by a display link on a BACKGROUND thread and written straight to the render
+  server, with no commit and no layout. The main thread does nothing per frame after the
+  first two (blips of 1 - 3 layouts at ~0.1 s and ~0.45 s); in one capture it was
+  blocked for 0.7 s and the morph kept running. The link asks for 48 - 120 Hz.
+- Close. Nothing is rebuilt: the menu takes its final scale (0.2) and opacity 0 as its
+  model values while the morph mirror keeps showing its content; the morph container is
+  created again in the close frame (device 60 layouts + 70 creations); the cleanup
+  removes everything ~0.95 s (open) / ~1.2 s (close) after the start.
+- Glass. One glass layer serves both blobs: the background is captured at a quarter of
+  the resolution (the button's own glass at half), the shape is the union of two
+  rounded rectangles bound to the blobs on the render server, the fusion blur radius is
+  a per-frame value of that shape (computed on the GPU), and a lens layer distorts the
+  content beneath (zoom 1.57 -> 1). The button's glass and the menu's own glass are
+  hidden during the morph; the menu's glass appears when the morph container goes.
+- Rows. List cells, built synchronously at the opening for the list's own bounds,
+  which are the window height and not the clipped menu height: a 30-row menu capped at
+  520 pt builds 21 rows at the opening, then one row per frame as rows scroll in. A
+  touch on a row highlights it ~0.1 s in; a scroll then clears it.
+- Submenu (tap). The tap's release frame builds a new card (its own list, a 62 pt
+  title row with a separator, its own glass) stacked over the parent at the row; the
+  parent scales to 0.97 and the card's height springs, again from the background thread.
+- Highlight under a sliding finger. One highlight platter per list (inset 10 pt, row
+  height, radius 21, white with vibrancy), not one per row, SLIDES to the row under the
+  finger on a critically damped spring of response 0.12 s [simulator; an exact fit of
+  two row changes at 60 Hz: 0.78, 0.48, 0.26, 0.14, 0.07 of the step left after each
+  frame; it snaps under ~0.3 pt; device unconfirmed]. A row change costs the two rows'
+  highlight state, 2 - 3 text draws and one layout; the flex is one transform on the
+  whole list and the glow follows the finger, both written from the background thread.
+
+### morph against it
+
+| | UIKit | morph (lifecycle.md, flat / liquid) |
+|---|---|---|
+| content at intermediate sizes | laid out once, scaled by a layer transform | laid out once in `MorphLiveWindow`, scaled by a paint-time transform: same |
+| row text while scaling | bitmaps drawn once, resampled | one raster while the card moves, live at rest (`MorphGlyphs` card policy, 07f65b78): same idea, plus a raster-to-live swap at rest |
+| rows built | in the opening frame | ahead of the opening while armed (`menuRowsKey`), moved in by one GlobalKey move |
+| main thread per open frame | 0 layouts, 0 draws | 0 builds, 1 / 6 layouts, 22 / 29 paints |
+| close | no rebuild of the rows | 10 - 11 layouts a frame |
+| fusion | blurred-SDF union on the GPU | `morphMenuSilhouette` on the CPU, served ahead by isolates |
+| menu glass background | captured at 1/4 resolution | renderer default |
+| highlight | one platter sliding on a 0.12 s spring; no rebuild | a box that jumps to the row; the root list's widget is rebuilt (`_rootKey` holds the highlight) |
+| tall menu | rows for the visible window, one more per frame while scrolling | the whole root card |
+
+### Optimizations to adopt (ranked)
+
+1. Highlight as one sliding platter (fidelity and frame time): paint the highlight from a
+   listenable in a layer of its own under the rows, move it on MorphSpring(0.12, 1.0)
+   (NEAR until the device confirms it), take the highlight out of the root list's key so a
+   row change rebuilds nothing; only the two rows' text color changes. Owner's eye on the
+   iPhone (it is a visible change: the platter slides where morph's jumps).
+2. Composite-only frames for the content: the rows' raster taken at the opening is a
+   retained layer that each frame only re-transforms (no picture recorded per frame), and
+   the look and shapes write layer properties, not paints. A background thread is not
+   available to Flutter; the nearest equivalent is a frame that only composites. Target:
+   0 layouts and a constant handful of paints per open frame (today 22 / 29).
+3. Close without rebuild: the close keeps the open menu's content and moves only its
+   transform and fade (today 10 - 11 layouts a frame); lifecycle.md backlog item 9.
+4. Keep the rows' raster at rest when the card lands exactly on scale 1 at a pixel-aligned
+   position (as UIKit keeps its bitmap) instead of swapping back to live text: removes the
+   swap frame's glyph strike; IDENTICAL only if the raster equals the live drawing at 1:1,
+   to be proven by the control goldens.
+5. Menu glass background at a quarter resolution (UIKit's capture scale for the menu; half
+   for the button): NEAR under the glass blur; check what the renderer captures today.
+6. Tall menus: build the rows the visible window needs plus a margin and add the rest as
+   they scroll in (UIKit: one row per frame); helps the opening frame of 20+ row menus only.
+7. Fusion on the GPU: the blurred-SDF union as a shader over the two rounded rectangles
+   (UIKit's place for it). Largest change; the isolate-served silhouette already hides most
+   of the cost on the Pixel (served 86 - 93 percent).
+
+Device follow-up (needs the iPhone): the highlight spring at 120 Hz, the rows' selection
+haptic, the background display link's rate during the open (the 1/60 steps above) and its
+cost per frame, the glass capture scales.
+
 ## Not reproduced (deliberate)
 
 - The second deterministic kick variant (two curves per height,
