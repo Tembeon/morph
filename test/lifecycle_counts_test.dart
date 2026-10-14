@@ -95,8 +95,8 @@ void main() {
 
 /// The pinned scenes, by `family/tier step`: the builds of the first
 /// frame, the last frame with any work in ms, and the median builds,
-/// layouts and paints of the frames after the first (lifecycle.md,
-/// 2026-10-14).
+/// layouts and paints of the frames after the first, for a touch of the
+/// frames while the finger is down (lifecycle.md, 2026-10-14).
 const _ceilings = <String, _Ceiling>{
   'segmented/flat select-2': (
     first: 13,
@@ -366,6 +366,162 @@ const _ceilings = <String, _Ceiling>{
   ),
   'alert/flat show': (first: 130, ms: 416, builds: 0, layouts: 0, paints: 18),
   'alert/liquid show': (first: 137, ms: 416, builds: 0, layouts: 0, paints: 22),
+  // Touch steps: the medians are those of the frames while the finger is
+  // down, after the touch-down frame (lifecycle.md, touch rows).
+  'segmented-touch/flat tap-seg2': (
+    first: 0,
+    ms: 1408,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'segmented-touch/flat press-hold-selected': (
+    first: 0,
+    ms: 1248,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'segmented-touch/flat press-hold-other': (
+    first: 0,
+    ms: 2224,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'tabbar-touch/flat drag-lens-home-to-profile': (
+    first: 0,
+    ms: 2192,
+    builds: 0,
+    layouts: 2,
+    paints: 18,
+  ),
+  'tabbar-touch/flat press-hold-home': (
+    first: 0,
+    ms: 1616,
+    builds: 0,
+    layouts: 2,
+    paints: 100,
+  ),
+  'switch-touch/flat press-hold': (
+    first: 0,
+    ms: 1952,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'slider-touch/flat press-hold-thumb': (
+    first: 0,
+    ms: 1648,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'alert-touch/flat tap-cancel': (
+    first: 0,
+    ms: 512,
+    builds: 0,
+    layouts: 0,
+    paints: 18,
+  ),
+  'alert-touch/flat press-slide-ok': (
+    first: 0,
+    ms: 1536,
+    builds: 0,
+    layouts: 0,
+    paints: 18,
+  ),
+  'pagecontrol-touch/flat tap-next': (
+    first: 0,
+    ms: 112,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'datepicker-touch/flat swipe-wheel': (
+    first: 0,
+    ms: 736,
+    builds: 0,
+    layouts: 1,
+    paints: 40,
+  ),
+  'segmented-touch/liquid tap-seg2': (
+    first: 0,
+    ms: 1408,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'segmented-touch/liquid press-hold-selected': (
+    first: 0,
+    ms: 1248,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'segmented-touch/liquid press-hold-other': (
+    first: 0,
+    ms: 2224,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'tabbar-touch/liquid drag-lens-home-to-profile': (
+    first: 0,
+    ms: 2192,
+    builds: 0,
+    layouts: 3,
+    paints: 108,
+  ),
+  'tabbar-touch/liquid press-hold-home': (
+    first: 0,
+    ms: 1616,
+    builds: 0,
+    layouts: 3,
+    paints: 108,
+  ),
+  'switch-touch/liquid press-hold': (
+    first: 0,
+    ms: 1952,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'slider-touch/liquid press-hold-thumb': (
+    first: 0,
+    ms: 1648,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'alert-touch/liquid tap-cancel': (
+    first: 0,
+    ms: 512,
+    builds: 0,
+    layouts: 0,
+    paints: 18,
+  ),
+  'alert-touch/liquid press-slide-ok': (
+    first: 0,
+    ms: 1536,
+    builds: 0,
+    layouts: 0,
+    paints: 18,
+  ),
+  'pagecontrol-touch/liquid tap-next': (
+    first: 0,
+    ms: 112,
+    builds: 0,
+    layouts: 0,
+    paints: 0,
+  ),
+  'datepicker-touch/liquid swipe-wheel': (
+    first: 0,
+    ms: 736,
+    builds: 0,
+    layouts: 1,
+    paints: 40,
+  ),
 };
 
 typedef _Ceiling = ({int first, int ms, int builds, int layouts, int paints});
