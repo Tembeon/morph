@@ -2376,9 +2376,19 @@ Widget _wheel({
   bool looping = true,
   AlignmentGeometry alignment = Alignment.center,
   EdgeInsetsGeometry padding = EdgeInsets.zero,
+  _WheelViews? views,
+  Object? viewKey,
 }) {
-  final row = MorphTypography.resolve(
-    TextStyle(fontSize: _WheelGeometry.fontSize, color: style.wheelColor),
+  Widget view() => _wheelView(
+    geometry: geometry,
+    style: style,
+    controller: controller,
+    count: count,
+    text: text,
+    onSelected: onSelected,
+    looping: looping,
+    alignment: alignment,
+    padding: padding,
   );
   final up = looping || selected + 1 < count;
   final down = looping || selected > 0;
@@ -2402,33 +2412,67 @@ Widget _wheel({
           )
         : null,
     child: ExcludeSemantics(
-      child: ListWheelScrollView.useDelegate(
-        controller: controller,
-        itemExtent: geometry.row,
-        diameterRatio: geometry.diameterRatio,
-        perspective: _WheelGeometry.perspective,
-        squeeze: geometry.squeeze,
-        useMagnifier: true,
-        magnification: _WheelGeometry.magnification,
-        overAndUnderCenterOpacity: style.wheelFadedOpacity,
-        physics: const FixedExtentScrollPhysics(
-          parent: BouncingScrollPhysics(
-            decelerationRate: ScrollDecelerationRate.fast,
-          ),
-        ),
-        onSelectedItemChanged: onSelected,
-        childDelegate: ListWheelChildBuilderDelegate(
-          childCount: looping ? count * _WheelGeometry.loops : count,
-          builder: (BuildContext context, int i) => Padding(
-            padding: padding,
-            child: Align(
-              alignment: alignment,
-              child: Text(
-                text(i % count),
-                textScaler: TextScaler.noScaling,
-                style: row,
-              ),
-            ),
+      child: views == null
+          ? view()
+          : views.keep(controller, (viewKey, count, looping, style), view),
+    ),
+  );
+}
+
+/// The wheel views a picker built before, handed back while what they
+/// draw is unchanged: a value the parent sets back while a wheel turns
+/// rebuilds no row.
+class _WheelViews {
+  final Map<Object, (Object?, Widget)> _kept = {};
+
+  Widget keep(Object slot, Object? key, Widget Function() build) {
+    final kept = _kept[slot];
+    if (kept != null && kept.$1 == key) return kept.$2;
+    final view = build();
+    _kept[slot] = (key, view);
+    return view;
+  }
+}
+
+Widget _wheelView({
+  required _WheelGeometry geometry,
+  required MorphDatePickerAppearance style,
+  required FixedExtentScrollController controller,
+  required int count,
+  required String Function(int) text,
+  required ValueChanged<int> onSelected,
+  required bool looping,
+  required AlignmentGeometry alignment,
+  required EdgeInsetsGeometry padding,
+}) {
+  final row = MorphTypography.resolve(
+    TextStyle(fontSize: _WheelGeometry.fontSize, color: style.wheelColor),
+  );
+  return ListWheelScrollView.useDelegate(
+    controller: controller,
+    itemExtent: geometry.row,
+    diameterRatio: geometry.diameterRatio,
+    perspective: _WheelGeometry.perspective,
+    squeeze: geometry.squeeze,
+    useMagnifier: true,
+    magnification: _WheelGeometry.magnification,
+    overAndUnderCenterOpacity: style.wheelFadedOpacity,
+    physics: const FixedExtentScrollPhysics(
+      parent: BouncingScrollPhysics(
+        decelerationRate: ScrollDecelerationRate.fast,
+      ),
+    ),
+    onSelectedItemChanged: onSelected,
+    childDelegate: ListWheelChildBuilderDelegate(
+      childCount: looping ? count * _WheelGeometry.loops : count,
+      builder: (BuildContext context, int i) => Padding(
+        padding: padding,
+        child: Align(
+          alignment: alignment,
+          child: Text(
+            text(i % count),
+            textScaler: TextScaler.noScaling,
+            style: row,
           ),
         ),
       ),
@@ -2492,6 +2536,7 @@ class _TimeWheelsState extends State<_TimeWheels> {
 
   bool get _pm => _hour >= 12;
   bool _syncing = false;
+  final _WheelViews _views = _WheelViews();
 
   @override
   void dispose() {
@@ -2583,6 +2628,13 @@ class _TimeWheelsState extends State<_TimeWheels> {
     _emit();
   }
 
+  void _minuteChanged(int m) {
+    final minute = (m % _minuteCount) * _step;
+    if (_syncing || minute == _minute) return;
+    setState(() => _minute = minute);
+    _emit();
+  }
+
   void _meridiemChanged(int index) {
     if (_syncing) return;
     final pm = index == 1;
@@ -2643,6 +2695,8 @@ class _TimeWheelsState extends State<_TimeWheels> {
                         right: twelve ? _WheelMetrics.hour12End : 0,
                       ),
                       onSelected: _hourChanged,
+                      views: _views,
+                      viewKey: (widget.twentyFour, widget.numberFormatter),
                     ),
                   ),
                   _column(
@@ -2657,12 +2711,9 @@ class _TimeWheelsState extends State<_TimeWheels> {
                           _two(i * _step),
                       selected: _minute ~/ _step,
                       label: widget.localize?.call('Minute') ?? 'Minute',
-                      onSelected: (int m) {
-                        final minute = (m % _minuteCount) * _step;
-                        if (_syncing || minute == _minute) return;
-                        setState(() => _minute = minute);
-                        _emit();
-                      },
+                      onSelected: _minuteChanged,
+                      views: _views,
+                      viewKey: (_step, widget.numberFormatter),
                     ),
                   ),
                   if (twelve)
@@ -2684,6 +2735,8 @@ class _TimeWheelsState extends State<_TimeWheels> {
                           left: _WheelMetrics.meridiemStart,
                         ),
                         onSelected: _meridiemChanged,
+                        views: _views,
+                        viewKey: widget.localize,
                       ),
                     ),
                 ],
