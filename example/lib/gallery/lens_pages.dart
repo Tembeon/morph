@@ -85,7 +85,8 @@ class _SegmentedPageState extends State<SegmentedPage> {
   }
 }
 
-/// The floating tab bar with two to five tabs over scrolling content.
+/// The floating tab bar with two to five tabs over scrolling content; Library
+/// carries a count badge, Radio a dot.
 class TabBarPage extends StatefulWidget {
   /// Creates the page.
   const TabBarPage({super.key});
@@ -100,8 +101,16 @@ class _TabBarPageState extends State<TabBarPage> {
 
   static const _items = [
     MorphTabItem(icon: Icons.home_rounded, label: 'Home'),
-    MorphTabItem(icon: Icons.library_music_rounded, label: 'Library'),
-    MorphTabItem(icon: Icons.radio_rounded, label: 'Radio'),
+    MorphTabItem(
+      icon: Icons.library_music_rounded,
+      label: 'Library',
+      badge: MorphBadge.count(3),
+    ),
+    MorphTabItem(
+      icon: Icons.radio_rounded,
+      label: 'Radio',
+      badge: MorphBadge.indicator(),
+    ),
     MorphTabItem(icon: Icons.person_rounded, label: 'Profile'),
     MorphTabItem(icon: Icons.settings_rounded, label: 'Settings'),
   ];
