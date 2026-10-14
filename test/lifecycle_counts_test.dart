@@ -112,6 +112,14 @@ const _ceilings = <String, _Ceiling>{
   'sheet/flat detent-large': (first: 20, ms: 688, builds: 0, paints: 31),
   'sheet/flat detent-medium': (first: 19, ms: 688, builds: 0, paints: 27),
   'sheet/liquid detent-large': (first: 20, ms: 688, builds: 0, paints: 35),
+  'alert/flat dismiss': (first: 76, ms: 432, builds: 0, paints: 18),
+  'alert/flat action-sheet-dismiss': (
+    first: 74,
+    ms: 544,
+    builds: 0,
+    paints: 11,
+  ),
+  'alert/liquid dismiss': (first: 76, ms: 432, builds: 0, paints: 22),
 };
 
 typedef _Ceiling = ({int first, int ms, int builds, int paints});

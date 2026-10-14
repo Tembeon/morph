@@ -95,6 +95,13 @@ alert.dart (`showMorphAlert`, `showMorphActionSheet(anchor:/anchorRect:)`,
 (`MorphAlertMotion`, `MorphAlertTuning`, `MorphPopoverMotion`,
 `MorphPopoverTuning`, `morphPlacePopover`).
 
+Dismissal (lifecycle.md): the build that stops the card taking touches
+hands back the card built before, so the card does not rebuild; host
+recorder, dismiss frame 0: 115 -> 76 builds (100 -> 74 for an action
+sheet), the rest the navigator's own pop. The 18-25 paints a frame of the
+show and dismiss motions stay (the dimming and the card's fade repaint
+the route; gap 12 in lifecycle.md).
+
 Performance trade (2026-10-13, declared in `showMorphAlert`): the card's
 content (text, buttons, fields) is a `MorphGlyphs.faded` card. While its
 scale moves (present 1.199 -> 1, the lift, a popover's 0.01 -> 1) it is

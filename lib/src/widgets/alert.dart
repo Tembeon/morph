@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -655,28 +656,20 @@ class _AlertViewState extends State<_AlertView>
           );
     final row = rowCandidate && _fitsInRow(width, style, scaler, direction);
     final order = _ordered(_route.actions, row: row, popover: popover);
-    _shown = [for (final i in order) _route.actions[i]];
-    _buttonKeys = [for (final i in order) _actionKeys[i]];
-    final card = _AlertCard(
-      key: _card,
-      title: _route.title,
-      message: _route.message,
-      actions: _shown,
-      buttonKeys: _buttonKeys,
-      fields: _route.textFields,
-      controllers: _controllers,
-      row: row,
-      width: width,
-      highlighted: _highlighted,
-      style: style,
-      radius: popover
-          ? MorphPopoverTuning.cornerRadius
-          : MorphAlertTuning.cornerRadius,
-      onChoose: _choose,
-      onSubmit: _return,
-      frames: frames,
-      opacity: _opacity,
-    );
+    final shown = [for (final i in order) _route.actions[i]];
+    final kept = _keptCard;
+    // A build that changes nothing the card draws (the dismissal's, which
+    // only stops the card taking touches) hands back the card built
+    // before, so it does not rebuild.
+    final card =
+        kept != null &&
+            kept.row == row &&
+            kept.width == width &&
+            kept.highlighted == _highlighted &&
+            kept.style == style &&
+            listEquals(kept.actions, shown)
+        ? kept
+        : _keptCard = _buildCard(shown, order, row, width, style, popover);
     final interactive = Listener(
       onPointerDown: _down,
       onPointerMove: _move,
@@ -731,6 +724,40 @@ class _AlertViewState extends State<_AlertView>
           },
         ),
       ),
+    );
+  }
+
+  _AlertCard? _keptCard;
+
+  _AlertCard _buildCard(
+    List<MorphAlertAction> shown,
+    List<int> order,
+    bool row,
+    double width,
+    MorphAlertAppearance style,
+    bool popover,
+  ) {
+    _shown = shown;
+    _buttonKeys = [for (final i in order) _actionKeys[i]];
+    return _AlertCard(
+      key: _card,
+      title: _route.title,
+      message: _route.message,
+      actions: _shown,
+      buttonKeys: _buttonKeys,
+      fields: _route.textFields,
+      controllers: _controllers,
+      row: row,
+      width: width,
+      highlighted: _highlighted,
+      style: style,
+      radius: popover
+          ? MorphPopoverTuning.cornerRadius
+          : MorphAlertTuning.cornerRadius,
+      onChoose: _choose,
+      onSubmit: _return,
+      frames: frames,
+      opacity: _opacity,
     );
   }
 
