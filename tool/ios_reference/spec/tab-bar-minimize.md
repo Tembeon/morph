@@ -93,12 +93,33 @@ tab_collapse.dart). Test: tab_bar_minimize_test; lifecycle scene
 `tabbar-minimize`; perf / glass frame scene `tab-bar-minimize`.
 
 Lifecycle (host recorder, 2026-10-14): a drag that only hints builds and
-lays out nothing (the hint is a transform). Minimizing: one structure
-frame (83 builds with the list's own), then 14 layouts + ~27 paints a
-frame of ours for ~0.66 s (the collapsing tabs' boxes, the accessory's
-content laid out at its moving width, the glass host); expanding: 11 - 20
-layouts and 25 - 33 paints a frame for 0.77 s. Native: minimize on scroll
-is 300 ms of 3 - 9 layouts a frame (lifecycle.md).
+lays out nothing (the hint is a transform). The collapse is laid out once,
+as UIKit lays out its views once and animates them: the collapsing tabs
+are laid out over both ends (the expanded bar and the circle) and follow
+the morph by a live clip (which also bounds their touches), a live
+translation of the selected glyph and the glass; the accessory's content
+is laid out once at its end box and carried by a translation and a live
+capsule clip; each part is a repaint boundary. Per frame of our bar group,
+flat (liquid):
+
+| step | before | after |
+|---|---|---|
+| minimize, morph frames | 14 layouts, ~27-31 paints (16 / 31-36) | 3 layouts, 12-21 paints (5 / 13-23) |
+| expand | 11-20 layouts, 25-36 paints (16-26 / 29-43) | 0-7 layouts, 8-15 paints (5-9 / 10-17) |
+
+The 3 layouts left are the glass host placing its surfaces (renderer);
+the 4 more in the first half of the morph are the selected label
+shrinking (`fontSize` x fade, laid out per frame as in the search morph).
+Perf counts scene `tab-bar-minimize`: paints a frame 30.8 -> 23.3 flat,
+36.8 -> 26.1 fake / liquid; pictures 3.3 -> 1.9 / 4.4 -> 3.0. Native:
+minimize on scroll is 300 ms of 3 - 9 layouts a frame (lifecycle.md).
+
+NEAR (declared): the accessory's content takes its end layout when the
+morph starts (where its environment changes) and travels with the
+capsule's center, clipped by it, instead of resizing with it; the
+minimized circle has no keyboard focus ring and its semantics box spans
+both ends. The search tab bar's accessory content follows the same way;
+its collapsing tabs still follow by layout (shared with the search morph).
 
 ## Not reproduced / open
 

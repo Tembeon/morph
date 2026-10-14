@@ -44,6 +44,7 @@ class MorphCollapsingTabs extends StatelessWidget {
     required this.onTap,
     required this.enabled,
     this.drawsGlass = true,
+    this.layoutBox,
     super.key,
   });
 
@@ -93,6 +94,12 @@ class MorphCollapsingTabs extends StatelessWidget {
   /// Whether the widget draws its glass itself.
   final bool drawsGlass;
 
+  /// The box the widget is laid out at once, holding both ends of [rect]
+  /// (the parent places it there); it then follows [rect] by paint alone:
+  /// its glass, its clip (which also bounds its touches) and the selected
+  /// glyph's travel. Null lays it out at [rect] on every frame.
+  final Rect? layoutBox;
+
   @override
   Widget build(BuildContext context) {
     double q() => progress().clamp(0.0, 1.0);
@@ -104,6 +111,9 @@ class MorphCollapsingTabs extends StatelessWidget {
           pitch * (rtl ? items.length - 1 - selected + 0.5 : selected + 0.5),
       restRect.height / 2,
     );
+    if (layoutBox case final box?) {
+      return _buildFixed(q, fade, pitch, selectedCenter, box);
+    }
     final glass = this.glass;
     return Semantics(
       button: true,
@@ -229,6 +239,150 @@ class MorphCollapsingTabs extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+extension on MorphCollapsingTabs {
+  Widget _buildFixed(
+    double Function() q,
+    double Function() fade,
+    double pitch,
+    Offset restCenter,
+    Rect box,
+  ) {
+    final rest = restRect.topLeft - box.topLeft;
+    final selectedCenter = restCenter + rest;
+    Rect local() => rect().shift(-box.topLeft);
+    RRect capsule() {
+      final r = local();
+      return RRect.fromRectAndRadius(r, Radius.circular(r.shortestSide / 2));
+    }
+
+    final glass = this.glass;
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: [
+        if (drawsGlass)
+          IgnorePointer(
+            child: RepaintBoundary(
+              child: glass == null
+                  ? CustomPaint(
+                      painter: MorphCapsulePainter(
+                        live: live,
+                        shape: capsule,
+                        color: () => style.barColor,
+                        shadow: style.shadowColor,
+                      ),
+                    )
+                  : MorphGlassHost(
+                      painter: glass,
+                      mode: MorphGlassMode.surface,
+                      frames: live,
+                      frame: () => MorphGlassFrame([
+                        MorphGlassSurface(
+                          kind: MorphGlassKind.bar,
+                          shape: capsule(),
+                          color: style.barColor,
+                          brightness: brightness,
+                        ),
+                      ]),
+                    ),
+            ),
+          ),
+        ClipRRect(
+          clipper: MorphLiveClipper<RRect>(
+            live: live,
+            keyOf: local,
+            clipOf: (Size _) => capsule(),
+          ),
+          child: RepaintBoundary(
+            child: Semantics(
+              button: true,
+              label: label,
+              onTap: onTap,
+              excludeSemantics: true,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: enabled,
+                builder: (BuildContext context, bool enabled, Widget? child) =>
+                    MorphPress(
+                      enabled: enabled,
+                      onActivate: onTap,
+                      focusSemantics: false,
+                      child: child!,
+                    ),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onTap,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      for (var i = 0; i < items.length; i++)
+                        if (i != selected)
+                          Positioned(
+                            left:
+                                rest.dx +
+                                MorphTabBarMetrics.sideInset +
+                                pitch * (rtl ? items.length - 1 - i : i),
+                            top: rest.dy,
+                            width: pitch,
+                            height: restRect.height,
+                            child: MorphLiveOpacity(
+                              live: live,
+                              opacityOf: fade,
+                              child: _TabGlyph(
+                                item: items[i],
+                                color: style.color,
+                                showLabel: true,
+                              ),
+                            ),
+                          ),
+                      Positioned(
+                        left: selectedCenter.dx - pitch / 2,
+                        top: rest.dy,
+                        width: pitch,
+                        height: restRect.height,
+                        child: RepaintBoundary(
+                          child: MorphLiveTransform.matrix(
+                            live: live,
+                            alignment: null,
+                            matrixOf: () {
+                              final d = (local().center - selectedCenter) * q();
+                              return Matrix4.translationValues(d.dx, d.dy, 0);
+                            },
+                            child: RepaintBoundary(
+                              child: ValueListenableBuilder<bool>(
+                                valueListenable: labelShown,
+                                builder:
+                                    (
+                                      BuildContext context,
+                                      bool shown,
+                                      Widget? _,
+                                    ) => _SelectedGlyph(
+                                      live: live,
+                                      item: items[selected],
+                                      color: () => Color.lerp(
+                                        style.selectedColor,
+                                        style.color,
+                                        q(),
+                                      )!,
+                                      fade: fade,
+                                      labelShown: shown,
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

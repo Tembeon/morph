@@ -250,11 +250,12 @@ void main() {
       await tester.pumpAndSettle();
       final circle = find.byType(MorphCollapsingTabs);
       expect(circle, findsOneWidget);
-      expect(
-        tester.getRect(circle),
-        const Rect.fromLTWH(28, 874 - 21 - 62 + 7, 48, 48),
-      );
-      await tester.tap(circle);
+      // Laid out at the expanded bar's box; only the circle takes touches.
+      expect(tester.getRect(circle).bottom, 874 - 21);
+      await tester.tapAt(const Offset(300, 874 - 21 - 31));
+      await tester.pumpAndSettle();
+      expect(circle, findsOneWidget);
+      await tester.tapAt(const Offset(28 + 24, 874 - 21 - 31));
       await tester.pumpAndSettle();
       expect(find.byType(MorphCollapsingTabs), findsNothing);
     });

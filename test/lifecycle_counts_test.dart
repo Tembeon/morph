@@ -119,16 +119,17 @@ const _ceilings = <String, _Ceiling>{
     paints: 9,
   ),
   // A fling that minimizes the bar: the list's own deceleration runs
-  // past the morph to 2.7 s (0/3/23 a frame, the scroll's cost).
+  // past the morph to 2.7 s (0/3/23 a frame, the scroll's cost); the
+  // collapse itself adds 3 layouts (the glass host) and 12-21 paints.
   'tabbar-minimize/flat minimize': (
-    first: 83,
+    first: 82,
     ms: 2736,
     builds: 0,
     layouts: 3,
     paints: 23,
   ),
   'tabbar-minimize/liquid minimize': (
-    first: 99,
+    first: 98,
     ms: 2736,
     builds: 0,
     layouts: 3,
@@ -138,15 +139,15 @@ const _ceilings = <String, _Ceiling>{
     first: 14,
     ms: 768,
     builds: 0,
-    layouts: 18,
-    paints: 25,
+    layouts: 7,
+    paints: 15,
   ),
   'tabbar-minimize/liquid expand': (
     first: 14,
     ms: 768,
     builds: 0,
-    layouts: 20,
-    paints: 30,
+    layouts: 9,
+    paints: 17,
   ),
   'tabbar/flat select-1': (
     first: 41,
