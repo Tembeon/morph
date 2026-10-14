@@ -544,7 +544,7 @@ final List<MatrixControl> matrixControls = [
   MatrixControl(
     'context-menu',
     () => MorphContextMenuRegion(
-      above: MorphSatellite(
+      accessory: MorphSatellite(
         builder: (BuildContext context, MorphFlight flight) => Align(
           alignment: Alignment.centerLeft,
           child: DecoratedBox(
@@ -571,30 +571,11 @@ final List<MatrixControl> matrixControls = [
           ),
         ),
       ),
-      below: MorphSatellite(
-        builder: (BuildContext context, MorphFlight flight) => DecoratedBox(
-          decoration: const BoxDecoration(
-            color: Color(0xFFFFFFFF),
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final title in const ['Reply', 'Copy', 'Delete'])
-                SizedBox(
-                  height: 44,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16),
-                      child: Text(title),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
+      menu: const <MorphMenuEntry>[
+        MorphMenuItem(title: 'Reply'),
+        MorphMenuItem(title: 'Copy'),
+        MorphMenuItem(title: 'Delete', destructive: true),
+      ],
       child: const DecoratedBox(
         decoration: BoxDecoration(
           color: Color(0xFF0A84FF),

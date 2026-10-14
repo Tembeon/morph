@@ -90,7 +90,7 @@ Cost is S(mall) / M(edium) / L(arge); "meas." means the look or motion must be m
 | alerts | Actions can't be enabled live (OK after typing) | H | S | `MorphAlertAction.enabledListenable` |
 | alerts | `MorphAlertTextField` lacks onChanged / autofocus / input options | H | S | add the TextField basics |
 | alerts | No general popover with arbitrary content | M | M | `showMorphPopover` over the existing popover motion |
-| menus | Context menu takes only app-built satellites, no standard rows | H | M | `MorphContextMenuRegion.items` (+ `order`) |
+| menus | Context menu takes only app-built satellites, no standard rows | H | M | done 2026-10-14: `MorphContextMenuRegion.menu` (+ `order`, `preview`) |
 | menus | No pop-up button showing the chosen value | H | M | `MorphPopUpButton<T>` over `MorphMenuSource` |
 | menus | Row icons only `IconData`; no custom preview / commit; no close API | M | S-M | `icon: Widget?`, `preview`, `onPreviewTap`, `close` / `onClose` |
 | segmented | No icon segments | H | M | `MorphSegment(title, {icon, semanticLabel, enabled, width})` |
@@ -154,7 +154,7 @@ drawing; search and menus (another work stream).
 8. Bar item badge + `backButtonDisplayMode` / `hidesBackButton` + subtitle (bars; H, S-M).
 9. Search controlled `active` + search integrated in `MorphNavigationConfig` (search; H, S-M).
 10. Alerts: live action enablement + TextField basics (alerts; H, S).
-11. Context menu with standard rows (`MorphContextMenuRegion.items`) and a pop-up button (menus; H, M).
+11. Context menu with standard rows (done: `MorphContextMenuRegion.menu`) and a pop-up button (menus; H, M).
 12. Glass button variants: `.prominent` / `.clear` / `.prominentClear` named constructors (buttons; H, S-M).
 13. Segmented control `MorphSegment` with icons, nullable selection and per-segment enabled (segmented; H, M).
 14. Lists: accessory enum (checkmark / detail), sliver form, then swipe actions (lists; H, S -> L).

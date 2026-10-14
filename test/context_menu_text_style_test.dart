@@ -25,11 +25,13 @@ void main() {
               const SizedBox(height: 200),
               MorphContextMenuRegion(
                 onOpen: (MorphFlight f) => flight = f,
-                below: MorphSatellite(
-                  height: 100,
-                  builder: (BuildContext context, MorphFlight flight) =>
-                      const SizedBox(height: 100),
-                ),
+                menu: <MorphMenuEntry>[
+                  MorphMenuWidget(
+                    height: 100,
+                    builder: (BuildContext context) =>
+                        const SizedBox(height: 100),
+                  ),
+                ],
                 // The column fills the row's height exactly: any copy
                 // drawn in a taller text style overflows.
                 child: const Padding(

@@ -763,6 +763,84 @@ class MorphMenuTuning {
 
   /// The measured iOS 27 menu.
   static const standard = MorphMenuTuning();
+
+  /// The measured iOS 27 context menu: the menu of [standard] on the
+  /// morph of [MorphMenuMorphSpec.context].
+  static const context = MorphMenuTuning(morph: MorphMenuMorphSpec.context);
+}
+
+/// Where a context menu stands and what it grows out of: UIKit's context
+/// menu attaches to the lifted preview of the held view and grows out of a
+/// blob at the held view's center, on glass of its own.
+///
+/// The menu stands [gap] below the [preview] when it fits there, above it
+/// otherwise (its entries reversed, as for a menu opening upward), and
+/// when it fits on neither side the preview and the menu shift together
+/// until the menu fits below; [MorphMenuMotion.previewShift] is that
+/// shift. Across, the menu centers on the preview when that keeps
+/// [MorphMenuTuning.edgeMargin] from the safe area and aligns with the
+/// preview's nearer edge otherwise, as a button menu does.
+class MorphMenuAttachment {
+  /// Creates an attachment to the lifted [preview] of the view [held].
+  const MorphMenuAttachment({
+    required this.held,
+    required this.preview,
+    this.accessory = 0,
+    this.gap = measuredGap,
+    this.margin = MorphMenuTuning.contextMargin,
+  });
+
+  /// The held view's frame at rest, in the menu's coordinates; the menu
+  /// grows out of its center.
+  final Rect held;
+
+  /// The lifted preview's frame before any shift, in the menu's
+  /// coordinates.
+  final Rect preview;
+
+  /// The extent above the preview taken by an accessory and its gap, which
+  /// shifts with the preview and must stay inside the safe area too.
+  final double accessory;
+
+  /// The space between the preview and the menu.
+  final double gap;
+
+  /// The distance the preview and the menu keep from the safe area's edges.
+  final double margin;
+
+  /// Space UIKit leaves between an open preview and its menu, in points
+  /// (iPhone 16 Pro, iOS 27).
+  static const double measuredGap = 16;
+
+  /// The share of the held view a context menu grows out of.
+  static const double measuredBlobScale = 0.4;
+
+  /// The blob a context menu of [menuHeight] grows out of and retracts into
+  /// for a held view of [held] size, centered on the held view: 0.4 of the
+  /// held view's shorter side tall and 0.4 of its width, at most 0.4 of the
+  /// menu's height, wide.
+  ///
+  /// Fitted to the menu morph layer at its smallest on an iPhone 16 Pro
+  /// (iOS 27, `context_menu/growth.json`, within 0.3 pt): 60 x 40 -> 24 x
+  /// 16, 120 x 80 -> 48 x 32, 80 x 160 -> 32 x 32 and 300 x 200 -> 83.2 x
+  /// 80 under a 208-point menu (the only menu height recorded, so the
+  /// width cap is the measured one for that height).
+  static Size blobSize(Size held, double menuHeight) => Size(
+    measuredBlobScale * math.min(held.width, menuHeight),
+    measuredBlobScale * held.shortestSide,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphMenuAttachment &&
+      other.held == held &&
+      other.preview == preview &&
+      other.accessory == accessory &&
+      other.gap == gap &&
+      other.margin == margin;
+
+  @override
+  int get hashCode => Object.hash(held, preview, accessory, gap, margin);
 }
 
 /// One of the two shapes a menu morph is drawn from.
@@ -1111,6 +1189,14 @@ class MorphMenuMotion {
   /// button. [sourceRadius] is the corner radius of the source at rest;
   /// null keeps it a capsule. [progress] defaults to
   /// [MorphMenuProgress.spring] of [tuning].
+  ///
+  /// With an [attachment] the menu is a context menu: it stands beside the
+  /// attachment's preview and grows out of the blob at the held view's
+  /// center ([MorphMenuAttachment.blobSize]) instead of out of [button],
+  /// along a straight line from the blob to its frame on the progress,
+  /// and no source shape is drawn ([drawsSource]). [button] is then the
+  /// held view's frame, which a finger holding the menu open leaves to
+  /// choose.
   MorphMenuMotion({
     required Rect button,
     this._itemCount = 0,
@@ -1121,6 +1207,7 @@ class MorphMenuMotion {
     this._sourceRadius,
     this.tuning = MorphMenuTuning.standard,
     MorphMenuProgress? progress,
+    this._attachment,
   }) : _button = button,
        _layoutFor = layout,
        _sourceHeight = sourceHeight ?? button.height,
@@ -1160,6 +1247,8 @@ class MorphMenuMotion {
   final MorphMenuLayout Function({required bool reversed})? _layoutFor;
 
   Rect _button;
+  MorphMenuAttachment? _attachment;
+  Offset _shift = Offset.zero;
   int _itemCount;
   Size _bounds;
   EdgeInsets _padding;
@@ -1290,8 +1379,39 @@ class MorphMenuMotion {
   /// The time the motion was last advanced to.
   double get time => _now;
 
-  /// The layout frame of the button.
+  /// The layout frame of the button, or of the held view of a context
+  /// menu.
   Rect get button => _button;
+
+  /// Where a context menu stands, or null for a menu that grows out of its
+  /// button.
+  MorphMenuAttachment? get attachment => _attachment;
+
+  /// How far a context menu moved its preview to fit the menu inside the
+  /// safe area; zero for a menu without an [attachment].
+  Offset get previewShift => _shift;
+
+  /// Whether the menu draws a source shape it grows out of: the button
+  /// shape, which a context menu has none of.
+  bool get drawsSource => _attachment == null;
+
+  /// The blob a context menu grows out of, centered on the held view.
+  Rect get _blob {
+    final size = MorphMenuAttachment.blobSize(_button.size, _menu.height);
+    return Rect.fromCenter(
+      center: _button.center,
+      width: size.width,
+      height: size.height,
+    );
+  }
+
+  /// The area a finger that opened the menu by holding leaves to choose:
+  /// the button, or a context menu's lifted preview.
+  Rect get _holdArea {
+    final attachment = _attachment;
+    if (attachment == null) return _button;
+    return attachment.preview.shift(_shift);
+  }
 
   /// The number of rows of a uniform menu.
   int get itemCount => _itemCount;
@@ -1343,10 +1463,12 @@ class MorphMenuMotion {
     int? itemCount,
     double? sourceHeight,
     double? sourceRadius,
+    MorphMenuAttachment? attachment,
   }) {
     _revision++;
     if (_phase != _Phase.idle) return;
     _sourceRadius = sourceRadius;
+    _attachment = attachment;
     _button = button;
     _bounds = bounds;
     _padding = padding;
@@ -1843,6 +1965,7 @@ class MorphMenuMotion {
   /// glass painter).
   MorphGlassOutline? silhouetteFor({required bool withField}) {
     if (_phase == _Phase.idle) return null;
+    if (!drawsSource) return morphGlassContainerOutline([rootBlob.rrect], 0);
     final radius = fusionRadius;
     final MorphGlassOutline outline = radius < MorphMenuFusion.minimumRadius
         ? morphGlassContainerOutline([rootBlob.rrect, buttonBlob.rrect], 0)
@@ -1948,6 +2071,9 @@ class MorphMenuMotion {
     double parentScale = 1,
     bool flexed = true,
   }) {
+    if (_attachment != null) {
+      return _attachedBlobFor(frame, parentScale: parentScale, flexed: flexed);
+    }
     final p = progress;
     final w = frame.width;
     final h = frame.height;
@@ -1971,6 +2097,41 @@ class MorphMenuMotion {
       radius: _localRadius(p, localHeight, h) * parentScale * scale,
       scale: scale,
       localSize: Size(w, localHeight),
+    );
+  }
+
+  /// A context menu's shape: a straight line on the progress from the blob
+  /// at the held view's center to [frame], flexed by the finger on it, its
+  /// corners from the blob's capsule to the menu's.
+  MorphMenuBlob _attachedBlobFor(
+    Rect frame, {
+    required double parentScale,
+    required bool flexed,
+  }) {
+    final p = progress;
+    final from = _blob;
+    final flex = flexed ? _flexAt(_now) : _noFlex;
+    final to = Rect.fromCenter(
+      center: frame.center + flex.shift,
+      width: frame.width + flex.width,
+      height: frame.height + flex.height,
+    );
+    final rect = Rect.lerp(from, to, p)!;
+    final width = from.width + (frame.width - from.width) * p;
+    final height = from.height + (frame.height - from.height) * p;
+    final scale = frame.width > 0 ? width / frame.width : 1.0;
+    final fromRadius = math.min(from.width, from.height) / 2;
+    final toRadius =
+        math.min(tuning.cornerRadius, frame.height / 2) * parentScale;
+    final radius = fromRadius + (toRadius - fromRadius) * p.clamp(0.0, 1.0);
+    return MorphMenuBlob(
+      rect: rect,
+      radius: math.max(
+        0,
+        math.min(radius, math.min(rect.width, rect.height) / 2),
+      ),
+      scale: scale,
+      localSize: Size(frame.width, scale > 0 ? height / scale : frame.height),
     );
   }
 
@@ -2326,6 +2487,25 @@ class MorphMenuMotion {
     return true;
   }
 
+  /// Opens the menu at time [t] under a finger that has held its source
+  /// and rests at [position]: the finger then slides onto a row and
+  /// chooses it on release, as after a held button's opening, and a
+  /// release before it left the source (a context menu's preview) keeps
+  /// the menu open.
+  void holdOpen(double t, Offset position) {
+    _revision++;
+    advance(t);
+    final pointer = _Pointer(
+      fromButton: true,
+      position: position,
+      startedInMenu: false,
+    );
+    pointer.openedByHold = true;
+    _pointer = pointer;
+    _open(t);
+    _glow(t, position, on: true);
+  }
+
   /// A finger touched down at [position].
   void pointerDown(double t, Offset position) {
     _revision++;
@@ -2406,7 +2586,7 @@ class MorphMenuMotion {
     if (pointer == null) return;
     final previous = pointer.position;
     pointer.position = position;
-    if (pointer.fromButton && !_button.contains(position)) {
+    if (pointer.fromButton && !_holdArea.contains(position)) {
       pointer.leftButton = true;
       if (!pointer.openedByHold &&
           !_button.inflate(tuning.tapSlop).contains(position)) {
@@ -2627,6 +2807,68 @@ class MorphMenuMotion {
     );
   }
 
+  /// The final frame of a context menu of [size] attached to
+  /// [attachment] inside [bounds] minus [padding], whether it stands below
+  /// the preview, and how far the preview moves with it.
+  ///
+  /// The menu stands [MorphMenuAttachment.gap] below the preview when the
+  /// preview, its accessory and the menu fit inside the safe area minus
+  /// [MorphMenuAttachment.margin] that way, above it when they fit that
+  /// way, and below it otherwise, the preview and the menu then shifting
+  /// together until the menu fits (the top edge wins). Across, the menu
+  /// centers on the preview when that keeps [edgeMargin] from the safe
+  /// area and aligns with the preview's nearer edge otherwise; a preview
+  /// that leaves the safe area moves back into it.
+  static ({Rect rect, bool down, Offset shift}) placeAttached({
+    required MorphMenuAttachment attachment,
+    required Size size,
+    required Size bounds,
+    EdgeInsets padding = EdgeInsets.zero,
+    double edgeMargin = MorphMenuTuning.defaultEdgeMargin,
+  }) {
+    final preview = attachment.preview;
+    final gap = attachment.gap;
+    final margin = attachment.margin;
+    final top = padding.top + margin;
+    final bottom = bounds.height - padding.bottom - margin;
+    final left = padding.left + margin;
+    final right = bounds.width - padding.right - margin;
+    final columnTop = preview.top - attachment.accessory;
+    final below = preview.bottom + gap + size.height;
+    final above = columnTop - gap - size.height;
+    var down = true;
+    var dy = 0.0;
+    if (columnTop >= top && below <= bottom) {
+      down = true;
+    } else if (above >= top && preview.bottom <= bottom) {
+      down = false;
+    } else {
+      dy = math.min(0, bottom - below);
+      if (columnTop + dy < top) dy = top - columnTop;
+    }
+    var dx = 0.0;
+    if (preview.right > right) dx = right - preview.right;
+    if (preview.left + dx < left) dx = left - preview.left;
+    final shifted = preview.shift(Offset(dx, dy));
+    var x = shifted.center.dx - size.width / 2;
+    final minLeft = padding.left + edgeMargin;
+    final maxRight = bounds.width - padding.right - edgeMargin;
+    if (x < minLeft || x + size.width > maxRight) {
+      x = shifted.center.dx < bounds.width / 2
+          ? shifted.left
+          : shifted.right - size.width;
+    }
+    x = math.max(left, math.min(x, right - size.width));
+    final y = down
+        ? shifted.bottom + gap
+        : shifted.top - attachment.accessory - gap - size.height;
+    return (
+      rect: Rect.fromLTWH(x, y, size.width, size.height),
+      down: down,
+      shift: Offset(dx, dy),
+    );
+  }
+
   /// The opening kick's amplitude relative to a 146-pixel menu, for a
   /// menu [height] pixels tall; it scales [MorphMenuTuning.openKickGain].
   static double kickAmplitude(double height) =>
@@ -2646,7 +2888,10 @@ class MorphMenuMotion {
 
   void _sample(double t) {
     final from = _sampleTime;
-    if (t > from && from.isFinite && _phase != _Phase.idle) {
+    if (t > from &&
+        from.isFinite &&
+        _phase != _Phase.idle &&
+        tuning.morph.kicks) {
       final a = _amplitude;
       final open = _openReference;
       final close = _closeReference;
@@ -2683,16 +2928,32 @@ class MorphMenuMotion {
     );
     final height = _visibleRoot(_root);
     final size = Size(tuning.menuWidth, height);
-    final placed = place(
-      button: _pressed,
-      size: size,
-      bounds: _bounds,
-      padding: _padding,
-      edgeMargin: tuning.edgeMargin,
-    );
-    _left = placed.rect.left;
-    _down = placed.down;
-    _anchor = _down ? placed.rect.top : placed.rect.bottom;
+    final attachment = _attachment;
+    if (attachment != null) {
+      final placed = placeAttached(
+        attachment: attachment,
+        size: size,
+        bounds: _bounds,
+        padding: _padding,
+        edgeMargin: tuning.edgeMargin,
+      );
+      _left = placed.rect.left;
+      _down = placed.down;
+      _shift = placed.shift;
+      _anchor = _down ? placed.rect.top : placed.rect.bottom;
+    } else {
+      final placed = place(
+        button: _pressed,
+        size: size,
+        bounds: _bounds,
+        padding: _padding,
+        edgeMargin: tuning.edgeMargin,
+      );
+      _left = placed.rect.left;
+      _down = placed.down;
+      _shift = Offset.zero;
+      _anchor = _down ? placed.rect.top : placed.rect.bottom;
+    }
     final reversed = !_down;
     if (reversed != _reversed) {
       _reversed = reversed;
@@ -2724,7 +2985,9 @@ class MorphMenuMotion {
     } else if (_cardContainerActive) {
       _cardContainer.retarget(t, 1, spring: tuning.openSpring);
     }
-    _fusions.add((start: t, opening: true));
+    if (tuning.morph.fuses && drawsSource) {
+      _fusions.add((start: t, opening: true));
+    }
     final reference = MorphSpringState(tuning.openSpring, 0);
     reference.retarget(t, 1);
     _openReference = reference;
@@ -2780,7 +3043,9 @@ class MorphMenuMotion {
     _openGeneration++;
     _resizeGeneration++;
     _phase = _Phase.closing;
-    _fusions.add((start: t, opening: false));
+    if (tuning.morph.fuses && drawsSource) {
+      _fusions.add((start: t, opening: false));
+    }
     _relax(t);
     final reference = MorphSpringState(tuning.closeSpring, 1);
     reference.retarget(t, 0);
@@ -2805,6 +3070,7 @@ class MorphMenuMotion {
         _cardContainer.retarget(s, 0, spring: tuning.cardContainerSpring);
       });
     }
+    if (!tuning.morph.kicks) return;
     _timeline.at(t + tuning.closeKickDelay, (double s) {
       if (generation != _openGeneration || _phase != _Phase.closing) return;
       _sample(s);

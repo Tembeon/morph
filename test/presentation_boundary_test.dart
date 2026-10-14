@@ -108,11 +108,12 @@ void main() {
       tester,
       Center(
         child: MorphContextMenuRegion(
-          below: MorphSatellite(
-            height: 40,
-            builder: (BuildContext context, MorphFlight flight) =>
-                const Text('below'),
-          ),
+          menu: <MorphMenuEntry>[
+            MorphMenuWidget(
+              height: 40,
+              builder: (BuildContext context) => const Text('below'),
+            ),
+          ],
           child: const SizedBox(
             width: 120,
             height: 80,

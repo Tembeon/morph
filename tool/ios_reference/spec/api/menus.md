@@ -52,17 +52,17 @@ only `showMorph` + `MorphTargetSpec.popover`). Passports: [../menu-api.md](../me
 | `UIButton.menu` + `showsMenuAsPrimaryAction = true` (iOS 14) | tap opens the menu | `MorphMenuButton(items:)`, `MorphMenuSource(trigger: MorphMenuTrigger.tap)`, `MorphGlassButton(menu:)`, `MorphBarButton(menu:)` | `items` vs `menu` naming split (see breaking) | keep concept |
 | `UIButton.menu` + primary action (long-press menu) (iOS 14) | tap = action, hold = menu | `MorphMenuSource(trigger: MorphMenuTrigger.hold, onTap:)` | hold timing is the round button's (declared) | keep |
 | `UIButton.changesSelectionAsPrimaryAction` (iOS 15) | pop-up button: title shows the chosen item | none | a common control ("Sort: Date") is missing | add `MorphPopUpButton<T>(value:, onChanged:, items:)` on `MorphMenuSource` with a single-selection section |
-| `UIButton.preferredMenuElementOrder` / `UIContextMenuConfiguration.preferredMenuElementOrder` (iOS 16) | `.automatic/.priority/.fixed` | `MorphMenuSource.order` / `MorphMenuButton.order` (`MorphMenuOrder`) | none on `MorphContextMenuRegion` | keep; add to region with item rows |
+| `UIButton.preferredMenuElementOrder` / `UIContextMenuConfiguration.preferredMenuElementOrder` (iOS 16) | `.automatic/.priority/.fixed` | `MorphMenuSource.order` / `MorphMenuButton.order` (`MorphMenuOrder`) | done: `MorphContextMenuRegion.order` (2026-10-14) | keep |
 | `UIControl.isContextMenuInteractionEnabled` (iOS 14) | menu on/off | `enabled` | none | keep |
-| `UIContextMenuInteraction(delegate:)` + `configurationForMenuAtLocation` (iOS 13) | hold-to-open context menu with UIMenu rows | `MorphContextMenuRegion(child:, above:, below:)` with `MorphSatellite` widgets | NO UIMenu-row context menu: the app builds the rows itself | add `MorphContextMenuRegion.items: List<MorphMenuEntry>` drawing the measured menu card as the `below` satellite |
-| `UIContextMenuConfiguration.previewProvider` (iOS 13) | a different view as the preview | none (the held `child` is the preview; `replica` is only an in-flight stand-in) | "peek" previews (a link, a photo larger than its thumbnail) | add `preview: WidgetBuilder?` |
+| `UIContextMenuInteraction(delegate:)` + `configurationForMenuAtLocation` (iOS 13) | hold-to-open context menu with UIMenu rows | `MorphContextMenuRegion(child:, menu: List<MorphMenuEntry>, accessory:)`: the button menu's card, rows, highlight, flex and slide-to-select | none (closed 2026-10-14) | keep |
+| `UIContextMenuConfiguration.previewProvider` (iOS 13) | a different view as the preview | `MorphContextMenuRegion.preview` (+ `previewSize`, `preferredContentSize`) | none (closed 2026-10-14) | keep |
 | `previewForHighlightingMenu` / `previewForDismissingMenu` + `UITargetedPreview` (iOS 13/16) | which view lifts and where it returns | the region's `child` and its `MorphTag` | can not lift a sub-part or return elsewhere | skip (low) |
 | `UIPreviewParameters.visiblePath` / `backgroundColor` / `shadowPath` (iOS 13/14) | preview shape and fill | none (child draws itself) | can not round a rectangular child while lifted | add `previewShape: ShapeBorder?` (low) |
-| `willPerformPreviewActionForMenu` + `UIContextMenuInteractionCommitStyle .dismiss/.pop` (iOS 13) | tap the preview to commit (pop into it) | none | "peek and pop" missing | add `onPreviewTap` (+ commit into a page via `showMorphRoute`) |
-| `willDisplayMenu` (iOS 13) | menu shows | `MorphContextMenuRegion.onOpen`, `MorphMenuSource.onOpen` (`ValueChanged<MorphFlight>`); region also `onHold` | none | keep |
+| `willPerformPreviewActionForMenu` + `UIContextMenuInteractionCommitStyle .dismiss/.pop` (iOS 13) | tap the preview to commit (pop into it) | `MorphContextMenuRegion.onPreviewTap` (dismiss style; the app pushes its page for pop) | `.pop` morph from preview to page | keep |
+| `willDisplayMenu` (iOS 13) | menu shows | `MorphContextMenuRegion.onOpen`, `MorphMenuSource.onOpen` (`ValueChanged<MorphFlight>`); region also `onHold`; `willEndMenu` = region `onClose` | none | keep |
 | `willEndFor configuration` (iOS 13) | menu closes | none (only via the `MorphFlight` events) | | add `onClose: VoidCallback?` (S) |
 | `updateVisibleMenu(_:)` (iOS 14) | change an open menu | rebuild with new `items` (the open menu follows the widget) | none | keep |
-| `dismissMenu()` (iOS 14) | close programmatically | `MorphFlight.close()` from `onOpen` | indirect | add `MorphMenuSource.close(context)` beside the existing `MorphMenuSource.open(context)` |
+| `dismissMenu()` (iOS 14) | close programmatically | `MorphContextMenuRegion.close(context)`, `MorphFlight.close()` from `onOpen` | none on `MorphMenuSource` | add `MorphMenuSource.close(context)` beside the existing `MorphMenuSource.open(context)` |
 | `menuAppearance .rich/.compact` (iOS 14) | modal with preview vs compact non-modal | rich = `MorphContextMenuRegion`; compact = `MorphMenuSource(trigger: hold)` | read-only in UIKit | skip |
 | `UIContextMenuConfiguration.badgeCount` (iOS 16) | count badge on the lifted multi-item preview | none | | skip (multi-item drag/selection only) |
 | `secondaryItemIdentifiers` (iOS 16) | multi-selection context menus | none | | skip (collection views) |
@@ -77,8 +77,8 @@ only `showMorph` + `MorphTargetSpec.popover`). Passports: [../menu-api.md](../me
 | `menuActionDismissBehavior(.automatic/.enabled/.disabled)` (iOS 16.4) | rows close the menu or not | `dismissOnSelect: bool?` (null = automatic) | bool? instead of an enum | keep |
 | `menuStyle(.button/.borderlessButton/...)` (iOS 14) | label look | `MorphMenuStyle` (colors, `buttonSize`) + `MorphMenuSource.look/shape/color` | concept differs (morph styles the menu, not the label) | keep |
 | `menuIndicator(.visible/.hidden)` (iOS 15) | chevron on the label | none | pairs with the pop-up button | add with `MorphPopUpButton` |
-| `contextMenu(menuItems:)` (iOS 13) | hold menu of rows | `MorphContextMenuRegion` (satellites only) | rows not built in | add `items:` (ranked gap 1) |
-| `contextMenu(menuItems:preview:)` (iOS 16) | custom preview | none | | add `preview:` |
+| `contextMenu(menuItems:)` (iOS 13) | hold menu of rows | `MorphContextMenuRegion(menu:)` | none (closed 2026-10-14) | keep |
+| `contextMenu(menuItems:preview:)` (iOS 16) | custom preview | `MorphContextMenuRegion(menu:, preview:)` | none (closed 2026-10-14) | keep |
 | `contextMenu(forSelectionType:menu:primaryAction:)` (iOS 16) | List/Table selection menus | none | | skip (no morph List selection model) |
 | `Section(title)` / `Divider` (iOS 13) | inline group / separator | `MorphMenuSection(title:)` / `MorphMenuDivider` | none | keep |
 | nested `Menu` (iOS 14) | submenu | `MorphSubmenu` | none | keep |
@@ -100,7 +100,7 @@ only `showMorph` + `MorphTargetSpec.popover`). Passports: [../menu-api.md](../me
 
 ## morph-only API
 - `MorphMenuWidget` (free-form row, no UIKit twin since UIKit 27 has no custom-view element) - keep, declared extension.
-- `MorphContextMenuRegion` satellites (`above` reactions capsule, `below`), `MorphSatellite`, `lifts`, `holdDuration`, `alignment`, `gap`, `margin`, `opensOnSecondaryTap`, `replica` - keep (message-bubble pattern beyond UIKit).
+- `MorphContextMenuRegion.accessory` (`MorphSatellite`, a reactions capsule above the preview; UIKit's accessory views are private), `lifts`, `holdDuration`, `opensOnSecondaryTap`, `replica`, `previewSize` - keep (message-bubble pattern beyond UIKit).
 - `MorphMenuSource.look`, `shape`, `color`, `rimColor`, `focusable`, `MorphMenuItem.iconColor`, static `MorphMenuSource.open` - keep.
 - `MorphMenuMotion`, `MorphMenuTuning`, `MorphMenuProgress`, `MorphMenuBlob`, `MorphMenuCard`, `MorphMenuMorphSpec` - pure measured motion, keep.
 - `MorphMenuLayout`, `MorphMenuMetrics`, `MorphMenuPlaced`, `MorphMenuPlacedKind`, `MorphMenuTarget`, `MorphMenuTargetKind` - layout internals exported; no use in example/ or outside lib. FLAG: hide before 1.0 unless a consumer needs them.
@@ -108,11 +108,11 @@ only `showMorph` + `MorphTargetSpec.popover`). Passports: [../menu-api.md](../me
 ## Ranked gaps
 | # | gap | need | cost | proposal |
 |---|---|---|---|---|
-| 1 | Context menu with standard rows (`UIContextMenuInteraction` + UIMenu, SwiftUI `contextMenu(menuItems:)`) | high | M | `MorphContextMenuRegion(items: List<MorphMenuEntry>, order:)` drawing the measured menu card (sections, submenus, deferred) as the below slot; satellites stay for custom blocks |
+| 1 | Context menu with standard rows (`UIContextMenuInteraction` + UIMenu, SwiftUI `contextMenu(menuItems:)`) | done | - | `MorphContextMenuRegion(menu:, order:, dismissOnSelect:, appearance:)` (2026-10-14) |
 | 2 | Pop-up button (`changesSelectionAsPrimaryAction`, `menuIndicator`) | high | M | `MorphPopUpButton<T>` over `MorphMenuSource`: shows the selected title + chevron, single-selection rows |
 | 3 | Row images beyond `IconData` (`UIMenuElement.image` any image) | med | S | `icon: Widget?` (breaking) or additive `iconBuilder` |
-| 4 | Custom preview + commit (`previewProvider`, `willPerformPreviewAction`, `contextMenu(preview:)`) | med | M | `preview: WidgetBuilder?`, `onPreviewTap` (commit into a page via `showMorphRoute`) |
-| 5 | Programmatic close + close callback (`dismissMenu`, `willEnd`) | med | S | `MorphMenuSource.close(context)`, `onClose` on sources and region |
+| 4 | Custom preview + commit (`previewProvider`, `willPerformPreviewAction`, `contextMenu(preview:)`) | done | - | `preview:`, `previewSize:`, `onPreviewTap` (2026-10-14); `.pop` commit morph open |
+| 5 | Programmatic close + close callback (`dismissMenu`, `willEnd`) | med | S | `MorphMenuSource.close(context)`, `onClose` on sources (region done: `close(context)`, `onClose`) |
 | 6 | Stable row identity (`UIAction.identifier`) for live updates | low-med | S | `MorphMenuItem.id`, `MorphSubmenu.id` |
 | 7 | `maxTitleLines` / `iconVisibility` / `destructive` on every UIMenu level | low | S | add to `MorphSubmenu`, root (sources), `MorphMenuSection.destructive` |
 | 8 | `previewShape` (`UIPreviewParameters.visiblePath`) | low | S | add `previewShape: ShapeBorder?` |

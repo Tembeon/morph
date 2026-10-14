@@ -303,6 +303,36 @@ tool/ios_reference/spec/lifecycle.md "Closed"):
   device replays feed touches 12.5 ms after their stamps, as the device
   delivers them; drag values now replay within 0.003 - 0.5 pt.
 
+- BREAKING: the context menu IS the button menu, as in UIKit.
+  `MorphContextMenuRegion.menu` draws the measured menu card (rows,
+  sections, submenus, highlight, flex, scrolling, keyboard, row
+  haptics) through the button menu's controller, growing out of a blob
+  0.4 of the held view at its center (`MorphMenuAttachment`, fitted to
+  the 17 recorded blobs) on the context morph
+  (`MorphMenuMorphSpec.context`: 0.284 / 0.81 both ways, no kicks, no
+  fusion), 16 pt below the lifted preview, above it when it does not fit
+  (entries reversed), the preview moving with it when it fits nowhere.
+  The held finger slides onto a row and chooses it on release; let go on
+  the preview it leaves the menu open. One vessel flight carries the
+  preview, the accessory, the menu and the dim; the column and its
+  layout-driven satellites are gone. A content-sized accessory or a
+  preview whose content changes while open no longer springs the menu:
+  the accessory grows upward at once, the preview keeps its open size.
+  Device replays (fraction of travel, m / l): menu open 0.43 / 0.46 (was
+  0.46 / 0.50), close 0.78 / 0.77 (was 0.68 / 0.61; the spring's own
+  floor on those frames), width 0.73 / 0.36 (was 0.66 / 1.07), height
+  0.80 / 0.39 (was 0.73 / 0.58); hero and dim replays unchanged.
+- A vessel flight's dim repaints its scrim box per frame instead of
+  rebuilding the vessel's frame chain.
+- `MorphContextMenuRegion.preview` (+ `previewSize`) previews a
+  different view than the held one (`previewProvider`), crossfading as it
+  grows; `onPreviewTap` runs on a tap on the open preview and closes the
+  menu (`willPerformPreviewAction`). The preview is a copy laid out once
+  and moved by a paint-time transform (NEAR: its text is resampled from
+  one raster while it moves): a context menu frame costs the button
+  menu's budget (flat release / close 0/1/23 / 0/1/21 builds / layouts /
+  paints, was 0/19/30).
+
 Migration, old -> new:
 
 | old | new |
@@ -350,6 +380,12 @@ Migration, old -> new:
 | motion, tuning and layout types from `widgets.dart` (`MorphLensMotion`, `MorphSwitchMotion`, `MorphSliderMotion`, `MorphMenuMotion`, `MorphGlassButtonMotion`, `MorphBarMotion`, `MorphLensTuning`, `MorphSearchTuning`, `MorphSheetTuning`, `MorphPopoverPlacement`, `morphPlacePopover`, `MorphFlexSpec`, ...) | `import 'package:morph/motion.dart';` |
 | `MorphGlassSurface`, `MorphGlassKind`, `MorphGlassOptics`, `MorphGlassGlow`, `MorphGlassOutline` | `import 'package:morph/glass_painter.dart';` |
 | `MorphMenuLayout`, `MorphMenuMetrics`, `MorphMenuPlaced`, `MorphMenuPlacedKind`, `MorphMenuTarget`, `MorphMenuTargetKind` | internal |
+| `MorphContextMenuRegion(below: MorphSatellite(...))` | `menu: [MorphMenuItem(...), ...]`; free-form content as `MorphMenuWidget` |
+| `MorphContextMenuRegion(above:)` | `accessory:` |
+| `MorphContextMenuRegion(width:, gap:, alignment:, margin:)` | the menu's own layout (`MorphMenuTuning.menuWidth`, 16 pt gap, centered or edge-aligned like a button menu, `MorphMenuTuning.contextMargin`) |
+| `MorphContextMenuRegion(motion:)` | the context morph (`MorphMenuMorphSpec.context`, `measuredMotion`) |
+| `MorphContextMenuRegion(shadowColor:)` | removed (the vessel casts no shadow; the menu card draws its own) |
+| closing from a satellite with `flight.close()` | `MorphContextMenuRegion.close(context)` (or `flight.close()`) |
 
 ## 0.7.0 - 2026-10-04
 

@@ -190,11 +190,12 @@ void main() {
         ),
         home: Center(
           child: MorphContextMenuRegion(
-            below: MorphSatellite(
-              height: 40,
-              builder: (BuildContext context, MorphFlight flight) =>
-                  const Text('action'),
-            ),
+            menu: <MorphMenuEntry>[
+              MorphMenuWidget(
+                height: 40,
+                builder: (BuildContext context) => const Text('action'),
+              ),
+            ],
             child: Container(
               key: box,
               width: 120,

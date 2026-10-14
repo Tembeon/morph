@@ -204,6 +204,50 @@ class MorphMenuAppearance {
     submenuShadowColor: submenuShadowColor ?? this.submenuShadowColor,
     paletteSelectionColor: paletteSelectionColor ?? this.paletteSelectionColor,
   );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphMenuAppearance &&
+      other.glassColor == glassColor &&
+      other.shadowColor == shadowColor &&
+      other.shadowElevation == shadowElevation &&
+      other.textStyle == textStyle &&
+      other.iconColor == iconColor &&
+      other.disabledIconColor == disabledIconColor &&
+      other.iconSize == iconSize &&
+      other.destructiveColor == destructiveColor &&
+      other.highlightColor == highlightColor &&
+      other.glowColor == glowColor &&
+      other.secondaryColor == secondaryColor &&
+      other.disabledColor == disabledColor &&
+      other.separatorColor == separatorColor &&
+      other.submenuColor == submenuColor &&
+      other.glassTint == glassTint &&
+      other.submenuRimColor == submenuRimColor &&
+      other.submenuShadowColor == submenuShadowColor &&
+      other.paletteSelectionColor == paletteSelectionColor;
+
+  @override
+  int get hashCode => Object.hash(
+    glassColor,
+    shadowColor,
+    shadowElevation,
+    textStyle,
+    iconColor,
+    disabledIconColor,
+    iconSize,
+    destructiveColor,
+    highlightColor,
+    glowColor,
+    secondaryColor,
+    disabledColor,
+    separatorColor,
+    submenuColor,
+    glassTint,
+    submenuRimColor,
+    submenuShadowColor,
+    paletteSelectionColor,
+  );
 }
 
 /// What makes a [MorphMenuSource] open its menu.
@@ -1087,10 +1131,11 @@ typedef _ButtonStructure = ({bool landing, bool still});
 typedef _Look = ({double opacity, double blur});
 
 /// Both shapes of the morph at one frame, in the coordinates of the box
-/// they are drawn in; [menu] is null for the resting button.
+/// they are drawn in; [menu] is null for the resting button, [source] for
+/// a menu without a source shape (a context menu).
 typedef _Shapes = ({
   RRect? menu,
-  RRect source,
+  RRect? source,
   Rect sourceRect,
   double sourceScale,
   double lookStretch,
@@ -1123,6 +1168,7 @@ class _MenuShapes extends StatelessWidget {
     this.content,
     this.menuBlur,
     this.still = false,
+    this.sourced = true,
   });
 
   final MorphMenuAppearance style;
@@ -1135,6 +1181,10 @@ class _MenuShapes extends StatelessWidget {
   final Widget? content;
   final double? menuBlur;
   final bool still;
+
+  /// Whether the morph has a source shape whose look is drawn inside it;
+  /// a context menu grows out of a blob without one.
+  final bool sourced;
 
   @override
   Widget build(BuildContext context) {
@@ -1181,20 +1231,22 @@ class _MenuShapes extends StatelessWidget {
           final menu = now.menu;
           final own = surface?.color;
           final share = 1 - now.look.opacity;
+          final source = now.source;
           return MorphGlassFrame(
             [
-              MorphGlassSurface(
-                kind: MorphGlassKind.button,
-                shape: now.source,
-                color: own == null
-                    ? style.glassColor
-                    : Color.lerp(own, style.glassColor, share)!,
-                tint: own == null
-                    ? style.glassTint
-                    : Color.lerp(own, style.glassTint, share),
-                blurRadius: menu == null ? null : menuBlur,
-                brightness: brightness,
-              ),
+              if (source != null)
+                MorphGlassSurface(
+                  kind: MorphGlassKind.button,
+                  shape: source,
+                  color: own == null
+                      ? style.glassColor
+                      : Color.lerp(own, style.glassColor, share)!,
+                  tint: own == null
+                      ? style.glassTint
+                      : Color.lerp(own, style.glassTint, share),
+                  blurRadius: menu == null ? null : menuBlur,
+                  brightness: brightness,
+                ),
               if (menu != null)
                 MorphGlassSurface(
                   kind: MorphGlassKind.menu,
@@ -1216,27 +1268,28 @@ class _MenuShapes extends StatelessWidget {
       children: [
         Positioned.fill(child: surfaces),
         ?content,
-        Positioned.fill(
-          child: MorphLiveCenter(
-            live: frames,
-            rectOf: () => shapes().sourceRect,
-            // The glyph is laid out in the source's box of the frame,
-            // centered, but again only when that can change it; the
-            // ellipsis is the same box in any box as large.
-            fixedSize: this.glyph is _Ellipsis
-                ? const Size.square(MorphMenuTuning.ellipsisSize)
-                : null,
-            hiddenOf: look ? () => shapes().look.opacity <= 0 : null,
-            ignoring: true,
-            child: look
-                ? _Faded(
-                    frames: frames,
-                    look: () => shapes().look,
-                    child: glyph,
-                  )
-                : glyph,
+        if (sourced)
+          Positioned.fill(
+            child: MorphLiveCenter(
+              live: frames,
+              rectOf: () => shapes().sourceRect,
+              // The glyph is laid out in the source's box of the frame,
+              // centered, but again only when that can change it; the
+              // ellipsis is the same box in any box as large.
+              fixedSize: this.glyph is _Ellipsis
+                  ? const Size.square(MorphMenuTuning.ellipsisSize)
+                  : null,
+              hiddenOf: look ? () => shapes().look.opacity <= 0 : null,
+              ignoring: true,
+              child: look
+                  ? _Faded(
+                      frames: frames,
+                      look: () => shapes().look,
+                      child: glyph,
+                    )
+                  : glyph,
+            ),
           ),
-        ),
       ],
     );
   }
@@ -1552,6 +1605,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             surface: structure.surface,
             menu: true,
             look: true,
+            sourced: motion.drawsSource,
             menuBlur: motion.tuning.cardBlur,
             content: Positioned.fill(
               child: MorphLiveWindow(
@@ -2249,7 +2303,7 @@ class _LayerFrame {
     size = motion.menuRect.size;
     shapes = (
       menu: motion.rootBlob.rrect,
-      source: source.rrect,
+      source: motion.drawsSource ? source.rrect : null,
       sourceRect: source.rect,
       sourceScale: source.scale,
       lookStretch: motion.buttonLookStretch,
@@ -3431,7 +3485,7 @@ class _GlassPainter extends CustomPainter {
   });
 
   final MorphMenuAppearance style;
-  final RRect source;
+  final RRect? source;
   final RRect? menu;
   final MorphGlassOutline? outline;
   final ({Color color, Color? rim})? surface;
@@ -3446,7 +3500,8 @@ class _GlassPainter extends CustomPainter {
       shape = outline.path;
     } else {
       shape = Path();
-      shape.addRRect(source);
+      final source = this.source;
+      if (source != null) shape.addRRect(source);
       if (menu != null) shape.addRRect(menu);
     }
     canvas.drawShadow(shape, style.shadowColor, style.shadowElevation, true);

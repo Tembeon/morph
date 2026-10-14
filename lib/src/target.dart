@@ -177,10 +177,9 @@ class MorphTargetSpec {
   /// default) clips to the morphing outline, so content never spills
   /// past the surface mid-flight. [Clip.none] lets content overflow the
   /// container: for a target whose surface is transparent and whose
-  /// content draws its own surfaces (a held hero with satellites
-  /// unfolding around it), the container is a layout vessel rather
-  /// than a visible mass, and its clip would wipe the satellites in
-  /// along the growing edge.
+  /// content draws its own surfaces (a card with blocks unfolding around
+  /// it), the container is a layout vessel rather than a visible mass,
+  /// and its clip would wipe those blocks in along the growing edge.
   final Clip clipBehavior;
 
   /// The rect this frame: [placeFor] of the measured [content] for a

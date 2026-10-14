@@ -460,7 +460,7 @@ void main() {
         (a) => a.copyWith(paletteSelectionColor: _color).paletteSelectionColor,
         _color,
       ),
-    }, hasEquality: false),
+    }),
     _Case<MorphPageControlAppearance>(
       MorphPageControlAppearance.light,
       (a) => a.copyWith(),

@@ -270,10 +270,12 @@ void main() {
       _app(
         MorphContextMenuRegion(
           onHold: () => held++,
-          below: MorphSatellite(
-            height: 40,
-            builder: (_, _) => const Text('Actions'),
-          ),
+          menu: <MorphMenuEntry>[
+            MorphMenuWidget(
+              height: 40,
+              builder: (BuildContext context) => const Text('Actions'),
+            ),
+          ],
           child: const SizedBox(width: 160, height: 48, child: Text('Hero')),
         ),
       ),

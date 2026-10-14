@@ -1,7 +1,8 @@
 # Context menu passport (THE HOLD)
 
 Status: measured on device (growth, commit, preview, spring, dim,
-retract); ported; replayed (morph_context_menu_test).
+retract); ported; replayed (morph_context_menu_test, menu_context_motion_test).
+Unified with the button menu (2026-10-14): one menu implementation.
 
 ## Native
 
@@ -59,20 +60,37 @@ scene `menu` with `PROBE_CTX=1`.
 
 ## morph
 
-`MorphContextMenuRegion`, `MorphSatellite` (morph_context_menu.dart);
-engine flight on a transparent vessel surface spec; `scrimMotion`
-(`MorphScrimMotion`) for the dim.
+`MorphContextMenuRegion` (morph_context_menu.dart): the hold (growth,
+commit, preview haptic, lift), then ONE vessel flight carrying the
+preview, the accessory (`MorphSatellite`), the button menu's
+`MorphMenuLayer` and the dim (`scrimMotion`, `MorphScrimMotion`). The
+menu rows are `MorphMenuController` / `MorphMenuMotion` on
+`MorphMenuTuning.context` (`MorphMenuMorphSpec.context`: 0.284 / 0.81
+both ways, no kicks, no fusion) with a `MorphMenuAttachment` (blob 0.4
+of the held view at its center, `blobSize`; placement 16 pt off the
+lifted preview, `placeAttached`). The held finger is handed to the
+controller after the hold (`MorphMenuController.holdOpen`); the
+controller launches the region's flight through its `launch` hook.
 
 Per-frame work (lifecycle.md, 2026-10-14): the source, hidden once
-takeoff settled, returns to its natural size at once (it sprang back for
-a second, repainting itself and the page; identical: nothing shows it).
-A flight closed before it settled hands back a source that shows, which
-still springs. While the source grows under the finger or lands it is a
-repaint boundary of its own (`MorphLiveApart`). The shuttle of every
-flight is a repaint boundary. Host: hold 20 paints a frame to 2,
-release 1.41 s to 0.37 s and 54 to 30 paints a frame. Still per frame:
-the vessel follows the morph by layout (19 layouts: the engine's
-shuttle chain).
+takeoff settled, returns to its natural size at once. While the source
+grows under the finger or lands it is a repaint boundary of its own
+(`MorphLiveApart`). The preview is a copy laid out once at the held
+view's natural size inside a repaint boundary and moved by a paint-time
+transform (NEAR: text resampled from one raster); the accessory is laid
+out once and moved the same way; the vessel's dim sits in its own
+repaint boundary. Host (flat / liquid, median per frame b/l/p): release
+0/19/30 -> 0/1/23 / 0/4/28, close 0/0/21 (72 first builds) -> 0/1/21
+/ 0/4/26: the button menu's budget (menu open-inline 0/1/22, 0/6/29).
+
+Replays (fraction of travel, m / l, morph.json): menu open 0.43 / 0.46
+(column: 0.46 / 0.50), close 0.78 / 0.77 (0.68 / 0.61; a spring released
+from rest at its best start fits these frames at 0.76 / 0.75 only, the
+column's extra frame of latency read better), width 0.73 / 0.36 (0.66 /
+1.07: the blob is now 83.2 wide on 300 x 200 as on the device), height
+0.80 / 0.39 (0.73 / 0.58). Preview open / close and dim replays
+unchanged. The pure motion replays the same frames in
+menu_context_motion_test.
 
 ## How UIKit renders it [simulator 2026-10-14 + device lifecycle runs]
 
@@ -109,19 +127,22 @@ held 0.95 s then slid onto a row; device lifecycle-menu-005 for the counts).
 
 ### morph against it
 
-morph's region is a separate machine: an engine flight on a transparent vessel whose
-column (`above`, hero, `below`) the app fills with `MorphSatellite` widgets, moved by
-layout (19 layouts a frame), with its own retract blob, its own live extents and its own
-geometry. None of the button menu's card, rows, highlight, flex, slide-to-select, row
-haptics, submenus, scrolling or keyboard handling is used. The hold (growth, commit,
-haptic, lift), the preview lift and the dim are measured and stay.
+Since the unification (below) the region is a trigger, a preview layer and an accessory
+on top of the button menu, as UIKit's is: the card, rows, highlight, flex,
+slide-to-select, row haptics, submenus, scrolling and keyboard are the button menu's.
+Differences left: one glass layer per surface (no separate full-resolution backdrop for
+the preview), the preview is a copy of the held view (UIKit: a live portal), and the
+button menu's list optimizations (menu-button.md "Optimizations to adopt") apply to both.
 
-Optimizations (ranked): (1) the unification below, which removes the layout-driven column
-and gives the context menu every measured behaviour of the button menu; (2) the preview as a
-composite-only layer (paint-time transform of the held child, no vessel layout per frame);
-(3) the button menu's list (menu-button.md "Optimizations to adopt") then applies to both.
+## Unification design (implemented 2026-10-14, phases 1 - 5)
 
-## Unification design (proposal, not implemented)
+Implemented as designed, with these differences: one vessel flight carries the preview,
+the accessory, the menu and the dim (the menu's controller launches it through a
+`launch` hook), the preview is a composite-only copy from phase 3 on; the accessory is
+centered on the preview and does not spring (a content-sized accessory grows upward at
+once); a preview whose content changes while open keeps its open size; the keyboard does
+not move an open context menu (placement is decided at the open, as for the button
+menu). `previewSize` is morph's `preferredContentSize` for `preview:`.
 
 One menu implementation - the `MorphMenuSource` path: `MorphMenuController` (gesture,
 motion, content, flight), `MorphMenuMotion` / `MorphMenuTuning`, `MorphMenuLayer` (card,
@@ -206,8 +227,10 @@ and (4).
 
 ## Not reproduced / open
 
-- Satellites are app-built columns, not UIMenu rows (no row styling
-  measured for context menus specifically).
+- The accessory's unfold (opacity and 0.4 -> 1 scale from the preview's
+  top edge) and the custom preview's crossfade are not measured.
+- The menu's own close fade (0.35 / 0.85, below) is the button menu's
+  content fade here.
 - The menu view's own fade IS visible [sim 2026-10-14, menu without a
   preview provider, dismissed with `dismissMenu`, layer tree and per-frame
   presentation read live]: `_UIContextMenuView` is a direct child of the
@@ -219,123 +242,43 @@ and (4).
 
 ## API gaps
 
-- `previewProvider` with a different preview view controller than the
-  source (morph always previews the held child itself).
-- Preview commit (`willPerformPreviewAction`, pop into the preview VC).
-- `menuAppearance` compact vs rich, `badgeCount`, `updateVisibleMenu`.
-- A UIMenu-driven action list (morph takes arbitrary satellite widgets).
+- `menuAppearance` compact vs rich, `badgeCount`; `previewProvider`'s
+  commit style `.pop` (the app pushes its page from `onPreviewTap`).
+- Closed by the unification: `menu:` rows, `preview:` (+ `previewSize`),
+  `onPreviewTap`, `onClose`, `close(context)`, `order`,
+  `dismissOnSelect`, `appearance`; `updateVisibleMenu` is a rebuild with
+  new entries.
 
-## Implementation notes (morph side, moved from CLAUDE.md)
+## Implementation notes (morph side)
 
-- Flight container: a TRANSPARENT VESSEL surface spec (color 0x00000000,
-  elevation 0, clipBehavior none) - not `MorphTargetSpec.vessel`: the hero
-  draws its own surface and flies as a MorphSharedElement with fade none;
-  the vessel's contentAlignment is COMPUTED so the hero slot coincides
-  with the flying hero at every spring value - A = heroOffset / (column
-  size - hero size) per axis - so the satellites ride the hero as one rigid
-  body and arrive WITH the surface. The hero stays put unless the column
-  leaves the safe area (or the keyboard edge); then the whole column shifts
-  (Telegram's shift).
-- LIFT (`lifts`, replaced `pressGrow`): glass-button model, uniform scale
-  by `MorphFlexSpec.forSize(size).liftScalePoints`, press on the tracking
-  spring, release on the scale spring, on a SingleMotionController.
 - Gesture: the State OWNS a TapGestureRecognizer (onTapDown lifts -
   deferred to the touch deadline inside a scrollable, so a scroll never
-  flashes it; onSecondaryTapUp opens) and a LongPressGestureRecognizer
-  (duration = the commit point, recreated on change - a RawGestureDetector
-  cannot swap a constructor argument without remounting, and a remount
-  re-registers the MorphTag mid-frame); fed from a raw Listener with
-  deferToChild. The press transform sits ABOVE the tag so the flight takes
-  off from the lifted pixels; the natural rect is measured from the
-  region's own box above the transform. After the hold wins the press is
-  FROZEN (a tap cancel must not start a second spring under a flight
-  re-reading the transformed rect - the hero would shake), released once
-  takeoff settles or the flight closes.
-- Growth clock: a Ticker started on the pointer down (first frame after
-  the touch is t = 0; shown only once the tap is down); past the commit a
-  release opens the menu and a Timer opens it at holdDuration. The tap's
-  cancel arrives BEFORE the winner's onLongPressStart, so _drop's verdict
-  waits a microtask; pointer up / cancel on the raw Listener stops the
-  clock (a swipe taken before the touch deadline never sends tap
-  down/cancel).
-- The marker for `MorphContextMenuRegion.open(context)` lives INSIDE the
-  tag child so the shuttle's hero copies carry it (a "more" glyph in the
-  open menu retargets instead of asserting).
-- LIVE COLUMN: the hero slot and every content-sized satellite are
-  measured by MorphContentMeasure; their extents spring on the flight's
-  open motion on per-extent SingleMotionControllers on the REGION STATE's
-  tickers (springs vsync'd by the flight's scope tripped its
-  disposed-with-active-ticker assert, because flight.closed completes a
-  microtask late), disposed with the flight or the State. Rect AND
-  contentAlignment are read live: _MenuTarget extends MorphTargetSpec,
-  overrides the alignment getter and hands the geometry as `repaint`, so
-  frame, alignment and slots move in ONE frame; at value 1 the alignment
-  offset vanishes whatever A is. Slots clip natural-size content while the
-  extent catches up. A child or satellite change while open rebuilds the
-  menu (didUpdateWidget -> flight.markNeedsBuild, deferred).
-- TEXT STYLE: every copy of the hero (the shuttle's source replica, the
-  menu slot, the flying layer) sits under the shuttle's Material, whose
-  default text style (the theme's body) replaced the page's; a hero whose
-  content fills its height overflowed its slot, sized from the source
-  (1.6 pt on the gallery's list rows). The region wraps each copy in its
-  own DefaultTextStyle (context_menu_text_style_test).
-- `replica:` = source-side copy only (no snapshotGhost: without a live
-  source marker the pair cannot form); `opensOnSecondaryTap` leaves the
-  right click to an ancestor; onHold = the threshold (haptic moment),
-  onOpen hands out the flight; the region does NOT abort its flight on
-  dispose - a hero deleted from its own menu dissolves via the engine's
-  source-lost path.
-- PREVIEW port: the menu's hero slot is the LIFTED hero (slotWidth /
-  slotHeight = natural extents x scale; the copy laid out at natural size
-  inside OverflowBox + Transform.scale from the top left, so text never
-  rewraps), placed about the launch rect's center; satellites stand `gap`
-  off the lifted hero and the safe-area clamp sees the lifted column. The
-  flight lerps the shared hero from the grown source to the lifted slot
-  (60x40 shrinks 74.9 -> 69, 300x200 grows 314.9 -> 326) and home to
-  natural.
-- SPRING port: `measuredMotion` = MorphMotion.springs(measuredSpring both
-  ways), default for the region (explicit motion > MorphTheme >
-  measuredMotion) - no exemption needed. Container size and concentric
-  radius extrapolate above 1 in the engine. _Retract uses that same
-  morphFlightGeometry helper for the satellite's blob-to-slot rect, with
-  no separate Rect.lerp overshoot formula or extra scale. The column lays
-  content out at its natural size, so merely clamping _Retract would erase
-  the satellite's size overshoot even as the outer container grows: the
-  device replay's width/height peaks would become exactly 1.0. The menu
-  rect's own size interpolation is applied once through the engine helper.
-  The close's residual undershoot
-  plays on the SOURCE hero (_followLanding: the press Transform adds
-  min(value, 0) x (measuredPreviewScale - 1) while isLanding).
-- DIM port: through the engine's scrim channel
-  (`MorphContextMenuRegion.measuredDim` = MorphScrimMotion with the
-  measured springs and delays, `measuredDimOpacity(brightness)` the
-  ceiling; explicit maxScrimOpacity > MorphTheme > measured). Replay vs
-  dim.json aligned at each side's geometry start: 0.0014 open / 0.0009
-  close rms of alpha, light and dark.
-- BLOB placement: where it is SEEN - the held view's center, found through
-  the column's content alignment inside the vessel's value-0 rect, with the
-  shuttle's 0.95 reveal scale divided out (`morphTargetRevealScale`,
-  frame.dart); at the lifted slot's center a below satellite sat 15 pt low
-  (300x200: 314.6 vs 300). Engine fix this needed: the shuttle's target
-  anchor sits BELOW the reveal Transform.scale (target rects in layout
-  space).
-- Replays (morph_context_menu_test): device morph group (menu open/close
-  and hero close under 1 percent of travel at the best start, normalized by
-  the DEVICE endpoints - held center 300, device menu rect; hero vs
-  preview.json under 0.12 pt open / 0.25 close); device preview group
-  (s/m/t/l: open size and center exact, menu at the device rect, never
-  back through natural size while open).
-- Engine size-overshoot change (2026-10-04): menu center RMS as percent of
-  device travel, before -> after: ctxd-m-1 open 0.473 -> 0.456, close
-  0.680 -> 0.680; ctxd-l-1 open 0.487 -> 0.499, close 0.614 -> 0.614.
-  Hero close remains 0.528 / 0.559 percent respectively. Menu size RMS is
-  unchanged: width 0.659 / 1.069 percent, height 0.726 / 0.577 percent;
-  the larger width error includes the blob-width gap below. Size peaks
-  remain above 1, with no widget-specific overshoot formula.
-- Not reproduced: the blob's WIDTH for a menu narrower than the lifted
-  hero (300x200: device 83.2 x 80, ours 92 x 80 - our blob is 0.4 of the
-  slot, the 250 pt menu centered in the 326 pt slot). The native preview
-  ramps linearly from 0.2 s and pops at the commit (the growth law above
-  is the measured replacement).
+  flashes it; onSecondaryTapUp opens) and a long press advanced by the
+  hold ticker, fed from a raw Listener with deferToChild; a third arena
+  member keeps a held press from a scrollable. The press transform sits
+  ABOVE the tag so the flight takes off from the lifted pixels; the
+  natural rect is measured from the region's own box above the
+  transform. After the hold wins the press is FROZEN, released once
+  takeoff settles or the flight closes. The same Listener routes the
+  held finger's moves and release to the menu controller.
+- Growth clock: a Ticker started on the pointer down; past the commit a
+  release opens the menu and the ticker opens it at holdDuration. The
+  tap's cancel arrives BEFORE the winner's onLongPressStart, so the
+  drop's verdict waits a microtask.
+- The marker for `open(context)` / `close(context)` lives inside the
+  tag child and in every overlay copy (preview, accessory, menu rows).
+- TEXT STYLE: every overlay copy of the held view sits under the
+  shuttle's Material; the region wraps it in the source's own text style
+  (`sourceThemes.wrapText`, context_menu_text_style_test).
+- PREVIEW: `_PreviewLayer` lays the copy out at the held view's natural
+  size at the overlay origin and transforms it onto
+  `Rect.lerp(sourceRect, preview, value)` (the grown source on the open,
+  the natural one on the close; overshoot included). The close's residual
+  undershoot plays on the SOURCE (`_followLanding`: the press transform
+  adds min(value, 0) x (measuredPreviewScale - 1) while landing).
+- DIM: the engine's scrim channel (`measuredDim`, `measuredDimOpacity`);
+  replay vs dim.json 0.0014 open / 0.0009 close rms of alpha.
+- The region does NOT abort its flight on dispose: a held view deleted
+  from its own menu dissolves via the engine's source-lost path.
 
 - Reduce Motion and haptics, read from UIKit (notes private): the held preview stays at scale 1 (ported), the presentation fades without the morph (device pass pending); the preview tap haptic at the hold, a selection haptic per row under a sliding finger. See states.md.
