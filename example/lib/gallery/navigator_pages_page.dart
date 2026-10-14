@@ -347,6 +347,7 @@ class _Photo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MorphNavigationScaffold(
     title: 'Photo ${index + 1}',
+    largeTitleDisplayMode: .never,
     backgroundColor: _palette[index],
     edgeEffect: null,
     slivers: const [

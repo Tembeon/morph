@@ -348,6 +348,7 @@ class _Zoomed extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MorphNavigationScaffold(
     title: 'Photo ${index + 1}',
+    largeTitleDisplayMode: .never,
     subtitle: 'Drag down to zoom back',
     backgroundColor: _palette[index],
     edgeEffect: null,

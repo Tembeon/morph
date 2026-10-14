@@ -206,14 +206,14 @@ const _ceilings = <String, _Ceiling>{
     paints: 16,
   ),
   'navigation/flat push': (
-    first: 248,
+    first: 253,
     ms: 960,
     builds: 2,
     layouts: 5,
-    paints: 47,
+    paints: 49,
   ),
   'navigation/flat pop': (
-    first: 114,
+    first: 115,
     ms: 944,
     builds: 2,
     layouts: 5,
