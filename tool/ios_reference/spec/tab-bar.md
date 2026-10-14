@@ -190,10 +190,20 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
 
 ## API gaps
 
-- Badges exist (`MorphTabItem.badge`, `MorphBadge`) with geometry by eye
-  (17 pt systemRed capsule at the glyph's top trailing corner), NOT
-  measured; `selectedImage` exists (`selectedIcon`, drawn inside the lens);
-  reselection (`onReselected`) fires on release, its timing not measured.
+- Badges exist (`MorphTabItem.badge`, `MorphBadge`): the bar badge's
+  metrics (see bars.md) [read from UIKit, notes private]. Placement: its
+  leading edge 5 pt inside the image's trailing edge (ported against the
+  24 pt glyph box - UIKit uses the symbol image's own frame, NEAR), its
+  top 2 pt below the tab button's top (stacked style); the button frame
+  relative to the glyph is not known, so morph keeps the badge top 6 pt
+  above the glyph by eye - needs a device check. UIKit also keeps the
+  badge inside the button bounds outset by a configuration margin (not
+  read). `selectedImage` exists (`selectedIcon`, drawn inside the lens).
+  Reselection (`onReselected`) fires on release: UIKit's floating tab bar
+  decides a reselect of the highlighted item at the lift and fails it when
+  the lift is outside (`shouldReselectHighlightedItemOnLift`,
+  `shouldFailSelectionOnLiftOutside`) [read from UIKit field names]; any
+  delay after the lift is not traced.
   Subtitles, tab groups, hidden tabs.
 - `tabBarMinimizeBehavior` (bar collapsing on scroll) - not measured; the probe can already set it (`w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
 - `bottomAccessory` (mini player above the bar) - not measured.

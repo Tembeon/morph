@@ -1879,9 +1879,11 @@ class _MorphBarItemsState extends State<MorphBarItems>
   ) {
     final capsuleId = _capsuleOf[id];
     final menu = _menu;
+    final badgeFrame = button.badge == null ? null : _badgeFrame(id, capsuleId);
     final inputs = (
       _ButtonKey(button),
       capsuleId,
+      badgeFrame,
       capsuleId != null && (_prominent[capsuleId] ?? false),
       style,
       direction,
@@ -1897,9 +1899,33 @@ class _MorphBarItemsState extends State<MorphBarItems>
       style,
       direction,
       capsuleId: capsuleId,
+      badgeFrame: badgeFrame,
     );
     _itemWidgets[id] = (inputs, built);
     return built;
+  }
+
+  /// Where a badge of the item [id] sits: the item's box size and the
+  /// rounded rectangle, in the box's coordinates, whose top trailing corner
+  /// it centers on. UIKit takes the whole capsule when the item is alone in
+  /// it, else the item's own width over the capsule's height, both with the
+  /// capsule's corner radius (read from UIKit, notes private).
+  ({Size item, Rect capsule, double radius})? _badgeFrame(
+    Object id,
+    Object? capsuleId,
+  ) {
+    final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
+    if (capsule == null) return null;
+    Rect? item;
+    for (final i in capsule.items) {
+      if (i.id == id) item = i.rect;
+    }
+    if (item == null) return null;
+    final c = capsule.rect;
+    final local = capsule.items.length == 1
+        ? c.shift(-item.topLeft)
+        : Rect.fromLTWH(0, c.top - item.top, item.width, c.height);
+    return (item: item.size, capsule: local, radius: c.height / 2);
   }
 
   Widget _buildItem(
@@ -1908,6 +1934,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     MorphBarAppearance style,
     TextDirection direction, {
     required Object? capsuleId,
+    required ({Size item, Rect capsule, double radius})? badgeFrame,
   }) {
     final prominent = capsuleId != null && (_prominent[capsuleId] ?? false);
     final color = prominent
@@ -1955,6 +1982,15 @@ class _MorphBarItemsState extends State<MorphBarItems>
         child: content,
       ),
     );
+    if (badgeFrame != null) {
+      content = MorphBadged.corner(
+        badge: button.badge,
+        itemSize: badgeFrame.item,
+        capsule: badgeFrame.capsule,
+        radius: badgeFrame.radius,
+        child: SizedBox.fromSize(size: badgeFrame.item, child: content),
+      );
+    }
     final VoidCallback? tap = !button.interactive
         ? null
         : button.opensMenuOnTap
@@ -2399,11 +2435,7 @@ class _ButtonContent extends StatelessWidget {
             child: Center(child: button.icon),
           ),
         );
-    return Center(
-      child: button.badge == null
-          ? content
-          : MorphBadged(badge: button.badge, child: content),
-    );
+    return Center(child: content);
   }
 }
 

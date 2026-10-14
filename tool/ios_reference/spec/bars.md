@@ -358,9 +358,20 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 - `largeTitleDisplayMode` inline variant (automatic / always / never exist;
   automatic follows the page below, the first page
   `MorphNavigationStack.prefersLargeTitles`).
-- Bar button badges exist (`MorphBarButton.badge`, `MorphBadge`): a 17 pt
-  systemRed capsule with 12 pt semibold text at the icon's top trailing
-  corner, a 10 pt dot; geometry and appear / change motion NOT measured.
+- Bar button badges exist (`MorphBarButton.badge`, `MorphBadge`)
+  [read from UIKit, notes private; ported in badge.dart]: systemRed fill,
+  white text, caption 1 medium (12 pt w500); height = text line + 2 + 2,
+  side padding 4, width at least the height and at most 64; a badge
+  without text (indicator) is an 18 pt circle; corner radius half the
+  shorter side. It centers on the 45 degree point of the capsule's top
+  trailing corner (the whole capsule when the item is alone in it, else
+  the item's width over the capsule's height, capsule corner radius); a
+  wide badge shifts toward the item so its trailing edge reaches at most
+  10 pt past that point. UIKit formats a count with the locale's grouping
+  (morph: plain digits). Motion: a new badge fades in from 0, a removed
+  one fades out, size / place changes ride the bar's update animation; NOT
+  ported (static badge) - the curve is the bar's and needs a device
+  check.
   `hidesSharedBackground` (an item outside the capsule);
   `sharesBackground = false`; fixed / flexible spaces as API.
 - Search bar integration placements in the nav bar / toolbar (morph has only

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/widgets/badge.dart';
 import 'package:morph/widgets.dart';
 
 const _screen = Size(402, 874);
@@ -240,6 +241,36 @@ void main() {
     );
     await _settle(tester);
     expect(find.text('3'), findsOneWidget);
+    final item = tester.getRect(find.byType(MorphBadged));
+    final badge = tester.getRect(
+      find.ancestor(of: find.text('3'), matching: find.byType(Container)),
+    );
+    expect((badge.center - item.topRight).distance, lessThan(10));
+    expect(badge.width, greaterThanOrEqualTo(badge.height));
+  });
+
+  test('a bar badge stays within 10 points past its corner', () {
+    const item = Size(44, 44);
+    final capsule = Offset.zero & item;
+    const wide = Size(40, 18);
+    final ltr = MorphBadged.cornerOrigin(
+      size: wide,
+      itemSize: item,
+      capsule: capsule,
+      radius: 22,
+      rtl: false,
+    );
+    final inset = 22 * (1 - 0.7071067811865476);
+    expect(ltr.dx + wide.width, moreOrLessEquals(44 - inset + 10));
+    final rtl = MorphBadged.cornerOrigin(
+      size: wide,
+      itemSize: item,
+      capsule: capsule,
+      radius: 22,
+      rtl: true,
+    );
+    expect(rtl.dx, moreOrLessEquals(inset - 10));
+    expect(MorphBadgeMetrics.sizeOf(null), const Size.square(18));
   });
 
   test('badges hide when empty', () {
