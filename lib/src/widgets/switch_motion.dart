@@ -21,6 +21,13 @@ import 'package:morph/src/widgets/timeline.dart';
 /// commit after [colorDelay]. The release keeps the committed state if
 /// the drag ever committed and toggles like a tap otherwise.
 ///
+/// For Reduce Motion ([reducedMotion]) the knob never lifts or grows and
+/// a drag holds it between the ends without the rubber band; its travel
+/// and the track color move as usual. Read from UIKit, notes private:
+/// UISwitch lifts its knob only while pressed without Reduce Motion,
+/// keeps the 37 x 24 knob size for a press under it, and clamps a dragged
+/// knob instead of rubber-banding it.
+///
 /// Times are seconds and positions pixels along the track.
 ///
 /// The switch settles once every part's remaining swing is below
@@ -102,6 +109,18 @@ class MorphSwitchMotion {
   /// Called with the new value whenever the user toggles the switch.
   ValueChanged<bool>? onChanged;
 
+  /// Called with the state the switch shows whenever a touch changes it:
+  /// a drag committing or uncommitting, and a release that toggles. This
+  /// is the moment UIKit plays the switch's haptic (read from UIKit,
+  /// notes private: `interactiveChangeToDisplayedOn:`).
+  ValueChanged<bool>? onDisplayedChanged;
+
+  /// Whether the switch moves for Reduce Motion: no lift and no rubber
+  /// band (see the class documentation).
+  bool get reducedMotion => lens.reducedMotion;
+
+  set reducedMotion(bool value) => lens.reducedMotion = value;
+
   /// Whether the switch is on.
   bool get value => _value;
 
@@ -154,7 +173,10 @@ class MorphSwitchMotion {
     final slop = _slop ??= t - _downT < deadZoneWindow ? deadZone : 0;
     final dx = x - downX;
     if (dx.abs() <= slop) return;
-    final target = _band(_downKnob + dx - slop * dx.sign);
+    final position = _downKnob + dx - slop * dx.sign;
+    final target = reducedMotion
+        ? position.clamp(0.0, travel)
+        : _band(position);
     _knob.retarget(t, target);
     final far = _value ? 0.0 : travel;
     final start = _value ? travel : 0.0;
@@ -164,9 +186,11 @@ class MorphSwitchMotion {
       _committed = true;
       _everCommitted = true;
       _colorLater(t, on: !_value);
+      onDisplayedChanged?.call(!_value);
     } else if (_committed && atStart) {
       _committed = false;
       _colorLater(t, on: _value);
+      onDisplayedChanged?.call(_value);
     }
   }
 
@@ -175,10 +199,12 @@ class MorphSwitchMotion {
     advance(t);
     if (_downX == null) return;
     _downX = null;
-    final next = _everCommitted ? _committed != _value : !_value;
+    final shown = _committed != _value;
+    final next = _everCommitted ? shown : !_value;
     _timeline.clear();
     _settle(t, next: next);
     lens.unlift(t);
+    if (next != shown) onDisplayedChanged?.call(next);
   }
 
   /// The touch was cancelled; the switch keeps its value.

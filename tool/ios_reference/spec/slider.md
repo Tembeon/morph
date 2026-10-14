@@ -19,13 +19,25 @@ thumbless), `trackConfiguration` (`UISliderTrackConfiguration`:
 ## Spec
 
 - Only the thumb is a handle; a track tap does nothing.
-- Pan after `panSlop` 11 pt (slow device drags and simulator agree; fast
-  device starts recognize later - synthesizer delivery).
-- value = value0 + finger travel / FULL track width (device divisors
-  298 - 302 for 300, 199 - 200 for 200); thumb follows the value directly,
-  trailing the finger.
+- Pan [read from UIKit, notes private; device-checked]: a plain pan with
+  hysteresis `panSlop` 10 pt begins on the first move at |dx| >= 10 and
+  counts only the travel past 10 (UIKit removes the hysteresis from the
+  translation). The same for continuous and stepped sliders. A pan whose
+  begin had to wait on another gesture instead resets its translation and
+  counts from the touch where it began (`pointerMove(begin: true)`); in
+  the recordings something outside the slider held a few starts (device
+  drag-slow w200/w300, glide-v400 w200/w300; simulator pastend*,
+  paststart, fling*), identified from each drag's first valueChanged.
+  Every other device drag counts from exactly 10.00 pt.
+- value = value0 + travel past the slop / FULL track width; thumb follows
+  the value directly, trailing the finger. Replayed device valueChanged
+  rms 0.003 - 0.46 pt (glide-v400 w300 1.4), with the touches fed 12.5 ms
+  after their stamps: every valueChanged reflects a touch 12 - 17 ms old
+  and none 5 - 10 ms old, so the probe stamps synthesized touches before
+  UIKit gets them (the old fit's slop 11 at the first touch past it was
+  absorbing that delay).
 - NO catch-up at the ends [device, 200/260 pt, 40-80 pt past]: value hits an
-  end with the finger leading by ~11 + 37 x (1 - value0) pt; the stretch
+  end with the finger leading by ~10 + 37 x (1 - value0) pt; the stretch
   starts only there; the return re-enters where it left (no re-basing).
 - Past an end the WHOLE track stretches: near edge rubber band 13/0.74, far
   edge 0.357 of it, height thins 6 - 0.2936 n; springs back ~0.63/0.85
@@ -33,10 +45,10 @@ thumbless), `trackConfiguration` (`UISliderTrackConfiguration`:
 - Glide after a moving release: release speed held `glideCoast` 0.04 s,
   then exponential decay `glideDecay` 0.083 s (total 0.123 s x v), stopped
   at the ends [device].
-- Thumb rms vs device: 0.4 - 1.9 pt slow drags, 3.4 fast.
+- Thumb rms vs device: 0.34 - 0.62 pt slow drags, 1.5 - 3.2 fast.
 - `setValue:animated: YES` [tuning + fit, sim 2026-10-14]: the glass
   slider moves fill and thumb per frame (no CAAnimation) on
-  `_UIFluidSliderSettings.programmaticUpdate` = response 0.4, damping 0.8
+  the programmatic-update spring = response 0.4, damping 0.8
   (read from UIKit, notes private); fill fits 0.400 - 0.404 / 0.79 - 0.80
   for jumps 0.01 to 0.8 (rms <= 0.16 pt, 300 pt track), start one frame
   after the call, overshoot 1.5 percent of the jump at every distance. NOT
@@ -50,13 +62,30 @@ thumbless), `trackConfiguration` (`UISliderTrackConfiguration`:
   max) - full = whole track, empty = nothing. Mid-track the fill presentation
   trails a fast value by one frame.
 - Ticks (`numberOfTicks`): dots 3 pt at 18 + i travel / (n - 1), 8.5 below
-  the center, static under the stretch, colors 0xC6C6C8 / 0x38383A; value =
-  nearest stop of the finger-mapped value; thumb AND fill show
-  stop + sign h min(0.72, f^4.5) (f = distance to stop / half step h) on a
-  0.03 crit follow spring; settle 0.035 s after release on 0.115 crit; no
-  glide. Replay rms fill 1.6 / thumb 1.3 pt (probe rows show the PREVIOUS
-  frame - feed touches one frame early). 0.72 hold is a compromise (moving
-  frames reach 0.8 h, still finger 0.71).
+  the center, static under the stretch, colors 0xC6C6C8 / 0x38383A.
+- Ticks motion [read from UIKit 27.0.1, notes private; device-checked]: the
+  glass slider drags with UIKit's elastic fluid-slider driver. Place p =
+  finger-mapped value, applied at once (no smoothing). Thumb AND fill show
+  T + D u^5, T = nearest stop (a tie keeps the lower), u = (p - T) / D,
+  D = half the gap to the neighbour on p's side (0 beyond the outer stops:
+  p shows as is). No cap, no velocity term: speed only decides how long the
+  finger dwells in the steep band near the midpoint (u^5 < 0.03 for
+  u < 0.5), so a fast drag jumps stop to stop and a slow one shows the thumb
+  between. Value = nearest stop. Release: target = nearest stop of
+  p + 0.099 s x release speed when that projection is 10 pt or more, else
+  of p; p springs there on 1.0 / 0.4 s from the release speed, shown
+  through the same curve; no glide. Detent haptic when the nearest inner
+  stop changes (not ported: the package has no haptics seam; apps would
+  watch the reported value). Device check: every off-stop device thumb of
+  ticks5-video-dark and ticks5-drag (x - tx) inverted through u^5 lands on
+  the 1/3 pt touch grid (median 0.002 / 0.008 pt; exponent 4.5 gives 0.065).
+  Timing replay rms fill 1.77 / thumb 1.47 pt with the pan counting past
+  10 pt and the 12.5 ms touch delivery (fitted law before: 1.6 / 1.3).
+  Not ported: the over-shoot of p past an outer stop on release (clamped;
+  UIKit rubber-bands it).
+- `allowsTickValuesOnly = NO` [read, not ported]: D = 0.05 of the track
+  around each stop, only within 0.05 of one (free tracking elsewhere);
+  value and release target snap only inside that zone.
 - Lifted thumb: shrink 0 (track unchanged inside).
 
 ## Disabled [device, light + dark, 2026-10-03]
@@ -91,8 +120,8 @@ example/integration_test/slider_video_test.dart.
 controls_test, controls_scroll_test (a drag taken over by the list returns
 to its start value), slider_ticks_rest_test and
 slider_ticks_device_clock_test (a stepped thumb leans off its stop only
-while the finger is down - the measured hold, device recording 0.68 h at a
-still finger - and rests on the stop after every release, tap, fling,
+while the finger is down - by the detent curve - and rests on the stop
+after every release, tap, fling,
 cancel, loss to a list, disable, parent change and keyboard step; touches
 stamped as the device delivers them). A keyboard or screen reader step of a
 stepped slider goes to the next stop on that side, so a value set between
@@ -110,7 +139,7 @@ lens-and-flex.md "Rest").
   (renderer issue, not package motion).
 - Owner report "native thumb reaches the end under the finger" did not
   reproduce with synthesized touches; a hand-recorded probe drag is next.
-- Reduce Motion unmeasured (plan in states.md).
+- Reduce Motion read from UIKit (notes private): the thumb never lifts ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)). End and detent haptics, Increase Contrast fill: states.md.
 
 ## API gaps
 

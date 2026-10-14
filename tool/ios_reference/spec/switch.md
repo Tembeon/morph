@@ -71,7 +71,7 @@ its knob's frames repaint the switch, not the page around it.
 
 ## Not reproduced / open
 
-- Reduce Motion unmeasured (plan in states.md).
+- Reduce Motion read from UIKit (notes private): no lift, knob stays 37 x 24, a dragged knob is clamped without the rubber band; ported, device pass pending ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)). Increase Contrast table and toggle haptic: states.md.
 
 ## API gaps
 

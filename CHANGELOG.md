@@ -10,6 +10,13 @@ release, following the API parity audit
 and option names, written in Flutter idioms. BREAKING throughout, with
 no behaviour or pixel change: every rename keeps what the old name did.
 
+- Accessibility read from UIKit: Reduce Motion branches for the switch,
+  slider, segmented control, tab bar, alert, popover, navigation
+  (cross-fade), context menu hold and date picker overlay; Increase
+  Contrast tables (`lightHighContrast` / `darkHighContrast`) under
+  `MediaQuery.highContrast`; UIKit's control haptics through
+  `HapticFeedback`, on by default, switched by
+  `MorphWidgetsTheme.haptics`.
 - BREAKING: look tables are `*Appearance` and every widget takes its
   table as `appearance:` (UIKit precedent: `UINavigationBarAppearance`);
   `*Style` now names only variant enums, as in UIKit
@@ -217,6 +224,25 @@ tool/ios_reference/spec/lifecycle.md "Closed"):
 - Fixed: an arrow key or screen reader step on a stepped `MorphSlider`
   whose value sat between stops moved it by a step's length and left the
   thumb between stops; it now goes to the next stop on that side.
+- BREAKING: a stepped `MorphSlider` moves as UIKit's own detent code (read
+  from UIKit; device thumbs invert through it onto the touch pixel grid):
+  thumb and fill show stop + h u^5 (u = the finger's fraction of the way
+  to the midpoint, h the half step) with no cap and no follow spring, so a
+  fast finger jumps stop to stop and a slow one shows the thumb between.
+  A release projects the place 0.099 s of release speed ahead (when that
+  is 10 pt or more), picks the nearest stop and springs there (0.4 s,
+  critical) from the release speed through the same curve. `tickCurve`,
+  `tickHold`, `tickFollowSpring` and `tickReleaseDelay` give way to
+  `tickExponent` 5, `tickProjection` and `tickProjectionThreshold`;
+  `tickReleaseSpring` is 0.4 / 1.
+- `MorphSlider`'s drag starts as UIKit's pan (read from UIKit): it begins
+  at 10 pt of travel (`MorphSliderMotion.panSlop`, was 11) and the value
+  counts only the travel past it, continuous and stepped alike; before, it
+  counted from the first touch past 11 pt. New
+  `MorphSliderMotion.pointerMove(begin:)` starts a drag that had to wait
+  from where it begins, as UIKit resets a waited pan's translation. The
+  device replays feed touches 12.5 ms after their stamps, as the device
+  delivers them; drag values now replay within 0.003 - 0.5 pt.
 
 Migration, old -> new:
 

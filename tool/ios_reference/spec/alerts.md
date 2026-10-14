@@ -162,3 +162,5 @@ UpdateAtlasBitmap in frames over budget (bench-matrix-night).
   the glass - an Opacity above the glass read an empty backdrop (a gray
   platter while fading). Filmed against UIKit on the device,
   references/alert-video/ (native top, ours bottom).
+
+- Reduce Motion and haptics, read from UIKit (notes private): the alert presents from scale 1 (fade only), a popover keeps its size; a finger sliding onto another action plays a selection haptic; Increase Contrast table. See states.md.

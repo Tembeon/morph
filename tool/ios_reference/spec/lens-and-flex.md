@@ -151,7 +151,7 @@ Sub-clock runs at the DEVICE refresh rate (`motionFrameRate` 120, 60 on a
 - Lens geometry refreshing at ~60 Hz on a 120 Hz device (integrator eats
   repeated values: a 60 Hz ripple).
 - Tab bar bar-local one-frame glitch (rows with y ~ 31).
-- Reduce Motion: never captured; `reducedMotion` is an approximation.
+- Reduce Motion: read from UIKit (notes private): lenses never lift; travel per `MorphLensTuning.reducedMotionTravelSpring`; the deformation staying off is still an approximation ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)).
 
 ## Implementation notes (moved from CLAUDE.md)
 

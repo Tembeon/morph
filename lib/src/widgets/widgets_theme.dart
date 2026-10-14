@@ -39,6 +39,7 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
   /// Creates the extension; null fields fall through to the built-ins.
   const MorphWidgetsTheme({
     this.tint,
+    this.haptics,
     this.segmentedControl,
     this.tabBar,
     this.switchAppearance,
@@ -68,6 +69,31 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
   /// parameter or an appearance (passed to the control or set here) wins
   /// over it.
   final Color? tint;
+
+  /// Whether the controls play the haptics their UIKit counterparts play,
+  /// through Flutter's [HapticFeedback]; null and true play them, false
+  /// keeps every control silent.
+  ///
+  /// The events and their moments are read from UIKit (notes private):
+  /// a switch toggled by touch (a light impact, also when a drag commits
+  /// or uncommits), a slider reaching either end while dragged (an
+  /// impact) and a stepped slider's new stop (a selection tick), a page
+  /// control scrubbed to another page and a date picker wheel crossing a
+  /// row (selection ticks), a context menu reaching its preview (a full
+  /// strength tap) and a finger sliding onto another menu row or alert
+  /// action (selection ticks). Segmented controls, tab bars, steppers,
+  /// buttons, sheets and navigation play none, as in UIKit.
+  ///
+  /// The mapping onto [HapticFeedback] is the closest one, declared per
+  /// event: UIKit's light impact and selection generators are what
+  /// [HapticFeedback.lightImpact] and [HapticFeedback.selectionClick] play
+  /// on iOS (identical generators, UIKit's per-control tuning of the
+  /// pattern aside: near); the context menu's preview tap and the slider's
+  /// end and stop patterns are CoreHaptics library patterns played as
+  /// [HapticFeedback.heavyImpact], [HapticFeedback.lightImpact] and
+  /// [HapticFeedback.selectionClick] (approximation, to be felt on the
+  /// device). Android plays the platform's closest constants.
+  final bool? haptics;
 
   /// The look of every [MorphSegmentedControl] without its own appearance.
   final MorphSegmentedControlAppearance? segmentedControl;
@@ -132,6 +158,7 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
   @override
   MorphWidgetsTheme copyWith({
     Color? tint,
+    bool? haptics,
     MorphSegmentedControlAppearance? segmentedControl,
     MorphTabBarAppearance? tabBar,
     MorphSwitchAppearance? switchAppearance,
@@ -151,6 +178,7 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
     MorphListAppearance? list,
   }) => MorphWidgetsTheme(
     tint: tint ?? this.tint,
+    haptics: haptics ?? this.haptics,
     segmentedControl: segmentedControl ?? this.segmentedControl,
     tabBar: tabBar ?? this.tabBar,
     switchAppearance: switchAppearance ?? this.switchAppearance,
@@ -171,7 +199,7 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
   );
 
   /// Blends [tint] and chooses the nearer endpoint's measured appearances
-  /// without blending them.
+  /// and [haptics] without blending them.
   @override
   MorphWidgetsTheme lerp(MorphWidgetsTheme? other, double t) {
     if (other == null) return this;
@@ -245,6 +273,19 @@ Brightness _brightnessOf(BuildContext context, _Hosts hosts) =>
 bool morphReducedMotionOf(BuildContext context) =>
     MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
+/// Whether the platform asks for increased contrast above [context]: iOS
+/// reports Increase Contrast (`UIAccessibilityDarkerSystemColorsEnabled`)
+/// as [MediaQueryData.highContrast].
+@internal
+bool morphHighContrastOf(BuildContext context) =>
+    MediaQuery.maybeHighContrastOf(context) ?? false;
+
+/// Whether the controls below [context] play their haptics
+/// ([MorphWidgetsTheme.haptics]).
+@internal
+bool morphHapticsOf(BuildContext context) =>
+    MorphWidgetsTheme.maybeOf(context)?.haptics ?? true;
+
 typedef _Hosts = ({Widget? theme, bool scoped, bool scopeNearer});
 
 _Hosts _themeHost(BuildContext context) {
@@ -275,6 +316,12 @@ Color? morphTintOf(BuildContext context) =>
 /// [MorphWidgetsTheme], then the measured brightness table, whose accent
 /// [tinted] replaces by the theme's [MorphWidgetsTheme.tint].
 ///
+/// Under the platform's increased contrast ([morphHighContrastOf]) the
+/// brightness table is [lightHighContrast] or [darkHighContrast] when the
+/// control has one; an explicit or themed appearance is the app's and
+/// stays as given, and a tint replaces the accent of the high-contrast
+/// table as it does of the standard one.
+///
 /// A table tinted with one color is built once and shared, so a control
 /// that compares its resolved appearance by identity sees no change while
 /// the tint holds.
@@ -285,6 +332,8 @@ T morphResolveAppearance<T extends Object>(
   required T? Function(MorphWidgetsTheme) themed,
   required T light,
   required T dark,
+  T? lightHighContrast,
+  T? darkHighContrast,
   T Function(T table, Color tint)? tinted,
 }) {
   if (explicit != null) return explicit;
@@ -292,7 +341,11 @@ T morphResolveAppearance<T extends Object>(
   final theme = _extensionOf(context, hosts);
   final own = theme == null ? null : themed(theme);
   if (own != null) return own;
-  final table = _brightnessOf(context, hosts) == Brightness.dark ? dark : light;
+  final isDark = _brightnessOf(context, hosts) == Brightness.dark;
+  final contrast = morphHighContrastOf(context)
+      ? (isDark ? darkHighContrast : lightHighContrast)
+      : null;
+  final table = contrast ?? (isDark ? dark : light);
   final tint = theme?.tint;
   if (tint == null || tinted == null) return table;
   final cache = _tinted[table] ??= <Color, Object>{};

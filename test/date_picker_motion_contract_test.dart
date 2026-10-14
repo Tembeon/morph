@@ -25,7 +25,7 @@ void main() {
     expect(motion.page(0.3), 1);
   });
 
-  test('P10api reduced motion only suppresses the documented label dim', () {
+  test('P10api reduced motion drops the label dim and fades the overlay', () {
     final regular = MorphDatePickerMotion();
     final reduced = MorphDatePickerMotion();
     reduced.reducedMotion = true;
@@ -35,6 +35,17 @@ void main() {
     reduced.press(0);
     expect(regular.highlight(0.2), lessThan(1));
     expect(reduced.highlight(0.2), 1);
-    expect(reduced.progress(0.2), regular.progress(0.2));
+    const start = MorphDatePickerTuning.openDelay;
+    const fade = MorphDatePickerTuning.reducedMotionDuration;
+    reduced.advance(start + fade / 2);
+    expect(reduced.opacity(start + fade / 2), closeTo(0.5, 1e-9));
+    expect(reduced.scale(start + fade / 2), 1);
+    expect(reduced.height(start + fade / 2, 300), 300);
+    expect(regular.scale(start + fade / 2), lessThan(1));
+    reduced.advance(start + fade);
+    expect(reduced.opacity(start + fade), 1);
+    reduced.close(1);
+    reduced.advance(1 + MorphDatePickerTuning.closeDelay + fade);
+    expect(reduced.isClosed, isTrue);
   });
 }

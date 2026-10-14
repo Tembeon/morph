@@ -29,6 +29,22 @@ class MorphProgressViewAppearance {
     activeTrackColor: Color(0xFF0091FF),
   );
 
+  /// The light appearance under Increase Contrast: systemFill turns from
+  /// 20 to 28 percent and the fill takes systemBlue's increased-contrast
+  /// variant (read from UIKit's color tables, notes private).
+  static const lightHighContrast = MorphProgressViewAppearance(
+    inactiveTrackColor: Color(0x47787880),
+    activeTrackColor: Color(0xFF1E6EF4),
+  );
+
+  /// The dark appearance under Increase Contrast: systemFill turns from
+  /// 36 to 44 percent, the fill takes its variant (read from UIKit's color
+  /// tables, notes private).
+  static const darkHighContrast = MorphProgressViewAppearance(
+    inactiveTrackColor: Color(0x70787880),
+    activeTrackColor: Color(0xFF5CB8FF),
+  );
+
   /// Copies this appearance with the given fields replaced.
   MorphProgressViewAppearance copyWith({
     Color? inactiveTrackColor,
@@ -39,8 +55,8 @@ class MorphProgressViewAppearance {
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
-  /// [activeTrackColor].
+  /// table for the ambient brightness and contrast with
+  /// [MorphWidgetsTheme.tint] as its [activeTrackColor].
   static MorphProgressViewAppearance resolve(
     BuildContext context,
     MorphProgressViewAppearance? explicit,
@@ -50,6 +66,8 @@ class MorphProgressViewAppearance {
     themed: (theme) => theme.progressView,
     light: light,
     dark: dark,
+    lightHighContrast: lightHighContrast,
+    darkHighContrast: darkHighContrast,
     tinted: (table, tint) => table.copyWith(activeTrackColor: tint),
   );
 }

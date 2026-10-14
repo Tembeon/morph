@@ -1250,6 +1250,12 @@ class MorphMenuMotion {
   /// one (null for none).
   void Function(MorphMenuTarget? from, MorphMenuTarget? to)? onHighlight;
 
+  /// Called when a finger moves the highlight onto another target: the
+  /// moment UIKit's menu plays its selection haptic (read from UIKit,
+  /// notes private). A highlight the keyboard or a hover moves, or one
+  /// that clears, does not call it.
+  void Function()? onTrackedHighlight;
+
   /// Lays out the card opened by a submenu target; no card opens while
   /// it is null or returns null.
   MorphMenuLayout? Function(MorphMenuTarget target)? submenuLayout;
@@ -2372,7 +2378,11 @@ class MorphMenuMotion {
   void _track(double t, _Pointer pointer, Offset position) {
     if (pointer.scrolled) return;
     final hit = _hitAt(position);
+    final moved =
+        hit.target != null &&
+        (hit.target != _highlighted || hit.card != _highlightCard);
     _setHighlight(hit.target, hit.card);
+    if (moved) onTrackedHighlight?.call();
     final target = _targetOf(hit.card, hit.target);
     if (target == null || target.kind != MorphMenuTargetKind.submenu) return;
     final generation = _dwellGeneration;

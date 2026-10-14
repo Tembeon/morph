@@ -103,9 +103,59 @@ read best on screen; run `ExtrasUITests/testX3Video` / `testX3AlertVideo`
 and `ProbeUITests/testMenu` under the recorder as in the menu passport.
 
 Each result answers, per family: same spring / shorter / crossfade / no
-motion; the lift and glow present or not; durations. morph's
-`reducedMotion` (lens and knob travel, glow only) is an approximation
-until this pass lands.
+motion; the lift and glow present or not; durations.
+
+### Read from UIKit (static, 2026-10-14; notes private)
+
+Ported; the device pass above confirms or corrects each row.
+
+| family | UIKit under Reduce Motion | morph |
+|---|---|---|
+| switch | knob lens never lifts; pressed knob stays 37 x 24; a dragged knob is clamped, no rubber band; travel and color unchanged | `MorphSwitchMotion.reducedMotion` |
+| slider | thumb lens never lifts, no lifted-thumb rect | small lens (unchanged) |
+| segmented | sliding selection disabled: each segment shows its own selection, so it appears on the new segment; the selected segment neither highlights nor drags on press | `MorphLensTuning.reducedMotionTravelSpring` null: jump |
+| tab bar | lens never lifts; selection springs (0.85, 0.4) / (0.85, 0.6) for a tap and (0.85, 0.2) / (0.85, 0.3) while scrubbing become (0.9, 0.2) | `reducedMotionTravelSpring` 0.2 / 0.9 |
+| alert | presents from scale 1 instead of 1.2, same 0.404 s timing | `MorphAlertMotion.reducedMotion` |
+| popover | identity transform instead of the shrink, same springs | `MorphPopoverMotion.reducedMotion` |
+| navigation | push / pop without a finger: `_UINavigationCrossfadeAnimator`, 0.5 s, UIView default ease-in-out, both pages fade, bar cross-fades; an edge swipe keeps the slide (gated on PrefersCrossFadeTransitions) | `MorphNavigationTuning.crossFadeDuration` |
+| context menu | hold preview held at scale 1; no content morph (fade); background blur not animated; source view stays visible | hold kept at scale 1; presentation unchanged [device] |
+| date picker overlay | 0.3 s UIView fade at full size (present, dismiss and picker switch) | open / close ported; switch not yet |
+| sheets | layout graph gets a reduce-motion flag; effect not decoded | [device] |
+| menu morph, bars mitosis, search morph, zoom, glass button flex, tab bar swell | Swift paths read the flag; replacement not decoded | [device]; morph keeps its approximations (no flex, no swell) |
+| page control, stepper | no Reduce Motion read found | unchanged |
+
+Flutter exposes Reduce Motion only (`MediaQuery.disableAnimations`); the
+cross-fade sub-setting follows it in morph.
+
+## Increase Contrast [read from UIKit's color tables, notes private]
+
+UIKit resolves system colors per `accessibilityContrast`; morph picks a
+control's `lightHighContrast` / `darkHighContrast` table under
+`MediaQuery.highContrast` (iOS: Darker System Colors). Values ported:
+systemBlue 0088FF -> 1E6EF4 (dark 0091FF -> 5CB8FF), systemRed FF383C ->
+E9152D (FF4245 -> FF6165), systemGreen 34C759 -> 008932 (30D158 ->
+4AD968), fills +0.08 alpha (systemFill 0.20 -> 0.28, secondary 0.16 ->
+0.24, tertiary 0.12 -> 0.20; dark 0.36 / 0.32 / 0.24 -> 0.44 / 0.40 /
+0.32), systemGray2 dark 636366 -> 7C7C80, the switch's own off color
+0.16 -> 0.78 (dark 0.32 -> 0.90), page dots 0.45 -> 0.55 white and on
+the platter 0.25 -> 0.45. Tables: switch, slider, progress, segmented,
+page control, alert, date picker. Not ported, [device]: label colors
+(UIKit's catalog values differ from morph's measured 3C3C43 tables), the
+glass material (opacity, rim), the alert title and message.
+
+## Haptics [read from UIKit, notes private]
+
+`MorphWidgetsTheme.haptics` (null / true plays, false silences); mapping
+onto `HapticFeedback` declared on the field. Switch: light impact when a
+touch changes the shown state (tap, drag commit / uncommit). Slider: end
+pattern when a drag reaches an end, detent on a stepped slider's new
+inner stop. Page control: selection on a scrub to another page. Date
+picker wheels: selection per row. Menus: selection when a finger slides
+onto another row. Alert: selection when a finger slides onto another
+action. Context menu: preview tap when the hold opens it. None:
+segmented control, tab bar, stepper, buttons, sheets, navigation,
+search. [device]: the feel of the context menu and slider pattern
+mappings.
 
 ## To port (porting agent)
 

@@ -55,7 +55,7 @@ progress.dart (`MorphProgressView`, `MorphProgressMotion`,
 
 ## Open
 
-- Bar style geometry; Reduce Motion (plan in states.md).
+- Bar style geometry; Reduce Motion (plan in states.md). Increase Contrast table: states.md.
 
 ## API gaps
 

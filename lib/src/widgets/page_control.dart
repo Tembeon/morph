@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
 import 'package:morph/src/widgets/press.dart';
@@ -45,8 +46,26 @@ class MorphPageControlAppearance {
     platterIndicatorColor: Color(0x4DFFFFFF),
   );
 
+  /// The light appearance under Increase Contrast: the other pages' dots
+  /// turn from 45 to 55 percent white and, on the platter, from 25 to 45
+  /// percent black (read from UIKit's color tables, notes private).
+  static const lightHighContrast = MorphPageControlAppearance(
+    pageIndicatorColor: Color(0x8CFFFFFF),
+    platterIndicatorColor: Color(0x73000000),
+  );
+
+  /// The dark appearance under Increase Contrast: the platter's other
+  /// dots take UIKit's 45 percent white (read from UIKit's color tables,
+  /// notes private; UIKit's standard dark value is 25 percent where the
+  /// simulator renders 30).
+  static const darkHighContrast = MorphPageControlAppearance(
+    pageIndicatorColor: Color(0x8CFFFFFF),
+    platterColor: Color(0xFF1F1F1F),
+    platterIndicatorColor: Color(0x73FFFFFF),
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness and contrast.
   static MorphPageControlAppearance resolve(
     BuildContext context,
     MorphPageControlAppearance? explicit,
@@ -56,6 +75,8 @@ class MorphPageControlAppearance {
     themed: (theme) => theme.pageControl,
     light: light,
     dark: dark,
+    lightHighContrast: lightHighContrast,
+    darkHighContrast: darkHighContrast,
   );
 }
 
@@ -180,6 +201,11 @@ class MorphPageControlMotion {
 
   /// Whether a touch is scrubbing through the pages.
   bool get isScrubbing => _scrubbing;
+
+  /// Called when a scrubbing finger moves the control to another page: the
+  /// moment UIKit's page control plays its selection haptic (read from
+  /// UIKit, notes private).
+  void Function()? onScrubbed;
   MorphSpringState? _fade;
   int _fading = -1;
   double _now = 0;
@@ -256,6 +282,7 @@ class MorphPageControlMotion {
       _stepped = true;
       setPage(t, next);
       onChanged?.call(next);
+      onScrubbed?.call();
     }
   }
 
@@ -438,7 +465,12 @@ class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
       showsProgress: widget.progress != null,
     );
     motion.onChanged = _picked;
+    motion.onScrubbed = _scrubbed;
     return motion;
+  }
+
+  void _scrubbed() {
+    if (mounted) morphPlayHaptic(context, MorphHaptic.selection);
   }
 
   @override

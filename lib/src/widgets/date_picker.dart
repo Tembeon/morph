@@ -13,6 +13,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/date_picker_motion.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -223,6 +224,39 @@ class MorphDatePickerAppearance {
     wheelColor: Color(0xFFFFFFFF),
   );
 
+  /// The light appearance under Increase Contrast: the label fill and the
+  /// wheel band (tertiarySystemFill) turn from 12 to 20 percent and the
+  /// accent takes systemBlue's increased-contrast variant, the today fill
+  /// following it at its own opacity (read from UIKit's color tables,
+  /// notes private; the secondary label colors keep their standard values
+  /// until the device records them).
+  static const lightHighContrast = MorphDatePickerAppearance(
+    labelFillColor: Color(0x33767680),
+    accentColor: Color(0xFF1E6EF4),
+    todayFillColor: Color(0x1F1E6EF4),
+    wheelBandColor: Color(0x33767680),
+  );
+
+  /// The dark appearance under Increase Contrast: the fills turn from 24
+  /// to 32 percent and the accent takes its increased-contrast variant
+  /// (read from UIKit's color tables, notes private).
+  static const darkHighContrast = MorphDatePickerAppearance(
+    labelFillColor: Color(0x52767680),
+    labelColor: Color(0xFFFFFFFF),
+    accentColor: Color(0xFF5CB8FF),
+    platterColor: Color(0xF2222222),
+    shadowColor: Color(0x4D000000),
+    titleColor: Color(0xFFFFFFFF),
+    weekdayColor: Color(0x99EBEBF5),
+    dayColor: Color(0xFFFFFFFF),
+    todayFillColor: Color(0x335CB8FF),
+    selectedDayFillColor: Color(0xFFFFFFFF),
+    selectedDayTextColor: Color(0xFF000000),
+    chevronColor: Color(0xFFFFFFFF),
+    wheelBandColor: Color(0x52767680),
+    wheelColor: Color(0xFFFFFFFF),
+  );
+
   /// Copies this appearance with the given fields replaced.
   MorphDatePickerAppearance copyWith({
     Color? labelFillColor,
@@ -263,8 +297,9 @@ class MorphDatePickerAppearance {
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
-  /// [accentColor] and, at the table's own opacity, its [todayFillColor].
+  /// table for the ambient brightness and contrast with
+  /// [MorphWidgetsTheme.tint] as its [accentColor] and, at the table's own
+  /// opacity, its [todayFillColor].
   static MorphDatePickerAppearance resolve(
     BuildContext context,
     MorphDatePickerAppearance? explicit,
@@ -274,6 +309,8 @@ class MorphDatePickerAppearance {
     themed: (theme) => theme.datePicker,
     light: light,
     dark: dark,
+    lightHighContrast: lightHighContrast,
+    darkHighContrast: darkHighContrast,
     tinted: (table, tint) => table.copyWith(
       accentColor: tint,
       todayFillColor: tint.withValues(alpha: table.todayFillColor.a),
@@ -893,6 +930,12 @@ class _OverlayViewState extends State<_OverlayView>
   _DatePickerRoute get _route => widget.route;
 
   MorphDatePicker get _picker => _route.picker.widget;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _motion.reducedMotion = morphReducedMotionOf(context);
+  }
 
   @override
   void initState() {
@@ -2448,31 +2491,37 @@ Widget _wheelView({
   final row = MorphTypography.resolve(
     TextStyle(fontSize: _WheelGeometry.fontSize, color: style.wheelColor),
   );
-  return ListWheelScrollView.useDelegate(
-    controller: controller,
-    itemExtent: geometry.row,
-    diameterRatio: geometry.diameterRatio,
-    perspective: _WheelGeometry.perspective,
-    squeeze: geometry.squeeze,
-    useMagnifier: true,
-    magnification: _WheelGeometry.magnification,
-    overAndUnderCenterOpacity: style.wheelFadedOpacity,
-    physics: const FixedExtentScrollPhysics(
-      parent: BouncingScrollPhysics(
-        decelerationRate: ScrollDecelerationRate.fast,
+  // The context the haptic plays in; a kept view keeps its own.
+  return Builder(
+    builder: (BuildContext context) => ListWheelScrollView.useDelegate(
+      controller: controller,
+      itemExtent: geometry.row,
+      diameterRatio: geometry.diameterRatio,
+      perspective: _WheelGeometry.perspective,
+      squeeze: geometry.squeeze,
+      useMagnifier: true,
+      magnification: _WheelGeometry.magnification,
+      overAndUnderCenterOpacity: style.wheelFadedOpacity,
+      physics: const FixedExtentScrollPhysics(
+        parent: BouncingScrollPhysics(
+          decelerationRate: ScrollDecelerationRate.fast,
+        ),
       ),
-    ),
-    onSelectedItemChanged: onSelected,
-    childDelegate: ListWheelChildBuilderDelegate(
-      childCount: looping ? count * _WheelGeometry.loops : count,
-      builder: (BuildContext context, int i) => Padding(
-        padding: padding,
-        child: Align(
-          alignment: alignment,
-          child: Text(
-            text(i % count),
-            textScaler: TextScaler.noScaling,
-            style: row,
+      onSelectedItemChanged: (int index) {
+        morphPlayHaptic(context, MorphHaptic.selection);
+        onSelected(index);
+      },
+      childDelegate: ListWheelChildBuilderDelegate(
+        childCount: looping ? count * _WheelGeometry.loops : count,
+        builder: (BuildContext context, int i) => Padding(
+          padding: padding,
+          child: Align(
+            alignment: alignment,
+            child: Text(
+              text(i % count),
+              textScaler: TextScaler.noScaling,
+              style: row,
+            ),
           ),
         ),
       ),

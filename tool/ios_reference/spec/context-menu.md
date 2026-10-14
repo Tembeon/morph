@@ -201,3 +201,5 @@ shuttle chain).
   slot, the 250 pt menu centered in the 326 pt slot). The native preview
   ramps linearly from 0.2 s and pops at the commit (the growth law above
   is the measured replacement).
+
+- Reduce Motion and haptics, read from UIKit (notes private): the held preview stays at scale 1 (ported), the presentation fades without the morph (device pass pending); the preview tap haptic at the hold, a selection haptic per row under a sliding finger. See states.md.
