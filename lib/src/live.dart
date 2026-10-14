@@ -1345,11 +1345,6 @@ class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
 /// Paints its child shifted by [offsetOf], read again on every
 /// notification of [live], without a layout.
 ///
-/// With [originOf] the child is shifted to the origin first and by
-/// [offsetOf] from there, summed in that order: the child lands on the
-/// same doubles as a child placed at [offsetOf] in a box placed at the
-/// origin, without either box being laid out again.
-///
 /// The child takes hits where it paints, also outside this box's bounds.
 @internal
 class MorphLiveShift extends SingleChildRenderObjectWidget {
@@ -1357,7 +1352,6 @@ class MorphLiveShift extends SingleChildRenderObjectWidget {
   const MorphLiveShift({
     required this.live,
     required this.offsetOf,
-    this.originOf,
     super.child,
     super.key,
   });
@@ -1368,48 +1362,38 @@ class MorphLiveShift extends SingleChildRenderObjectWidget {
   /// The offset now.
   final Offset Function() offsetOf;
 
-  /// The origin the offset is taken from now, or null for none.
-  final Offset Function()? originOf;
-
   @override
   RenderObject createRenderObject(BuildContext context) {
-    final box = _RenderLiveShift(offsetOf(), originOf?.call());
-    box.bindLive(live, () => box.follow(offsetOf(), originOf?.call()));
+    final box = _RenderLiveShift(offsetOf());
+    box.bindLive(live, () => box.shift = offsetOf());
     return box;
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderObject renderObject) {
     final box = renderObject as _RenderLiveShift;
-    box.bindLive(live, () => box.follow(offsetOf(), originOf?.call()));
+    box.bindLive(live, () => box.shift = offsetOf());
   }
 }
 
 class _RenderLiveShift extends RenderProxyBox with MorphLiveBinding {
-  _RenderLiveShift(this._shift, this._origin);
+  _RenderLiveShift(this._shift);
 
   Offset _shift;
-  Offset? _origin;
 
-  void follow(Offset shift, Offset? origin) {
-    if (shift == _shift && origin == _origin) return;
-    _shift = shift;
-    _origin = origin;
+  Offset get shift => _shift;
+
+  set shift(Offset value) {
+    if (value == _shift) return;
+    _shift = value;
     markNeedsPaint();
     markNeedsSemanticsUpdate();
   }
 
-  Offset _at(Offset offset) {
-    final origin = _origin;
-    return origin == null ? offset + _shift : offset + origin + _shift;
-  }
-
-  Offset get _total => _at(Offset.zero);
-
   @override
   void paint(PaintingContext context, Offset offset) {
     final child = this.child;
-    if (child != null) context.paintChild(child, _at(offset));
+    if (child != null) context.paintChild(child, offset + _shift);
   }
 
   @override
@@ -1421,7 +1405,7 @@ class _RenderLiveShift extends RenderProxyBox with MorphLiveBinding {
     final child = this.child;
     if (child == null) return false;
     return result.addWithPaintOffset(
-      offset: _total,
+      offset: _shift,
       position: position,
       hitTest: (BoxHitTestResult result, Offset position) =>
           child.hitTest(result, position: position),
@@ -1430,8 +1414,7 @@ class _RenderLiveShift extends RenderProxyBox with MorphLiveBinding {
 
   @override
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
-    final total = _total;
-    transform.translateByDouble(total.dx, total.dy, 0, 1);
+    transform.translateByDouble(_shift.dx, _shift.dy, 0, 1);
   }
 }
 
@@ -1554,20 +1537,20 @@ class _RenderLivePlacement extends RenderProxyBox with MorphLiveBinding {
   }
 }
 
-/// Aligns its child in [rectOf] by [alignment], as a `Positioned.fromRect`
-/// over an [Align] places it (a [Center] by default), reading [rectOf]
-/// again on every notification of [live].
+/// Centers its child on the center of [rectOf], as a `Positioned.fromRect`
+/// over a [Center] places it, reading [rectOf] again on every notification
+/// of [live].
 ///
 /// The child is laid out loosely within the size of [rectOf], as the
-/// [Align] would, but only when that can change the layout:
+/// [Center] would, but only when that can change the layout:
 ///
 /// - a child of [fixedSize] (a box of that size in any box at least as
 ///   large, such as a `SizedBox`) is laid out again only while [rectOf] is
 ///   smaller than it;
 /// - while [hiddenOf] says the child shows nowhere (an opacity at zero
 ///   above it), it keeps the layout it has, and takes the one of the
-///   current box once it shows again;
-
+///   current box once it shows again.
+///
 /// A frame that needs no new layout only repaints: the child lands
 /// exactly where the [Center] would put it.
 ///
@@ -1580,27 +1563,12 @@ class MorphLiveCenter extends SingleChildRenderObjectWidget {
   const MorphLiveCenter({
     required this.live,
     required this.rectOf,
-    this.alignment = Alignment.center,
     this.fixedSize,
-    this.padding = EdgeInsets.zero,
-    this.clips = false,
     this.hiddenOf,
     this.ignoring = false,
     super.child,
     super.key,
   });
-
-  /// Where the child sits in the box.
-  final Alignment alignment;
-
-  /// The part of [rectOf] the child is aligned in, as a box placed at
-  /// these insets from its edges (a `Positioned` in a [Stack] at
-  /// [rectOf]) would hold it.
-  final EdgeInsets padding;
-
-  /// Whether the child is clipped to that part, without anti-aliasing,
-  /// as a [ClipRect] there would clip it.
-  final bool clips;
 
   /// The source of the box.
   final Listenable? live;
@@ -1622,10 +1590,7 @@ class MorphLiveCenter extends SingleChildRenderObjectWidget {
   RenderObject createRenderObject(BuildContext context) {
     final box = _RenderLiveCenter(
       rectOf(),
-      alignment: alignment,
       fixedSize: fixedSize,
-      padding: padding,
-      clips: clips,
       hiddenOf: hiddenOf,
       ignoring: ignoring,
     );
@@ -1636,10 +1601,7 @@ class MorphLiveCenter extends SingleChildRenderObjectWidget {
   @override
   void updateRenderObject(BuildContext context, RenderObject renderObject) {
     final box = renderObject as _RenderLiveCenter;
-    box.alignment = alignment;
     box.fixedSize = fixedSize;
-    box.padding = padding;
-    box.clips = clips;
     box.hiddenOf = hiddenOf;
     box.ignoring = ignoring;
     box.bindLive(live, () => box.rect = rectOf());
@@ -1649,60 +1611,10 @@ class MorphLiveCenter extends SingleChildRenderObjectWidget {
 class _RenderLiveCenter extends RenderIgnorePointer with MorphLiveBinding {
   _RenderLiveCenter(
     this._rect, {
-    required this._alignment,
     required this._fixedSize,
-    required this._padding,
-    required this._clips,
     required this.hiddenOf,
     required super.ignoring,
   });
-
-  EdgeInsets _padding;
-
-  EdgeInsets get padding => _padding;
-
-  set padding(EdgeInsets value) {
-    if (value == _padding) return;
-    _padding = value;
-    markNeedsLayout();
-  }
-
-  bool _clips;
-
-  bool get clips => _clips;
-
-  set clips(bool value) {
-    if (value == _clips) return;
-    _clips = value;
-    markNeedsPaint();
-  }
-
-  final _clip = LayerHandle<ClipRectLayer>();
-
-  @override
-  void dispose() {
-    _clip.layer = null;
-    super.dispose();
-  }
-
-  // The box the child is aligned in: its size as a stack sizes a child
-  // positioned at the insets, and where the stack puts it.
-  Size get _box => Size(
-    _rect.width - _padding.right - _padding.left,
-    _rect.height - _padding.bottom - _padding.top,
-  );
-
-  Offset get _inset => Offset(_padding.left, _padding.top);
-
-  Alignment _alignment;
-
-  Alignment get alignment => _alignment;
-
-  set alignment(Alignment value) {
-    if (value == _alignment) return;
-    _alignment = value;
-    markNeedsPaint();
-  }
 
   Rect _rect;
 
@@ -1735,7 +1647,7 @@ class _RenderLiveCenter extends RenderIgnorePointer with MorphLiveBinding {
 
   BoxConstraints get _childConstraints {
     final fixed = _fixedSize;
-    final box = _box;
+    final box = _rect.size;
     if (fixed != null &&
         box.width >= fixed.width &&
         box.height >= fixed.height) {
@@ -1760,31 +1672,19 @@ class _RenderLiveCenter extends RenderIgnorePointer with MorphLiveBinding {
   Offset get _centering {
     final child = this.child;
     if (child == null) return Offset.zero;
-    return _alignment.alongOffset((_box - child.size) as Offset);
+    return Alignment.center.alongOffset((_rect.size - child.size) as Offset);
   }
 
-  Offset get _shift => _rect.topLeft + _inset + _centering;
+  Offset get _shift => _rect.topLeft + _centering;
 
-  // Summed in the order the stacks and the align would, so the child lands
-  // on the same doubles.
+  // Summed in the order a stack and a center would, so the child lands on
+  // the same doubles.
   @override
   void paint(PaintingContext context, Offset offset) {
     final child = this.child;
-    if (child == null) return;
-    final at = offset + _rect.topLeft + _inset;
-    if (!_clips) {
-      _clip.layer = null;
-      context.paintChild(child, at + _centering);
-      return;
+    if (child != null) {
+      context.paintChild(child, offset + _rect.topLeft + _centering);
     }
-    _clip.layer = context.pushClipRect(
-      needsCompositing,
-      at,
-      Offset.zero & _box,
-      (PaintingContext context, Offset offset) =>
-          context.paintChild(child, offset + _centering),
-      oldLayer: _clip.layer,
-    );
   }
 
   @override
@@ -1825,8 +1725,6 @@ class MorphLiveWindow extends SingleChildRenderObjectWidget {
     required this.live,
     required this.windowOf,
     required this.clipsOf,
-    this.shifts = true,
-    this.clipBehavior = Clip.antiAlias,
     super.child,
     super.key,
   });
@@ -1837,28 +1735,13 @@ class MorphLiveWindow extends SingleChildRenderObjectWidget {
   /// The window in this box's coordinates now.
   final RRect Function() windowOf;
 
-  /// Whether the child is painted shifted to the window's top-left (its
-  /// origin is the window's); false keeps it in this box's coordinates,
-  /// for a child that draws where the window is itself.
-  final bool shifts;
-
-  /// How the window clips: [Clip.hardEdge] clips to the window's bounds
-  /// without anti-aliasing, as a [ClipRect] does; anything else clips to
-  /// the rounded rect with anti-aliasing, as a [ClipRRect] does.
-  final Clip clipBehavior;
-
   /// Whether the window clips the child's painting now; it always bounds
   /// the hits.
   final bool Function() clipsOf;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    final box = RenderMorphLiveWindow(
-      windowOf(),
-      clips: clipsOf(),
-      shifts: shifts,
-      clipBehavior: clipBehavior,
-    );
+    final box = RenderMorphLiveWindow(windowOf(), clips: clipsOf());
     box.bindLive(live, () => box.follow(windowOf(), clips: clipsOf()));
     return box;
   }
@@ -1866,8 +1749,6 @@ class MorphLiveWindow extends SingleChildRenderObjectWidget {
   @override
   void updateRenderObject(BuildContext context, RenderObject renderObject) {
     final box = renderObject as RenderMorphLiveWindow;
-    box.shifts = shifts;
-    box.clipBehavior = clipBehavior;
     box.bindLive(live, () => box.follow(windowOf(), clips: clipsOf()));
   }
 }
@@ -1876,35 +1757,7 @@ class MorphLiveWindow extends SingleChildRenderObjectWidget {
 @internal
 class RenderMorphLiveWindow extends RenderProxyBox with MorphLiveBinding {
   /// Creates the window.
-  RenderMorphLiveWindow(
-    this._window, {
-    required this._clips,
-    required this._shifts,
-    required this._clipBehavior,
-  });
-
-  bool _shifts;
-
-  /// See [MorphLiveWindow.shifts].
-  bool get shifts => _shifts;
-
-  set shifts(bool value) {
-    if (value == _shifts) return;
-    _shifts = value;
-    markNeedsPaint();
-    markNeedsSemanticsUpdate();
-  }
-
-  Clip _clipBehavior;
-
-  /// See [MorphLiveWindow.clipBehavior].
-  Clip get clipBehavior => _clipBehavior;
-
-  set clipBehavior(Clip value) {
-    if (value == _clipBehavior) return;
-    _clipBehavior = value;
-    markNeedsPaint();
-  }
+  RenderMorphLiveWindow(this._window, {required this._clips});
 
   RRect _window;
   bool _clips;
@@ -1919,7 +1772,7 @@ class RenderMorphLiveWindow extends RenderProxyBox with MorphLiveBinding {
     _window = window;
     _clips = clips;
     markNeedsPaint();
-    if (moved && _shifts) markNeedsSemanticsUpdate();
+    if (moved) markNeedsSemanticsUpdate();
   }
 
   @override
@@ -1928,16 +1781,13 @@ class RenderMorphLiveWindow extends RenderProxyBox with MorphLiveBinding {
     size = constraints.biggest;
   }
 
-  Offset get _shift =>
-      _shifts ? Offset(_window.left, _window.top) : Offset.zero;
+  Offset get _shift => Offset(_window.left, _window.top);
 
   final _clip = LayerHandle<ClipRRectLayer>();
-  final _rectClip = LayerHandle<ClipRectLayer>();
 
   @override
   void dispose() {
     _clip.layer = null;
-    _rectClip.layer = null;
     super.dispose();
   }
 
@@ -1946,38 +1796,18 @@ class RenderMorphLiveWindow extends RenderProxyBox with MorphLiveBinding {
     final child = this.child;
     if (child == null) return;
     final shift = _shift;
-    if (!_clips || _clipBehavior == Clip.none) {
+    if (!_clips) {
       _clip.layer = null;
-      _rectClip.layer = null;
       context.paintChild(child, offset + shift);
       return;
     }
-    // The clip is pushed at the child's origin, as a clip box placed at
-    // the window would push it.
-    final at = offset + Offset(_window.left, _window.top);
-    final local = _window.shift(-Offset(_window.left, _window.top));
-    if (_clipBehavior == Clip.hardEdge) {
-      _clip.layer = null;
-      _rectClip.layer = context.pushClipRect(
-        needsCompositing,
-        at,
-        local.outerRect,
-        (PaintingContext context, Offset _) =>
-            context.paintChild(child, offset + shift),
-        clipBehavior: Clip.hardEdge,
-        oldLayer: _rectClip.layer,
-      );
-      return;
-    }
-    _rectClip.layer = null;
     _clip.layer = context.pushClipRRect(
       needsCompositing,
-      at,
+      offset + shift,
       Offset.zero & _window.outerRect.size,
-      local,
-      (PaintingContext context, Offset _) =>
-          context.paintChild(child, offset + shift),
-      clipBehavior: _clipBehavior,
+      _window.shift(-shift),
+      (PaintingContext context, Offset offset) =>
+          context.paintChild(child, offset),
       oldLayer: _clip.layer,
     );
   }
