@@ -10,12 +10,18 @@ import 'package:morph/foundation.dart';
 import 'package:morph/src/frame.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/measure.dart';
+import 'package:morph/src/target.dart' show morphTargetPaddingOf;
 import 'package:morph/src/widgets/chrome_group.dart';
+import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/haptics.dart';
+import 'package:morph/src/widgets/menu_content.dart';
+import 'package:morph/src/widgets/menu_entries.dart';
+import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// One block of a context menu beside its hero: a slot above or below
@@ -98,6 +104,10 @@ class MorphContextMenuRegion extends StatefulWidget {
   const MorphContextMenuRegion({
     super.key,
     required this.child,
+    this.menu = const <MorphMenuEntry>[],
+    this.order = MorphMenuOrder.automatic,
+    this.dismissOnSelect,
+    this.appearance,
     this.above,
     this.below,
     this.replica,
@@ -119,13 +129,38 @@ class MorphContextMenuRegion extends StatefulWidget {
     this.semanticLabel,
     this.onHold,
     this.onOpen,
-  }) : assert(width > 0, 'width must be positive.'),
+  }) : assert(
+         below == null || menu.length == 0,
+         'a region shows its menu rows or a below satellite, not both.',
+       ),
+       assert(width > 0, 'width must be positive.'),
        assert(gap >= 0, 'gap cannot be negative.'),
        assert(margin >= 0, 'margin cannot be negative.');
 
   /// The hero: the surface that lifts, flies and returns. Draws its
   /// own surface.
   final Widget child;
+
+  /// The rows of the menu: the measured menu card of [MorphMenuButton]
+  /// with its rows, sections, submenus, highlight, flex and keyboard,
+  /// standing [measuredMenuGap] off the lifted hero and growing out of a
+  /// blob at the held view's center ([MorphMenuAttachment]), as UIKit's
+  /// context menu is its button menu. A finger that opened the menu by
+  /// holding slides onto a row and chooses it on release.
+  final List<MorphMenuEntry> menu;
+
+  /// The order of [menu] relative to the hero: a menu standing above the
+  /// hero reverses its entries unless this is [MorphMenuOrder.fixed]
+  /// (`preferredMenuElementOrder`).
+  final MorphMenuOrder order;
+
+  /// Whether choosing a row closes the menu: null leaves it to each row's
+  /// [MorphMenuItem.keepsMenuOpen] (`menuActionDismissBehavior`).
+  final bool? dismissOnSelect;
+
+  /// The look of [menu]; null resolves it through
+  /// [MorphMenuAppearance.resolve].
+  final MorphMenuAppearance? appearance;
 
   /// The slot above the hero (a reactions capsule), or null.
   final MorphSatellite? above;
@@ -421,6 +456,9 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   );
 
   Size _size = Size.zero;
+  final GlobalKey<_MenuDriverState> _driver = GlobalKey<_MenuDriverState>();
+  int? _menuPointer;
+  Offset _finger = Offset.zero;
   MorphFlight? _flight;
   MorphFlight? _pressOwner;
   StreamSubscription<MorphFlightEvent>? _pressWatch;
@@ -541,6 +579,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     if (!widget.enabled) {
       return;
     }
+    _finger = event.position;
     _tap.addPointer(event);
     _hold.addPointer(event);
     _ownership.addPointer(event);
@@ -593,7 +632,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       return;
     }
     if (!_committed && held >= _commitDuration) _hold.commit();
-    if (_committed && held >= widget.holdDuration) _onHold();
+    if (_committed && held >= widget.holdDuration) _onHold(held: true);
   }
 
   void _stopGrowth() {
@@ -636,7 +675,18 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     }
   }
 
+  void _onPointerMove(PointerMoveEvent event) {
+    if (event.pointer == _clockPointer) _finger = event.position;
+    if (event.pointer == _menuPointer) {
+      _driver.currentState?.controller.menuPointerMove(event);
+    }
+  }
+
   void _onPointerUp(PointerUpEvent event) {
+    if (event.pointer == _menuPointer) {
+      _menuPointer = null;
+      _driver.currentState?.controller.menuPointerUp(event);
+    }
     // The tap reports its own end only once it went down: a swipe that
     // a scrollable took before the touch deadline stops the clock here.
     if (event.pointer == _clockPointer && !_committed) {
@@ -645,6 +695,10 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   }
 
   void _onPointerCancel(PointerCancelEvent event) {
+    if (event.pointer == _menuPointer) {
+      _menuPointer = null;
+      _driver.currentState?.controller.menuPointerCancel(event);
+    }
     if (event.pointer != _clockPointer) {
       return;
     }
@@ -657,7 +711,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     _press.value = 0;
   }
 
-  void _onHold() {
+  void _onHold({bool held = false}) {
     if (!mounted || !widget.enabled || !_holdClock.isActive) return;
     _committed = false;
     morphPlayHaptic(context, MorphHaptic.preview);
@@ -668,7 +722,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     // and layout changes still move the return address normally.
     _stopGrowth();
     _press.stop(canceled: true);
-    final MorphFlight flight = _open();
+    final MorphFlight flight = _open(pointer: held ? _clockPointer : null);
     _pressOwner = flight;
     late final StreamSubscription<MorphFlightEvent> pressWatch;
     pressWatch = flight.events.listen((MorphFlightEvent event) {
@@ -715,7 +769,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     }
   }
 
-  MorphFlight _open() {
+  MorphFlight _open({int? pointer}) {
     final OverlayState? overlay = widget.overlay;
     if (overlay != null) morphCheckOverlayAncestor(context, overlay);
     if (_flight == null || _flight!.isFinished) {
@@ -725,6 +779,28 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     // natural rect, grown or not - the size the hero lands at, and the
     // center the open menu lifts it about.
     final Rect hero = morphAnchorRect(context, overlay: overlay);
+    final _MenuDriverState? driver = widget.menu.isEmpty
+        ? null
+        : _driver.currentState;
+    final MorphMenuMotion? motion = driver?.prepare(
+      held: hero,
+      preview: widget.lifts
+          ? Rect.fromCenter(
+              center: hero.center,
+              width:
+                  hero.width *
+                  MorphContextMenuRegion.measuredPreviewScale(hero.size),
+              height:
+                  hero.height *
+                  MorphContextMenuRegion.measuredPreviewScale(hero.size),
+            )
+          : hero,
+      accessory: widget.above == null
+          ? 0
+          : (widget.above!.height ?? 0) + widget.gap,
+      overlay:
+          overlay ?? morphPresentationOverlayOf(context) ?? Overlay.of(context),
+    );
     final MorphFlight? active = _flight;
     final _MenuGeometry geometry;
     if (active != null && !active.isFinished && _geometry != null) {
@@ -741,6 +817,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     } else {
       geometry = _MenuGeometry(
         hero: hero,
+        shift: motion?.previewShift,
         above: widget.above,
         below: widget.below,
         minWidth: widget.width,
@@ -789,9 +866,39 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
           }
         }),
       );
+      late final StreamSubscription<MorphFlightEvent> closing;
+      closing = flight.events.listen((MorphFlightEvent event) {
+        if (event != MorphFlightEvent.closing) return;
+        unawaited(closing.cancel());
+        _driver.currentState?.controller.close();
+      });
+      unawaited(flight.closed.whenComplete(() => unawaited(closing.cancel())));
       widget.onOpen?.call(flight);
     }
+    if (driver != null && motion != null && !motion.isOpen) {
+      if (pointer != null) {
+        _menuPointer = pointer;
+        driver.controller.holdOpen(pointer, _finger);
+      } else {
+        driver.controller.open();
+      }
+    }
     return flight;
+  }
+
+  /// The menu started closing: the preview flies home with it.
+  void _menuClosed() {
+    _menuPointer = null;
+    final MorphFlight? flight = _flight;
+    if (flight == null || flight.isFinished) return;
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+        if (!flight.isFinished) flight.close();
+      });
+    } else {
+      flight.close();
+    }
   }
 
   /// Plays the close spring's undershoot past the latch on the source
@@ -894,15 +1001,19 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         child: tagged,
       ),
     );
+    final Widget listened = Listener(
+      behavior: HitTestBehavior.deferToChild,
+      onPointerDown: _onPointerDown,
+      onPointerMove: _onPointerMove,
+      onPointerUp: _onPointerUp,
+      onPointerCancel: _onPointerCancel,
+      child: lifted,
+    );
     return Semantics(
       onLongPress: widget.enabled ? _open : null,
-      child: Listener(
-        behavior: HitTestBehavior.deferToChild,
-        onPointerDown: _onPointerDown,
-        onPointerUp: _onPointerUp,
-        onPointerCancel: _onPointerCancel,
-        child: lifted,
-      ),
+      child: widget.menu.isEmpty
+          ? listened
+          : _MenuDriver(key: _driver, region: this, child: listened),
     );
   }
 }
@@ -1234,6 +1345,7 @@ class _LiveExtent {
 class _MenuGeometry extends ChangeNotifier {
   _MenuGeometry({
     required this.hero,
+    this.shift,
     required MorphSatellite? above,
     required MorphSatellite? below,
     required this.minWidth,
@@ -1250,6 +1362,11 @@ class _MenuGeometry extends ChangeNotifier {
 
   /// The hero's natural rect at launch, in overlay coordinates.
   final Rect hero;
+
+  /// How far the menu rows moved the lifted hero to fit inside the safe
+  /// area ([MorphMenuMotion.previewShift]); null places the column by
+  /// clamping it into the safe area itself.
+  final Offset? shift;
 
   /// The menu's minimum width.
   double minWidth;
@@ -1416,6 +1533,15 @@ class _MenuGeometry extends ChangeNotifier {
     final double topMax = overlay.height - padding.bottom - margin - height;
     final Offset slot =
         hero.topLeft - Offset(hero.width, hero.height) * ((scale - 1) / 2);
+    final Offset? shift = this.shift;
+    if (shift != null) {
+      return Rect.fromLTWH(
+        slot.dx - heroOffset.dx + shift.dx,
+        slot.dy - heroOffset.dy + shift.dy,
+        width,
+        height,
+      );
+    }
     final double left = (slot.dx - heroOffset.dx).clamp(
       leftMin,
       leftMax < leftMin ? leftMin : leftMax,
@@ -1503,5 +1629,149 @@ class _MotionHoldRecognizer extends LongPressGestureRecognizer {
     if (state == GestureRecognizerState.possible && primaryPointer != null) {
       didExceedDeadline();
     }
+  }
+}
+
+/// The clock and the controller of a region's menu rows, and the source
+/// tag their flight takes off from: the blob at the held view's center.
+class _MenuDriver extends StatefulWidget {
+  const _MenuDriver({super.key, required this.region, required this.child});
+
+  final _MorphContextMenuRegionState region;
+  final Widget child;
+
+  @override
+  State<_MenuDriver> createState() => _MenuDriverState();
+}
+
+class _MenuDriverState extends State<_MenuDriver>
+    with SingleTickerProviderStateMixin<_MenuDriver>, MorphClock<_MenuDriver> {
+  final Object _tag = Object();
+  BuildContext? _scope;
+  MorphMenuAppearance _style = MorphMenuAppearance.light;
+
+  late final MorphMenuController controller = MorphMenuController(
+    tagId: _tag,
+    scopeContext: () => _scope,
+    clock: () => clock,
+    stamp: stamp,
+    wake: wake,
+    style: () => _style,
+    glyph: () => const SizedBox.shrink(),
+    semanticLabel: () => _region.semanticLabel,
+    onClose: () => widget.region._menuClosed(),
+  );
+
+  MorphContextMenuRegion get _region => widget.region.widget;
+  MorphMenuContent get _content => controller.menuContent;
+
+  @override
+  void initState() {
+    super.initState();
+    _content.entries = _region.menu;
+    _content.order = _region.order;
+  }
+
+  @override
+  void didUpdateWidget(_MenuDriver oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    controller.updateEntries(
+      _region.menu,
+      order: _region.order,
+      dismissOnSelect: _region.dismissOnSelect,
+    );
+  }
+
+  @override
+  void deactivate() {
+    controller.sourceActive = false;
+    super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    controller.sourceActive = true;
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  /// Lays the menu out for the view [held] at rest and its lifted
+  /// [preview], both in [overlay]'s coordinates; an open menu stays as it
+  /// is.
+  MorphMenuMotion prepare({
+    required Rect held,
+    required Rect preview,
+    required double accessory,
+    required OverlayState overlay,
+  }) {
+    final MorphMenuMotion? current = controller.menuMotion;
+    if (current != null && current.isPresented) return current;
+    final RenderBox overlayBox =
+        overlay.context.findRenderObject()! as RenderBox;
+    _content.rtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    _content.titleStyle = MorphTypography.resolve(_style.textStyle);
+    _content.textScaler =
+        MediaQuery.maybeTextScalerOf(context) ?? TextScaler.noScaling;
+    _content.beginSession();
+    return controller.prepare(
+      button: held,
+      bounds: overlayBox.size,
+      padding: morphTargetPaddingOf(
+        context,
+        overlayBox.size,
+        overlayBox: overlayBox,
+      ),
+      tuning: MorphMenuTuning.context,
+      overlay: overlay,
+      dismissOnSelect: _region.dismissOnSelect,
+      attachment: MorphMenuAttachment(
+        held: held,
+        preview: preview,
+        accessory: accessory,
+      ),
+    );
+  }
+
+  @override
+  void advanceMotion(double t) =>
+      controller.advance(t, framePeriod: framePeriod);
+
+  @override
+  bool get motionSettled => controller.menuMotion?.isSettled ?? true;
+
+  @override
+  double? get motionWakeTime => controller.wakeTime;
+
+  @override
+  Widget build(BuildContext context) {
+    _style = MorphMenuAppearance.resolve(context, _region.appearance);
+    return Stack(
+      fit: StackFit.passthrough,
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        widget.child,
+        Positioned.fill(
+          child: IgnorePointer(
+            child: Builder(
+              builder: (BuildContext context) {
+                _scope = context;
+                return Center(
+                  child: FractionallySizedBox(
+                    widthFactor: MorphMenuAttachment.measuredBlobScale,
+                    heightFactor: MorphMenuAttachment.measuredBlobScale,
+                    child: MorphTag(id: _tag, child: const SizedBox.expand()),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -4,11 +4,38 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/widgets/menu.dart' show MorphMenuLayer;
 import 'package:morph/widgets.dart';
 
 import 'support/shuttle.dart';
+
+/// Rows of a device-sized menu: one free-form row filling a menu [height]
+/// points tall with its 10-point insets.
+List<MorphMenuEntry> _deviceRows(num height) => <MorphMenuEntry>[
+  MorphMenuWidget(
+    height: height.toDouble() - 20,
+    builder: (BuildContext context) => SizedBox(height: height.toDouble() - 20),
+  ),
+];
+
+/// The open menu's shape as it shows, or null while no menu does.
+Rect? _menuShape(WidgetTester tester) {
+  final Finder layers = find.byType(MorphMenuLayer);
+  if (layers.evaluate().isEmpty) return null;
+  final motion = tester.widget<MorphMenuLayer>(layers.first).host.menuMotion;
+  if (motion == null || !motion.isPresented) return null;
+  return motion.menuBlob.rect;
+}
+
+/// The open menu's final frame.
+Rect _menuFrame(WidgetTester tester) => tester
+    .widget<MorphMenuLayer>(find.byType(MorphMenuLayer).first)
+    .host
+    .menuMotion!
+    .menuRect;
 
 const Key _heroBox = ValueKey<String>('hero-box');
 const Size _heroSize = Size(160, 48);
@@ -811,6 +838,179 @@ void main() {
   });
 
   group('live slots', liveSlots);
+
+  group('menu rows', menuRows);
+}
+
+/// A held 160 x 48 hero with three menu rows, recording what was chosen
+/// and the haptics played.
+class _RowsHost extends StatelessWidget {
+  const _RowsHost({required this.picked, this.onOpen});
+
+  final List<String> picked;
+  final ValueChanged<MorphFlight>? onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      builder: (BuildContext context, Widget? child) =>
+          MorphScope(child: child!),
+      home: Scaffold(
+        body: Center(
+          child: MorphContextMenuRegion(
+            onOpen: onOpen,
+            menu: <MorphMenuEntry>[
+              for (final String title in <String>['Reply', 'Copy', 'Delete'])
+                MorphMenuItem(
+                  title: title,
+                  destructive: title == 'Delete',
+                  onSelected: () => picked.add(title),
+                ),
+            ],
+            child: Builder(
+              builder: (BuildContext context) => GestureDetector(
+                onTap: () => MorphContextMenuRegion.open(context),
+                child: Container(
+                  key: _heroBox,
+                  width: _heroSize.width,
+                  height: _heroSize.height,
+                  color: const Color(0xFF334455),
+                  child: const Text('rows-hero'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void menuRows() {
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  late List<String> haptics;
+  setUp(() {
+    haptics = <String>[];
+    binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (MethodCall call) async {
+        if (call.method == 'HapticFeedback.vibrate') {
+          haptics.add(call.arguments as String? ?? 'vibrate');
+        }
+        return null;
+      },
+    );
+  });
+  tearDown(() {
+    binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      null,
+    );
+  });
+
+  testWidgets('the held finger slides onto a row and chooses it on release, '
+      'with a selection haptic per row', (WidgetTester tester) async {
+    frame(tester);
+    final picked = <String>[];
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      _RowsHost(picked: picked, onOpen: (MorphFlight f) => flight = f),
+    );
+    final TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(_heroBox)),
+    );
+    await frames(tester, const Duration(milliseconds: 1000));
+    expect(haptics, <String>['HapticFeedbackType.heavyImpact']);
+    expect(find.text('Copy'), findsOneWidget);
+    final Offset reply = tester.getCenter(find.text('Reply'));
+    final Offset copy = tester.getCenter(find.text('Copy'));
+    await gesture.moveTo(reply);
+    await frames(tester, const Duration(milliseconds: 50));
+    await gesture.moveTo(copy);
+    await frames(tester, const Duration(milliseconds: 50));
+    expect(haptics, <String>[
+      'HapticFeedbackType.heavyImpact',
+      'HapticFeedbackType.selectionClick',
+      'HapticFeedbackType.selectionClick',
+    ]);
+    await gesture.up();
+    await settle(tester);
+    expect(picked, <String>['Copy']);
+    expect(flight!.isFinished, isTrue);
+    expect(find.text('Copy'), findsNothing);
+  });
+
+  testWidgets('a release on the preview keeps the menu open; a tap on a row '
+      'chooses it and both fly home', (WidgetTester tester) async {
+    frame(tester);
+    final picked = <String>[];
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      _RowsHost(picked: picked, onOpen: (MorphFlight f) => flight = f),
+    );
+    final TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(_heroBox)),
+    );
+    await frames(tester, const Duration(milliseconds: 1000));
+    await gesture.up();
+    await settle(tester);
+    expect(find.text('Reply'), findsOneWidget);
+    expect(picked, isEmpty);
+    await tester.tap(find.text('Reply'));
+    await settle(tester);
+    expect(picked, <String>['Reply']);
+    expect(flight!.isFinished, isTrue);
+  });
+
+  testWidgets('a tap outside closes the menu and the preview', (
+    WidgetTester tester,
+  ) async {
+    frame(tester);
+    final picked = <String>[];
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      _RowsHost(picked: picked, onOpen: (MorphFlight f) => flight = f),
+    );
+    await tester.tap(find.text('rows-hero'));
+    await settle(tester);
+    expect(find.text('Copy'), findsOneWidget);
+    await tester.tapAt(const Offset(20, 20));
+    await settle(tester);
+    expect(find.text('Copy'), findsNothing);
+    expect(flight!.isFinished, isTrue);
+    expect(picked, isEmpty);
+  });
+
+  testWidgets('arrow keys move the highlight and Enter chooses', (
+    WidgetTester tester,
+  ) async {
+    frame(tester);
+    final picked = <String>[];
+    await tester.pumpWidget(_RowsHost(picked: picked));
+    await tester.tap(find.text('rows-hero'));
+    await settle(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await settle(tester);
+    expect(picked, <String>['Copy']);
+    expect(find.text('Copy'), findsNothing);
+  });
+
+  testWidgets('closing the flight closes the menu with it', (
+    WidgetTester tester,
+  ) async {
+    frame(tester);
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      _RowsHost(picked: <String>[], onOpen: (MorphFlight f) => flight = f),
+    );
+    await tester.tap(find.text('rows-hero'));
+    await settle(tester);
+    flight!.close();
+    await settle(tester);
+    expect(find.text('Copy'), findsNothing);
+  });
 }
 
 const Key _liveHero = ValueKey<String>('live-hero');
@@ -1263,7 +1463,6 @@ void liveSlots() {
   });
 }
 
-const Key _deviceMenu = ValueKey<String>('device-menu');
 const ValueKey<Object> _flyingHero = ValueKey<Object>(
   'morph-context-menu-hero',
 );
@@ -1510,17 +1709,7 @@ void devicePreview() {
                 child: MorphContextMenuRegion(
                   alignment: Alignment.center,
                   onOpen: (MorphFlight f) => flight = f,
-                  below: MorphSatellite(
-                    height: menu[3].toDouble(),
-                    builder: (BuildContext context, MorphFlight flight) =>
-                        Center(
-                          child: SizedBox(
-                            key: _deviceMenu,
-                            width: menu[2].toDouble(),
-                            height: menu[3].toDouble(),
-                          ),
-                        ),
-                  ),
+                  menu: _deviceRows(menu[3]),
                   child: SizedBox.fromSize(
                     key: _heroBox,
                     size: size,
@@ -1602,7 +1791,9 @@ void devicePreview() {
       expect(hero.center.dy, closeTo(open[2], 0.01));
       expect(hero.width, closeTo(open[3], 0.01));
       expect(hero.height, closeTo(open[4], 0.01));
-      final Rect actions = tester.getRect(find.byKey(_deviceMenu));
+      final Rect actions = _menuFrame(tester);
+      expect(actions.width, closeTo(menu[2].toDouble(), 0.01));
+      expect(actions.height, closeTo(menu[3].toDouble(), 0.01));
       expect(actions.center.dx, closeTo(menu[0].toDouble(), 0.01));
       expect(actions.center.dy, closeTo(menu[1].toDouble(), 0.01));
       expect(
@@ -1661,11 +1852,7 @@ Future<({List<_DimFrame> open, List<_DimFrame> close})> _replayDim(
             child: MorphContextMenuRegion(
               alignment: Alignment.center,
               onOpen: (MorphFlight f) => flight = f,
-              below: MorphSatellite(
-                height: menu[3].toDouble(),
-                builder: (BuildContext context, MorphFlight flight) =>
-                    SizedBox(width: menu[2].toDouble()),
-              ),
+              menu: _deviceRows(menu[3]),
               child: SizedBox.fromSize(
                 size: size,
                 child: const ColoredBox(color: Color(0xFF0088FF)),
@@ -1748,16 +1935,7 @@ _replayHold(
             child: MorphContextMenuRegion(
               alignment: Alignment.center,
               onOpen: (MorphFlight f) => flight = f,
-              below: MorphSatellite(
-                height: menu[3].toDouble(),
-                builder: (BuildContext context, MorphFlight flight) => Center(
-                  child: SizedBox(
-                    key: _deviceMenu,
-                    width: menu[2].toDouble(),
-                    height: menu[3].toDouble(),
-                  ),
-                ),
-              ),
+              menu: _deviceRows(menu[3]),
               child: SizedBox.fromSize(
                 key: _heroBox,
                 size: size,
@@ -1791,10 +1969,7 @@ _replayHold(
     return tester.getRect(find.byKey(_heroBox).first);
   }
 
-  Rect? menuRect() {
-    final Finder found = find.byKey(_deviceMenu);
-    return found.evaluate().isEmpty ? null : tester.getRect(found);
-  }
+  Rect? menuRect() => _menuShape(tester);
 
   final TestGesture gesture = await tester.startGesture(const Offset(201, 300));
   await tester.pump();
@@ -2060,7 +2235,10 @@ void deviceMorph() {
         );
         expect(
           sizeError,
-          lessThan(axis == 3 && name == 'ctxd-l-1' ? 0.011 : 0.008),
+          // The menu card grows out of the measured blob on the context
+          // spring (m / l: width 0.73 / 0.36, height 0.80 / 0.39 percent;
+          // the engine column measured 0.66 / 1.07 and 0.73 / 0.58).
+          lessThan(name == 'ctxd-l-1' ? 0.005 : 0.0085),
           reason: '$name menu size axis $axis',
         );
         expect(peak, inInclusiveRange(1.01, 1.02));

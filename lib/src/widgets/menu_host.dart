@@ -35,6 +35,7 @@ class MorphMenuController implements MorphMenuHost {
     this.glyphKey,
     required this.semanticLabel,
     this.onOpen,
+    this.onClose,
   }) {
     menuContent = MorphMenuContent(onChanged: _contentChanged);
   }
@@ -73,6 +74,10 @@ class MorphMenuController implements MorphMenuHost {
 
   /// Receives each newly launched flight.
   final ValueChanged<MorphFlight>? onOpen;
+
+  /// Called when the menu starts closing, however it closes: a row chosen,
+  /// a touch outside it, Esc or [close].
+  final VoidCallback? onClose;
   final ValueNotifier<int> _repaint = ValueNotifier<int>(0);
   OverlayState? _overlay;
 
@@ -215,6 +220,7 @@ class MorphMenuController implements MorphMenuHost {
     double? sourceHeight,
     double? sourceRadius,
     bool? dismissOnSelect,
+    MorphMenuAttachment? attachment,
   }) {
     _overlay = overlay;
     _lastStyle = style();
@@ -226,6 +232,7 @@ class MorphMenuController implements MorphMenuHost {
         bounds: bounds,
         padding: padding,
         sourceRadius: sourceRadius,
+        attachment: attachment,
       );
       current.dismissOnSelect = dismissOnSelect;
       return current;
@@ -238,6 +245,7 @@ class MorphMenuController implements MorphMenuHost {
       sourceHeight: sourceHeight,
       sourceRadius: sourceRadius,
       tuning: tuning,
+      attachment: attachment,
       progress: MorphMenuFlightProgress(
         tuning,
         onOpen: _launch,
@@ -319,6 +327,7 @@ class MorphMenuController implements MorphMenuHost {
   }
 
   void _closeFlight() {
+    if (!_disposed) onClose?.call();
     final flight = _flight;
     if (flight == null || flight.isFinished) return;
     if (SchedulerBinding.instance.schedulerPhase ==
@@ -397,6 +406,31 @@ class MorphMenuController implements MorphMenuHost {
   Offset _local(Offset global) {
     final box = _overlay?.context.findRenderObject();
     return box is RenderBox ? box.globalToLocal(global) : global;
+  }
+
+  /// Opens the prepared menu under the finger [pointer], which has held
+  /// the source and rests at the global [position]: its moves and its
+  /// release, fed to [menuPointerMove] and [menuPointerUp], slide the
+  /// highlight through the menu and choose a row
+  /// ([MorphMenuMotion.holdOpen]).
+  void holdOpen(int pointer, Offset position) {
+    final motion = _motion;
+    if (_disposed || motion == null) return;
+    if (_pointer != null) {
+      motion.open(menuClock);
+    } else {
+      _pointer = pointer;
+      motion.holdOpen(menuClock, _local(position));
+    }
+    menuWake();
+  }
+
+  /// Opens the prepared menu without a finger on it.
+  void open() {
+    final motion = _motion;
+    if (_disposed || motion == null) return;
+    motion.open(menuClock);
+    menuWake();
   }
 
   @override
