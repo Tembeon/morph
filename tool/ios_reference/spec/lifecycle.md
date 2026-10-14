@@ -112,9 +112,8 @@ frame of the glass host placing its surfaces; the search tab's shapes follow the
 by layout (about 10 layouts each: glass, clip, touch wrappers) and the field lays out
 while its width changes (native SwiftUI does too: 25-27); the context menu's vessel
 follows the flight by layout (19 a frame, the engine's shuttle chain); gaps 11, 15;
-the minimizing tab bar's collapse lays out the collapsing tabs' boxes and the accessory's
-content at its moving width every frame (~14 layouts, native 3-9 for 300 ms;
-tab-bar-minimize.md), pinned as recorded.
+the minimizing tab bar's collapse keeps 3 layouts a frame from its glass host and 4 from
+the selected label shrinking in the first half (tab-bar-minimize.md).
 
 ## Port suggestions, by gap
 
@@ -190,7 +189,7 @@ Native and morph per window; morph tokens are `builds/layouts/paints` per 16 ms 
 | family | native window | morph |
 |---|---|---|
 | segmented | selection: 1 frame, 7-11 layouts, 2 label redraws, 0 creations | 13/15/47, then 0/2/29 x 101 (liquid 0/2/10) |
-| tab bar | selection: 1 frame, 16-17 layouts, 3-4 redraws, content swap (1 creation, 2 removals); minimize on scroll: 300 ms of 3-9 layouts per frame | 41/3/116, then 0/2/99 x 96-115; minimize (scene `tabbar-minimize`, 2026-10-14): a hinting drag 0 builds, 0 layouts (a transform); the collapse one structure frame, then ~14 layouts + ~27 paints a frame of the bar group for ~0.66 s; expand 11-20 layouts + 25-33 paints for 0.77 s |
+| tab bar | selection: 1 frame, 16-17 layouts, 3-4 redraws, content swap (1 creation, 2 removals); minimize on scroll: 300 ms of 3-9 layouts per frame | 41/3/116, then 0/2/99 x 96-115; minimize (scene `tabbar-minimize`, 2026-10-14): a hinting drag 0 builds, 0 layouts (a transform); the collapse one structure frame, then 3 layouts (the glass host) + 12-21 paints a frame of the bar group for ~0.66 s; expand 0-7 layouts + 8-15 paints for 0.77 s (before: 14 / ~27 and 11-20 / 25-36) |
 | switch | animated: 3 animations, 0 layouts; plain: nothing | 7/0/0, then 0/2/9 x 76 |
 | slider | animated set: 2 layouts per frame for 0.55 s; plain: 1 frame of 2 | 11/5/31, 0/0/13 (no animation) |
 | stepper | value: 1 frame of 3 layouts; enable: nothing | value 12/0/13; enable 13/0/0 |

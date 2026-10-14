@@ -118,7 +118,10 @@ New capabilities from the API parity audit (phase 2):
   `MorphScrollAway`, `MorphTabBarMinimizeMotion`,
   `MorphTabBarMinimizeTuning` (motion.dart). With either new option the
   bar lays itself out across the width it is given (place it with
-  `Positioned(left: 0, right: 0, bottom: 21)`).
+  `Positioned(left: 0, right: 0, bottom: 21)`). The collapse is laid out
+  once and moves by clips, translations and the glass (3 layouts a frame
+  where it took 14); NEAR: the accessory's content takes its end layout as
+  the morph starts and travels with its capsule.
 - Bottom accessory (UIKit `bottomAccessory`, SwiftUI
   `tabViewBottomAccessory`): `bottomAccessory` on both bars floats the
   app's widget in glass 8 points above the bar and moves it inline

@@ -205,33 +205,77 @@ class _TabAccessoryScope extends InheritedWidget {
       oldWidget.environment != environment;
 }
 
-/// The content of a bottom accessory as the bar group shows it: in the
-/// [environment] it reads, with the body text style and the bar's content
-/// color, clipped to the accessory's capsule.
+/// The content of a bottom accessory as the bar group shows it, a [Stack]
+/// child: in the [environment] it reads, with the body text style and the
+/// bar's content color, laid out once at [end] (the box the accessory
+/// heads to) and carried to [rect]'s center and clipped to its capsule by
+/// paint alone, so a frame of the morph neither lays it out nor repaints
+/// it.
+///
+/// NEAR: UIKit resizes the content view with the accessory; here the
+/// content takes its end layout as the morph starts (when its environment
+/// changes anyway) and travels with the capsule's center.
 @internal
 Widget morphTabAccessoryContent({
+  required Listenable live,
+  required Rect Function() rect,
+  required Rect end,
   required MorphTabAccessoryEnvironment environment,
   required MorphTabBarAppearance style,
   required Widget child,
-}) => RepaintBoundary(
-  child: ClipRRect(
-    borderRadius: const BorderRadius.all(
-      Radius.circular(MorphTabBarMinimizeTuning.accessoryHeight / 2),
+  double Function()? opacity,
+}) {
+  Rect clip() {
+    final now = rect();
+    return Rect.fromCenter(
+      center: end.size.center(Offset.zero),
+      width: now.width,
+      height: now.height,
+    );
+  }
+
+  Widget content = ClipRRect(
+    clipper: MorphLiveClipper<RRect>(
+      live: live,
+      keyOf: clip,
+      clipOf: (Size _) {
+        final r = clip();
+        return RRect.fromRectAndRadius(r, Radius.circular(r.shortestSide / 2));
+      },
     ),
-    child: _TabAccessoryScope(
-      environment: environment,
-      child: DefaultTextStyle(
-        style: MorphTypography.resolve(
-          MorphTypography.body.copyWith(color: style.color),
-        ),
-        child: IconTheme.merge(
-          data: IconThemeData(color: style.color),
-          child: child,
+    child: RepaintBoundary(
+      child: _TabAccessoryScope(
+        environment: environment,
+        child: DefaultTextStyle(
+          style: MorphTypography.resolve(
+            MorphTypography.body.copyWith(color: style.color),
+          ),
+          child: IconTheme.merge(
+            data: IconThemeData(color: style.color),
+            child: child,
+          ),
         ),
       ),
     ),
-  ),
-);
+  );
+  if (opacity != null) {
+    content = MorphLiveOpacity(live: live, opacityOf: opacity, child: content);
+  }
+  return Positioned.fromRect(
+    rect: end,
+    child: RepaintBoundary(
+      child: MorphLiveTransform.matrix(
+        live: live,
+        alignment: null,
+        matrixOf: () {
+          final d = rect().center - end.center;
+          return Matrix4.translationValues(d.dx, d.dy, 0);
+        },
+        child: content,
+      ),
+    ),
+  );
+}
 
 /// A bottom accessory in a [Stack] that fills the screen: its glass and
 /// content at [rect], faded by [opacity], both read on every frame of
@@ -249,6 +293,7 @@ class MorphTabAccessorySlot extends StatelessWidget {
     required this.glass,
     required this.brightness,
     required this.child,
+    required this.end,
     super.key,
   });
 
@@ -279,52 +324,60 @@ class MorphTabAccessorySlot extends StatelessWidget {
   /// The accessory's content.
   final Widget child;
 
+  /// The box the accessory heads to; its content is laid out there once.
+  final Rect end;
+
   @override
   Widget build(BuildContext context) {
     final glass = this.glass;
-    return MorphLivePositionedTemplate(
-      live: live,
-      template: () => Positioned.fromRect(rect: rect(), child: morphLiveSlot),
+    RRect shape() {
+      final r = rect();
+      return RRect.fromRectAndRadius(r, Radius.circular(r.shortestSide / 2));
+    }
+
+    return Positioned.fill(
       child: IgnorePointer(
         ignoring: !takesTouches,
         child: Stack(
-          fit: StackFit.expand,
+          clipBehavior: Clip.none,
           children: [
-            IgnorePointer(
-              child: glass == null
-                  ? CustomPaint(
-                      painter: MorphCapsulePainter(
-                        live: live,
-                        shape: () => morphCapsuleIn(rect()),
-                        color: () => style.barColor.withValues(
-                          alpha: style.barColor.a * opacity(),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: glass == null
+                    ? CustomPaint(
+                        painter: MorphCapsulePainter(
+                          live: live,
+                          shape: shape,
+                          color: () => style.barColor.withValues(
+                            alpha: style.barColor.a * opacity(),
+                          ),
+                          shadow: style.shadowColor,
                         ),
-                        shadow: style.shadowColor,
+                      )
+                    : MorphGlassHost(
+                        painter: glass,
+                        mode: MorphGlassMode.surface,
+                        frames: live,
+                        frame: () => MorphGlassFrame([
+                          MorphGlassSurface(
+                            kind: MorphGlassKind.bar,
+                            shape: shape(),
+                            color: style.barColor,
+                            brightness: brightness,
+                            opacity: opacity(),
+                          ),
+                        ]),
                       ),
-                    )
-                  : MorphGlassHost(
-                      painter: glass,
-                      mode: MorphGlassMode.surface,
-                      frames: live,
-                      frame: () => MorphGlassFrame([
-                        MorphGlassSurface(
-                          kind: MorphGlassKind.bar,
-                          shape: morphCapsuleIn(rect()),
-                          color: style.barColor,
-                          brightness: brightness,
-                          opacity: opacity(),
-                        ),
-                      ]),
-                    ),
-            ),
-            MorphLiveOpacity(
-              live: live,
-              opacityOf: opacity,
-              child: morphTabAccessoryContent(
-                environment: environment,
-                style: style,
-                child: child,
               ),
+            ),
+            morphTabAccessoryContent(
+              live: live,
+              rect: rect,
+              end: end,
+              environment: environment,
+              style: style,
+              opacity: opacity,
+              child: child,
             ),
           ],
         ),
@@ -726,18 +779,22 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
     final glass = widget.glass;
     final style = widget.appearance;
     final selected = widget.selected.clamp(0, widget.items.length - 1);
+    // Each part is a repaint boundary of its own: a frame of the morph
+    // repaints the moving glass and composites the rest.
     final children = <Widget>[
       if (glass != null && (!resting || accessory != null))
         Positioned.fill(
           key: const ValueKey<String>('glass'),
-          child: IgnorePointer(
-            child: MorphGlassHost(
-              painter: glass,
-              mode: MorphGlassMode.layer,
-              frames: _ticks,
-              frame: () => MorphGlassFrame(
-                _surfaces(resting: resting),
-                spacing: MorphTabBarMinimizeTuning.fusionSpacing,
+          child: RepaintBoundary(
+            child: IgnorePointer(
+              child: MorphGlassHost(
+                painter: glass,
+                mode: MorphGlassMode.layer,
+                frames: _ticks,
+                frame: () => MorphGlassFrame(
+                  _surfaces(resting: resting),
+                  spacing: MorphTabBarMinimizeTuning.fusionSpacing,
+                ),
               ),
             ),
           ),
@@ -745,13 +802,15 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
       else if (glass == null && accessory != null)
         Positioned.fill(
           key: const ValueKey<String>('glass'),
-          child: IgnorePointer(
-            child: CustomPaint(
-              painter: MorphCapsulePainter(
-                live: _ticks,
-                shape: () => _capsule(_accessory),
-                color: () => style.barColor,
-                shadow: style.shadowColor,
+          child: RepaintBoundary(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: MorphCapsulePainter(
+                  live: _ticks,
+                  shape: () => _capsule(_accessory),
+                  color: () => style.barColor,
+                  shadow: style.shadowColor,
+                ),
               ),
             ),
           ),
@@ -761,11 +820,13 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
       Positioned.fromRect(
         key: const ValueKey<String>('bar'),
         rect: geometry.bar,
-        child: ExcludeSemantics(
-          excluding: !resting,
-          child: IgnorePointer(
-            ignoring: !resting,
-            child: Opacity(opacity: resting ? 1 : 0, child: widget.bar),
+        child: RepaintBoundary(
+          child: ExcludeSemantics(
+            excluding: !resting,
+            child: IgnorePointer(
+              ignoring: !resting,
+              child: Opacity(opacity: resting ? 1 : 0, child: widget.bar),
+            ),
           ),
         ),
       ),
@@ -798,25 +859,29 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
           onTap: expandMinimized,
           enabled: _collapsedEnabled,
           drawsGlass: glass == null,
+          layoutBox: geometry.bar.expandToInclude(geometry.collapsed),
         );
       }
+      // Laid out once over both ends (the expanded bar and its circle); the
+      // collapse moves its glass, clip and glyph by paint.
       children.add(
-        MorphLivePositionedTemplate(
+        Positioned.fromRect(
           key: const ValueKey<String>('collapsed'),
-          live: _ticks,
-          template: () => Positioned.fromRect(rect: _bar, child: morphLiveSlot),
-          child: _collapsed!,
+          rect: geometry.bar.expandToInclude(geometry.collapsed),
+          child: RepaintBoundary(child: _collapsed),
         ),
       );
     }
     if (accessory != null) {
       children.add(
-        MorphLivePositionedTemplate(
+        KeyedSubtree(
           key: const ValueKey<String>('accessory'),
-          live: _ticks,
-          template: () =>
-              Positioned.fromRect(rect: _accessory, child: morphLiveSlot),
           child: morphTabAccessoryContent(
+            live: _ticks,
+            rect: () => _accessory,
+            end: structure.minimized
+                ? geometry.inlineAccessory
+                : geometry.accessory,
             environment: structure.minimized
                 ? MorphTabAccessoryEnvironment.inline
                 : MorphTabAccessoryEnvironment.regular,

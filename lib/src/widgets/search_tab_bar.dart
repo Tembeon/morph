@@ -651,6 +651,9 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                 key: const ValueKey<String>('accessory'),
                 live: _ticks,
                 rect: () => _frame.accessory,
+                end: structure.minimized
+                    ? _inlineAccessoryRect(geometry)
+                    : _accessoryRect(geometry),
                 opacity: () => (1 - _frame.q).clamp(0.0, 1.0),
                 takesTouches: structure.searchIdle,
                 environment: structure.minimized

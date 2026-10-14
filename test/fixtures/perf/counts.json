@@ -35,8 +35,8 @@
   "tab-bar-minimize/flat": {
     "frames": 205,
     "builds": 0.4,
-    "paints": 30.8,
-    "pictures": 3.3,
+    "paints": 23.3,
+    "pictures": 1.9,
     "captures": 0.0,
     "offscreen": 0.6,
     "snapshotImages": 0.0,
@@ -299,8 +299,8 @@
   "tab-bar-minimize/fake": {
     "frames": 205,
     "builds": 0.7,
-    "paints": 36.8,
-    "pictures": 4.4,
+    "paints": 26.1,
+    "pictures": 3.0,
     "captures": 2.1,
     "offscreen": 2.6,
     "snapshotImages": 0.0,
@@ -563,8 +563,8 @@
   "tab-bar-minimize/liquid": {
     "frames": 205,
     "builds": 0.7,
-    "paints": 36.8,
-    "pictures": 4.4,
+    "paints": 26.1,
+    "pictures": 3.0,
     "captures": 2.1,
     "offscreen": 2.6,
     "snapshotImages": 0.0,
