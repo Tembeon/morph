@@ -204,6 +204,50 @@ class MorphMenuAppearance {
     submenuShadowColor: submenuShadowColor ?? this.submenuShadowColor,
     paletteSelectionColor: paletteSelectionColor ?? this.paletteSelectionColor,
   );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphMenuAppearance &&
+      other.glassColor == glassColor &&
+      other.shadowColor == shadowColor &&
+      other.shadowElevation == shadowElevation &&
+      other.textStyle == textStyle &&
+      other.iconColor == iconColor &&
+      other.disabledIconColor == disabledIconColor &&
+      other.iconSize == iconSize &&
+      other.destructiveColor == destructiveColor &&
+      other.highlightColor == highlightColor &&
+      other.glowColor == glowColor &&
+      other.secondaryColor == secondaryColor &&
+      other.disabledColor == disabledColor &&
+      other.separatorColor == separatorColor &&
+      other.submenuColor == submenuColor &&
+      other.glassTint == glassTint &&
+      other.submenuRimColor == submenuRimColor &&
+      other.submenuShadowColor == submenuShadowColor &&
+      other.paletteSelectionColor == paletteSelectionColor;
+
+  @override
+  int get hashCode => Object.hash(
+    glassColor,
+    shadowColor,
+    shadowElevation,
+    textStyle,
+    iconColor,
+    disabledIconColor,
+    iconSize,
+    destructiveColor,
+    highlightColor,
+    glowColor,
+    secondaryColor,
+    disabledColor,
+    separatorColor,
+    submenuColor,
+    glassTint,
+    submenuRimColor,
+    submenuShadowColor,
+    paletteSelectionColor,
+  );
 }
 
 /// What makes a [MorphMenuSource] open its menu.
