@@ -441,8 +441,12 @@ class _RowPlace extends InheritedWidget {
 /// `UITableViewCell.AccessoryType`.
 ///
 /// The checkmark and the detail button are drawn in the tint
-/// ([MorphListAppearance.iconColor]); their glyphs and sizes follow the
-/// SF symbols by eye and are not yet measured on a device.
+/// ([MorphListAppearance.iconColor]). UIKit draws the SF symbol
+/// `checkmark` at the emphasized body text style (17 point semibold),
+/// medium scale, and the detail button as the SF symbol `info.circle` at
+/// its default configuration (read from UIKit, notes private); morph
+/// paints both by eye in a 22 point box - the outlines are not read and
+/// need a device check.
 enum MorphListAccessory {
   /// The disclosure chevron of a row that pushes a screen.
   disclosureIndicator,
