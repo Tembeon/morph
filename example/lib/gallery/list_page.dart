@@ -2,12 +2,17 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph_example/gallery/knobs.dart';
 
 /// Inset grouped sections whose rows carry glass buttons.
 ///
 /// Each section shades the resting glass of its rows' accessories in one
 /// layer; a pressed row's button leaves it while the row's highlight
 /// shows.
+///
+/// Below them: a single selection with checkmarks, info buttons, a
+/// disabled row and a sliver section that builds its many rows lazily.
+/// The page options set the lazy section's row count and its icons.
 class ListPage extends StatefulWidget {
   /// Creates the page.
   const ListPage({super.key});
@@ -18,6 +23,20 @@ class ListPage extends StatefulWidget {
 
 class _ListPageState extends State<ListPage> {
   String _last = 'Nothing tapped yet';
+  int _sort = 0;
+  bool _rowEnabled = false;
+  int _lazyCount = 500;
+  bool _lazyIcons = true;
+
+  static const _sorts = ['Name', 'Date added', 'Size'];
+
+  static const _counts = {50: '50', 500: '500', 5000: '5000'};
+
+  static const _devices = <(String, String, MorphListAccessory)>[
+    ('Living room', 'Connected', .detailButton),
+    ('Kitchen speaker', 'Idle', .detailDisclosureButton),
+    ('Bedroom TV', 'Asleep', .detailDisclosureButton),
+  ];
 
   static const _apps = <(String, String, IconData)>[
     ('Notes', 'Productivity', Icons.note_outlined),
@@ -39,12 +58,42 @@ class _ListPageState extends State<ListPage> {
 
   void _say(String what) => setState(() => _last = what);
 
+  List<Widget> _options(BuildContext context) => [
+    MorphListSection(
+      header: const Text('Lazy section'),
+      children: [
+        GalleryChoice<int>(
+          label: 'Rows',
+          options: _counts,
+          value: _lazyCount,
+          onChanged: (int n) => setState(() => _lazyCount = n),
+        ),
+        GalleryToggle(
+          label: 'Row icons',
+          value: _lazyIcons,
+          onChanged: (bool v) => setState(() => _lazyIcons = v),
+        ),
+      ],
+    ),
+    MorphListSection(
+      header: const Text('Disabled row'),
+      children: [
+        GalleryToggle(
+          label: 'Enable the row',
+          value: _rowEnabled,
+          onChanged: (bool v) => setState(() => _rowEnabled = v),
+        ),
+      ],
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     T? on<T extends Function>(T callback) =>
         GalleryGlassScope.enabled(context, callback);
     return GalleryPage(
       title: 'Lists',
+      options: _options,
       slivers: [
         SliverToBoxAdapter(
           child: Padding(
@@ -103,6 +152,66 @@ class _ListPageState extends State<ListPage> {
                   ),
               ],
             ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: MorphListSection(
+            header: const Text('Sort by'),
+            footer: const Text(
+              'A single selection: the chosen row shows a checkmark.',
+            ),
+            children: [
+              for (final (i, name) in _sorts.indexed)
+                MorphListRow(
+                  title: Text(name),
+                  accessory: i == _sort ? .checkmark : null,
+                  onTap: on(() {
+                    setState(() => _sort = i);
+                    _say('Sorted by $name');
+                  }),
+                ),
+            ],
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: MorphListSection(
+            header: const Text('Devices'),
+            footer: const Text(
+              'The info button runs its own action; the rest of the row '
+              'runs the row\'s.',
+            ),
+            children: [
+              for (final (name, state, accessory) in _devices)
+                MorphListRow(
+                  title: Text(name),
+                  detail: Text(state),
+                  accessory: accessory,
+                  onTap: on(() => _say('Selected $name')),
+                  onAccessoryTap: on(() => _say('Info for $name')),
+                ),
+              MorphListRow(
+                leading: const Icon(Icons.lock_outline),
+                title: const Text('Garage door'),
+                subtitle: Text(_rowEnabled ? 'Enabled' : 'Disabled row'),
+                accessory: .disclosureIndicator,
+                enabled: _rowEnabled,
+                onTap: on(() => _say('Opened Garage door')),
+              ),
+            ],
+          ),
+        ),
+        MorphSliverListSection(
+          header: Text('$_lazyCount lazy rows'),
+          footer: const Text(
+            'MorphSliverListSection builds only the rows in view.',
+          ),
+          itemCount: _lazyCount,
+          itemBuilder: (BuildContext context, int i) => MorphListRow(
+            leading: _lazyIcons
+                ? Icon(i.isEven ? Icons.circle_outlined : Icons.square_outlined)
+                : null,
+            title: Text('Item ${i + 1}'),
+            onTap: on(() => _say('Tapped item ${i + 1}')),
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 120)),

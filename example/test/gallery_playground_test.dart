@@ -72,8 +72,19 @@ Future<void> _scrollTo(
 }
 
 Future<void> _center(WidgetTester tester, Finder finder) async {
+  if (finder.evaluate().isEmpty) await _scrollTo(tester, finder);
   unawaited(Scrollable.ensureVisible(tester.element(finder), alignment: 0.5));
   await _settle(tester);
+}
+
+/// Scrolls the page back up to its status line and expects [text] there.
+Future<void> _expectStatus(WidgetTester tester, String text) async {
+  tester
+      .state<ScrollableState>(find.byType(Scrollable).last)
+      .position
+      .jumpTo(0);
+  await _settle(tester);
+  expect(find.text(text), findsOneWidget);
 }
 
 Future<void> _tapVisible(WidgetTester tester, Finder finder) async {
@@ -210,5 +221,108 @@ void main() {
       tester.widget<MorphSkin>(find.byType(MorphSkin)).links,
       hasLength(1),
     );
+  });
+
+  testWidgets('alerts: text field options and a sheet from a rect', (
+    tester,
+  ) async {
+    await _open(tester, 'Alerts');
+    expect(find.text('Two buttons in a row'), findsOneWidget);
+
+    await _tapVisible(tester, find.text('OK waits for text'));
+    expect(find.text('New playlist'), findsOneWidget);
+    await tester.tap(find.text('OK'));
+    await _settle(tester);
+    expect(find.text('New playlist'), findsOneWidget);
+    await tester.enterText(find.byType(EditableText), 'Road trip');
+    await _settle(tester);
+    await tester.tap(find.text('OK'));
+    await _settle(tester);
+    await _expectStatus(tester, 'Created Road trip');
+
+    await _tapVisible(tester, find.text('A password field'));
+    expect(
+      tester.widget<EditableText>(find.byType(EditableText)).obscureText,
+      isTrue,
+    );
+    await tester.enterText(find.byType(EditableText), 'secret');
+    await _settle(tester);
+    await tester.tap(find.text('Join'));
+    await _settle(tester);
+    await _expectStatus(tester, 'Joined with 6 characters');
+
+    await _tapVisible(tester, find.text('Capitalized words, digits only'));
+    final fields = find.byType(EditableText);
+    expect(fields, findsNWidgets(2));
+    expect(
+      tester.widget<EditableText>(fields.first).textCapitalization,
+      TextCapitalization.words,
+    );
+    await tester.enterText(fields.first, 'Ada Lovelace');
+    await tester.enterText(fields.last, 'a1234567');
+    await _settle(tester);
+    await tester.tap(find.text('Save'));
+    await _settle(tester);
+    await _expectStatus(tester, 'Ships to Ada Lovelace, 12345');
+
+    final box = find.text('Tap anywhere here: an action sheet from that point');
+    await _tapVisible(tester, box);
+    expect(find.text('Share photo'), findsOneWidget);
+    expect(find.text('Cancel'), findsNothing);
+    await tester.tapAt(const Offset(200, 20));
+    await _settle(tester);
+    await _expectStatus(tester, 'Cancel chosen');
+
+    await _openOptions(tester);
+    await _toggle(tester, 'Messages');
+    await _toggle(tester, 'Action sheet title');
+    await tester.tap(find.text('Two buttons in a row'));
+    await _settle(tester);
+    expect(find.text('Allow notifications?'), findsOneWidget);
+    expect(
+      find.text('Alerts, sounds and badges keep you in the loop.'),
+      findsNothing,
+    );
+    expect(_unstyledTexts(tester), isEmpty);
+  });
+
+  testWidgets('lists: checkmarks, info buttons, a disabled row, lazy rows', (
+    tester,
+  ) async {
+    await _open(tester, 'Lists');
+    MorphListRow row(String title) =>
+        tester.widget<MorphListRow>(find.widgetWithText(MorphListRow, title));
+
+    await _tapVisible(tester, find.text('Date added'));
+    expect(row('Date added').accessory, MorphListAccessory.checkmark);
+    expect(row('Name').accessory, isNull);
+    await _expectStatus(tester, 'Sorted by Date added');
+
+    await _center(tester, find.text('Kitchen speaker'));
+    await tester.tap(
+      find.descendant(
+        of: find.widgetWithText(MorphListRow, 'Kitchen speaker'),
+        matching: find.bySemanticsLabel('More info'),
+      ),
+    );
+    await _settle(tester);
+    await _expectStatus(tester, 'Info for Kitchen speaker');
+    await _tapVisible(tester, find.text('Kitchen speaker'));
+    await _expectStatus(tester, 'Selected Kitchen speaker');
+
+    await _tapVisible(tester, find.text('Garage door'));
+    await _expectStatus(tester, 'Selected Kitchen speaker');
+
+    await _scrollTo(tester, find.text('Item 40'));
+    expect(find.text('Item 400'), findsNothing);
+    await _tapVisible(tester, find.text('Item 40'));
+    expect(find.text('Item 40'), findsOneWidget);
+
+    await _openOptions(tester);
+    await tester.tap(find.text('50'));
+    await _settle(tester);
+    await _toggle(tester, 'Enable the row');
+    expect(find.text('50 lazy rows', skipOffstage: false), findsOneWidget);
+    expect(_unstyledTexts(tester), isEmpty);
   });
 }
