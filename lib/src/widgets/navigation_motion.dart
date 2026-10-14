@@ -165,6 +165,22 @@ abstract final class MorphNavigationTuning {
   /// The width of the screen edge an interactive pop starts from.
   static const double edgeWidth = 20;
 
+  /// The corner radius of a page while it slides, in points, when the
+  /// platform reports no display corner radius: the moving page is a card
+  /// with the display's continuous corners (fitted to a simulator film of
+  /// an iPhone 17 Pro edge swipe: about 62 pt, the display's radius; the
+  /// card is square again once it rests). Where the platform reports one
+  /// (`MediaQueryData.displayCornerRadii`) the card takes it.
+  static const double fallbackCardRadius = 62;
+
+  /// The opacity of the black over the page underneath when the page on
+  /// top covers it fully; it follows the top page's progress linearly.
+  /// APPROXIMATION pending the iPhone: one simulator frame read 7 percent
+  /// (255 -> 238) at 0.6 progress of an edge swipe, so 0.11 at full cover
+  /// under a linear law; whether a push without a finger dims alike and
+  /// the exact law are not measured yet.
+  static const double underDimOpacity = 0.11;
+
   /// How far out, as a share of the width, a page released without a
   /// flick has to be for the swipe to pop it: device recordings stay at
   /// 0.27 and pop from 0.32.

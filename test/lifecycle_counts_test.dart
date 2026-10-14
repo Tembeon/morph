@@ -205,33 +205,35 @@ const _ceilings = <String, _Ceiling>{
     layouts: 0,
     paints: 16,
   ),
+  // The moving page's card clip and the dim over the page below repaint
+  // on every frame of the slide: two paints a frame more than before.
   'navigation/flat push': (
     first: 248,
     ms: 960,
     builds: 2,
     layouts: 5,
-    paints: 47,
+    paints: 49,
   ),
   'navigation/flat pop': (
     first: 114,
     ms: 944,
     builds: 2,
     layouts: 5,
-    paints: 49,
+    paints: 51,
   ),
   'navigation/liquid push': (
     first: 248,
     ms: 960,
     builds: 2,
     layouts: 7,
-    paints: 48,
+    paints: 50,
   ),
   'navigation/liquid pop': (
     first: 137,
     ms: 944,
     builds: 2,
     layouts: 7,
-    paints: 49,
+    paints: 51,
   ),
   'sheet/flat detent-large': (
     first: 20,

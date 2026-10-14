@@ -29,6 +29,71 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
   popping one starts from rest ~0.03 s after the lift. +1.25 returned 3/3
   (synthesizer artifact or unmodelled rule - not reproduced).
 
+## Spec - the card and the dim [simulator film, 2026-10-14; iPhone pending]
+
+- While a page slides it is a card with the display's continuous corners:
+  in the native sweep's edge-swipe film (iPhone 17 Pro simulator, iOS 27.0)
+  the moving page's leading edge is rounded top and bottom with a radius
+  fitted at ~62 pt, the display's. At rest the page is square.
+- The page underneath darkens: 255 -> 238 (7 percent black) at ~0.4 of the
+  swipe (top page 0.6 in). Not yet known: the law along the progress,
+  whether a push without a finger dims alike, dark mode, a shadow.
+- morph: the slide clips the moving page (its own animation running or
+  held by a finger) to a rounded superellipse of
+  `MediaQueryData.displayCornerRadii` (fallback
+  `MorphNavigationTuning.fallbackCardRadius` = 62); the page underneath
+  takes black at `underDimOpacity` (0.11) x the top page's progress, on
+  pushes and pops with or without a finger. Declared APPROXIMATION: the
+  linear law and its maximum come from one frame; the push dim is assumed.
+  Pinned by navigation_card_test. Cost: one rounded-superellipse clip
+  layer on the moving page and one opacity layer on the page below, only
+  while the slide moves - frame time on the Pixel 6a not measured yet.
+
+## Spec - the content back swipe [not measured; iPhone pending]
+
+UINavigationController's `interactiveContentPopGestureRecognizer` (iOS 26,
+on by default) pops from a horizontal drag anywhere in the content. morph:
+`MorphNavigationStack.contentPopGestureEnabled` (default true) - past
+Flutter's touch slop toward the trailing side, the page follows and
+releases exactly as the edge swipe (same `popDistance` / `popVelocity`);
+a drag toward the leading side never claims the pointer; any horizontal
+drag recognizer deeper under the finger (scroll views, sliders, page
+views) wins the arena first and keeps the drag, at any offset. NEAR /
+assumed until the capture below: the angle cutoff, the slop, the commit
+rule and whether a scroll view at its leading end yields to the pop.
+
+## Spec - the commit rule, re-checked [simulator sweep, 2026-10-14]
+
+Native sweep item 7: XCUICoordinate `press(forDuration: 0.3...)` at x 3,
+drag to 230 pt, hold 0.6 s, lift: the native page trailed at ~155 pt
+(0.39 W, ~75 pt behind the planned finger) and returned; morph followed at
+~207 pt and popped. Not changed: the device rule above (0.3 W pops at
+rest) came from logged touches, the simulator run logged none, and the
+long press before the drag may change what UIKit's recognizer sees.
+Decided by the iPhone capture below (`pages-rel*`, `pages-xcdrag*`).
+
+## iPhone capture plan (navpages)
+
+`PROBE_PLAN=navpages tool/ios_reference/device.sh` (BarsUITests
+testNavPages, scene `nav` with `PROBE_PAGES=4` and `PROBE_HSCROLL=1`;
+recordings `rec-pages-*.jsonl`: touches, `B` rows of the navigation
+controller's views to depth 4 with corner radius / curve / masked corners
+/ shadow / background / opacity, `gr` rows of both pop recognizers' states
+and translations, `hs` rows of the strip's offset and frame). Film
+`pages-hold40` and `pages-hold40-dark` too (MorphRecorder or screen
+recording): if the card's corners are not a layer property, the film is
+the corner evidence.
+
+| capture | input | decides |
+|---|---|---|
+| pages-auto, pages-auto-dark | programmatic push + pop | dim and card on a push without a finger |
+| pages-hold10 .. pages-hold85 (+ hold40-dark) | edge drag to 0.1..0.85 W over 0.8 s, held 1 s, lift | dim(progress) law and maximum, corner radius while held, held release outcome |
+| pages-rel35..57 - 25 / 60 | edge drag to 0.35..0.57 W in 0.25 / 0.6 s, held 0.6 s, lift | item 7: page vs finger lag, commit at rest past 0.3 W |
+| pages-xcdrag3, pages-xcdrag6 | the sweep's input: XCUICoordinate press 0.3 / 0.6 s at x 3, drag to 230 at 300 pt/s, hold 0.6 | whether the long press explains the 75 pt lag and the return |
+| pages-c0 .. pages-c60 | from (120, 0.8 H) 200 pt at 0..60 degrees up from horizontal, 0.5 s, held 0.6 | content swipe angle cutoff, slop (`gr` ctx at began), commit rule |
+| pages-cleft, pages-cslow, pages-chold40 | leftward; 80 pt over 1.6 s; to 0.4 W held 1 s | leading drags ignored; slop; content swipe dim/card like the edge |
+| pages-h0, -h0nb, -h0pg, -h300, -h300l, -h804 | drag 200 pt inside the horizontal strip (y 480; check `hs` y0/y1) at offset 0 (bounce, no bounce, paging), 300 (right / left), 804 (trailing end) | who wins: the scroll view or the content pop |
+
 ## Spec - a push whose first frame is slow [device, 2026-10-13]
 
 UINavigationController pushes a page whose view spends 60 ms in
@@ -115,6 +180,9 @@ bars no longer repaints with them. Host recorder, flat: push 6/5/75-97 ->
 0/3/58 -> 0/3/18 and 1.26 -> 0.96 s (bars.md "Rest").
 
 ## Not reproduced / open
+
+- The dim law, the push dim, the content swipe's rules and the commit
+  re-check wait for the navpages capture (above).
 
 - +1.25 widths/s returning flicks.
 - Exact push curve is a fit (no read value for v0).

@@ -32,6 +32,21 @@ no behaviour or pixel change: every rename keeps what the old name did.
     `cornerBlend`; `MorphSheetTuning` gains `stretchLimit`,
     `dragDockShortfall` and `backgroundSwitch`.
 
+- Navigation pages follow the native sweep of 2026-10-14 (pixel changes,
+  declared in the navigation passport):
+  - a page that slides (push, pop, edge swipe) is a card with the
+    display's continuous corners while it moves
+    (`MediaQueryData.displayCornerRadii`, else 62 points,
+    `MorphNavigationTuning.fallbackCardRadius`); at rest it is square.
+  - the page underneath dims with black that follows the top page's
+    progress up to `MorphNavigationTuning.underDimOpacity` (0.11, an
+    approximation from one simulator frame, pending the iPhone).
+  - `MorphNavigationStack.contentPopGestureEnabled` (on by default, as
+    UIKit's `interactiveContentPopGestureRecognizer`): a drag toward the
+    trailing side from anywhere in a pushed page pops it like the edge
+    swipe; horizontal scrollables and sliders under the finger keep
+    their drags. Set it false for the edge swipe alone.
+
 - Accessibility read from UIKit: Reduce Motion branches for the switch,
   slider, segmented control, tab bar, alert, popover, navigation
   (cross-fade), context menu hold and date picker overlay; Increase

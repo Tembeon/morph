@@ -1090,8 +1090,8 @@ class MorphLiveBox extends SingleChildRenderObjectWidget {
   final double Function()? opacity;
 
   /// A rounded rect the child is clipped to, in the child's coordinates;
-  /// null for no clip.
-  final RRect Function()? clip;
+  /// null, or a null result, for no clip.
+  final RRect? Function()? clip;
 
   /// Whether [clip]'s corners are continuous: the rounded superellipse with
   /// the same radii, as UIKit's `cornerCurve = .continuous`, instead of
@@ -1135,7 +1135,7 @@ class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
     Offset Function()? offset,
     Matrix4 Function()? transform,
     double Function()? opacity,
-    RRect Function()? clip,
+    RRect? Function()? clip,
     this._continuous = false,
   }) : _sizeOf = size,
        _offsetOf = offset,
@@ -1185,11 +1185,11 @@ class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
     markNeedsPaint();
   }
 
-  RRect Function()? _clipOf;
+  RRect? Function()? _clipOf;
 
   /// See [MorphLiveBox.clip].
-  RRect Function()? get clipOf => _clipOf;
-  set clipOf(RRect Function()? value) {
+  RRect? Function()? get clipOf => _clipOf;
+  set clipOf(RRect? Function()? value) {
     if (identical(value, _clipOf)) return;
     _clipOf = value;
     markNeedsPaint();
