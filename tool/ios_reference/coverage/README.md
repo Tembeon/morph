@@ -64,6 +64,10 @@ parameter types and defaults. It records inherited behavior through supertype
 signatures; framework API changes require native/Flutter SDK review separately.
 Review the delta before regenerating `api-baseline.json`. This baseline records
 the surface to monitor, not an assertion that every exported API is correct.
+Analyzer 10.2.0 is pinned: 10.1.0 reported private parameter spellings in
+constructors of six public types; 10.2.0 reports consumer-facing names correctly.
+Dependency/SDK updates require snapshot review rather than accepting a new
+formatter representation as a production API change.
 
 The menu model is a research hypothesis, not an extracted native state machine.
 The generator guarantees reachable paths and ordered adjacent-transition pairs

@@ -18136,7 +18136,7 @@
           "name": "new",
           "kind": "CONSTRUCTOR",
           "exports": [],
-          "signature": "MorphMenuMotion({required Rect button, int _itemCount = 0, required Size _bounds, MorphMenuLayout Function({required bool reversed})? layout, EdgeInsets _padding = EdgeInsets.zero, double? sourceHeight, double? _sourceRadius, MorphMenuTuning tuning = MorphMenuTuning.standard, MorphMenuProgress? progress})",
+          "signature": "MorphMenuMotion({required Rect button, int itemCount = 0, required Size bounds, MorphMenuLayout Function({required bool reversed})? layout, EdgeInsets padding = EdgeInsets.zero, double? sourceHeight, double? sourceRadius, MorphMenuTuning tuning = MorphMenuTuning.standard, MorphMenuProgress? progress})",
           "parameters": [
             {
               "name": "button",
@@ -18146,14 +18146,14 @@
               "default": null
             },
             {
-              "name": "_itemCount",
+              "name": "itemCount",
               "type": "int",
               "named": true,
               "required": false,
               "default": "0"
             },
             {
-              "name": "_bounds",
+              "name": "bounds",
               "type": "Size",
               "named": true,
               "required": true,
@@ -18167,7 +18167,7 @@
               "default": null
             },
             {
-              "name": "_padding",
+              "name": "padding",
               "type": "EdgeInsets",
               "named": true,
               "required": false,
@@ -18181,7 +18181,7 @@
               "default": null
             },
             {
-              "name": "_sourceRadius",
+              "name": "sourceRadius",
               "type": "double?",
               "named": true,
               "required": false,
@@ -22469,7 +22469,7 @@
           "name": "new",
           "kind": "CONSTRUCTOR",
           "exports": [],
-          "signature": "MorphMotion({required String name, required Motion _openMotion, required Motion _closeMotion})",
+          "signature": "MorphMotion({required String name, required Motion openMotion, required Motion closeMotion})",
           "parameters": [
             {
               "name": "name",
@@ -22479,14 +22479,14 @@
               "default": null
             },
             {
-              "name": "_openMotion",
+              "name": "openMotion",
               "type": "Motion",
               "named": true,
               "required": true,
               "default": null
             },
             {
-              "name": "_closeMotion",
+              "name": "closeMotion",
               "type": "Motion",
               "named": true,
               "required": true,
@@ -26220,7 +26220,7 @@
           "name": "new",
           "kind": "CONSTRUCTOR",
           "exports": [],
-          "signature": "MorphPageRoute<T>({required Object from, required Widget Function(BuildContext, MorphFlight) builder, required MorphTargetSpec target, MorphMotion? motion, bool modal = true, BuildContext? sourceContext, bool _barrierDismissible = true, String? _barrierLabel, double maxScrimOpacity = MorphTheme.defaultMaxScrimOpacity, Color scrimColor = MorphTheme.defaultScrimColor, MorphScrimMotion? scrimMotion, OverlayState? overlay, Color shadowColor = MorphTheme.defaultShadowColor, String? semanticLabel, RouteSettings? settings})",
+          "signature": "MorphPageRoute<T>({required Object from, required Widget Function(BuildContext, MorphFlight) builder, required MorphTargetSpec target, MorphMotion? motion, bool modal = true, BuildContext? sourceContext, bool barrierDismissible = true, String? barrierLabel, double maxScrimOpacity = MorphTheme.defaultMaxScrimOpacity, Color scrimColor = MorphTheme.defaultScrimColor, MorphScrimMotion? scrimMotion, OverlayState? overlay, Color shadowColor = MorphTheme.defaultShadowColor, String? semanticLabel, RouteSettings? settings})",
           "parameters": [
             {
               "name": "from",
@@ -26265,14 +26265,14 @@
               "default": null
             },
             {
-              "name": "_barrierDismissible",
+              "name": "barrierDismissible",
               "type": "bool",
               "named": true,
               "required": false,
               "default": "true"
             },
             {
-              "name": "_barrierLabel",
+              "name": "barrierLabel",
               "type": "String?",
               "named": true,
               "required": false,
@@ -33377,7 +33377,7 @@
           "name": "custom",
           "kind": "CONSTRUCTOR",
           "exports": [],
-          "signature": "MorphSheetDetent.custom(double Function(double) resolver, {Object? _identifier})",
+          "signature": "MorphSheetDetent.custom(double Function(double) resolver, {Object? identifier})",
           "parameters": [
             {
               "name": "resolver",
@@ -33387,7 +33387,7 @@
               "default": null
             },
             {
-              "name": "_identifier",
+              "name": "identifier",
               "type": "Object?",
               "named": true,
               "required": false,
@@ -36078,10 +36078,10 @@
           "name": "new",
           "kind": "CONSTRUCTOR",
           "exports": [],
-          "signature": "MorphSliderMotion({required double _width, required double value, double frameRate = 120, int _ticks = 0})",
+          "signature": "MorphSliderMotion({required double width, required double value, double frameRate = 120, int ticks = 0})",
           "parameters": [
             {
-              "name": "_width",
+              "name": "width",
               "type": "double",
               "named": true,
               "required": true,
@@ -36102,7 +36102,7 @@
               "default": "120"
             },
             {
-              "name": "_ticks",
+              "name": "ticks",
               "type": "int",
               "named": true,
               "required": false,
@@ -41278,7 +41278,7 @@
           "name": "measured",
           "kind": "CONSTRUCTOR",
           "exports": [],
-          "signature": "MorphTargetSpec.measured({required BoxConstraints Function(Size, EdgeInsets) constraintsFor, required Rect Function(Size, EdgeInsets, Size) placeFor, MorphSurfaceSpec? surface, ShapeBorder shape = const RoundedRectangleBorder(), Color? surfaceColor, double elevation = MorphTheme.defaultTargetElevation, Alignment _contentAlignment = Alignment.topCenter, Clip clipBehavior = Clip.antiAlias, Listenable? repaint})",
+          "signature": "MorphTargetSpec.measured({required BoxConstraints Function(Size, EdgeInsets) constraintsFor, required Rect Function(Size, EdgeInsets, Size) placeFor, MorphSurfaceSpec? surface, ShapeBorder shape = const RoundedRectangleBorder(), Color? surfaceColor, double elevation = MorphTheme.defaultTargetElevation, Alignment contentAlignment = Alignment.topCenter, Clip clipBehavior = Clip.antiAlias, Listenable? repaint})",
           "parameters": [
             {
               "name": "constraintsFor",
@@ -41323,7 +41323,7 @@
               "default": "MorphTheme.defaultTargetElevation"
             },
             {
-              "name": "_contentAlignment",
+              "name": "contentAlignment",
               "type": "Alignment",
               "named": true,
               "required": false,
@@ -41349,7 +41349,7 @@
           "name": "new",
           "kind": "CONSTRUCTOR",
           "exports": [],
-          "signature": "MorphTargetSpec({required Rect Function(Size, EdgeInsets) rectFor, MorphSurfaceSpec? surface, ShapeBorder shape = const RoundedRectangleBorder(), Color? surfaceColor, double elevation = MorphTheme.defaultTargetElevation, Alignment _contentAlignment = Alignment.topCenter, Clip clipBehavior = Clip.antiAlias, Listenable? repaint})",
+          "signature": "MorphTargetSpec({required Rect Function(Size, EdgeInsets) rectFor, MorphSurfaceSpec? surface, ShapeBorder shape = const RoundedRectangleBorder(), Color? surfaceColor, double elevation = MorphTheme.defaultTargetElevation, Alignment contentAlignment = Alignment.topCenter, Clip clipBehavior = Clip.antiAlias, Listenable? repaint})",
           "parameters": [
             {
               "name": "rectFor",
@@ -41387,7 +41387,7 @@
               "default": "MorphTheme.defaultTargetElevation"
             },
             {
-              "name": "_contentAlignment",
+              "name": "contentAlignment",
               "type": "Alignment",
               "named": true,
               "required": false,
