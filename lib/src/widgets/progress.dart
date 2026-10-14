@@ -70,6 +70,15 @@ class MorphProgressViewAppearance {
     darkHighContrast: darkHighContrast,
     tinted: (table, tint) => table.copyWith(activeTrackColor: tint),
   );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphProgressViewAppearance &&
+      other.inactiveTrackColor == inactiveTrackColor &&
+      other.activeTrackColor == activeTrackColor;
+
+  @override
+  int get hashCode => Object.hash(inactiveTrackColor, activeTrackColor);
 }
 
 /// The two looks of a [MorphProgressView], after UIProgressView.Style.
