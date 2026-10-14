@@ -19,6 +19,7 @@ import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/push_zoom.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
+import 'package:morph/src/widgets/search_stacked.dart';
 import 'package:morph/src/widgets/toolbar.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -43,7 +44,14 @@ class MorphNavigationConfig {
     this.backButtonDisplayMode = MorphBackButtonDisplayMode.standard,
     this.hidesBackButton = false,
     this.largeTitleDisplayMode = MorphLargeTitleDisplayMode.never,
+    this.navigationBarHidden = false,
   });
+
+  /// Whether the navigation bar steps aside for this screen: it shows
+  /// neither title nor buttons and lets touches through to the page, as
+  /// while a page's stacked search is presented (UIKit
+  /// `hidesNavigationBarDuringPresentation`).
+  final bool navigationBarHidden;
 
   /// The screen's title.
   final String? title;
@@ -118,7 +126,8 @@ class MorphNavigationConfig {
       other.subtitle == subtitle &&
       other.backButtonDisplayMode == backButtonDisplayMode &&
       other.hidesBackButton == hidesBackButton &&
-      other.largeTitleDisplayMode == largeTitleDisplayMode;
+      other.largeTitleDisplayMode == largeTitleDisplayMode &&
+      other.navigationBarHidden == navigationBarHidden;
 
   @override
   int get hashCode => Object.hash(
@@ -136,6 +145,7 @@ class MorphNavigationConfig {
     backButtonDisplayMode,
     hidesBackButton,
     largeTitleDisplayMode,
+    navigationBarHidden,
   );
 }
 
@@ -504,22 +514,25 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
               left: 0,
               right: 0,
               top: 0,
-              child: _bars(
-                MorphNavigationBar(
-                  title: config?.title,
-                  subtitle: config?.subtitle,
-                  leading: leading,
-                  trailing: config?.trailing ?? const [],
-                  titleVisible: config?.titleVisible ?? true,
-                  scrolledUnder: config?.scrolledUnder ?? false,
-                  animate: config?.animate ?? true,
-                  edgeEffect: config?.edgeEffect,
-                  titleExitShift: _titleExit,
-                  drift: drift,
-                  appearance: widget.appearance,
-                  menuAppearance: widget.menuAppearance,
-                  menuTuning: widget.menuTuning,
-                  menuOverlay: widget.menuOverlay,
+              child: IgnorePointer(
+                ignoring: config?.navigationBarHidden ?? false,
+                child: _bars(
+                  MorphNavigationBar(
+                    title: config?.title,
+                    subtitle: config?.subtitle,
+                    leading: leading,
+                    trailing: config?.trailing ?? const [],
+                    titleVisible: config?.titleVisible ?? true,
+                    scrolledUnder: config?.scrolledUnder ?? false,
+                    animate: config?.animate ?? true,
+                    edgeEffect: config?.edgeEffect,
+                    titleExitShift: _titleExit,
+                    drift: drift,
+                    appearance: widget.appearance,
+                    menuAppearance: widget.menuAppearance,
+                    menuTuning: widget.menuTuning,
+                    menuOverlay: widget.menuOverlay,
+                  ),
                 ),
               ),
             ),
@@ -1164,6 +1177,9 @@ enum MorphLargeTitleDisplayMode {
 /// Text in the content reads in UIKit's body style ([MorphTypography.body]
 /// in the label color of the bar style), so a plain [Text] on the page
 /// needs no Material ancestor.
+///
+/// A [search] stacks a search field under the large title and presents it
+/// over the page when tapped ([MorphNavigationSearch]).
 class MorphNavigationScaffold extends StatefulWidget {
   /// Creates a scaffold scrolling [slivers].
   const MorphNavigationScaffold({
@@ -1184,8 +1200,14 @@ class MorphNavigationScaffold extends StatefulWidget {
     this.backButtonSemanticLabel = 'Back',
     this.controller,
     this.appearance,
+    this.search,
     super.key,
   });
+
+  /// The page's search, a field stacked under the large title (UIKit
+  /// `UINavigationItem.searchController` with the stacked placement), or
+  /// null.
+  final MorphNavigationSearch? search;
 
   /// The screen's title.
   final String title;
@@ -1270,6 +1292,16 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
   bool _titleVisible = false;
   bool _animate = true;
   bool? _large;
+  bool _searchPresented = false;
+
+  bool get _hidesBar =>
+      _searchPresented &&
+      (widget.search?.hidesNavigationBarDuringPresentation ?? false);
+
+  void _presented(bool presented) {
+    if (presented == _searchPresented) return;
+    setState(() => _searchPresented = presented);
+  }
 
   bool get _largeTitle => _large ?? false;
 
@@ -1360,19 +1392,20 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
     title: widget.title,
     subtitle: widget.subtitle,
     backButtonDisplayMode: widget.backButtonDisplayMode,
-    hidesBackButton: widget.hidesBackButton,
+    hidesBackButton: widget.hidesBackButton || _hidesBar,
     largeTitleDisplayMode: _largeTitle
         ? MorphLargeTitleDisplayMode.always
         : MorphLargeTitleDisplayMode.never,
-    leading: widget.leading,
-    trailing: widget.trailing,
+    leading: _hidesBar ? const [] : widget.leading,
+    trailing: _hidesBar ? const [] : widget.trailing,
     toolbarLeading: widget.toolbarLeading,
     toolbarTrailing: widget.toolbarTrailing,
-    titleVisible: _titleVisible,
-    scrolledUnder: _scrolledUnder,
+    titleVisible: _titleVisible && !_hidesBar,
+    scrolledUnder: _scrolledUnder && !_hidesBar,
     animate: _animate,
     edgeEffect: widget.edgeEffect,
     backButtonTitle: widget.backButtonTitle,
+    navigationBarHidden: _hidesBar,
   );
 
   @override
@@ -1426,12 +1459,15 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
                 appearance: widget.appearance,
               ),
             ),
+          if (widget.search != null)
+            const SliverToBoxAdapter(child: MorphStackedSearchSlot()),
           ...widget.slivers,
           SliverPadding(padding: EdgeInsets.only(bottom: toolbarExtent)),
         ],
       ),
     );
-    final body = ColoredBox(
+    final search = widget.search;
+    Widget body = ColoredBox(
       color: background,
       child: DefaultTextStyle(
         style: MorphTypography.resolve(
@@ -1445,10 +1481,22 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
         child: scroll,
       ),
     );
+    if (search != null) {
+      body = MorphStackedSearchHost(
+        search: search,
+        background: background,
+        top: search.hidesNavigationBarDuringPresentation
+            ? top
+            : MorphNavigationBar.heightFor(top),
+        onPresented: _presented,
+        child: body,
+      );
+    }
     if (shared) return body;
-    var leading = widget.leading;
+    var leading = _hidesBar ? const <MorphBarButtonGroup>[] : widget.leading;
     if (leading.isEmpty &&
         !widget.hidesBackButton &&
+        !_hidesBar &&
         (route?.canPop ?? false)) {
       leading = [
         MorphBarButtonGroup([
@@ -1466,17 +1514,20 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
           left: 0,
           right: 0,
           top: 0,
-          child: _bars(
-            MorphNavigationBar(
-              title: widget.title,
-              subtitle: widget.subtitle,
-              leading: leading,
-              trailing: widget.trailing,
-              titleVisible: _titleVisible,
-              scrolledUnder: _scrolledUnder,
-              animate: _animate,
-              edgeEffect: widget.edgeEffect,
-              appearance: widget.appearance,
+          child: IgnorePointer(
+            ignoring: _hidesBar,
+            child: _bars(
+              MorphNavigationBar(
+                title: widget.title,
+                subtitle: widget.subtitle,
+                leading: leading,
+                trailing: _hidesBar ? const [] : widget.trailing,
+                titleVisible: _titleVisible && !_hidesBar,
+                scrolledUnder: _scrolledUnder && !_hidesBar,
+                animate: _animate,
+                edgeEffect: widget.edgeEffect,
+                appearance: widget.appearance,
+              ),
             ),
           ),
         ),
