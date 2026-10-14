@@ -68,7 +68,7 @@
   "menu-card/flat": {
     "frames": 271,
     "builds": 1.5,
-    "paints": 27.2,
+    "paints": 26.6,
     "pictures": 2.2,
     "captures": 0.0,
     "offscreen": 0.7,
@@ -79,7 +79,7 @@
   "menu-held/flat": {
     "frames": 225,
     "builds": 1.3,
-    "paints": 20.3,
+    "paints": 19.5,
     "pictures": 1.7,
     "captures": 0.0,
     "offscreen": 0.3,
@@ -90,8 +90,8 @@
   "context-menu/flat": {
     "frames": 202,
     "builds": 1.5,
-    "paints": 45.5,
-    "pictures": 3.2,
+    "paints": 22.0,
+    "pictures": 2.2,
     "captures": 0.0,
     "offscreen": 0.1,
     "snapshotImages": 0.0,
@@ -321,7 +321,7 @@
   "menu-card/fake": {
     "frames": 271,
     "builds": 1.7,
-    "paints": 37.7,
+    "paints": 37.1,
     "pictures": 5.2,
     "captures": 2.8,
     "offscreen": 3.6,
@@ -332,7 +332,7 @@
   "menu-held/fake": {
     "frames": 225,
     "builds": 1.6,
-    "paints": 28.2,
+    "paints": 27.4,
     "pictures": 4.0,
     "captures": 2.0,
     "offscreen": 2.3,
@@ -343,8 +343,8 @@
   "context-menu/fake": {
     "frames": 202,
     "builds": 1.5,
-    "paints": 45.5,
-    "pictures": 3.2,
+    "paints": 22.0,
+    "pictures": 2.2,
     "captures": 0.0,
     "offscreen": 0.1,
     "snapshotImages": 0.0,
@@ -574,7 +574,7 @@
   "menu-card/liquid": {
     "frames": 271,
     "builds": 1.7,
-    "paints": 37.7,
+    "paints": 37.1,
     "pictures": 5.2,
     "captures": 2.8,
     "offscreen": 3.6,
@@ -585,7 +585,7 @@
   "menu-held/liquid": {
     "frames": 225,
     "builds": 1.6,
-    "paints": 28.2,
+    "paints": 27.4,
     "pictures": 4.0,
     "captures": 2.0,
     "offscreen": 2.3,
@@ -596,8 +596,8 @@
   "context-menu/liquid": {
     "frames": 202,
     "builds": 1.5,
-    "paints": 45.5,
-    "pictures": 3.2,
+    "paints": 22.0,
+    "pictures": 2.2,
     "captures": 0.0,
     "offscreen": 0.1,
     "snapshotImages": 0.0,
