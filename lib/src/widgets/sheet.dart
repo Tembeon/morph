@@ -261,7 +261,10 @@ abstract class MorphSheet {
 
   /// The sheet around [context].
   static MorphSheet of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<_SheetScope>();
+    final scope = InheritedModel.inheritFrom<_SheetScope>(
+      context,
+      aspect: _SheetAspect.sheet,
+    );
     if (scope == null) {
       throw FlutterError('MorphSheet.of called outside a MorphSheetRoute.');
     }
@@ -270,12 +273,20 @@ abstract class MorphSheet {
 
   /// The sheet around [context], or null outside one.
   static MorphSheet? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<_SheetScope>()?.state;
+      InheritedModel.inheritFrom<_SheetScope>(
+        context,
+        aspect: _SheetAspect.sheet,
+      )?.state;
 
   /// A scroll controller for the sheet's main scrollable that hands its
   /// drags to the sheet as UIKit does.
+  ///
+  /// Unlike [of], it does not rebuild [context] when the detent changes.
   static ScrollController scrollControllerOf(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<_SheetScope>();
+    final scope = InheritedModel.inheritFrom<_SheetScope>(
+      context,
+      aspect: _SheetAspect.controller,
+    );
     if (scope == null) {
       throw FlutterError(
         'MorphSheet.scrollControllerOf called outside a MorphSheetRoute.',
@@ -285,7 +296,11 @@ abstract class MorphSheet {
   }
 }
 
-class _SheetScope extends InheritedWidget {
+/// What a dependent of a [_SheetScope] reads: the sheet with its detent,
+/// or only its scroll controller, which a detent change leaves alone.
+enum _SheetAspect { sheet, controller }
+
+class _SheetScope extends InheritedModel<_SheetAspect> {
   const _SheetScope({
     required this.state,
     required this.detent,
@@ -296,7 +311,16 @@ class _SheetScope extends InheritedWidget {
   final MorphSheetDetent detent;
 
   @override
-  bool updateShouldNotify(_SheetScope oldWidget) => oldWidget.detent != detent;
+  bool updateShouldNotify(_SheetScope oldWidget) =>
+      oldWidget.detent != detent || oldWidget.state != state;
+
+  @override
+  bool updateShouldNotifyDependent(
+    _SheetScope oldWidget,
+    Set<_SheetAspect> dependencies,
+  ) =>
+      oldWidget.state != state ||
+      (oldWidget.detent != detent && dependencies.contains(_SheetAspect.sheet));
 }
 
 class _SheetView extends StatefulWidget {
@@ -707,28 +731,31 @@ class _SheetViewState extends State<_SheetView>
   // The content widget is reused while its inputs hold, so a rebuild of
   // the chrome (each keyboard-inset frame) leaves the app's builder alone;
   // content that reads the MediaQuery still rebuilds through its own
-  // dependency.
+  // dependency. A detent change hands the scope a new detent over the same
+  // content: only what reads the sheet through [MorphSheet.of] rebuilds.
   Widget? _builtContent;
-  (MorphSheetDetent, Color, bool)? _builtFor;
+  (Color, bool)? _builtFor;
+  _SheetScope? _builtScope;
 
   Widget _contentFor(MorphSheetAppearance style) {
-    final inputs = (
-      detent,
-      style.textColor,
-      MorphTypography.usesAppleSystemFont,
-    );
-    final built = _builtContent;
-    if (built != null && inputs == _builtFor) return built;
-    _builtFor = inputs;
-    return _builtContent = _SheetScope(
-      state: this,
-      detent: detent,
-      child: DefaultTextStyle(
+    final inputs = (style.textColor, MorphTypography.usesAppleSystemFont);
+    var content = _builtContent;
+    if (content == null || inputs != _builtFor) {
+      _builtFor = inputs;
+      _builtScope = null;
+      content = _builtContent = DefaultTextStyle(
         style: MorphTypography.resolve(
           MorphTypography.body.copyWith(color: style.textColor),
         ),
         child: Builder(builder: _route.builder),
-      ),
+      );
+    }
+    final scope = _builtScope;
+    if (scope != null && scope.detent == detent) return scope;
+    return _builtScope = _SheetScope(
+      state: this,
+      detent: detent,
+      child: content,
     );
   }
 
@@ -736,6 +763,7 @@ class _SheetViewState extends State<_SheetView>
   void didUpdateWidget(_SheetView oldWidget) {
     super.didUpdateWidget(oldWidget);
     _builtContent = null;
+    _builtScope = null;
   }
 
   @override

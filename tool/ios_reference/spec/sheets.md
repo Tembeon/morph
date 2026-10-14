@@ -106,6 +106,16 @@ sheet.dart (`showMorphSheet(from:)`, `MorphSheetRoute`, `MorphSheet.of`,
 `MorphZoomTuning`). NOTE: a sheet bug fix is in flight in the working tree
 (sheet.dart, sheet_zoom_test) - check before editing.
 
+A detent change hands the content's scope the new detent over the same
+content: only what reads the sheet through `MorphSheet.of` rebuilds
+(`scrollControllerOf` depends on the controller alone). Host recorder,
+detent change: 118-123 -> 19-20 builds in the first frame. Still open: the
+content is laid out again on every frame of the detent spring (19-25
+layouts, 27-42 paints a frame for 0.69 s; native lays it out once at the
+target and animates the frame). Laying out at the target, or at the larger
+of the two detents, moves what the content pins to its bottom during the
+motion: a pixel-changing trade for the owner to judge on the iPhone.
+
 ## Not reproduced / open
 
 - The present's 8 pt horizontal drift (first-frame artifact).

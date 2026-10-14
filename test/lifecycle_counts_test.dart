@@ -31,8 +31,8 @@ import 'package:morph/widgets.dart';
 /// run of K idle frames as `0xK`. Frames are 16 ms, the Pixel 6a's 60 Hz.
 ///
 /// The scenes whose gap to native was closed are pinned in [_ceilings]:
-/// the last frame with any work, and the median builds and paints of the
-/// frames after the first. A change may lower them, never raise them. The
+/// the first frame's builds, the last frame with any work, and the median
+/// builds and paints of the frames after the first. A change may lower them, never raise them. The
 /// others are recorded only. `LIFECYCLE_LOG=true` prints every timeline;
 /// `LIFECYCLE_OUT=<file>` writes them to a file; `LIFECYCLE_TOP=<n>` lists
 /// n render object classes per step instead of 8, `LIFECYCLE_DUMP=true`
@@ -88,30 +88,33 @@ void main() {
   }
 }
 
-/// The pinned scenes, by `family/tier step`: the last frame with any
-/// work in ms, and the median builds and paints of the frames after the
-/// first (lifecycle.md, 2026-10-14).
+/// The pinned scenes, by `family/tier step`: the builds of the first
+/// frame, the last frame with any work in ms, and the median builds and
+/// paints of the frames after the first (lifecycle.md, 2026-10-14).
 const _ceilings = <String, _Ceiling>{
-  'segmented/flat select-2': (ms: 1296, builds: 0, paints: 8),
-  'segmented/flat select-3': (ms: 1328, builds: 0, paints: 8),
-  'segmented/liquid select-2': (ms: 1296, builds: 0, paints: 9),
-  'tabbar/flat select-1': (ms: 1328, builds: 0, paints: 17),
-  'tabbar/flat select-0': (ms: 1456, builds: 0, paints: 17),
-  'tabbar/liquid select-1': (ms: 1328, builds: 0, paints: 18),
-  'tabbar/liquid select-0': (ms: 1456, builds: 0, paints: 18),
-  'switch/flat set-on': (ms: 944, builds: 0, paints: 9),
-  'switch/flat set-off': (ms: 832, builds: 0, paints: 9),
-  'switch/liquid set-on': (ms: 944, builds: 0, paints: 9),
-  'button/flat highlight-on': (ms: 448, builds: 0, paints: 16),
-  'button/flat highlight-off': (ms: 704, builds: 0, paints: 16),
-  'button/liquid highlight-on': (ms: 448, builds: 0, paints: 16),
-  'navigation/flat push': (ms: 960, builds: 2, paints: 47),
-  'navigation/flat pop': (ms: 944, builds: 2, paints: 49),
-  'navigation/liquid push': (ms: 960, builds: 2, paints: 48),
-  'navigation/liquid pop': (ms: 944, builds: 2, paints: 49),
+  'segmented/flat select-2': (first: 13, ms: 1296, builds: 0, paints: 8),
+  'segmented/flat select-3': (first: 13, ms: 1328, builds: 0, paints: 8),
+  'segmented/liquid select-2': (first: 13, ms: 1296, builds: 0, paints: 9),
+  'tabbar/flat select-1': (first: 41, ms: 1328, builds: 0, paints: 17),
+  'tabbar/flat select-0': (first: 41, ms: 1456, builds: 0, paints: 17),
+  'tabbar/liquid select-1': (first: 41, ms: 1328, builds: 0, paints: 18),
+  'tabbar/liquid select-0': (first: 41, ms: 1456, builds: 0, paints: 18),
+  'switch/flat set-on': (first: 7, ms: 944, builds: 0, paints: 9),
+  'switch/flat set-off': (first: 7, ms: 832, builds: 0, paints: 9),
+  'switch/liquid set-on': (first: 7, ms: 944, builds: 0, paints: 9),
+  'button/flat highlight-on': (first: 0, ms: 448, builds: 0, paints: 16),
+  'button/flat highlight-off': (first: 0, ms: 704, builds: 0, paints: 16),
+  'button/liquid highlight-on': (first: 0, ms: 448, builds: 0, paints: 16),
+  'navigation/flat push': (first: 248, ms: 960, builds: 2, paints: 47),
+  'navigation/flat pop': (first: 114, ms: 944, builds: 2, paints: 49),
+  'navigation/liquid push': (first: 248, ms: 960, builds: 2, paints: 48),
+  'navigation/liquid pop': (first: 137, ms: 944, builds: 2, paints: 49),
+  'sheet/flat detent-large': (first: 20, ms: 688, builds: 0, paints: 31),
+  'sheet/flat detent-medium': (first: 19, ms: 688, builds: 0, paints: 27),
+  'sheet/liquid detent-large': (first: 20, ms: 688, builds: 0, paints: 35),
 };
 
-typedef _Ceiling = ({int ms, int builds, int paints});
+typedef _Ceiling = ({int first, int ms, int builds, int paints});
 
 const _screen = Size(402, 874);
 const _frame = Duration(milliseconds: 16);
@@ -371,8 +374,11 @@ class _Result {
     final body = _body;
     final builds = _median([for (final f in body) f.builds]);
     final paints = _median([for (final f in body) f.paints]);
+    final first = frames.isEmpty ? 0 : frames.first.builds;
     return [
       if (!settled) '$name did not settle',
+      if (first > ceiling.first)
+        '$name: first frame builds $first > ${ceiling.first}',
       if (_lastActiveMs > ceiling.ms)
         '$name: last active $_lastActiveMs ms > ${ceiling.ms}',
       if (builds > ceiling.builds)
@@ -747,15 +753,22 @@ final _scenes = <_Scene>[
       showMorphSheet<void>(
         env.context,
         detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
-        builder: (BuildContext context) {
-          sheet = context;
-          return ListView(
-            children: [
-              for (var i = 0; i < 15; i++)
-                SizedBox(height: 44, child: Text('Row $i')),
-            ],
-          );
-        },
+        // The controller is read where a detent button would read it, in
+        // a leaf of the content, not at its root.
+        builder: (BuildContext context) => ListView(
+          controller: MorphSheet.scrollControllerOf(context),
+          children: [
+            Builder(
+              builder: (BuildContext context) {
+                sheet = context;
+                MorphSheet.of(context);
+                return const SizedBox(height: 44, child: Text('Detents'));
+              },
+            ),
+            for (var i = 0; i < 15; i++)
+              SizedBox(height: 44, child: Text('Row $i')),
+          ],
+        ),
       ),
     );
     void detent(MorphSheetDetent d) => MorphSheet.of(sheet!).animateTo(d);
