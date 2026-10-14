@@ -92,6 +92,16 @@ class MorphSheetAppearance {
 /// [largestUndimmedDetent] do not dim and leave the page behind them
 /// interactive.
 ///
+/// While a keyboard shows, the sheet rises as UIKit's does: every detent
+/// grows by the keyboard's height, up to the maximum, and the sheet moves
+/// to its largest detent (a medium and large sheet docks; a medium-only
+/// sheet keeps its visible height above the keyboard), returning to its
+/// detent when the keyboard hides. The content's bottom padding is the
+/// keyboard's height, so it lays out above it. Neither move counts as a
+/// detent change. [scrollingExpandsSheet] false lets a scrollable from
+/// [MorphSheet.scrollControllerOf] scroll at once instead of expanding
+/// the sheet first.
+///
 /// Inside the sheet, [MorphSheet.of] changes the detent, and
 /// [MorphSheet.scrollControllerOf] hands a scrollable the controller
 /// that passes its drags to the sheet the way UIKit's sheets do: a drag
@@ -128,6 +138,7 @@ Future<T?> showMorphSheet<T>(
   MorphSheetDetent? largestUndimmedDetent,
   bool grabberVisible = false,
   bool dismissible = true,
+  bool scrollingExpandsSheet = true,
   MorphSheetAppearance? appearance,
   String? semanticLabel,
   bool? useRootNavigator,
@@ -146,6 +157,7 @@ Future<T?> showMorphSheet<T>(
     largestUndimmedDetent: largestUndimmedDetent,
     grabberVisible: grabberVisible,
     dismissible: dismissible,
+    scrollingExpandsSheet: scrollingExpandsSheet,
     appearance: appearance,
     semanticLabel: semanticLabel,
   );
@@ -173,6 +185,7 @@ class MorphSheetRoute<T> extends PopupRoute<T>
     this.largestUndimmedDetent,
     this.grabberVisible = false,
     this.dismissible = true,
+    this.scrollingExpandsSheet = true,
     this.appearance,
     this.semanticLabel,
     this.onDetentChanged,
@@ -229,6 +242,17 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   /// (UIKit's `isModalInPresentation`): the drag down stretches and
   /// returns, as a sheet that is not dismissible does.
   final bool dismissible;
+
+  /// Whether a drag up on content scrolled to its top expands the sheet
+  /// toward its largest detent before the content scrolls (UIKit's
+  /// `prefersScrollingExpandsWhenScrolledToEdge`, SwiftUI
+  /// `presentationContentInteraction(.resizes)`). False scrolls the
+  /// content at once and leaves the sheet at its detent (simulator
+  /// capture: a 250 point drag on a scroll view at the medium detent
+  /// scrolled it 250 points); a drag down on content at its top still
+  /// moves the sheet. Applies to a scrollable driven by
+  /// [MorphSheet.scrollControllerOf].
+  final bool scrollingExpandsSheet;
 
   /// The look of the sheet; null resolves it from the theme.
   final MorphSheetAppearance? appearance;
@@ -589,15 +613,33 @@ class _SheetViewState extends State<_SheetView>
   double _maximum(Size size, EdgeInsets padding) =>
       math.max(0, size.height - padding.top - padding.bottom);
 
-  void _layout(Size size, EdgeInsets padding) {
-    if (size == _size && padding == _padding && _motion != null) return;
+  double _keyboard = 0;
+
+  // A keyboard raises the sheet as UIKit's does (simulator capture): each
+  // detent grows by the keyboard's height up to the maximum, and the sheet
+  // moves to its largest detent while the keyboard shows, back to the
+  // selected one when it hides, neither reported as a detent change.
+  void _layout(Size size, EdgeInsets padding, double keyboard) {
+    if (size == _size &&
+        padding == _padding &&
+        keyboard == _keyboard &&
+        _motion != null) {
+      return;
+    }
+    final raised = keyboard > 0;
+    final wasRaised = _keyboard > 0;
     _size = size;
     _padding = padding;
+    _keyboard = keyboard;
     final maximum = _maximum(size, padding);
     final full = maximum + padding.bottom;
     final values = [
       for (final d in detents)
-        d.resolve(maximum, fittedHeight: _fitted) + padding.bottom,
+        math.min(
+              d.resolve(maximum, fittedHeight: _fitted) + keyboard,
+              maximum,
+            ) +
+            padding.bottom,
     ];
     final order = List<int>.generate(detents.length, (int i) => i);
     order.sort((int a, int b) => values[a].compareTo(values[b]));
@@ -613,7 +655,7 @@ class _SheetViewState extends State<_SheetView>
       final created = MorphSheetMotion(
         heights: heights,
         width: size.width,
-        initial: order.indexOf(_index),
+        initial: raised ? order.length - 1 : order.indexOf(_index),
         fullHeight: full,
         dockedIndex: dockedAt < 0 ? null : dockedAt,
         undimmedIndex: undimmedAt == null || undimmedAt < 0 ? null : undimmedAt,
@@ -640,7 +682,17 @@ class _SheetViewState extends State<_SheetView>
       _motion = created;
       wake();
     } else {
-      motion.relayout(clock, heights, size.width, fullHeight: full);
+      motion.relayout(
+        clock,
+        heights,
+        size.width,
+        fullHeight: full,
+        index: raised == wasRaised
+            ? null
+            : raised
+            ? order.length - 1
+            : order.indexOf(_index),
+      );
       wake();
     }
   }
@@ -871,9 +923,9 @@ class _SheetViewState extends State<_SheetView>
         final size = constraints.biggest;
         final padding = EdgeInsets.only(
           top: media.padding.top,
-          bottom: math.max(media.padding.bottom, media.viewInsets.bottom),
+          bottom: media.padding.bottom,
         );
-        _layout(size, padding);
+        _layout(size, padding, media.viewInsets.bottom);
         final motion = _motion!;
         _show(_sync.read());
         return GlassBackdropCacheScope(
@@ -1456,7 +1508,9 @@ class _SheetScrollPosition extends ScrollPositionWithSingleContext {
       return;
     }
     final atTop = pixels <= minScrollExtent;
-    if (_owns || (delta > 0 && atTop) || (delta < 0 && sheet._canExpand)) {
+    if (_owns ||
+        (delta > 0 && atTop) ||
+        (delta < 0 && sheet._route.scrollingExpandsSheet && sheet._canExpand)) {
       _owns = true;
       sheet._scrollDragBy(delta);
       if (!sheet._scrollDragging) _owns = false;

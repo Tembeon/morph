@@ -29,6 +29,11 @@ no behaviour or pixel change: every rename keeps what the old name did.
   - the dark docked fill is systemBackground as rendered, 0xFF1C1C1E
     (was 0xFF2C2C2E).
   - the zoom container clips with continuous corners as well.
+  - a keyboard raises the sheet as UIKit does: detents grow by the
+    keyboard height up to the maximum and the sheet goes to its largest
+    detent while it shows (the maximum no longer shrinks).
+  - new `scrollingExpandsSheet` on `showMorphSheet` / `MorphSheetRoute`
+    (`prefersScrollingExpandsWhenScrolledToEdge`).
   - new `MorphListBackground`: the grouped page behind an inset grouped
     list; in a sheet it is clear while the sheet floats and fades to the
     grouped gray with the sheet's docked fill, as UIKit's table does.

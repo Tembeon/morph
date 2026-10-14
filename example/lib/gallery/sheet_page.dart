@@ -41,6 +41,7 @@ class _SheetPageState extends State<SheetPage> {
   _Refuse _refuse = .none;
   bool _route = false;
   bool _listContent = false;
+  bool _expands = true;
 
   static double _custom(double maximum) => maximum - 160;
 
@@ -122,6 +123,7 @@ class _SheetPageState extends State<SheetPage> {
           largestUndimmedDetent: undimmed,
           grabberVisible: _grabber,
           dismissible: dismissible,
+          scrollingExpandsSheet: _expands,
           semanticLabel: name,
           onDetentChanged: _detentChanged,
           onDismissAttempt: _refuse == .dismissible ? _attempted : null,
@@ -136,6 +138,7 @@ class _SheetPageState extends State<SheetPage> {
         largestUndimmedDetent: undimmed,
         grabberVisible: _grabber,
         dismissible: dismissible,
+        scrollingExpandsSheet: _expands,
         semanticLabel: name,
         onDetentChanged: _detentChanged,
         onDismissAttempt: _refuse == .dismissible ? _attempted : null,
@@ -216,6 +219,11 @@ class _SheetPageState extends State<SheetPage> {
           label: 'Grouped list content',
           value: _listContent,
           onChanged: (bool v) => setState(() => _listContent = v),
+        ),
+        GalleryToggle(
+          label: 'Scrolling expands',
+          value: _expands,
+          onChanged: (bool v) => setState(() => _expands = v),
         ),
       ],
     ),

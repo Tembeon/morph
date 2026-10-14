@@ -568,18 +568,21 @@ class MorphSheetMotion {
   }
 
   /// Replaces the detent [heights], the container [width] and the
-  /// [fullHeight] after a layout change, keeping the selected detent.
+  /// [fullHeight] after a layout change, keeping the selected detent, or
+  /// moving to [index] without reporting it through [onDetentChanged]: the
+  /// detent a keyboard raises the sheet to is not a selection.
   void relayout(
     double t,
     List<double> heights,
     double width, {
     double? fullHeight,
+    int? index,
   }) {
     advance(t);
     this.width = width;
     _heights = List<double>.of(heights);
     _fullHeight = fullHeight ?? heights.last;
-    _index = _index.clamp(0, heights.length - 1);
+    _index = (index ?? _index).clamp(0, heights.length - 1);
     if (_dragFrom == null) _transition(t, _index);
   }
 

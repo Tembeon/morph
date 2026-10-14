@@ -321,6 +321,7 @@ final class SheetHostScene: W2ScriptedScene, UISheetPresentationControllerDelega
             let detents = env["PROBE_DETENTS"] ?? "ml"
             var list: [UISheetPresentationController.Detent] = []
             if detents.contains("s") { list.append(.custom(identifier: .init("small")) { _ in 200 }) }
+            if detents.contains("h") { list.append(.custom(identifier: .init("h700")) { ctx in min(700, ctx.maximumDetentValue - 40) }) }
             if detents.contains("m") { list.append(.medium()) }
             if detents.contains("l") { list.append(.large()) }
             list.append(.custom(identifier: .init("probe")) { ctx in
@@ -337,6 +338,7 @@ final class SheetHostScene: W2ScriptedScene, UISheetPresentationControllerDelega
             if env["PROBE_EDGE"] == "1" { sheet.prefersEdgeAttachedInCompactHeight = true }
             if let start = env["PROBE_START"] { sheet.selectedDetentIdentifier = start == "l" ? .large : .medium }
         }
+        if env["PROBE_MODAL"] == "1" { content.isModalInPresentation = true }
         present(content, animated: true)
     }
 
@@ -357,6 +359,8 @@ final class SheetHostScene: W2ScriptedScene, UISheetPresentationControllerDelega
         case "large": sheet?.animateChanges { sheet?.selectedDetentIdentifier = .large }
         case "medium": sheet?.animateChanges { sheet?.selectedDetentIdentifier = .medium }
         case "small": sheet?.animateChanges { sheet?.selectedDetentIdentifier = .init("small") }
+        case "kb": (presentedViewController as? SheetContentScene)?.field.becomeFirstResponder()
+        case "kbOff": (presentedViewController as? SheetContentScene)?.field.resignFirstResponder()
         case "settings": dumpSheetSettings()
         default: break
         }
@@ -370,13 +374,21 @@ final class SheetHostScene: W2ScriptedScene, UISheetPresentationControllerDelega
 }
 
 final class SheetContentScene: UIViewController, UITableViewDataSource {
+    let field = UITextField()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         let env = ProcessInfo.processInfo.environment
         if env["PROBE_SHEETBG"] == "1" { view.backgroundColor = .systemBackground }
         view.accessibilityIdentifier = "sheetContent"
         let table = UITableView(frame: .zero, style: .insetGrouped)
-        table.backgroundColor = .clear
+        if env["PROBE_TABLEBG"] != "native" { table.backgroundColor = .clear }
+        if env["PROBE_FIELD"] == "1" {
+            field.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
+            field.placeholder = "Field"
+            field.accessibilityIdentifier = "sheetField"
+            table.tableHeaderView = field
+        }
         table.dataSource = self
         table.register(UITableViewCell.self, forCellReuseIdentifier: "c")
         table.accessibilityIdentifier = "sheetTable"
