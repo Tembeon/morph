@@ -252,34 +252,36 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     _motion.lens.reducedMotion = morphReducedMotionOf(context);
     final glass = MorphGlassScope.maybeOf(context);
-    return MorphDisabled(
-      enabled: _enabled,
-      opacity: _style.disabledOpacity,
-      child: MorphPress(
-        target: this,
+    return RepaintBoundary(
+      child: MorphDisabled(
         enabled: _enabled,
-        onHighlight: highlightControlFocus,
-        onActivate: _toggle,
-        semantics: SemanticsProperties(
-          toggled: widget.value,
+        opacity: _style.disabledOpacity,
+        child: MorphPress(
+          target: this,
           enabled: _enabled,
-          label: widget.semanticLabel,
-          onTap: _enabled ? _toggle : null,
-        ),
-        semanticsContainer: true,
-        dragAxis: .horizontal,
-        child: MorphFocusRing(
-          visible: controlFocused,
-          child: glass == null
-              ? CustomPaint(size: _trackSize, painter: _SwitchPainter(this))
-              : SizedBox.fromSize(
-                  size: _trackSize,
-                  child: MorphGlassLayer(
-                    painter: glass,
-                    frames: frames,
-                    surfaces: _surfaces,
+          onHighlight: highlightControlFocus,
+          onActivate: _toggle,
+          semantics: SemanticsProperties(
+            toggled: widget.value,
+            enabled: _enabled,
+            label: widget.semanticLabel,
+            onTap: _enabled ? _toggle : null,
+          ),
+          semanticsContainer: true,
+          dragAxis: .horizontal,
+          child: MorphFocusRing(
+            visible: controlFocused,
+            child: glass == null
+                ? CustomPaint(size: _trackSize, painter: _SwitchPainter(this))
+                : SizedBox.fromSize(
+                    size: _trackSize,
+                    child: MorphGlassLayer(
+                      painter: glass,
+                      frames: frames,
+                      surfaces: _surfaces,
+                    ),
                   ),
-                ),
+          ),
         ),
       ),
     );

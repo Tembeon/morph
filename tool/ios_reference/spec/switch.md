@@ -66,7 +66,8 @@ Rest: settles once every spring's remaining swing (`MorphSpringState.reach`)
 is under `MorphRest` - 0.1 pt (0.3 device px at 3x, 0.26 at 2.625x), a scale
 over its surface's extent, an opacity under half an 8-bit step - and snaps
 onto its targets: invisible, NEAR. A set value
-settles in 0.83-0.94 s instead of 1.23 s.
+settles in 0.83-0.94 s instead of 1.23 s. The switch is a repaint boundary:
+its knob's frames repaint the switch, not the page around it.
 
 ## Not reproduced / open
 

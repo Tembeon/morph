@@ -170,6 +170,18 @@ flat tap 6 frames differ, worst mean 0.04, 0.08 percent of pixels over
 15; flat drag 22, 0.08 / 0.14; fake tap 17, 0.08 / 0.15; fake drag 24,
 0.13 / 0.16.
 
+Repaints (lifecycle.md, 2026-10-14): native redraws 3-4 labels once on a
+selection change and moves the lens in the render server. Each label row
+(outside and inside the lens) is a repaint boundary of its own while the
+bar does not swell and no painter records the content for a lifted lens
+(`morphGlassKeepsContentLive`: the flat tier, or a lens at rest); a lens
+that travels then only moves the two clip paths, and the rows are
+composited again. While the bar swells (the glyphs snap to the screen
+scale at paint) or a lifted lens copies the content (the copy replays its
+pictures), the rows paint into the bar as before. Pixels identical. Host
+recorder, programmatic selection: 0/2/99 -> 0/2/17 builds/layouts/paints a
+frame (flat), 0/2/102 -> 0/2/18 (liquid).
+
 ## Not reproduced / open
 
 - Slow lift (above). Bar-local glitch (deliberate).

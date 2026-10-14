@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart' show RenderFlex;
 import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -10,6 +11,7 @@ import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
@@ -409,23 +411,44 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
     _glow.pointerUp(clock);
   }
 
-  Widget _row(TextScaler scaler, {required bool selected}) => Row(
-    children: [
-      for (final item in widget.items)
-        SizedBox(
-          width: _layout.pitch,
-          child: MorphGlyphs(
-            aligned: true,
-            child: _TabLabel(
-              item: item,
-              scaler: scaler,
-              selected: selected,
-              color: selected ? _style.selectedColor : _style.color,
-            ),
+  MorphGlassPainter? _glass;
+
+  late final Listenable _rowChanges = MorphChanges<(double, bool)>(
+    frames,
+    () => (motion.chromeGrowth, _rowsApart),
+  );
+
+  // A row is a repaint boundary of its own while neither the bar swells
+  // (its glyphs then snap to the screen scale at paint, every frame) nor
+  // a painter records the content to copy it into a lifted lens (the copy
+  // replays the content's pictures): then a lens that travels only moves
+  // the clips over the rows, and the rows are composited again.
+  bool get _rowsApart =>
+      motion.chromeGrowth == 0 &&
+      (morphGlassKeepsContentLive(_glass) ||
+          motion.lift <= MorphGlassRenderer.restingLift);
+
+  Widget _tabRow(List<Widget> children) => _TabRow(
+    changes: _rowChanges,
+    apart: () => _rowsApart,
+    children: children,
+  );
+
+  Widget _row(TextScaler scaler, {required bool selected}) => _tabRow([
+    for (final item in widget.items)
+      SizedBox(
+        width: _layout.pitch,
+        child: MorphGlyphs(
+          aligned: true,
+          child: _TabLabel(
+            item: item,
+            scaler: scaler,
+            selected: selected,
+            color: selected ? _style.selectedColor : _style.color,
           ),
         ),
-    ],
-  );
+      ),
+  ]);
 
   @override
   bool buildsLike(MorphTabBar oldWidget) =>
@@ -466,7 +489,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
     motion.reducedMotion = morphReducedMotionOf(context);
     final style = _style;
     final geometry = _layout;
-    final glass = MorphGlassScope.maybeOf(context);
+    final glass = _glass = MorphGlassScope.maybeOf(context);
     final Widget tabs = Stack(
       children: [
         Positioned.fill(
@@ -477,33 +500,31 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
                 container: true,
                 explicitChildNodes: true,
                 role: SemanticsRole.tabBar,
-                child: Row(
-                  children: [
-                    for (var i = 0; i < widget.items.length; i++)
-                      SizedBox(
-                        width: geometry.pitch,
-                        child: Semantics(
-                          container: true,
-                          role: SemanticsRole.tab,
-                          selected: i == motion.selected,
-                          enabled: _selectable(i),
-                          label: widget.items[i].label,
-                          onTap: _selectable(i) ? () => _select(i) : null,
-                          child: ExcludeSemantics(
-                            child: MorphGlyphs(
-                              aligned: true,
-                              child: _TabLabel(
-                                item: widget.items[i],
-                                scaler: scaler,
-                                selected: false,
-                                color: style.color,
-                              ),
+                child: _tabRow([
+                  for (var i = 0; i < widget.items.length; i++)
+                    SizedBox(
+                      width: geometry.pitch,
+                      child: Semantics(
+                        container: true,
+                        role: SemanticsRole.tab,
+                        selected: i == motion.selected,
+                        enabled: _selectable(i),
+                        label: widget.items[i].label,
+                        onTap: _selectable(i) ? () => _select(i) : null,
+                        child: ExcludeSemantics(
+                          child: MorphGlyphs(
+                            aligned: true,
+                            child: _TabLabel(
+                              item: widget.items[i],
+                              scaler: scaler,
+                              selected: false,
+                              color: style.color,
                             ),
                           ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                ]),
               ),
             ),
           ),
@@ -588,6 +609,54 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
         ),
       ),
     );
+  }
+}
+
+/// A row of tabs that repaints on [changes] and is a repaint boundary of
+/// its own while [apart] reads true.
+class _TabRow extends Flex {
+  const _TabRow({
+    required this.changes,
+    required this.apart,
+    required super.children,
+  }) : super(direction: Axis.horizontal);
+
+  final Listenable changes;
+  final bool Function() apart;
+
+  @override
+  RenderFlex createRenderObject(BuildContext context) {
+    final row = _RenderTabRow(apart: apart());
+    super.updateRenderObject(context, row);
+    row.bindLive(changes, () => row.follow(apart: apart()), now: false);
+    return row;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderFlex renderObject) {
+    super.updateRenderObject(context, renderObject);
+    final row = renderObject as _RenderTabRow;
+    row.bindLive(changes, () => row.follow(apart: apart()), now: false);
+    row.follow(apart: apart(), repaint: false);
+  }
+}
+
+class _RenderTabRow extends RenderFlex with MorphLiveBinding {
+  _RenderTabRow({required this._apart});
+
+  bool _apart;
+
+  @override
+  bool get isRepaintBoundary => _apart;
+
+  void follow({required bool apart, bool repaint = true}) {
+    if (apart != _apart) {
+      _apart = apart;
+      markNeedsCompositingBitsUpdate();
+    } else if (!repaint) {
+      return;
+    }
+    markNeedsPaint();
   }
 }
 
@@ -749,17 +818,11 @@ class _GlowPainter extends CustomPainter {
 }
 
 class _LensClipper extends MorphLiveClipper<Path> {
-  // The swell rides in the key although it does not move the clip: the
-  // labels below snap their glyphs to the screen scale at paint, and a
-  // reclip is what repaints them while the bar swells around a still lens.
   _LensClipper(_MorphTabBarState state, {required bool inside})
     : super(
         live: state.frames,
-        keyOf: () => (
-          state._lensShape(
-            Size(state._layout.width, _MorphTabBarState._barHeight),
-          ),
-          state.motion.chromeGrowth,
+        keyOf: () => state._lensShape(
+          Size(state._layout.width, _MorphTabBarState._barHeight),
         ),
         clipOf: (Size size) => _clip(state, size, inside: inside),
       );

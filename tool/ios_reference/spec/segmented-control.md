@@ -79,6 +79,13 @@ lifted_lens_look_test, controls_scroll_test (the control owns a touch
 after 150 ms or a horizontal drag past slop), release_bounds_test (replays
 release-outside.jsonl).
 
+Repaints: the control is a repaint boundary, so its lens no longer
+repaints the page around it, and on the flat tier (and without a painter)
+its labels sit in a boundary of their own: the lens's frames repaint the
+lens fill alone. Host recorder, programmatic selection, flat: 0/2/29 ->
+0/2/8 a frame. The liquid tier records the labels for its lens copy and
+keeps them in its picture.
+
 ## Not reproduced / open
 
 - GRAD axis of the label font.

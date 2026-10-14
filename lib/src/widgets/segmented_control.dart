@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/press.dart';
@@ -430,32 +431,40 @@ class _MorphSegmentedControlState
               ),
           ],
         );
-        return MorphDisabled(
-          enabled: _enabled,
-          opacity: style.disabledOpacity,
-          child: MorphPress(
-            target: this,
+        // The labels repaint only when the selection changes them, not
+        // with every frame of the lens, unless the painter records them
+        // to copy into a lifted lens.
+        final content = morphGlassKeepsContentLive(glass)
+            ? RepaintBoundary(child: labels)
+            : labels;
+        return RepaintBoundary(
+          child: MorphDisabled(
             enabled: _enabled,
-            onHighlight: highlightControlFocus,
-            onStep: _step,
-            dragAxis: .horizontal,
-            child: MorphFocusRing(
-              visible: controlFocused,
-              child: SizedBox(
-                height: style.height,
-                width: width,
-                child: glass == null
-                    ? CustomPaint(
-                        painter: _SegmentedPainter(this),
-                        child: labels,
-                      )
-                    : MorphGlassLayer(
-                        painter: glass,
-                        frames: frames,
-                        surfaces: _surfaces,
-                        content: labels,
-                        contentSlots: _contentSlots(width),
-                      ),
+            opacity: style.disabledOpacity,
+            child: MorphPress(
+              target: this,
+              enabled: _enabled,
+              onHighlight: highlightControlFocus,
+              onStep: _step,
+              dragAxis: .horizontal,
+              child: MorphFocusRing(
+                visible: controlFocused,
+                child: SizedBox(
+                  height: style.height,
+                  width: width,
+                  child: glass == null
+                      ? CustomPaint(
+                          painter: _SegmentedPainter(this),
+                          child: content,
+                        )
+                      : MorphGlassLayer(
+                          painter: glass,
+                          frames: frames,
+                          surfaces: _surfaces,
+                          content: content,
+                          contentSlots: _contentSlots(width),
+                        ),
+                ),
               ),
             ),
           ),

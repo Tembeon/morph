@@ -700,6 +700,19 @@ bool morphGlassLayerSlots(MorphGlassFrame frame) =>
           s.kind != MorphGlassKind.menu,
     );
 
+/// Whether [painter] draws a control's content only as it paints, never
+/// recording it to copy it into a lens, so the content may hold repaint
+/// boundaries of its own: no painter, or the package's renderer on the
+/// flat tier.
+@internal
+bool morphGlassKeepsContentLive(MorphGlassPainter? painter) =>
+    switch (painter) {
+      null => true,
+      final MorphGlassRenderer renderer when renderer._exact =>
+        renderer.effectiveTier == MorphGlassTier.flat,
+      _ => false,
+    };
+
 /// Whether a control drawing with [painter] needs the field of the
 /// outlines it fuses, or their edge alone.
 ///

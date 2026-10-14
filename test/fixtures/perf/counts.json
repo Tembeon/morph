@@ -2,7 +2,7 @@
   "segmented-drag/flat": {
     "frames": 198,
     "builds": 0.1,
-    "paints": 24.5,
+    "paints": 9.5,
     "pictures": 1.0,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -13,7 +13,7 @@
   "lens-held/flat": {
     "frames": 97,
     "builds": 0.2,
-    "paints": 25.3,
+    "paints": 10.3,
     "pictures": 1.1,
     "captures": 0.0,
     "offscreen": 0.0,
