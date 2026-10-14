@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/live.dart';
@@ -128,9 +130,13 @@ Future<T?> showMorphSheet<T>(
   MorphSheetAppearance? appearance,
   String? semanticLabel,
   bool? useRootNavigator,
+  ValueChanged<MorphSheetDetent>? onDetentChanged,
+  VoidCallback? onDismissAttempt,
 }) {
   assert(detents.isNotEmpty, 'A sheet needs at least one detent.');
   final route = MorphSheetRoute<T>(
+    onDetentChanged: onDetentChanged,
+    onDismissAttempt: onDismissAttempt,
     builder: builder,
     from: from,
     zoom: zoom,
@@ -168,8 +174,26 @@ class MorphSheetRoute<T> extends PopupRoute<T>
     this.dismissible = true,
     this.appearance,
     this.semanticLabel,
+    this.onDetentChanged,
+    this.onDismissAttempt,
     super.settings,
   });
+
+  /// Called with the detent the sheet settles toward when it changes:
+  /// by a drag, a tap on the grabber or [MorphSheet.animateTo] (UIKit's
+  /// `sheetPresentationControllerDidChangeSelectedDetentIdentifier`).
+  final ValueChanged<MorphSheetDetent>? onDetentChanged;
+
+  /// Called when the user tries to dismiss a sheet that may not be
+  /// dismissed - [dismissible] is false or a [PopScope] in the sheet
+  /// cannot pop - by dragging it down past where it would leave or by
+  /// tapping the dimming (UIKit's
+  /// `presentationControllerDidAttemptToDismiss`). The sheet stays; the
+  /// app may ask, as UIKit apps do, whether to discard changes. A
+  /// blocking [PopScope] also hears the attempt through its
+  /// `onPopInvokedWithResult` (didPop false). When during the drag UIKit
+  /// reports it is not measured: here it is on release.
+  final VoidCallback? onDismissAttempt;
 
   /// Builds the sheet's content.
   final WidgetBuilder builder;
@@ -199,6 +223,10 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   final bool grabberVisible;
 
   /// Whether a drag down or a tap outside dismisses the sheet.
+  ///
+  /// A [PopScope] in the sheet that cannot pop turns both off as well
+  /// (UIKit's `isModalInPresentation`): the drag down stretches and
+  /// returns, as a sheet that is not dismissible does.
   final bool dismissible;
 
   /// The look of the sheet; null resolves it from the theme.
@@ -514,9 +542,31 @@ class _SheetViewState extends State<_SheetView>
     wake();
   }
 
+  bool get _dismissAllowed =>
+      _route.dismissible &&
+      _route.popDisposition != RoutePopDisposition.doNotPop;
+
   void _requestDismiss() {
-    if (!_route.dismissible || _leaving) return;
+    if (_leaving) return;
+    if (!_dismissAllowed) {
+      _attempted();
+      return;
+    }
     _route.popMotionRoute();
+  }
+
+  // A pop scope that blocks the dismissal still hears the attempt through
+  // its own callback, as a blocked back gesture reports it.
+  void _attempted() {
+    _route.onDismissAttempt?.call();
+    if (_route.dismissible) _route.popMotionRoute();
+  }
+
+  double? _fitted;
+
+  void _fittedHeight(double height) {
+    if (!mounted || _fitted == height) return;
+    setState(() => _fitted = height);
   }
 
   double _maximum(Size size, EdgeInsets padding) =>
@@ -528,7 +578,8 @@ class _SheetViewState extends State<_SheetView>
     _padding = padding;
     final maximum = _maximum(size, padding);
     final values = [
-      for (final d in detents) d.resolve(maximum) + padding.bottom,
+      for (final d in detents)
+        d.resolve(maximum, fittedHeight: _fitted) + padding.bottom,
     ];
     final order = List<int>.generate(detents.length, (int i) => i);
     order.sort((int a, int b) => values[a].compareTo(values[b]));
@@ -550,8 +601,11 @@ class _SheetViewState extends State<_SheetView>
         dismissible: _route.dismissible,
       );
       created.onDetentChanged = (int sorted) {
-        if (mounted) setState(() => _index = _order[sorted]);
+        if (!mounted) return;
+        setState(() => _index = _order[sorted]);
+        _route.onDetentChanged?.call(detent);
       };
+      created.onDismissAttempt = _attempted;
       created.onDismiss = () {
         if (mounted && !_leaving) _route.popMotionRoute();
       };
@@ -635,6 +689,7 @@ class _SheetViewState extends State<_SheetView>
     _stampMove();
     final motion = _motion;
     if (motion == null || _leaving) return;
+    motion.dismissible = _dismissAllowed;
     _dragY = details.globalPosition.dy;
     motion.dragStart(_stamp, _dragY);
     wake();
@@ -652,7 +707,7 @@ class _SheetViewState extends State<_SheetView>
     final motion = _motion;
     if (motion == null || !motion.isDragging) return;
     if (_zoom != null &&
-        _route.dismissible &&
+        _dismissAllowed &&
         y > _dragY &&
         motion.height(_stamp) <= motion.heights.first + 0.5) {
       motion.dragCancel(_stamp);
@@ -747,7 +802,12 @@ class _SheetViewState extends State<_SheetView>
         style: MorphTypography.resolve(
           MorphTypography.body.copyWith(color: style.textColor),
         ),
-        child: Builder(builder: _route.builder),
+        child: _route.detents.any((MorphSheetDetent d) => d.isFitted)
+            ? _FitReport(
+                onHeight: _fittedHeight,
+                child: Builder(builder: _route.builder),
+              )
+            : Builder(builder: _route.builder),
       );
     }
     final scope = _builtScope;
@@ -1392,5 +1452,49 @@ class _SheetScrollPosition extends ScrollPositionWithSingleContext {
   void dispose() {
     if (_owns) sheet._release(0);
     super.dispose();
+  }
+}
+
+/// Lays its child out with a loose height at its top and reports the
+/// child's height after layout: the content height a fitted detent rests
+/// at.
+class _FitReport extends SingleChildRenderObjectWidget {
+  const _FitReport({required this.onHeight, super.child});
+
+  final ValueChanged<double> onHeight;
+
+  @override
+  _RenderFitReport createRenderObject(BuildContext context) =>
+      _RenderFitReport(onHeight);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderFitReport renderObject) {
+    renderObject.onHeight = onHeight;
+  }
+}
+
+class _RenderFitReport extends RenderProxyBox {
+  _RenderFitReport(this.onHeight);
+
+  ValueChanged<double> onHeight;
+  double? _reported;
+
+  @override
+  void performLayout() {
+    final child = this.child;
+    if (child == null) {
+      size = constraints.smallest;
+      return;
+    }
+    child.layout(constraints.loosen(), parentUsesSize: true);
+    size = constraints.constrain(
+      constraints.hasBoundedHeight
+          ? Size(child.size.width, constraints.maxHeight)
+          : child.size,
+    );
+    final height = child.size.height;
+    if (height == _reported) return;
+    _reported = height;
+    SchedulerBinding.instance.addPostFrameCallback((_) => onHeight(height));
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -43,6 +43,7 @@ class MorphAlertAction {
     this.onPressed,
     this.isPreferred = false,
     this.enabled = true,
+    this.enabledListenable,
   });
 
   /// The button's title.
@@ -66,6 +67,15 @@ class MorphAlertAction {
   /// shows the plain fill instead of the accent and keeps its semibold
   /// title.
   final bool enabled;
+
+  /// Whether the button accepts taps, live (UIKit's settable
+  /// `UIAlertAction.isEnabled`): the alert follows each change, so an OK
+  /// button can wait for a text field to be filled. Null uses [enabled].
+  final ValueListenable<bool>? enabledListenable;
+
+  /// Whether the button accepts taps now: [enabledListenable]'s value, or
+  /// [enabled].
+  bool get isEnabled => enabledListenable?.value ?? enabled;
 }
 
 /// A text field of an alert.
@@ -77,7 +87,39 @@ class MorphAlertTextField {
     this.controller,
     this.obscureText = false,
     this.keyboardType,
+    this.onChanged,
+    this.autofocus,
+    this.autocorrect = true,
+    this.enableSuggestions = true,
+    this.textCapitalization = TextCapitalization.none,
+    this.inputFormatters,
+    this.semanticLabel,
   });
+
+  /// Called with the text after each change the user makes.
+  final ValueChanged<String>? onChanged;
+
+  /// Whether the field takes the keyboard focus when the alert shows;
+  /// null focuses the first field, as UIKit does.
+  final bool? autofocus;
+
+  /// Whether the keyboard corrects what is typed (UIKit
+  /// `autocorrectionType`).
+  final bool autocorrect;
+
+  /// Whether the keyboard suggests words (UIKit `spellCheckingType` and
+  /// the predictive bar).
+  final bool enableSuggestions;
+
+  /// How the keyboard capitalizes (UIKit `autocapitalizationType`).
+  final TextCapitalization textCapitalization;
+
+  /// Formatters that check and shape what is typed.
+  final List<TextInputFormatter>? inputFormatters;
+
+  /// The label screen readers announce for the field; null announces the
+  /// [placeholder].
+  final String? semanticLabel;
 
   /// The text shown while the field is empty.
   final String? placeholder;
@@ -460,7 +502,7 @@ TextStyle _buttonText(MorphAlertAction action, MorphAlertAppearance style) =>
         fontWeight: action.isPreferred
             ? MorphAlertTuning.preferredWeight
             : null,
-        color: !action.enabled
+        color: !action.isEnabled
             ? style.disabledLabelColor
             : action.isPreferred
             ? style.preferredLabelColor
@@ -562,7 +604,7 @@ class _AlertViewState extends State<_AlertView>
   }
 
   void _choose(MorphAlertAction action) {
-    if (_leaving || !action.enabled) return;
+    if (_leaving || !action.isEnabled) return;
     _route.popMotionRoute(action);
   }
 
@@ -600,7 +642,7 @@ class _AlertViewState extends State<_AlertView>
       if (box is! RenderBox || !box.attached || !box.hasSize) continue;
       final local = box.globalToLocal(global);
       if ((Offset.zero & box.size).contains(local)) {
-        return _shown[i].enabled ? i : null;
+        return _shown[i].isEnabled ? i : null;
       }
     }
     return null;
@@ -1161,7 +1203,7 @@ class _AlertCard extends StatelessWidget {
             field: fields[i],
             controller: controllers[i],
             style: style,
-            autofocus: i == 0,
+            autofocus: fields[i].autofocus ?? i == 0,
             onSubmit: onSubmit,
           ),
         ),
@@ -1367,10 +1409,35 @@ class _AlertButtonState extends State<_AlertButton> {
   bool _focused = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.action.enabledListenable?.addListener(_enabledChanged);
+  }
+
+  @override
+  void didUpdateWidget(_AlertButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final before = oldWidget.action.enabledListenable;
+    final now = widget.action.enabledListenable;
+    if (!identical(before, now)) {
+      before?.removeListener(_enabledChanged);
+      now?.addListener(_enabledChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.action.enabledListenable?.removeListener(_enabledChanged);
+    super.dispose();
+  }
+
+  void _enabledChanged() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
     final action = widget.action;
     final style = widget.style;
-    final base = action.isPreferred && action.enabled
+    final base = action.isPreferred && action.isEnabled
         ? style.preferredColor
         : style.buttonColor;
     final fill = widget.highlighted
@@ -1378,15 +1445,15 @@ class _AlertButtonState extends State<_AlertButton> {
         : base;
     void activate() => widget.onChoose(action);
     return MorphControlFocus(
-      enabled: action.enabled,
+      enabled: action.isEnabled,
       onHighlight: (bool focused) => setState(() => _focused = focused),
       onActivate: activate,
       child: Semantics(
         container: true,
         button: true,
-        enabled: action.enabled,
+        enabled: action.isEnabled,
         label: action.title,
-        onTap: action.enabled ? activate : null,
+        onTap: action.isEnabled ? activate : null,
         child: ExcludeSemantics(
           child: MorphFocusRing(
             visible: _focused,
@@ -1497,13 +1564,18 @@ class _AlertFieldState extends State<_AlertField> {
               ),
             ),
           Semantics(
-            label: placeholder,
+            label: widget.field.semanticLabel ?? placeholder,
             child: EditableText(
               controller: controller,
               focusNode: _focus,
               autofocus: widget.autofocus,
               obscureText: widget.field.obscureText,
               keyboardType: widget.field.keyboardType,
+              onChanged: widget.field.onChanged,
+              autocorrect: widget.field.autocorrect,
+              enableSuggestions: widget.field.enableSuggestions,
+              textCapitalization: widget.field.textCapitalization,
+              inputFormatters: widget.field.inputFormatters,
               style: text,
               cursorColor: style.preferredColor,
               backgroundCursorColor: style.placeholderColor,

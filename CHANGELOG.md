@@ -107,6 +107,22 @@ New capabilities from the API parity audit (phase 2):
   screen reader step). `trackConfiguration` (neutral value, enabled
   range, custom ticks) is not added: its fill and tick looks are not
   measured; `ticks` stays.
+- Sheets: `onDetentChanged` (UIKit
+  `sheetPresentationControllerDidChangeSelectedDetentIdentifier`) and
+  `onDismissAttempt` (`presentationControllerDidAttemptToDismiss`) on
+  `showMorphSheet` and `MorphSheetRoute`. A `PopScope` in the sheet that
+  cannot pop now holds the drag down too (the sheet stretches and
+  returns, as a non-dismissible one does) and still hears the attempt;
+  before, the drag slid the sheet away and the blocked pop left it
+  hidden. New detents `MorphSheetDetent.custom(resolver, identifier:)`
+  and `MorphSheetDetent.fitted` (content height); `resolve` takes the
+  fitted height.
+- Alerts: `MorphAlertAction.enabledListenable` enables an action live
+  (UIKit's settable `isEnabled`, an OK that waits for a text field);
+  `MorphAlertAction.isEnabled` reads the current state.
+  `MorphAlertTextField` gains `onChanged`, `autofocus` (null focuses the
+  first field, as before), `autocorrect`, `enableSuggestions`,
+  `textCapitalization`, `inputFormatters` and `semanticLabel`.
 
 Per-frame work, closer to the native main thread (lifecycle passports,
 tool/ios_reference/spec/lifecycle.md "Closed"):

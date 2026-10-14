@@ -130,7 +130,12 @@ UpdateAtlasBitmap in frames over budget (bench-matrix-night).
 - `permittedArrowDirections`, `passthroughViews`, `canOverlapSourceViewRect`.
 - A general popover presentation (any content in a popover) - morph only
   has the action sheet popover.
-- Text field configuration beyond placeholder/obscure/keyboardType.
+- Text fields take onChanged, autofocus, autocorrect, suggestions,
+  capitalization, input formatters and a semantic label; an action's
+  enablement follows `MorphAlertAction.enabledListenable` live (its look
+  changes in one frame, as the measured disabled look; whether UIKit
+  animates the change is not measured). Text field clear button, return
+  key type and text content type are missing.
 
 ## Implementation notes (morph side, moved from CLAUDE.md)
 

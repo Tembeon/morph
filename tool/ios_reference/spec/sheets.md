@@ -133,9 +133,16 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
   `widthFollowsPreferredContentSize...`, `prefersPageSizing`,
   `preferredPlacement` (iPad / wide), `sourceView` popover adaptation.
 - `prefersScrollingExpandsWhenScrolledToEdge = false`.
-- Custom detent identifiers + programmatic `animateChanges` detent change
-  (morph: needs check), detent `backgroundEffect`.
-- Delegate callbacks (selected detent changed, should dismiss).
+- Custom detents exist (`MorphSheetDetent.custom(resolver, identifier:)`)
+  and a content-sized one (`MorphSheetDetent.fitted`, SwiftUI
+  `presentationSizing(.fitted)`; the content is laid out loose and
+  measured, the sheet moves on the measured spring when the height
+  arrives). Detent `backgroundEffect` is missing.
+- Delegate callbacks exist: `onDetentChanged` (on every settle toward a
+  new detent, programmatic ones included) and `onDismissAttempt`
+  (`dismissible` false or a blocking `PopScope`, which also stops the
+  drag; reported on release - when UIKit reports it during the pull is
+  NOT measured).
 - Full-screen / form-sheet presentation styles.
 
 ## Implementation notes (morph side, moved from CLAUDE.md)

@@ -16,7 +16,27 @@ import 'package:morph/src/widgets/timeline.dart';
 /// resolver.
 @immutable
 class MorphSheetDetent {
-  const MorphSheetDetent._(this._kind, this._value);
+  const MorphSheetDetent._(this._kind, this._value)
+    : _resolver = null,
+      _identifier = null;
+
+  /// A detent whose value [resolver] computes from the maximum value, as
+  /// UIKit's `.custom(identifier:resolver:)`; detents with the same
+  /// [identifier] are the same detent (null compares the resolver).
+  const MorphSheetDetent.custom(
+    double Function(double maximum) resolver, {
+    this._identifier,
+  }) : _kind = _DetentKind.custom,
+       _value = 0,
+       _resolver = resolver;
+
+  /// A detent as tall as the sheet's content (SwiftUI
+  /// `presentationSizing(.fitted)`), up to the maximum.
+  ///
+  /// The sheet lays its content out with a loose height and rests it at
+  /// the top; content that scrolls fills the maximum instead. Until the
+  /// content has laid out once the detent is the maximum.
+  static const fitted = MorphSheetDetent._(_DetentKind.fitted, 0);
 
   /// A detent [value] points tall, clamped to the maximum.
   const MorphSheetDetent.height(double value)
@@ -39,35 +59,53 @@ class MorphSheetDetent {
 
   final _DetentKind _kind;
   final double _value;
+  final double Function(double maximum)? _resolver;
+  final Object? _identifier;
+
+  /// Whether this detent follows the height of the sheet's content.
+  bool get isFitted => _kind == _DetentKind.fitted;
 
   /// Whether this is the full-height detent that docks the sheet.
   bool get isLarge => _kind == _DetentKind.large;
 
-  /// The detent's value for a [maximum] value.
-  double resolve(double maximum) => switch (_kind) {
+  /// The detent's value for a [maximum] value; a [fitted] detent takes
+  /// the content's [fittedHeight], the maximum while it is unknown.
+  double resolve(double maximum, {double? fittedHeight}) => switch (_kind) {
     _DetentKind.large => maximum,
     _DetentKind.fraction => maximum * _value.clamp(0.0, 1.0),
     _DetentKind.height => _value.clamp(0.0, maximum),
+    _DetentKind.custom => _resolver!(maximum).clamp(0.0, maximum),
+    _DetentKind.fitted => (fittedHeight ?? maximum).clamp(0.0, maximum),
   };
 
   @override
   bool operator ==(Object other) =>
       other is MorphSheetDetent &&
       other._kind == _kind &&
-      other._value == _value;
+      other._value == _value &&
+      (_kind != _DetentKind.custom ||
+          (_identifier == null
+              ? other._identifier == null && other._resolver == _resolver
+              : other._identifier == _identifier));
 
   @override
-  int get hashCode => Object.hash(_kind, _value);
+  int get hashCode => Object.hash(
+    _kind,
+    _value,
+    _kind == _DetentKind.custom ? (_identifier ?? _resolver) : null,
+  );
 
   @override
   String toString() => switch (_kind) {
     _DetentKind.large => 'MorphSheetDetent.large',
     _DetentKind.fraction => 'MorphSheetDetent.fraction($_value)',
     _DetentKind.height => 'MorphSheetDetent.height($_value)',
+    _DetentKind.custom => 'MorphSheetDetent.custom(${_identifier ?? ''})',
+    _DetentKind.fitted => 'MorphSheetDetent.fitted',
   };
 }
 
-enum _DetentKind { height, fraction, large }
+enum _DetentKind { height, fraction, large, custom, fitted }
 
 /// The measured tuning of an iOS 27 sheet (UISheetPresentationController).
 abstract final class MorphSheetTuning {
@@ -253,8 +291,9 @@ class MorphSheetMotion {
   /// every detent dims.
   final int? undimmedIndex;
 
-  /// Whether a drag or a tap outside may dismiss the sheet.
-  final bool dismissible;
+  /// Whether a drag or a tap outside may dismiss the sheet; the host
+  /// updates it before a drag (a pop scope that turns dismissal off).
+  bool dismissible;
 
   /// The gap around the floating sheet in pixels.
   final double inset;
@@ -296,6 +335,10 @@ class MorphSheetMotion {
 
   /// Called when a released drag dismisses the sheet.
   VoidCallback? onDismiss;
+
+  /// Called when a released drag would have dismissed a sheet that is not
+  /// [dismissible]; the sheet returns to its smallest detent.
+  VoidCallback? onDismissAttempt;
 
   /// The detent heights, ascending.
   List<double> get heights => _heights;
@@ -614,6 +657,11 @@ class MorphSheetMotion {
         );
         onDismiss?.call();
         return;
+      }
+      if (!dismissible &&
+          (projected > hidden / 2 ||
+              velocity > MorphSheetTuning.dismissVelocity)) {
+        onDismissAttempt?.call();
       }
       _offset.setState(t, below, velocity * gain);
       _offset.retarget(t, 0, spring: MorphSheetTuning.spring);
