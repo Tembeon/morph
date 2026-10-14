@@ -62,4 +62,6 @@ export 'src/widgets/sheet_motion.dart'
 export 'src/widgets/slider_motion.dart' show MorphSliderMotion;
 export 'src/widgets/small_lens.dart' show MorphSmallLens;
 export 'src/widgets/switch_motion.dart' show MorphSwitchMotion;
+export 'src/widgets/tab_bar_minimize.dart'
+    show MorphScrollAway, MorphTabBarMinimizeMotion, MorphTabBarMinimizeTuning;
 export 'src/widgets/zoom_motion.dart' show MorphZoomMotion, MorphZoomTuning;

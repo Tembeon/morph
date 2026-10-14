@@ -17,6 +17,8 @@ import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/press.dart';
+import 'package:morph/src/widgets/tab_bar_chrome.dart';
+import 'package:morph/src/widgets/tab_bar_minimize.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
@@ -87,6 +89,25 @@ class MorphTabItem {
 /// [maxTextScale], and the tabs widen to fit the widest label. With the
 /// platform's reduced motion on, the lens travels without lifting or
 /// deforming and the bar does not swell.
+///
+/// ## Minimizing and the bottom accessory
+///
+/// With a [minimizeBehavior] that minimizes, the bar follows the scrolls
+/// of the content under it ([contentScroll], or the nearest
+/// [MorphContentScrollScope]): a user's scroll in the minimizing
+/// direction shrinks the bar slightly as it goes and, after 64 points,
+/// collapses the bar into a circle holding the selected tab's glyph
+/// ([MorphTabBarMinimizeMotion]); scrolling back, a scroll to the top or a
+/// tap on the circle expands it. A [bottomAccessory] floats in glass above
+/// the bar and moves inline next to the minimized circle; its content
+/// reads where it is from [MorphTabAccessoryEnvironment.of].
+///
+/// With either, the bar lays itself out across the width it is given, as
+/// UIKit's tab bar group spans the screen: place it at the bottom of a
+/// [Stack] that fills the screen (`Positioned(left: 0, right: 0, bottom:
+/// 21)`); the expanded bar stays centered, the minimized circle and the
+/// accessory keep 21 points from the sides. Without either, nothing of
+/// this exists and the bar is as wide as its tabs.
 class MorphTabBar extends StatefulWidget {
   /// Creates a tab bar.
   const MorphTabBar({
@@ -95,8 +116,28 @@ class MorphTabBar extends StatefulWidget {
     required this.onChanged,
     this.onReselected,
     this.appearance,
+    this.minimizeBehavior = MorphTabBarMinimizeBehavior.automatic,
+    this.bottomAccessory,
+    this.contentScroll,
     super.key,
   });
+
+  /// When the bar minimizes to its selected tab as the content scrolls
+  /// (UIKit `tabBarMinimizeBehavior`); [MorphTabBarMinimizeBehavior
+  /// .automatic] does not minimize, as an iPhone tab bar that does not opt
+  /// in.
+  final MorphTabBarMinimizeBehavior minimizeBehavior;
+
+  /// The content of the glass accessory above the bar, a mini player for
+  /// example (UIKit `bottomAccessory`, SwiftUI `tabViewBottomAccessory`),
+  /// or null. It is laid out 48 points tall across the bar group, and
+  /// inline between the minimized bar and the group's trailing side; its
+  /// geometry is not yet measured.
+  final Widget? bottomAccessory;
+
+  /// The scrolls the bar follows to minimize; null follows the nearest
+  /// [MorphContentScrollScope].
+  final MorphContentScroll? contentScroll;
 
   /// The tabs, two to five.
   final List<MorphTabItem> items;
@@ -522,7 +563,32 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       oldWidget.selected == widget.selected &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
       (oldWidget.onReselected == null) == (widget.onReselected == null) &&
-      oldWidget.appearance == widget.appearance;
+      oldWidget.appearance == widget.appearance &&
+      _chromed(oldWidget) == _chromed(widget);
+
+  static bool _chromed(MorphTabBar bar) =>
+      bar.bottomAccessory != null || bar.minimizeBehavior.minimizes;
+
+  // The minimizing group and the accessory wrap the bar's cached build,
+  // so a new accessory from the parent rebuilds the group, not the bar.
+  @override
+  Widget build(BuildContext context) {
+    final bar = super.build(context);
+    if (!_chromed(widget) || widget.items.isEmpty) return bar;
+    return MorphTabBarChrome(
+      bar: bar,
+      barWidth: _layout.width,
+      items: widget.items,
+      selected: motion.selected,
+      appearance: _style,
+      glass: _glass,
+      brightness: _brightness,
+      rtl: _rtl,
+      behavior: widget.minimizeBehavior,
+      accessory: widget.bottomAccessory,
+      contentScroll: widget.contentScroll,
+    );
+  }
 
   static bool _sameItems(List<MorphTabItem> a, List<MorphTabItem> b) {
     if (identical(a, b)) return true;

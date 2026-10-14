@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -15,6 +13,7 @@ import 'package:morph/src/widgets/search_field.dart';
 import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/tab_bar.dart';
+import 'package:morph/src/widgets/tab_collapse.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
@@ -433,7 +432,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
             );
             if (_tabsKey != key) {
               _tabsKey = key;
-              _tabs = _MorphingTabs(
+              _tabs = MorphCollapsingTabs(
                 live: _ticks,
                 items: widget.items,
                 selected: selected,
@@ -612,379 +611,6 @@ typedef _TabStructure = ({
   bool focused,
 });
 
-RRect _capsuleIn(Rect rect) => RRect.fromRectAndRadius(
-  Offset.zero & rect.size,
-  Radius.circular(math.min(rect.width, rect.height) / 2),
-);
-
-class _MorphingTabs extends StatelessWidget {
-  const _MorphingTabs({
-    required this.live,
-    required this.items,
-    required this.selected,
-    required this.progress,
-    required this.restRect,
-    required this.rect,
-    required this.labelShown,
-    required this.style,
-    required this.glass,
-    required this.brightness,
-    required this.rtl,
-    required this.label,
-    required this.onTap,
-    required this.enabled,
-  });
-
-  final Listenable live;
-  final List<MorphTabItem> items;
-  final int selected;
-  final double Function() progress;
-  final Rect restRect;
-  final Rect Function() rect;
-  final ValueListenable<bool> labelShown;
-  final MorphTabBarAppearance style;
-  final MorphGlassPainter? glass;
-  final Brightness brightness;
-  final bool rtl;
-  final String label;
-  final VoidCallback onTap;
-
-  /// Whether the circle takes keyboard focus; it does while it takes
-  /// touches.
-  final ValueListenable<bool> enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    double q() => progress().clamp(0.0, 1.0);
-    double fade() => (1 - q() * 2).clamp(0.0, 1.0);
-    final pitch =
-        (restRect.width - 2 * MorphTabBarMetrics.sideInset) / items.length;
-    final selectedCenter = Offset(
-      MorphTabBarMetrics.sideInset +
-          pitch * (rtl ? items.length - 1 - selected + 0.5 : selected + 0.5),
-      restRect.height / 2,
-    );
-    final glass = this.glass;
-    return Semantics(
-      button: true,
-      label: label,
-      onTap: onTap,
-      excludeSemantics: true,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: enabled,
-        builder: (BuildContext context, bool enabled, Widget? child) =>
-            MorphPress(
-              enabled: enabled,
-              onActivate: onTap,
-              focusRing: true,
-              focusSemantics: false,
-              child: child!,
-            ),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: glass == null
-                    ? CustomPaint(
-                        painter: _BodyPainter(
-                          live: live,
-                          shape: () => _capsuleIn(rect()),
-                          color: () => style.barColor,
-                          shadow: style.shadowColor,
-                        ),
-                      )
-                    : MorphGlassHost(
-                        painter: glass,
-                        mode: MorphGlassMode.surface,
-                        frames: live,
-                        frame: () => MorphGlassFrame([
-                          MorphGlassSurface(
-                            kind: MorphGlassKind.bar,
-                            shape: _capsuleIn(rect()),
-                            color: style.barColor,
-                            brightness: brightness,
-                          ),
-                        ]),
-                      ),
-              ),
-              Positioned.fill(
-                child: MorphLiveClipRRect(
-                  live: live,
-                  borderRadiusOf: () =>
-                      BorderRadius.circular(_capsuleIn(rect()).tlRadiusX),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      for (var i = 0; i < items.length; i++)
-                        if (i != selected)
-                          MorphLivePositionedTemplate(
-                            live: live,
-                            template: () {
-                              final now = rect();
-                              return Positioned(
-                                left:
-                                    restRect.left -
-                                    now.left +
-                                    MorphTabBarMetrics.sideInset +
-                                    pitch * (rtl ? items.length - 1 - i : i),
-                                top: restRect.top - now.top,
-                                width: pitch,
-                                height: restRect.height,
-                                child: morphLiveSlot,
-                              );
-                            },
-                            child: MorphLiveOpacity(
-                              live: live,
-                              opacityOf: fade,
-                              child: _TabGlyph(
-                                item: items[i],
-                                color: style.color,
-                                showLabel: true,
-                              ),
-                            ),
-                          ),
-                      MorphLivePositionedTemplate(
-                        live: live,
-                        template: () {
-                          final now = rect();
-                          final center = Offset.lerp(
-                            selectedCenter - (now.topLeft - restRect.topLeft),
-                            now.size.center(Offset.zero),
-                            q(),
-                          )!;
-                          return Positioned(
-                            left: center.dx - pitch / 2,
-                            top: center.dy - restRect.height / 2,
-                            width: pitch,
-                            height: restRect.height,
-                            child: morphLiveSlot,
-                          );
-                        },
-                        child: ValueListenableBuilder<bool>(
-                          valueListenable: labelShown,
-                          builder:
-                              (BuildContext context, bool shown, Widget? _) =>
-                                  _SelectedGlyph(
-                                    live: live,
-                                    item: items[selected],
-                                    color: () => Color.lerp(
-                                      style.selectedColor,
-                                      style.color,
-                                      q(),
-                                    )!,
-                                    fade: fade,
-                                    labelShown: shown,
-                                  ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The selected tab's glyph while the bar shrinks into the tab circle: its
-/// color turns from the selected tint to the plain one and its label
-/// shrinks and fades, each frame without a build.
-class _SelectedGlyph extends StatelessWidget {
-  const _SelectedGlyph({
-    required this.live,
-    required this.item,
-    required this.color,
-    required this.fade,
-    required this.labelShown,
-  });
-
-  final Listenable live;
-  final MorphTabItem item;
-  final Color Function() color;
-  final double Function() fade;
-  final bool labelShown;
-
-  TextStyle get _labelStyle => MorphTypography.resolve(
-    MorphTypography.tabLabelSelected,
-  ).copyWith(fontSize: 10 * fade(), color: color());
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = (IconTheme.of(context).opacity ?? 1) == 1
-        ? _liveParagraph(
-            Icon(
-              item.icon,
-              size: MorphTabBarMetrics.iconSize,
-              color: color(),
-            ).build(context),
-            live,
-            (TextStyle style) => style.copyWith(color: color()),
-          )
-        : null;
-    final text = labelShown
-        ? _liveParagraph(
-            Text(
-              item.label,
-              maxLines: 1,
-              textScaler: TextScaler.noScaling,
-              style: _labelStyle,
-            ).build(context),
-            live,
-            (TextStyle style) =>
-                style.copyWith(fontSize: 10 * fade(), color: color()),
-          )
-        : null;
-    if (icon == null || (labelShown && text == null)) {
-      return ListenableBuilder(
-        listenable: live,
-        builder: (BuildContext context, Widget? _) => _TabGlyph(
-          item: item,
-          color: color(),
-          showLabel: false,
-          labelOpacity: fade(),
-        ),
-      );
-    }
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        icon,
-        MorphLiveTemplate(
-          live: live,
-          template: () =>
-              SizedBox(height: MorphTabBarMetrics.labelGap * fade()),
-        ),
-        if (text != null)
-          MorphLiveOpacity(live: live, opacityOf: fade, child: text),
-      ],
-    );
-  }
-}
-
-/// [built], the tree a [Text] or an [Icon] builds, with its one paragraph's
-/// style following [live] through [restyle], or null when [built] is not a
-/// plain paragraph under single-child layout wrappers.
-///
-/// Semantics wrappers are dropped: the glyphs here sit under a node that
-/// excludes its children's semantics, and they neither lay out nor paint.
-Widget? _liveParagraph(
-  Widget built,
-  Listenable live,
-  TextStyle Function(TextStyle style) restyle,
-) {
-  Widget? inner(Widget? child) =>
-      child == null ? null : _liveParagraph(child, live, restyle);
-  switch (built) {
-    case RichText(text: final TextSpan span)
-        when span.runtimeType == TextSpan &&
-            span.children == null &&
-            span.recognizer == null &&
-            span.semanticsLabel == null &&
-            span.style?.foreground == null &&
-            span.style?.background == null:
-      final style = span.style;
-      if (style == null) return null;
-      return MorphLiveTemplate(
-        live: live,
-        template: () => RichText(
-          textAlign: built.textAlign,
-          textDirection: built.textDirection,
-          softWrap: built.softWrap,
-          overflow: built.overflow,
-          textScaler: built.textScaler,
-          maxLines: built.maxLines,
-          locale: built.locale,
-          strutStyle: built.strutStyle,
-          textWidthBasis: built.textWidthBasis,
-          textHeightBehavior: built.textHeightBehavior,
-          selectionRegistrar: built.selectionRegistrar,
-          selectionColor: built.selectionColor,
-          text: TextSpan(
-            text: span.text,
-            style: restyle(style),
-            locale: span.locale,
-            spellOut: span.spellOut,
-          ),
-        ),
-      );
-    case Semantics(:final child) || ExcludeSemantics(:final child):
-      return inner(child);
-    case SizedBox(:final width, :final height, :final child):
-      final live = inner(child);
-      return live == null
-          ? null
-          : SizedBox(width: width, height: height, child: live);
-    case Align(:final alignment, :final widthFactor, :final heightFactor):
-      final live = inner(built.child);
-      return live == null
-          ? null
-          : Align(
-              alignment: alignment,
-              widthFactor: widthFactor,
-              heightFactor: heightFactor,
-              child: live,
-            );
-    case Transform(:final child):
-      final live = inner(child);
-      return live == null
-          ? null
-          : Transform(
-              transform: built.transform,
-              origin: built.origin,
-              alignment: built.alignment,
-              transformHitTests: built.transformHitTests,
-              filterQuality: built.filterQuality,
-              child: live,
-            );
-    default:
-      return null;
-  }
-}
-
-class _TabGlyph extends StatelessWidget {
-  const _TabGlyph({
-    required this.item,
-    required this.color,
-    required this.showLabel,
-    this.labelOpacity = 1,
-  });
-
-  final MorphTabItem item;
-  final Color color;
-  final bool showLabel;
-  final double labelOpacity;
-
-  @override
-  Widget build(BuildContext context) {
-    final labelVisible = showLabel ? 1.0 : labelOpacity;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(item.icon, size: MorphTabBarMetrics.iconSize, color: color),
-        SizedBox(height: MorphTabBarMetrics.labelGap * labelVisible),
-        if (labelVisible > 0.01)
-          Opacity(
-            opacity: labelVisible,
-            child: Text(
-              item.label,
-              maxLines: 1,
-              textScaler: TextScaler.noScaling,
-              style: MorphTypography.resolve(
-                MorphTypography.tabLabelSelected,
-              ).copyWith(fontSize: 10 * labelVisible, color: color),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
 class _SearchCircle extends StatelessWidget {
   const _SearchCircle({
     required this.live,
@@ -1051,9 +677,9 @@ class _SearchCircle extends StatelessWidget {
               Positioned.fill(
                 child: glass == null
                     ? CustomPaint(
-                        painter: _BodyPainter(
+                        painter: MorphCapsulePainter(
                           live: live,
-                          shape: () => _capsuleIn(rect()),
+                          shape: () => morphCapsuleIn(rect()),
                           color: body,
                           shadow: style.shadowColor,
                         ),
@@ -1065,7 +691,7 @@ class _SearchCircle extends StatelessWidget {
                         frame: () => MorphGlassFrame([
                           MorphGlassSurface(
                             kind: MorphGlassKind.button,
-                            shape: _capsuleIn(rect()),
+                            shape: morphCapsuleIn(rect()),
                             color: body(),
                             brightness: brightness,
                           ),
@@ -1210,32 +836,4 @@ class _MagnifierGlyph extends CustomPainter {
 
   @override
   bool shouldRepaint(_MagnifierGlyph oldDelegate) => true;
-}
-
-class _BodyPainter extends CustomPainter {
-  _BodyPainter({
-    required Listenable live,
-    required this.shape,
-    required this.color,
-    required this.shadow,
-  }) : super(repaint: live);
-
-  final RRect Function() shape;
-  final Color Function() color;
-  final Color shadow;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final shape = this.shape();
-    final shadowPaint = Paint();
-    shadowPaint.color = shadow;
-    shadowPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawRRect(shape.shift(const Offset(0, 4)), shadowPaint);
-    final fill = Paint();
-    fill.color = color();
-    canvas.drawRRect(shape, fill);
-  }
-
-  @override
-  bool shouldRepaint(_BodyPainter oldDelegate) => true;
 }
