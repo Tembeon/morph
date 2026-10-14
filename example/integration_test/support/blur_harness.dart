@@ -43,8 +43,8 @@ class BlurCase {
   final Widget Function(BlurVariant variant) build;
 
   /// The largest channel difference from the whole-pass blur the case
-  /// accepts: the bounded edge effect is the same blur, a raised frost
-  /// is not.
+  /// accepts: the bounded soft edge effect is the same blur; the hard
+  /// one and a frost, raised to half resolution, are not.
   final int bound;
 }
 
@@ -145,15 +145,17 @@ final List<BlurCase> blurCases = [
         opacity: opacity,
         appearance: MorphScrollEdgeEffectAppearance.dark,
       ),
+      bound: style == MorphScrollEdgeEffectStyle.hard ? 24 : 2,
     ),
 ];
 
 /// Which blurs a render uses.
 enum BlurVariant {
-  /// The package's: the seeded edge effect, the raised frost.
+  /// The package's: the seeded edge effect, the raised hard edge
+  /// effect and frost.
   bounded,
 
-  /// The blur over the whole pass, the frost as given.
+  /// The blur over the whole pass, every radius as given.
   whole,
 }
 

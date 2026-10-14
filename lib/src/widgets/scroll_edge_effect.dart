@@ -14,6 +14,24 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 @visibleForTesting
 bool debugMorphEdgeEffectBoundsBlur = true;
 
+/// Whether the edge effect raises a blur just below Impeller's half
+/// resolution threshold to it ([morphHalfResolutionSigma]). On by
+/// default; `--dart-define=MORPH_EDGE_HALF_RESOLUTION=false` blurs the
+/// measured radius at full resolution.
+bool debugMorphEdgeEffectHalfResolution = const bool.fromEnvironment(
+  'MORPH_EDGE_HALF_RESOLUTION',
+  defaultValue: true,
+);
+
+/// Whether a fading hard edge effect folds its presence into the
+/// saturation matrix after its blur, one color pass instead of two. On by
+/// default; `--dart-define=MORPH_EDGE_FOLDED_FADE=false` composes the
+/// presence as a matrix of its own.
+bool debugMorphEdgeEffectFoldedFade = const bool.fromEnvironment(
+  'MORPH_EDGE_FOLDED_FADE',
+  defaultValue: true,
+);
+
 /// How a [MorphScrollEdgeEffect] separates the content under a bar.
 enum MorphScrollEdgeEffectStyle {
   /// UIKit's `.soft` edge effect: a light blur over a band that reaches
@@ -67,7 +85,8 @@ class MorphScrollEdgeEffectAppearance {
   /// The blur of the soft style, in logical pixels.
   final double softBlurRadius;
 
-  /// The blur of the hard style, in logical pixels.
+  /// The blur of the hard style, in logical pixels; raised slightly
+  /// where that halves its cost (see [MorphScrollEdgeEffect]).
   final double hardBlurRadius;
 
   /// How far the soft band reaches past the bar's edge.
@@ -164,6 +183,16 @@ class MorphScrollEdgeEffectAppearance {
 /// tiers copy the backdrop around each band and blur that copy:
 /// a band along the edge of the screen blurring the pass itself makes
 /// Impeller blur the whole pass, at full resolution for this sigma.
+///
+/// A blur just below the sigma Impeller blurs at half resolution is
+/// raised to it, by at most 12 percent: the hard style's 2 points become
+/// 2.17 at a device pixel ratio of 2.625 (a Pixel 6a), where the full
+/// resolution blur of 5.2 device pixels costs about three times the half
+/// resolution one. NEAR: the band differs from the measured blur by a
+/// median of 4 and at most 19 channel steps along sharp edges under the
+/// fade (host Impeller). Nothing changes at 3x, where 2 points already
+/// blur at half resolution, nor for the soft style's 1.5 points at 2x to
+/// 3x, which would need more than 12 percent.
 class MorphScrollEdgeEffect extends StatelessWidget {
   /// Creates the effect for the [edge] of a scroll view.
   const MorphScrollEdgeEffect({
@@ -467,21 +496,39 @@ class _RenderEdge extends RenderBox {
   @override
   bool hitTestSelf(Offset position) => false;
 
-  ui.ImageFilter _filter(double presence) {
-    final ui.ImageFilter blur = switch (_style) {
-      MorphScrollEdgeEffectStyle.soft => ui.ImageFilter.blur(
-        sigmaX: _look.softBlurRadius,
-        sigmaY: _look.softBlurRadius,
-      ),
-      MorphScrollEdgeEffectStyle.hard => ui.ImageFilter.compose(
-        outer: ui.ColorFilter.matrix(_look.hardColorMatrix),
-        inner: ui.ImageFilter.blur(
-          sigmaX: _look.hardBlurRadius,
-          sigmaY: _look.hardBlurRadius,
-        ),
-      ),
+  /// The sigma the band is blurred with: the style's radius, raised to
+  /// Impeller's half resolution blur when that is invisible.
+  double get _sigma {
+    final radius = switch (_style) {
+      MorphScrollEdgeEffectStyle.soft => _look.softBlurRadius,
+      MorphScrollEdgeEffectStyle.hard => _look.hardBlurRadius,
     };
-    if (presence == 1) return blur;
+    if (!debugMorphEdgeEffectHalfResolution) return radius;
+    return morphHalfResolutionSigma(radius, _devicePixelRatio);
+  }
+
+  ui.ImageFilter _filter(double presence) {
+    final sigma = _sigma;
+    final ui.ImageFilter blur = ui.ImageFilter.blur(
+      sigmaX: sigma,
+      sigmaY: sigma,
+    );
+    final hard = _style == MorphScrollEdgeEffectStyle.hard;
+    if (hard && debugMorphEdgeEffectFoldedFade) {
+      final matrix = _look.hardColorMatrix;
+      matrix[18] = presence;
+      return ui.ImageFilter.compose(
+        outer: ui.ColorFilter.matrix(matrix),
+        inner: blur,
+      );
+    }
+    final ui.ImageFilter look = hard
+        ? ui.ImageFilter.compose(
+            outer: ui.ColorFilter.matrix(_look.hardColorMatrix),
+            inner: blur,
+          )
+        : blur;
+    if (presence == 1) return look;
     return ui.ImageFilter.compose(
       outer: ui.ColorFilter.matrix(<double>[
         1, 0, 0, 0, 0, //
@@ -489,7 +536,7 @@ class _RenderEdge extends RenderBox {
         0, 0, 1, 0, 0, //
         0, 0, 0, presence, 0,
       ]),
-      inner: blur,
+      inner: look,
     );
   }
 
@@ -545,11 +592,7 @@ class _RenderEdge extends RenderBox {
       band(context, offset);
       return;
     }
-    final sigma = switch (_style) {
-      MorphScrollEdgeEffectStyle.soft => _look.softBlurRadius,
-      MorphScrollEdgeEffectStyle.hard => _look.hardBlurRadius,
-    };
-    final reach = morphBlurReach(sigma, _devicePixelRatio);
+    final reach = morphBlurReach(_sigma, _devicePixelRatio);
     final seed = _seed.layer ??= BackdropFilterLayer(
       filter: morphBackdropSeed,
       blendMode: BlendMode.src,
