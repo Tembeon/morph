@@ -90,6 +90,9 @@ class MorphContextMenuRegion extends StatefulWidget {
     this.dismissOnSelect,
     this.appearance,
     this.replica,
+    this.preview,
+    this.previewSize,
+    this.onPreviewTap,
     this.holdDuration = measuredHoldDuration,
     this.lifts = true,
     this.enabled = true,
@@ -142,6 +145,27 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// Keep the replica visual and disposable; it must not reuse those
   /// owners.
   final Widget? replica;
+
+  /// Builds a different view to preview instead of the held [child]
+  /// (`previewProvider`, SwiftUI's `contextMenu(menuItems:preview:)`): a
+  /// photo larger than its thumbnail, a page behind a link. The held view
+  /// morphs into it, crossfading as it grows into [previewSize] about the
+  /// held view's center, and back into the held view on the close. Null
+  /// previews the held view itself, lifted.
+  ///
+  /// Fidelity: approximation - the crossfade from the held view to the
+  /// preview is not measured.
+  final WidgetBuilder? preview;
+
+  /// The size of the [preview] (`preferredContentSize`); null gives it the
+  /// held view's lifted size.
+  final Size? previewSize;
+
+  /// Called when the open preview is tapped (`willPerformPreviewAction`,
+  /// the dismiss commit style): the menu closes and the preview flies
+  /// home, and the app runs its action, such as opening the previewed
+  /// page. Null leaves a tap on the preview to close the menu.
+  final VoidCallback? onPreviewTap;
 
   /// How long the finger must rest before the menu opens; a finger let
   /// go past [measuredCommitDuration] opens it at the release.
@@ -749,10 +773,13 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     final double scale = widget.lifts
         ? MorphContextMenuRegion.measuredPreviewScale(held.size)
         : 1;
+    final Size size = widget.preview == null
+        ? held.size * scale
+        : widget.previewSize ?? held.size * scale;
     final Rect lifted = Rect.fromCenter(
       center: held.center,
-      width: held.width * scale,
-      height: held.height * scale,
+      width: size.width,
+      height: size.height,
     );
     final MorphSatellite? accessory = widget.accessory;
     final double room = accessory == null
@@ -856,6 +883,11 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     if (flight != null && !flight.isFinished) flight.close();
   }
 
+  void _previewTapped() {
+    widget.onPreviewTap?.call();
+    _close();
+  }
+
   /// The menu rows started closing: the preview flies home with them.
   void _menuClosed() {
     _menuPointer = null;
@@ -918,6 +950,13 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
           child: _PreviewLayer(
             flight: flight,
             placement: placement,
+            onTap: widget.onPreviewTap == null ? null : _previewTapped,
+            preview: widget.preview == null
+                ? null
+                : _RegionScope(
+                    state: this,
+                    child: Builder(builder: widget.preview!),
+                  ),
             child: _RegionScope(
               state: this,
               child: flight.sourceThemes.wrapText(
@@ -1011,7 +1050,9 @@ Rect _previewNow(MorphFlight flight, _Placement placement) =>
 /// its natural size and painted on the rect the flight carries it on by a
 /// transform alone. A frame of the flight lays nothing out and paints only
 /// the transform: the copy is a repaint boundary whose layer is moved and
-/// scaled, as UIKit scales its preview's bitmaps.
+/// scaled, as UIKit scales its preview's bitmaps. A custom [preview],
+/// laid out once at the open preview's size, rides the same rect and
+/// crossfades with the copy over the first half of the flight.
 ///
 /// Fidelity: identical geometry to the copy laid out at the flight's rect
 /// and scaled from its top left; text is resampled from one raster instead
@@ -1021,44 +1062,87 @@ class _PreviewLayer extends StatelessWidget {
     required this.flight,
     required this.placement,
     required this.child,
+    this.preview,
+    this.onTap,
   });
 
   final MorphFlight flight;
   final _Placement placement;
   final Widget child;
+  final Widget? preview;
+  final VoidCallback? onTap;
+
+  /// How far the custom preview has faded in over the held view's copy.
+  double get _shown => (flight.controller.value * 2).clamp(0.0, 1.0);
+
+  Widget _carried(Size natural, Widget child) => Positioned(
+    left: 0,
+    top: 0,
+    width: natural.width,
+    height: natural.height,
+    child: MorphLiveTransform.matrix(
+      live: flight.frameTicks,
+      alignment: null,
+      matrixOf: () {
+        final Rect rect = _previewNow(flight, placement);
+        final Matrix4 matrix = Matrix4.translationValues(
+          rect.left,
+          rect.top,
+          0,
+        );
+        matrix.scaleByDouble(
+          natural.width <= 0 ? 1 : rect.width / natural.width,
+          natural.height <= 0 ? 1 : rect.height / natural.height,
+          1,
+          1,
+        );
+        return matrix;
+      },
+      child: RepaintBoundary(child: MorphChromeBackdrop(child: child)),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
-    final Size natural = placement.held.size;
+    final Widget? preview = this.preview;
+    final VoidCallback? onTap = this.onTap;
+    final Widget copy = _carried(
+      placement.held.size,
+      preview == null
+          ? child
+          : MorphLiveTemplate(
+              live: flight.frameTicks,
+              template: () => Opacity(opacity: 1 - _shown),
+              child: child,
+            ),
+    );
+    final Widget? custom = preview == null
+        ? null
+        : _carried(
+            placement.preview.size,
+            MorphLiveTemplate(
+              live: flight.frameTicks,
+              template: () => Opacity(opacity: _shown),
+              child: preview,
+            ),
+          );
+    final Widget layer = Stack(
+      clipBehavior: Clip.none,
+      children: <Widget>[copy, ?custom],
+    );
+    if (onTap == null) return IgnorePointer(child: layer);
+    // Only the preview takes the tap; everywhere else the touch goes on to
+    // the menu under it.
     return Stack(
       clipBehavior: Clip.none,
       children: <Widget>[
-        Positioned(
-          left: 0,
-          top: 0,
-          width: natural.width,
-          height: natural.height,
-          child: IgnorePointer(
-            child: MorphLiveTransform.matrix(
-              live: flight.frameTicks,
-              alignment: null,
-              matrixOf: () {
-                final Rect rect = _previewNow(flight, placement);
-                final Matrix4 matrix = Matrix4.translationValues(
-                  rect.left,
-                  rect.top,
-                  0,
-                );
-                matrix.scaleByDouble(
-                  natural.width <= 0 ? 1 : rect.width / natural.width,
-                  natural.height <= 0 ? 1 : rect.height / natural.height,
-                  1,
-                  1,
-                );
-                return matrix;
-              },
-              child: RepaintBoundary(child: MorphChromeBackdrop(child: child)),
-            ),
+        IgnorePointer(child: layer),
+        Positioned.fromRect(
+          rect: placement.preview,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            child: const SizedBox.expand(),
           ),
         ),
       ],

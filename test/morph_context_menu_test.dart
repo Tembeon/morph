@@ -847,6 +847,8 @@ void main() {
 
   group('accessory', accessory);
 
+  group('preview', previews);
+
   group('menu rows', menuRows);
 }
 
@@ -2324,4 +2326,110 @@ void deviceMorph() {
       );
     });
   }
+}
+
+/// A held 120 x 80 thumbnail previewing a 300 x 200 picture.
+Widget _previewHost({
+  VoidCallback? onPreviewTap,
+  ValueChanged<MorphFlight>? onOpen,
+  List<String>? picked,
+}) => MaterialApp(
+  builder: (BuildContext context, Widget? child) => MorphScope(child: child!),
+  home: Scaffold(
+    body: Center(
+      child: MorphContextMenuRegion(
+        onOpen: onOpen,
+        onPreviewTap: onPreviewTap,
+        preview: (BuildContext context) => const ColoredBox(
+          color: Color(0xFF00AA00),
+          child: Center(child: Text('big-preview')),
+        ),
+        previewSize: const Size(300, 200),
+        menu: <MorphMenuEntry>[
+          MorphMenuItem(title: 'Save', onSelected: () => picked?.add('Save')),
+        ],
+        child: Builder(
+          builder: (BuildContext context) => GestureDetector(
+            onTap: () => MorphContextMenuRegion.open(context),
+            child: Container(
+              key: _heroBox,
+              width: 120,
+              height: 80,
+              color: const Color(0xFF334455),
+              child: const Text('thumb'),
+            ),
+          ),
+        ),
+      ),
+    ),
+  ),
+);
+
+void previews() {
+  testWidgets('a preview builder shows its own view at its size, grown out '
+      'of the held view about its center, and home again', (
+    WidgetTester tester,
+  ) async {
+    frame(tester);
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      _previewHost(onOpen: (MorphFlight f) => flight = f),
+    );
+    final Rect home = tester.getRect(find.byKey(_heroBox));
+    expect(find.text('big-preview'), findsNothing);
+    await tester.tap(find.text('thumb'));
+    await settle(tester);
+    final Rect shown = tester.getRect(find.text('big-preview').first);
+    expect((shown.center - home.center).distance, lessThan(1e-6));
+    final Rect box = tester.getRect(
+      find.ancestor(
+        of: find.text('big-preview'),
+        matching: find.byType(ColoredBox),
+      ),
+    );
+    expect(box.size, const Size(300, 200));
+    expect(_menuFrame(tester).top, _near(box.bottom + _gap));
+    flight!.close();
+    await settle(tester);
+    expect(find.text('big-preview'), findsNothing);
+    expect(tester.getRect(find.byKey(_heroBox)), home);
+  });
+
+  testWidgets('a tap on the preview runs onPreviewTap and closes the menu', (
+    WidgetTester tester,
+  ) async {
+    frame(tester);
+    var taps = 0;
+    MorphFlight? flight;
+    final picked = <String>[];
+    await tester.pumpWidget(
+      _previewHost(
+        onPreviewTap: () => taps++,
+        onOpen: (MorphFlight f) => flight = f,
+        picked: picked,
+      ),
+    );
+    await tester.tap(find.text('thumb'));
+    await settle(tester);
+    await tester.tap(find.text('big-preview'));
+    await settle(tester);
+    expect(taps, 1);
+    expect(picked, isEmpty);
+    expect(flight!.isFinished, isTrue);
+  });
+
+  testWidgets('without onPreviewTap a tap on the preview closes the menu', (
+    WidgetTester tester,
+  ) async {
+    frame(tester);
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      _previewHost(onOpen: (MorphFlight f) => flight = f),
+    );
+    await tester.tap(find.text('thumb'));
+    await settle(tester);
+    await tester.tap(find.text('big-preview'), warnIfMissed: false);
+    await settle(tester);
+    expect(flight!.isFinished, isTrue);
+  });
 }

@@ -25,6 +25,7 @@ class _ContextMenuPageState extends State<ContextMenuPage> {
   MorphMenuOrder _order = MorphMenuOrder.automatic;
   bool? _dismissOnSelect;
   bool _pinned = false;
+  bool _photoPreview = true;
 
   static const _people = [
     ('Anna', 'Lunch tomorrow?', Color(0xFF34C759)),
@@ -125,9 +126,14 @@ class _ContextMenuPageState extends State<ContextMenuPage> {
     required String subject,
     required Widget child,
     bool accessory = true,
+    WidgetBuilder? preview,
+    Size? previewSize,
   }) => MorphContextMenuRegion(
     menu: _menu(subject),
     accessory: accessory ? _capsule(subject) : null,
+    preview: preview,
+    previewSize: previewSize,
+    onPreviewTap: preview == null ? null : () => _picked('Opened $subject'),
     order: _order,
     dismissOnSelect: _dismissOnSelect,
     semanticLabel: subject,
@@ -203,6 +209,11 @@ class _ContextMenuPageState extends State<ContextMenuPage> {
       value: _accessory,
       onChanged: (bool value) => setState(() => _accessory = value),
     ),
+    GalleryToggle(
+      label: 'Photo preview',
+      value: _photoPreview,
+      onChanged: (bool value) => setState(() => _photoPreview = value),
+    ),
     GalleryChoice<MorphMenuOrder>(
       label: 'Order',
       options: const {
@@ -252,6 +263,11 @@ class _ContextMenuPageState extends State<ContextMenuPage> {
                       child: _region(
                         subject: 'Photo ${i + 1}',
                         accessory: false,
+                        preview: !_photoPreview
+                            ? null
+                            : (BuildContext context) =>
+                                  _PhotoPreview(color: _photos[i], index: i),
+                        previewSize: const Size(300, 225),
                         child: AspectRatio(
                           aspectRatio: 1,
                           child: DecoratedBox(
@@ -306,6 +322,37 @@ class _Reactions extends StatelessWidget {
                   ),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The large picture a photo tile previews, as a photo app's context menu
+/// shows the whole picture behind its square thumbnail.
+class _PhotoPreview extends StatelessWidget {
+  const _PhotoPreview({required this.color, required this.index});
+
+  final Color color;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: const .all(.circular(16)),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: .min,
+          children: [
+            const Icon(Icons.photo, color: Colors.white, size: 48),
+            Text(
+              'Photo ${index + 1}',
+              style: const TextStyle(color: Colors.white, fontSize: 17),
+            ),
           ],
         ),
       ),
