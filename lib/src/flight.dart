@@ -94,6 +94,7 @@ class MorphFlight {
     }
     sourceThemes = MorphThemeCarrier(tag.context, to: _overlay.context);
     morphDependOnThemes(tag.context, to: _overlay.context);
+    tag.context.dependOnInheritedWidgetOfExactType<DefaultTextStyle>();
   }
 
   /// The scope this flight is registered in.
@@ -190,6 +191,7 @@ class MorphFlight {
   void sourceDependenciesChanged() {
     if (_finished || !tag.isTreeActive || !_overlay.mounted) return;
     morphDependOnThemes(tag.context, to: _overlay.context);
+    tag.context.dependOnInheritedWidgetOfExactType<DefaultTextStyle>();
     if (_themesRefreshPending) return;
     _themesRefreshPending = true;
     SchedulerBinding.instance.addPostFrameCallback((Duration _) {
@@ -1210,7 +1212,11 @@ class _SourceGhost extends StatelessWidget {
                             flight: flight,
                             isTarget: false,
                             anchorKey: anchorKey,
-                            child: flight.tag.replica,
+                            // The shuttle's Material sets the theme's
+                            // body style; the copy keeps the source's.
+                            child: flight.sourceThemes.wrapText(
+                              flight.tag.replica,
+                            ),
                           ),
                         ),
                 ),

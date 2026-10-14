@@ -17,6 +17,11 @@ no behaviour or pixel change: every rename keeps what the old name did.
   `MediaQuery.highContrast`; UIKit's control haptics through
   `HapticFeedback`, on by default, switched by
   `MorphWidgetsTheme.haptics`.
+- Source copies in a morph flight keep their original default text style
+  below the shuttle's Material, including flying shared elements and a
+  context menu's preview. A tightly fitting label no longer changes font
+  or overflows during the flight. The style follows the source while it
+  is mounted and retains its last value after the source disappears.
 - BREAKING: look tables are `*Appearance` and every widget takes its
   table as `appearance:` (UIKit precedent: `UINavigationBarAppearance`);
   `*Style` now names only variant enums, as in UIKit

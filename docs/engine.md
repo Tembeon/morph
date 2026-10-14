@@ -140,6 +140,11 @@ What is where:
   MorphGlassScope, ...). This is Flutter's popup-route precedent with the
   tag's context as the launching context, so target content gets the
   source's themes.
+- Source replicas, flying shared-element source layers and context-menu
+  previews also restore the source's DefaultTextStyle below the shuttle's
+  Material, which otherwise substitutes its body text style. The target
+  content keeps its own style. Pinned by flight_source_text_style_test and
+  context_menu_text_style_test.
 - Captured once at launch (one ancestor walk). The flight makes the tag
   depend on those theme elements; the tag's didChangeDependencies asks a
   live flight to recapture after the frame (so a change reaches an open

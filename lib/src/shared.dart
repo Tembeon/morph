@@ -438,7 +438,7 @@ Widget buildSharedFlightLayer({
                   template: () => SizedBox.fromSize(size: now().sourceSize),
                   child: MorphSurfaceSpecScope(
                     spec: flight.tag.surfaceSpec,
-                    child: layer.source.child,
+                    child: flight.sourceThemes.wrapText(layer.source.child),
                   ),
                 ),
               ),

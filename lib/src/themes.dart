@@ -57,13 +57,24 @@ class MorphThemeCarrier extends ChangeNotifier {
   MorphThemeCarrier(BuildContext source, {BuildContext? to})
     : _source = source,
       _to = to,
-      _themes = morphCaptureThemes(source, to: to);
+      _themes = morphCaptureThemes(source, to: to),
+      _text = _textOf(source);
+
+  static DefaultTextStyle _textOf(BuildContext source) =>
+      source.getInheritedWidgetOfExactType<DefaultTextStyle>() ??
+      const DefaultTextStyle.fallback();
 
   BuildContext _source;
   final BuildContext? _to;
   List<InheritedTheme> _themes;
   Widget? _child;
   Widget? _wrapped;
+  DefaultTextStyle _text;
+
+  /// The source's own default text style, wherever it is set: a copy of
+  /// the source drawn under a Material, which sets the theme's body style,
+  /// draws in it again through [wrapText].
+  DefaultTextStyle get textStyle => _text;
 
   /// The themes carried, nearest to the source first.
   List<InheritedTheme> get themes => _themes;
@@ -74,15 +85,18 @@ class MorphThemeCarrier extends ChangeNotifier {
   /// The caller makes sure the source is in the active tree.
   bool recapture([BuildContext? source]) {
     final from = source ?? _source;
+    final text = _textOf(from);
+    final textChanged = !identical(text, _text);
+    _text = text;
     final next = morphCaptureThemes(from, to: _to);
-    if (next.length != _themes.length) return false;
+    if (next.length != _themes.length) return textChanged;
     var changed = false;
     for (var i = 0; i < next.length; i++) {
-      if (next[i].runtimeType != _themes[i].runtimeType) return false;
+      if (next[i].runtimeType != _themes[i].runtimeType) return textChanged;
       if (!identical(next[i], _themes[i])) changed = true;
     }
     _source = from;
-    if (!changed) return false;
+    if (!changed) return textChanged;
     _themes = next;
     _wrapped = null;
     return true;
@@ -103,6 +117,22 @@ class MorphThemeCarrier extends ChangeNotifier {
     if (wrapped != null && identical(child, _child)) return wrapped;
     _child = child;
     return _wrapped = _CarriedThemes(themes: _themes, child: child);
+  }
+
+  /// [child], a copy of the source, in the source's own default text
+  /// style ([textStyle]), whatever sets another one above it.
+  Widget wrapText(Widget child) {
+    final text = _text;
+    return DefaultTextStyle(
+      style: text.style,
+      textAlign: text.textAlign,
+      softWrap: text.softWrap,
+      overflow: text.overflow,
+      maxLines: text.maxLines,
+      textWidthBasis: text.textWidthBasis,
+      textHeightBehavior: text.textHeightBehavior,
+      child: child,
+    );
   }
 
   /// [recapture]s from the source while it is mounted, then [wrap]s

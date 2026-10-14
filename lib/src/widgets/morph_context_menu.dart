@@ -822,30 +822,16 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
 
   /// The source stays live in place. An explicit replica supplies every
   /// overlay copy, keeping single-owner state out of the duplicated tree.
-  Widget _sourceHero() => _hero(widget.child);
+  Widget _sourceHero() => _RegionScope(state: this, child: widget.child);
 
-  Widget _flightHero() => _hero(widget.replica ?? widget.child);
-
-  /// [child] in the region's own text style: every copy of the hero in
-  /// the flight sits under the shuttle's Material, whose default text
-  /// style would restyle the hero's text, and a copy laid out in a slot
-  /// sized from the source would overflow it.
-  Widget _hero(Widget child) {
-    final DefaultTextStyle text = _text ?? DefaultTextStyle.of(context);
-    return _RegionScope(
-      state: this,
-      child: DefaultTextStyle(
-        style: text.style,
-        textAlign: text.textAlign,
-        softWrap: text.softWrap,
-        overflow: text.overflow,
-        maxLines: text.maxLines,
-        textWidthBasis: text.textWidthBasis,
-        textHeightBehavior: text.textHeightBehavior,
-        child: child,
-      ),
-    );
-  }
+  /// The hero in the open menu: content of the flight's target, under the
+  /// shuttle's Material and its body text style, but a copy of the source
+  /// that must read the source's own (a copy laid out in a slot sized from
+  /// the source would overflow it otherwise).
+  Widget _flightHero(MorphFlight flight) => _RegionScope(
+    state: this,
+    child: flight.sourceThemes.wrapText(widget.replica ?? widget.child),
+  );
 
   Widget _buildMenu(
     BuildContext context,
@@ -862,7 +848,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     final Widget? belowContent = below == null
         ? null
         : MorphChromeBackdrop(child: below.builder(context, flight));
-    final Widget hero = MorphChromeBackdrop(child: _flightHero());
+    final Widget hero = MorphChromeBackdrop(child: _flightHero(flight));
     return _MenuColumn(
       flight: flight,
       geometry: geometry,
@@ -874,18 +860,18 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     );
   }
 
-  DefaultTextStyle? _text;
-
   @override
   Widget build(BuildContext context) {
-    _text = DefaultTextStyle.of(context);
     final Widget? replica = widget.replica;
     final Widget tagged = MorphTag(
       id: _tagId,
       spec: _vessel,
       replica: replica == null
           ? null
-          : MorphSharedElement(id: _heroId, child: _hero(replica)),
+          : MorphSharedElement(
+              id: _heroId,
+              child: _RegionScope(state: this, child: replica),
+            ),
       child: MorphSharedElement(id: _heroId, child: _sourceHero()),
     );
     // The press transform sits ABOVE the tag: the
