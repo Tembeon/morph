@@ -198,8 +198,37 @@ class MorphSegmentedControlAppearance {
     ),
   );
 
+  /// The light appearance under Increase Contrast: the track
+  /// (tertiarySystemFill) turns from 12 to 20 percent (read from UIKit's
+  /// color tables, notes private).
+  static const lightHighContrast = MorphSegmentedControlAppearance(
+    trackColor: Color(0x33767680),
+  );
+
+  /// The dark appearance under Increase Contrast: the track turns from 24
+  /// to 32 percent and the resting lens (systemGray2) takes its
+  /// increased-contrast variant (read from UIKit's color tables, notes
+  /// private).
+  static const darkHighContrast = MorphSegmentedControlAppearance(
+    trackColor: Color(0x52767680),
+    lensColor: Color(0xFF7C7C80),
+    liftedLensColor: Color(0x33FFFFFF),
+    lensBorderColor: Color(0x40FFFFFF),
+    shadowColor: Color(0x33000000),
+    textStyle: TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w400,
+      color: Color(0xFFFFFFFF),
+    ),
+    selectedTextStyle: TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      color: Color(0xFFFFFFFF),
+    ),
+  );
+
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness.
+  /// table for the ambient brightness and contrast.
   static MorphSegmentedControlAppearance resolve(
     BuildContext context,
     MorphSegmentedControlAppearance? explicit,
@@ -209,6 +238,8 @@ class MorphSegmentedControlAppearance {
     themed: (theme) => theme.segmentedControl,
     light: light,
     dark: dark,
+    lightHighContrast: lightHighContrast,
+    darkHighContrast: darkHighContrast,
   );
 }
 

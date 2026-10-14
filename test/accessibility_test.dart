@@ -278,5 +278,44 @@ void main() {
         same(MorphAlertAppearance.darkHighContrast),
       );
     });
+
+    testWidgets('slider, progress, segmented, page control, date picker', (
+      tester,
+    ) async {
+      Future<Object> light(Object Function(BuildContext) resolve) =>
+          _resolve(tester, resolve, highContrast: true);
+      expect(
+        await light((c) => MorphSliderAppearance.resolve(c, null)),
+        same(MorphSliderAppearance.lightHighContrast),
+      );
+      expect(
+        await light((c) => MorphProgressViewAppearance.resolve(c, null)),
+        same(MorphProgressViewAppearance.lightHighContrast),
+      );
+      expect(
+        await light((c) => MorphSegmentedControlAppearance.resolve(c, null)),
+        same(MorphSegmentedControlAppearance.lightHighContrast),
+      );
+      expect(
+        await light((c) => MorphPageControlAppearance.resolve(c, null)),
+        same(MorphPageControlAppearance.lightHighContrast),
+      );
+      expect(
+        await light((c) => MorphDatePickerAppearance.resolve(c, null)),
+        same(MorphDatePickerAppearance.lightHighContrast),
+      );
+    });
+
+    testWidgets('an explicit appearance stays the app\'s', (tester) async {
+      const own = MorphSwitchAppearance(activeTrackColor: Color(0xFF123456));
+      expect(
+        await _resolve(
+          tester,
+          (c) => MorphSwitchAppearance.resolve(c, own),
+          highContrast: true,
+        ),
+        same(own),
+      );
+    });
   });
 }
