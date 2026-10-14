@@ -80,7 +80,7 @@ clock (timeDilation-aware). Tests: controls_test.
 
 ## Open
 
-- Reduce Motion: nothing moves, nothing to measure (confirm in the pass).
+- Reduce Motion: nothing moves; UIKit reads no flag here. No haptics (read from UIKit, notes private).
 - The 2-level light pressed residual.
 
 ## API gaps

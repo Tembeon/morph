@@ -89,7 +89,7 @@ keeps them in its picture.
 ## Not reproduced / open
 
 - GRAD axis of the label font.
-- Reduce Motion unmeasured (plan in states.md).
+- Reduce Motion read from UIKit (notes private): sliding selection disabled, the selection appears on the new segment; ported as a jump, the fade (if any) is for the device ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)). No haptics on iPhone. Increase Contrast table: states.md.
 
 ## API gaps (UIKit has, morph lacks)
 

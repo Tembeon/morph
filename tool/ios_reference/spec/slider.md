@@ -94,7 +94,7 @@ lens-and-flex.md "Rest").
   (renderer issue, not package motion).
 - Owner report "native thumb reaches the end under the finger" did not
   reproduce with synthesized touches; a hand-recorded probe drag is next.
-- Reduce Motion unmeasured (plan in states.md).
+- Reduce Motion read from UIKit (notes private): the thumb never lifts ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)). End and detent haptics, Increase Contrast fill: states.md.
 
 ## API gaps
 

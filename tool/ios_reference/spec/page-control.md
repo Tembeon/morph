@@ -64,3 +64,5 @@ page_control.dart (`MorphPageControl`, `MorphPageControlMotion`,
 - Custom indicator images (per page), `sizeForNumberOfPages`.
 - Timer progress API (per-page duration, pause/resume, reset at end) -
   morph takes a progress value only; check parity.
+
+- Haptics and Increase Contrast, read from UIKit (notes private): a scrub to another page plays a selection haptic; the dots' high-contrast colors are ported. No Reduce Motion read found. See states.md.

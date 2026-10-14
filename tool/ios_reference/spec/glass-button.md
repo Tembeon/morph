@@ -111,7 +111,7 @@ the lift.
 
 ## Not reproduced / open
 
-- Reduce Motion unmeasured (plan in states.md).
+- Reduce Motion: no read of the flag found in the flex interaction (Swift); morph keeps its approximation, device pass pending ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)).
 
 ## API gaps
 

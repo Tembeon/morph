@@ -10,6 +10,13 @@ release, following the API parity audit
 and option names, written in Flutter idioms. BREAKING throughout, with
 no behaviour or pixel change: every rename keeps what the old name did.
 
+- Accessibility read from UIKit: Reduce Motion branches for the switch,
+  slider, segmented control, tab bar, alert, popover, navigation
+  (cross-fade), context menu hold and date picker overlay; Increase
+  Contrast tables (`lightHighContrast` / `darkHighContrast`) under
+  `MediaQuery.highContrast`; UIKit's control haptics through
+  `HapticFeedback`, on by default, switched by
+  `MorphWidgetsTheme.haptics`.
 - BREAKING: look tables are `*Appearance` and every widget takes its
   table as `appearance:` (UIKit precedent: `UINavigationBarAppearance`);
   `*Style` now names only variant enums, as in UIKit

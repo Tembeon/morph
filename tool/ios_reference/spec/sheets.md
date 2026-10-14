@@ -190,3 +190,5 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
   and shares the container once docked (glass-renderer.md, "Raster ties,
   scaled containers"). The gate widget is reused while its state holds, so
   the per-frame builder rebuilds nothing more.
+
+- Reduce Motion: UIKit feeds the flag into the sheet layout (notes private); its effect needs the device. No detent haptic found.
