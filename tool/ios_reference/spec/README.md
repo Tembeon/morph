@@ -335,7 +335,8 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 |----------|----------|--------|-----------|
 | [lens-and-flex](lens-and-flex.md) | D tuning + fit | P | 60 Hz lens refresh on 120 Hz not copied (by choice) |
 | [segmented-control](segmented-control.md) | D+S | P (lens_test) | images, per-segment enable/width, momentary, insert/remove animation |
-| [tab-bar](tab-bar.md) | D (lens, glow, look) | P | slow lift not modelled; minimize, accessory, badges, sidebar |
+| [tab-bar](tab-bar.md) | D (lens, glow, look) | P | slow lift not modelled; badges, sidebar |
+| [tab-bar-minimize](tab-bar-minimize.md) | read from UIKit, no recording | P | every fit waits for a device recording; reverse-scroll rule unread |
 | [search-tab-bar](search-tab-bar.md) | D film | P | glass morph rect-lerp fit only |
 | [switch](switch.md) | D | P | checkbox style, title, on/off images |
 | [slider](slider.md) | D + film | P | white release flash; thumbless style, neutral value, tick titles/images, min/max images; dark lifted thumb look |

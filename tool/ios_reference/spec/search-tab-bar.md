@@ -68,6 +68,14 @@ its width.
 
 - The glass morph is a rect lerp fitted to film, no tuning value found.
 
+## Minimizing
+
+`minimizeBehavior` and `bottomAccessory` (passport
+[tab-bar-minimize.md](tab-bar-minimize.md)): minimized, the bar is the
+same 48 pt tab circle the search morph ends in, and the search circle
+shrinks to 48 pt at the trailing side; searching from there leaves the tab
+circle in place. The accessory fades while searching (not measured).
+
 ## API gaps
 
 - `automaticallyActivatesSearch = false` variant (tab without auto focus).

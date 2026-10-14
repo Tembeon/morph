@@ -145,6 +145,12 @@ export 'src/widgets/stepper.dart' show MorphStepper, MorphStepperAppearance;
 export 'src/widgets/switch.dart' show MorphSwitch, MorphSwitchAppearance;
 export 'src/widgets/tab_bar.dart'
     show MorphTabBar, MorphTabBarAppearance, MorphTabItem;
+export 'src/widgets/tab_bar_chrome.dart'
+    show
+        MorphContentScroll,
+        MorphContentScrollScope,
+        MorphTabAccessoryEnvironment;
+export 'src/widgets/tab_bar_minimize.dart' show MorphTabBarMinimizeBehavior;
 export 'src/widgets/toolbar.dart' show MorphToolbar, MorphToolbarMetrics;
 export 'src/widgets/typography.dart' show MorphTypography;
 export 'src/widgets/widgets_theme.dart'
