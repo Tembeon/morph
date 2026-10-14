@@ -1,9 +1,5 @@
 # Morph measurement laboratory
 
-The [coverage programme](../coverage/README.md) inventories the complete UI kit,
-tracks missing contracts and keeps research plans separate from verified native
-fidelity. A passing laboratory comparison only certifies its reviewed scope.
-
 One shared scenario drives UIKit and Flutter with real XCUITest touches on
 the same phone. A capture contains received touches, semantic events,
 presentation-layer or render-tree geometry, clips, sampler costs, frame
@@ -64,8 +60,7 @@ quality result into a visual claim.
 `observationCoverage` in the comparison report records per-property counts,
 invalid values and maximum gaps on both sides. Failure invalidates the comparison.
 Completeness alone still prints `EVIDENCE` when no fidelity gates are declared.
-The coverage ledger requires approved telemetry contracts to name their critical
-windows; a green global report cannot close a missing-window contract. Multi-touch
+Multi-touch
 windows need an explicit finger-to-step mapping and are currently rejected by
 the validator rather than ambiguously aligned.
 
