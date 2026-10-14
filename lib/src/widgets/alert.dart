@@ -519,6 +519,7 @@ class _AlertViewState extends State<_AlertView>
       (_popover?.isSettled ?? true) &&
       _press.isSettled;
 
+
   void _leave() {
     if (_leaving) return;
     _leaving = true;
@@ -1222,13 +1223,17 @@ class _AlertCard extends StatelessWidget {
       children: [content],
     );
     // The text scales and fades with the card: drawn through the glyph
-    // policy, it strikes no new glyphs on every frame of the sweep.
+    // policy, it strikes no new glyphs on every frame of the sweep. In a
+    // repaint boundary of its own below the policy, a frame that only
+    // fades or moves it keeps its pictures.
     final clipped = MorphGlyphs.faded(
       live: frames,
       opacityOf: opacity,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: scroll,
+      child: RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(radius),
+          child: scroll,
+        ),
       ),
     );
     return SizedBox(

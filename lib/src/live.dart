@@ -592,6 +592,58 @@ class _RenderLiveTransform extends RenderTransform with MorphLiveBinding {
   }
 }
 
+/// A repaint boundary of its own while [apartOf] reads true, read again on
+/// every notification of [live]: a child that moves for a while (a press
+/// growth, a landing) repaints alone during those frames, not with what is
+/// painted around it, and adds no layer at rest.
+@internal
+class MorphLiveApart extends SingleChildRenderObjectWidget {
+  /// Sets [child] apart while [apartOf] reads true.
+  const MorphLiveApart({
+    required this.live,
+    required this.apartOf,
+    super.child,
+    super.key,
+  });
+
+  /// The source of [apartOf].
+  final Listenable live;
+
+  /// Whether the child is apart now.
+  final bool Function() apartOf;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    final box = _RenderLiveApart(apart: apartOf());
+    box.bindLive(live, () => box.apart = apartOf());
+    return box;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderObject renderObject) {
+    final box = renderObject as _RenderLiveApart;
+    box.bindLive(live, () => box.apart = apartOf());
+  }
+}
+
+class _RenderLiveApart extends RenderProxyBox with MorphLiveBinding {
+  _RenderLiveApart({required this._apart});
+
+  bool _apart;
+
+  bool get apart => _apart;
+
+  set apart(bool value) {
+    if (value == _apart) return;
+    _apart = value;
+    markNeedsCompositingBitsUpdate();
+    markNeedsPaint();
+  }
+
+  @override
+  bool get isRepaintBoundary => _apart;
+}
+
 /// A clipper computed from a live source, reclipping only when its key
 /// changes.
 @internal

@@ -311,6 +311,29 @@ const _ceilings = <String, _Ceiling>{
     layouts: 37,
     paints: 39,
   ),
+  'context-menu/flat release': (
+    first: 0,
+    ms: 368,
+    builds: 0,
+    layouts: 19,
+    paints: 30,
+  ),
+  'context-menu/flat close': (
+    first: 69,
+    ms: 656,
+    builds: 0,
+    layouts: 0,
+    paints: 21,
+  ),
+  'context-menu/liquid release': (
+    first: 0,
+    ms: 368,
+    builds: 0,
+    layouts: 19,
+    paints: 30,
+  ),
+  'alert/flat show': (first: 130, ms: 512, builds: 0, layouts: 0, paints: 18),
+  'alert/liquid show': (first: 137, ms: 512, builds: 0, layouts: 0, paints: 22),
 };
 
 typedef _Ceiling = ({int first, int ms, int builds, int layouts, int paints});
