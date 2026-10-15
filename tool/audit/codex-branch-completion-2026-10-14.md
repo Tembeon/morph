@@ -162,6 +162,18 @@ is release-curve-fit.json beside the raw captures. This confirms where the
 next measurement must focus: terminal gesture state and event-time velocity,
 rather than guessing a different spring or distance threshold.
 
+Offline follow-up, 2026-10-15: reading UIKit identifies a separate release
+decision branch that projects progress using recent velocity and acceleration.
+Its activation on this phone and its internal event-time inputs remain
+unverified; static reachability does not establish which branch produced the
+saved outcomes. No release-policy change is admitted from this finding.
+The private probe now optionally reads existing movement-statistics getters
+in gesture callbacks and a deferred terminal snapshot. It changes no UIKit
+tuning or delegates and installs no hooks. Its test build succeeds; runtime
+verification waits for the owner to close the system dialog. All derivation
+notes, static outputs and diagnostic source remain only in ~/morph-re.
+The next-run plan preserves the exact opt-in and required repeated cases.
+
 The broad navigation test supplied 25 selected captures but reported three
 Probe crashes. An angle refinement passed after fixing a floating-point capture
 name (57 percent had been named 56). Retrying problematic captures reproduced
