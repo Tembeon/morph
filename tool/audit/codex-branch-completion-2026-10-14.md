@@ -153,6 +153,15 @@ Both edge/content cancellation regressions and all 30 navigation bookkeeping
 checks pass; production ceilings remain unchanged. Cancellation checkpoint:
 e64ee857.
 
+Saved-geometry follow-up, 2026-10-15: all 13 available release curves agree
+with the existing 0.3 s / 0.85 spring when onset and initial speed are fitted
+(0.0027–0.0276 pt RMS). Fixing onset at 30 ms raises some errors to 1.85 pt;
+onset and initial speed are coupled, so fitted speed is not a recognizer
+velocity and cannot establish the commit cause. The private numerical report
+is release-curve-fit.json beside the raw captures. This confirms where the
+next measurement must focus: terminal gesture state and event-time velocity,
+rather than guessing a different spring or distance threshold.
+
 The broad navigation test supplied 25 selected captures but reported three
 Probe crashes. An angle refinement passed after fixing a floating-point capture
 name (57 percent had been named 56). Retrying problematic captures reproduced
