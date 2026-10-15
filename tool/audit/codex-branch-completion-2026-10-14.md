@@ -134,6 +134,25 @@ The iPhone measurements now confirm:
   raw UIKit rows and screenshots stay private. Small-room title drop and
   automatic button-overflow priorities remain explicit unported rules.
 
+Further outcome analysis keeps the release policy explicit as APPROXIMATION:
+edge rel35-60 pops at x 126.67 (0.3151 W); content c25/c26 pop at
+0.3839/0.3806 W, c27/c29 return at 0.3690/0.3624 W, but c20 returns at
+0.3980 W. This non-monotonic set cannot establish a new threshold. Coordinate
+drags reach x 213 (0.5299 W) in both runs; an initial 0.3 s press pops,
+0.6 s returns. No threshold was guessed. The private probe now observes
+velocity and state in gesture target callbacks (including end/cancel),
+rather than relying on display-link samples missing terminal states. It
+builds successfully and is ready for the next unobstructed phone run.
+
+The new admission test checks only the measured begin-angle boundary. Its
+cleanup exposed a separate Flutter cancellation bug: accepted PointerCancel
+was reported through drag onEnd, committing a current page past the threshold.
+The host now follows the raw cancellation and returns the current page, while
+preserving the existing own-route policy when a push interrupts the gesture.
+Both edge/content cancellation regressions and all 30 navigation bookkeeping
+checks pass; production ceilings remain unchanged. Cancellation checkpoint:
+e64ee857.
+
 The broad navigation test supplied 25 selected captures but reported three
 Probe crashes. An angle refinement passed after fixing a floating-point capture
 name (57 percent had been named 56). Retrying problematic captures reproduced
@@ -162,10 +181,30 @@ zero-width title. Original count ceilings and pixel/replay tolerances remain.
 Device-derived code checkpoint: `764c330c`.
 Final root suite: 2,308 passed, two intentionally skipped, zero failures
 (4m28s, /tmp/morph-codex-root-final.log). The earlier five count regressions
-are all resolved with their original ceilings. The final example suite and
-builds complete the independent host gate below.
+are all resolved with their original ceilings. The final example suite passed all 90 tests (41 s), and the final macOS
+release gallery built successfully (24.7 MB), without launching a GUI.
+Dartdoc reports zero warnings and errors. Final iOS release gallery: 19.6 MB;
+Android universal release APK: 56.5 MB (all default ABIs). All builds succeeded.
+Offline shader gate passed all configured backends. The prepared private
+velocity/state probe builds. On the cancellation checkpoint, all 90 example
+tests pass again and the macOS (24.7 MB), iOS (19.6 MB) and universal Android
+(56.5 MB) release builds are refreshed successfully.
+Final root rerun on e64ee857: 2,310 passed, two intentionally skipped,
+zero failures (4m32s). The final analyzer reports zero issues. The two new
+edge/content PointerCancel cases add the last two tests. All original
+ceilings and pixel/replay tolerances remain.
+The iPhone lock is released while awaiting owner action; recorders and Xcode
+tests/diagnostics are stopped, and Probe is restored. The final normal iOS
+gallery is installed and launched again; no system permission was answered.
 The owner has a pending morning question to close the system dialog and unlock
-the screen; independent host verification continues meanwhile.
+the screen. Remaining physical checks: final visible badge/lens capture, event-time
+release velocity/terminal-state repeats, native
+problematic-navigation repeats and the true no-bounce strip case. The original
+probe disabled alwaysBounceHorizontal only; wide content still bounced, so the
+probe now also sets bounces=false for PROBE_HBOUNCE=0. The final gallery
+autodemo on the iPhone waits for an unobstructed active screen; the earlier
+Pixel autodemo is passed evidence for its recorded checkpoint, not a final
+iPhone gate. No release, tag, push or owner permission change was performed.
 
 ## Preserved history and cleanup
 
