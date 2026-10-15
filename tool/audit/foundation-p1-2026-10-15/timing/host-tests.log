@@ -1,0 +1,59 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +1: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +2: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +3: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +5: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +7: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +8: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +10: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +11: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +12: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +13: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +14: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +15: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +16: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: disposing during doze cancels its timer and ticker
+00:00 +17: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: negative control: stop cancels the push future before visual rest
+00:00 +18: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: an SDK simulation can sample the measured display grid
+00:00 +19: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: negative control: parent TickerMode overrides a naive doze flag
+00:00 +20: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: coordinated doze survives parent mode changes and retains the old route
+00:00 +21: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: removing a dozing controller route cancels its wake timer
+00:00 +22: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: expiry of doze cannot unmute a disabled parent
+00:00 +23: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+00:01 +24: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected releases input and focus on the first closing frame
+00:01 +25: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected pushReplacement retains the old route until all motion rests
+00:01 +26: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected initial Pages are completed without running an entrance
+00:01 +27: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected replace transfers an in-flight motion without a jump
+00:01 +28: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected replace of a settled page keeps motion and SDK in sync
+00:01 +29: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected restoration adds a completed route that still dismisses
+00:01 +30: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected PopScope veto keeps the open motion and result pending
+00:01 +31: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected uses the input timestamp rather than restarting at delivery
+00:01 +32: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected keeps content stable during frames, insets and a covering route
+00:01 +33: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected paints motion without rebuilding the content each frame
+00:01 +34: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected records SDK rebuilds during steady motion
+P1_BUILDS {"driver":"projected","frames":40,"builds":176,"buildsPerFrame":4.4,"owners":{"AnimatedModalBarrier":22,"ModalBarrier":22,"_ModalBarrierGestureDetector":22,"RawGestureDetector":22,"ListenableBuilder":88}}
+00:01 +35: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected keeps raw overshoot while the SDK progress remains bounded
+00:01 +36: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected pop during entrance preserves geometry and disposes at rest
+00:01 +37: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected forced removal cancels the active clock and push signal
+00:01 +38: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected runs Hero flights with an explicitly installed controller
+00:01 +39: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController publishes progress and completes pop before visual rest
+00:01 +40: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController releases input and focus on the first closing frame
+00:01 +41: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController pushReplacement retains the old route until all motion rests
+00:01 +42: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController initial Pages are completed without running an entrance
+00:01 +43: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController replace transfers an in-flight motion without a jump
+00:01 +44: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController replace of a settled page keeps motion and SDK in sync
+00:01 +45: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController restoration adds a completed route that still dismisses
+00:01 +46: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController PopScope veto keeps the open motion and result pending
+00:01 +47: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController uses the input timestamp rather than restarting at delivery
+00:01 +48: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController keeps content stable during frames, insets and a covering route
+00:01 +49: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController paints motion without rebuilding the content each frame
+00:01 +50: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController records SDK rebuilds during steady motion
+P1_BUILDS {"driver":"sdkController","frames":40,"builds":320,"buildsPerFrame":8.0,"owners":{"AnimatedModalBarrier":40,"ModalBarrier":40,"_ModalBarrierGestureDetector":40,"RawGestureDetector":40,"ListenableBuilder":160}}
+00:01 +51: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController keeps raw overshoot while the SDK progress remains bounded
+00:01 +52: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController pop during entrance preserves geometry and disposes at rest
+00:01 +53: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController forced removal cancels the active clock and push signal
+00:01 +54: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController runs Hero flights with an explicitly installed controller
+00:01 +55: All tests passed!

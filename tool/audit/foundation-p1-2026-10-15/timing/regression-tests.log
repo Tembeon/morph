@@ -1,0 +1,24 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/test/morph_clock_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: device replay present-capsule: container, crossfade and dimming
+00:00 +1: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: device replay dismiss-capsule: container, crossfade and dimming
+00:00 +2: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: device replay present-card: container, crossfade and dimming
+00:00 +3: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: device replay dismiss-card: container, crossfade and dimming
+00:00 +4: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a reversal turns around without a jump
+00:00 +5: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a sheet zooms out of its source and back into it
+00:00 +6: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a sheet zooms out of its source and back into it
+00:00 +7: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a sheet zooms out of its source and back into it
+00:00 +8: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a sheet zooms out of its source and back into it
+00:00 +9: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a sheet zooms out of its source and back into it
+00:00 +10: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a sheet zooms out of its source and back into it
+00:00 +11: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a sheet zooms out of its source and back into it
+00:00 +12: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a sheet zooms out of its source and back into it
+00:00 +13: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a sheet zooms out of its source and back into it
+00:00 +14: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a drag down from the smallest detent scrubs the sheet, a short one returns it
+00:00 +15: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: a scrubbed sheet released far enough zooms into the source
+00:00 +16: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: the scrub frame is the measured one
+00:00 +17: /Users/tembeon/IdeaProjects/morph/test/sheet_zoom_test.dart: the scrub follows a slow device drag
+00:00 +18: /Users/tembeon/IdeaProjects/morph/test/motion_route_ownership_test.dart: a covered sheet dismisses its own route
+00:01 +19: /Users/tembeon/IdeaProjects/morph/test/motion_route_ownership_test.dart: a covered alert chooses on its own route
+00:01 +20: /Users/tembeon/IdeaProjects/morph/test/motion_route_ownership_test.dart: an outside cancel handler can push above its action sheet
+00:01 +21: /Users/tembeon/IdeaProjects/morph/test/motion_route_ownership_test.dart: a zoom drag commits its own route after another push
+00:01 +22: All tests passed!

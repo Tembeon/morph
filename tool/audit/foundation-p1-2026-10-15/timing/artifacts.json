@@ -1,0 +1,18 @@
+{
+  "baseRevision": "78a22418d570bd0e077c80f6bb569224211727e8",
+  "flutterVersion": "3.47.2",
+  "frameworkRevision": "d3b14c876900e553bc736ca19295fc09e3853e8e",
+  "dartVersion": "3.13.2",
+  "hostChecks": 55,
+  "existingRegressionChecks": 22,
+  "sha256": {
+    "example/lib/proto/motion_clock_probe.dart": "e502ff34c3957cb10b60cfd3405d2f57f33c9b44137669464fb089885eef4998",
+    "example/lib/proto/controller_vsync_probe.dart": "2adab1496ab79bf24b15d745e270685c5d8a0f8e20604bb8ea11a996bfa09ae2",
+    "example/test/proto/motion_clock_probe_test.dart": "b383032db8a57c18ca5d78b9f74fc8d6c911a22ae2b45a62bc9f7a581e13ecbe",
+    "example/test/proto/controller_clock_probe_test.dart": "dafc7611118a392794a9f8ca2659b2a3fd785ad6af14076202ec776965e17c77",
+    "example/lib/proto/route_probe.dart": "2e4d0a523f8b5350d0c650616684865e5e69f59a3d00c25983c27134000a6635",
+    "example/test/proto/route_probe_test.dart": "bcc7b33587b3fbb7336f0b04cc42aa26a262a348ec6d3b679e84fc6cf27e5171",
+    "tool/audit/foundation-p1-2026-10-15/timing/host-tests.log": "199a5492c6ad27e4d11016c9e112e17f1d582a09906073caf690e20010ddf1f5",
+    "tool/audit/foundation-p1-2026-10-15/timing/regression-tests.log": "a38ee3a97828a62ce21162358e07c5208d58ac44c615d1843946d1fe7cae959a"
+  }
+}
