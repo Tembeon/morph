@@ -201,6 +201,7 @@ final class BarsDetailScene: UIViewController {
         h.accessibilityIdentifier = "hstrip"
         h.showsHorizontalScrollIndicator = true
         h.alwaysBounceHorizontal = BarsEnv.env["PROBE_HBOUNCE"] != "0"
+        h.bounces = BarsEnv.env["PROBE_HBOUNCE"] != "0"
         h.isPagingEnabled = BarsEnv.env["PROBE_HPAGING"] == "1"
         h.heightAnchor.constraint(equalToConstant: 200).isActive = true
         let w = UIScreen.main.bounds.width

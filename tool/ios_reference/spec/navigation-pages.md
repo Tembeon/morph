@@ -57,7 +57,7 @@ UINavigationController's `interactiveContentPopGestureRecognizer` (iOS 26,
 on by default) pops from a horizontal drag anywhere in the content. morph:
 `MorphNavigationStack.contentPopGestureEnabled` (default true) - past
 30 pt of radial touch travel toward the trailing side, the page follows and
-releases exactly as the edge swipe (same `popDistance` / `popVelocity`);
+uses the edge swipe's release policy (same `popDistance` / `popVelocity`);
 a drag toward the leading side never claims the pointer; any horizontal
 drag, pan or scale recognizer deeper under the finger (scroll views,
 sliders, page views, draggable pieces, InteractiveViewer) wins the arena
@@ -68,6 +68,17 @@ reported translation from the delivered touch travel. `pages-c29` begins;
 fitted to the 29..30 degree bracket; other pointer kinds keep Flutter's pan
 slop. Leftward drags do not begin. The horizontal strip scenarios retained
 their scroll gesture; end-to-end handoff at all offsets remains unmeasured.
+
+The shared release policy remains APPROXIMATION. Device outcomes: content
+c0 at actual x 170.33 (0.4237 W) pops; c25 at 154.33 (0.3839 W) and c26
+at 153 (0.3806 W) pop; c27 at 148.33 (0.3690 W), c29 at 145.67 (0.3624 W)
+and chold40 at 132.33 (0.3292 W) return. c20 returns at 160 (0.3980 W),
+so these do not establish a new monotonic distance threshold. The angle
+test pins gesture admission only, without asserting the native release outcome.
+Edge rel35-60 pops at actual x 126.67 (0.3151 W), confirming the earlier
+0.3 rule for that capture. Both coordinate drags reached x 213 (0.5299 W),
+but a 0.3 s initial press popped and a 0.6 s initial press returned. Release
+velocity and cancellation need event-time observations before retuning.
 
 ## Spec - the commit rule, re-checked [simulator sweep, 2026-10-14]
 
@@ -190,6 +201,9 @@ bars no longer repaints with them. Host recorder, flat: push 6/5/75-97 ->
 
 - The exact angle boundary within 29..30 degrees and scroll-to-pop
   handoff rules outside the recorded horizontal-strip cases.
+- The no-bounce strip case needs recapture: the original probe disabled
+  alwaysBounceHorizontal only, which still permits bounce with wide
+  content. PROBE_HBOUNCE=0 now also sets bounces=false.
 - The commit rule's returning-flick anomaly below; synthesized gesture
   commands must be compared with delivered touches, not requested paths.
 

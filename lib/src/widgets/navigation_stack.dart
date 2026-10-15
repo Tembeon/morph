@@ -300,9 +300,11 @@ class MorphNavigationStack extends StatefulWidget {
   /// `interactiveContentPopGestureRecognizer` (iOS 26, on by default);
   /// false leaves only the swipe from the leading edge.
   ///
-  /// The content swipe moves and releases the page exactly as the edge
-  /// swipe does. A horizontal scrollable, slider or other horizontal drag
-  /// under the finger keeps its drag; a drag toward the leading side never
+  /// The content swipe uses the edge swipe's motion and release policy.
+  /// This release policy approximates UIKit: device captures include
+  /// returns past the edge swipe's distance threshold whose exact rule
+  /// is not reproduced. A horizontal scrollable, slider or other horizontal
+  /// drag under the finger keeps its drag; a drag toward the leading side never
   /// starts the swipe. A touch starts after 30 points of radial travel,
   /// within 30 degrees of horizontal (device-fitted boundary, NEAR).
   /// Native horizontal-strip captures keep the scroll gesture at its
@@ -1134,6 +1136,7 @@ class _EdgePopState extends State<_EdgePop> {
           .contentPopGestureEnabled ??
       true;
   bool _active = false;
+  int? _pointer;
   _MorphNavigationStackState? _stack;
   NavigatorState? _navigator;
   VoidCallback? _detach;
@@ -1166,6 +1169,7 @@ class _EdgePopState extends State<_EdgePop> {
   double get _width => context.size?.width ?? 1;
 
   void _down(PointerDownEvent event) {
+    if (_pointer != null) return;
     final route = widget.route;
     if (!route.isCurrent || !route.popGestureEnabled) return;
     final edge = _rtl
@@ -1185,7 +1189,24 @@ class _EdgePopState extends State<_EdgePop> {
     drag.onUpdate = _update;
     drag.onEnd = _end;
     drag.onCancel = _cancel;
+    _pointer = event.pointer;
     drag.addPointer(event);
+  }
+
+  void _up(PointerUpEvent event) {
+    if (event.pointer == _pointer) _pointer = null;
+  }
+
+  void _pointerCancelled(PointerCancelEvent event) {
+    if (event.pointer != _pointer) return;
+    _pointer = null;
+    // An accepted Flutter drag reports PointerCancel through onEnd.
+    if (widget.route.isCurrent) {
+      _cancel();
+    } else {
+      // A push cancels active pointers; keep the original route's policy.
+      _end(DragEndDetails(primaryVelocity: 0));
+    }
   }
 
   void _start(DragStartDetails details) {
@@ -1284,6 +1305,8 @@ class _EdgePopState extends State<_EdgePop> {
   @override
   Widget build(BuildContext context) => Listener(
     onPointerDown: _down,
+    onPointerUp: _up,
+    onPointerCancel: _pointerCancelled,
     behavior: HitTestBehavior.translucent,
     child: widget.child,
   );

@@ -159,8 +159,25 @@ void main() {
   });
 
   group('the content back swipe', () {
+    for (final from in [const Offset(4, 700), const Offset(120, 700)]) {
+      testWidgets(
+        'pointer cancellation keeps the page after a drag from $from',
+        (tester) async {
+          await _pump(tester);
+          final gesture = await _drag(tester, from, 200);
+          expect(tester.getTopLeft(_scaffold('Message')).dx, greaterThan(120));
+          await gesture.cancel();
+          await _settle(tester);
+          expect(_scaffold('Message'), findsOneWidget);
+          expect(tester.getTopLeft(_scaffold('Message')).dx, closeTo(0, 0.5));
+        },
+      );
+    }
+
     for (final angle in [29.0, 30.0]) {
-      testWidgets('device content swipe at $angle degrees', (tester) async {
+      testWidgets('device content swipe starts only below 30 degrees: $angle', (
+        tester,
+      ) async {
         await _pump(tester);
         final gesture = await tester.startGesture(const Offset(120, 700));
         final radians = angle * math.pi / 180;
@@ -177,12 +194,9 @@ void main() {
         } else {
           expect(x, closeTo(0, 0.5));
         }
-        await gesture.up();
+        await gesture.cancel();
         await _settle(tester);
-        expect(
-          _scaffold('Message'),
-          angle < 30 ? findsNothing : findsOneWidget,
-        );
+        expect(_scaffold('Message'), findsOneWidget);
       });
     }
 
