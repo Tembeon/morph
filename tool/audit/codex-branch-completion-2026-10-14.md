@@ -6,6 +6,13 @@ into `wip/measured-liquid-glass`, and continue physical-device checks. The owner
 follow-up captures during the autonomous continuation on 2026-10-15.
 No release to `main`, tag or push is part of this work.
 
+Final status, 2026-10-15: all assigned branches are integrated, all required
+device follow-ups are complete, and the final source checkpoint is `5e163f5f`.
+The root suite passes 2,352 tests (two intentional skips), the example suite
+passes 90, and format, analysis, dartdoc and all three native release builds
+pass. The iPhone is free with the ordinary final gallery installed. Known
+NEAR classifications and unsupported API gaps remain explicit in passports.
+
 ## Preserved and integrated work
 
 - Context menus: `worktree-agent-a287832b3ca02ff82`, through `51616142`.
@@ -294,8 +301,19 @@ A final coordinate-scale regression reproduces an additional edge case:
 inside a 0.5-scale ancestor the predictor underestimates speed if it mixes
 global pointer coordinates with the page's logical width. The listener now
 uses the cached down-hit-test local coordinates, as the drag recognizer
-does. The failing scaled-page test passes after this two-coordinate fix;
-full validation and release binaries are refreshed again for it.
+does. The failing scaled-page test passes after this two-coordinate fix.
+
+Final validation on `5e163f5f`: root 2,352 passed, two intentionally skipped,
+zero failures (4m41s); all 90 example tests passed (43s). All 97 focused
+navigation checks pass. Format and analysis are clean, dartdoc reports zero
+warnings/errors, and release builds succeed: iOS 19.6 MB, macOS 24.7 MB,
+universal Android APK 56.5 MB. The current ordinary iOS gallery is installed
+and launched, then the temporary device lock is released. No device test or
+recorder remains active. Host logs are `/tmp/morph-codex-final-scaled-*.log`,
+with their status JSON and retained copies in the private owner-ready run.
+All original count ceilings and replay/pixel tolerances stay unchanged.
+All four interrupted branch tips and the saved sheet-device increment remain
+ancestors of the final branch. No required owner action or device gate remains.
 
 ## Preserved history and cleanup
 

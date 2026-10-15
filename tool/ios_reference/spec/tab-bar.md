@@ -212,6 +212,11 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
   inside the bar's swell transform. Native capture: testTabBadges,
   `rec-followup-tab-badges` and held-number / held-dot attachments
   (raw data private). Placement remains NEAR as described above.
+  The integrated Flutter release capture on the unobstructed iPhone,
+  2026-10-15, confirms one crisp count/dot above the held and dragged
+  lens, with the real liquid renderer. Four screenshots and the physical
+  screen movie are retained privately; selection on contact/release and
+  the explicit completion marker pass. Glyph-box placement remains NEAR.
 - `tabBarMinimizeBehavior` and `bottomAccessory`: ported from UIKit's
   code, partly device-confirmed; passport [tab-bar-minimize.md](tab-bar-minimize.md)
   (the probe sets it: `w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
