@@ -21,13 +21,36 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
   curve starts at full speed); page below at parallax 0.3.
 - Edge swipe 1:1; release on interactiveSpring 0.3/0.85 [tuning; device free
   fit 0.294 - 0.300 / 0.85].
-- Commit rule [device recapture]: a page released still pops from 0.3 of the
-  width (0.27 returns, 0.32 pops) = `popDistance`; a flick past 1.06
-  widths/s decides alone either way (`popVelocity`; +1.02 returns 3/3, +1.10
-  pops; -1.02 still pops at 0.51 W, -1.28 returns); a returning page carries
-  2.9x the release speed outward (`cancelVelocityScale`, fits 2.7 - 3.1); a
-  popping one starts from rest ~0.03 s after the lift. +1.25 returned 3/3
-  (synthesizer artifact or unmodelled rule - not reproduced).
+- Commit rule [UIKit reading, notes private; device, 2026-10-15]: predict
+  `progress + 0.35 * meanVelocity + 0.5 * 0.35² * meanAcceleration`;
+  pop when that exceeds `min(187.5 / width, 0.5)`. Velocities are in
+  widths/s, accelerations in widths/s², using the last three accepted
+  samples. Each acceleration differs from the previous one by at most 5.
+  The pan speed mixes adjacent movement speeds with weights 0.2 / 0.8;
+  lifting keeps the last movement speed, even after a hold. Statistics
+  accept a sample after 10 ms, or after 1 ms if displacement changed;
+  the timing gate counts attempts, not only accepted samples. At lift the
+  ordinary timing gate still applies. A recognized drag with no update
+  returns; with fewer than three samples, positive average speed commits.
+  `MorphNavigationPopMotion` replays all 33 edge/content releases from
+  three fresh runs, including speed, acceleration and outcome. Platform
+  event delivery and gesture admission remain NEAR. An uninterrupted fast
+  flick boosts spring speed by 4.25 until mean speed falls below 1.5 widths/s.
+  Six additional fast edge/content captures confirm that boost and all six
+  release decisions. Their terminal speed checks are retained; coalesced
+  fast inputs whose event/touch timestamps differ are not claimed as
+  complete touch-stream reconstructions.
+- The former 0.3 distance / 1.06 widths/s flick approximation described
+  a limited recorded bracket, not a universal release rule. Their public
+  tuning constants remain for compatibility; routes use the predictor.
+  The release spring keeps 0.3 / 0.85 and carries the reconstructed pan
+  speed into either return or completion. Its 33 recorded curves replay
+  with onset fitted from delivered lift and one display-frame uncertainty
+  between display-link timestamps and sampled presentation layers (one
+  retained sample exposes the following frame early, then holds it).
+  Geometry error outside that interval stays below 0.2 pt RMS. The legacy
+  `cancelVelocityScale` (2.9) compensated for a 50 ms touch-window speed
+  estimate; it does not multiply the reconstructed speed.
 
 ## Spec - the card and the dim [simulator film and device, 2026-10-15]
 
@@ -57,7 +80,7 @@ UINavigationController's `interactiveContentPopGestureRecognizer` (iOS 26,
 on by default) pops from a horizontal drag anywhere in the content. morph:
 `MorphNavigationStack.contentPopGestureEnabled` (default true) - past
 30 pt of radial touch travel toward the trailing side, the page follows and
-uses the edge swipe's release policy (same `popDistance` / `popVelocity`);
+uses the edge swipe's release predictor;
 a drag toward the leading side never claims the pointer; any horizontal
 drag, pan or scale recognizer deeper under the finger (scroll views,
 sliders, page views, draggable pieces, InteractiveViewer) wins the arena
@@ -69,7 +92,7 @@ fitted to the 29..30 degree bracket; other pointer kinds keep Flutter's pan
 slop. Leftward drags do not begin. The horizontal strip scenarios retained
 their scroll gesture; end-to-end handoff at all offsets remains unmeasured.
 
-The shared release policy remains APPROXIMATION. Device outcomes: content
+The earlier distance-only release approximation missed these outcomes: content
 c0 at actual x 170.33 (0.4237 W) pops; c25 at 154.33 (0.3839 W) and c26
 at 153 (0.3806 W) pop; c27 at 148.33 (0.3690 W), c29 at 145.67 (0.3624 W)
 and chold40 at 132.33 (0.3292 W) return. c20 returns at 160 (0.3980 W),
@@ -78,17 +101,24 @@ test pins gesture admission only, without asserting the native release outcome.
 Edge rel35-60 pops at actual x 126.67 (0.3151 W), confirming the earlier
 0.3 rule for that capture. Both coordinate drags reached x 213 (0.5299 W),
 but a 0.3 s initial press popped and a 0.6 s initial press returned. Release
-velocity and cancellation need event-time observations before retuning.
+velocity and cancellation therefore required event-time observations.
+Three fresh 2026-10-15 runs confirm the prediction above for all 33 releases.
+For example c25 pops in one run and returns in another with the same requested
+path: different measured acceleration puts the projected progress on opposite
+sides of the threshold. Reconstructing pan speed and all statistics from the
+delivered touch coordinates reproduces the recorded values (within 1e-5).
+Only own numeric touch/geometry measurements are committed in
+`ios27-device/navigation/release-decision.json`; raw runtime rows stay private.
 
 ## Spec - the commit rule, re-checked [simulator sweep, 2026-10-14]
 
 Native sweep item 7: XCUICoordinate `press(forDuration: 0.3...)` at x 3,
 drag to 230 pt, hold 0.6 s, lift: the native page trailed at ~155 pt
 (0.39 W, ~75 pt behind the planned finger) and returned; morph followed at
-~207 pt and popped. Not changed: the device rule above (0.3 W pops at
-rest) came from logged touches, the simulator run logged none, and the
-long press before the drag may change what UIKit's recognizer sees.
-Decided by the iPhone capture below (`pages-rel*`, `pages-xcdrag*`).
+~207 pt and popped. That sweep logged no delivered touches, so it could
+not isolate the cause. The iPhone event-time follow-up above establishes
+the prediction from velocity and acceleration; the old 0.3 W bracket
+does not describe a page whose recent movement statistics differ.
 
 ## iPhone capture plan (navpages)
 
@@ -201,13 +231,13 @@ bars no longer repaints with them. Host recorder, flat: push 6/5/75-97 ->
 
 - The exact angle boundary within 29..30 degrees and scroll-to-pop
   handoff rules outside the recorded horizontal-strip cases.
-- The no-bounce strip case needs recapture: the original probe disabled
-  alwaysBounceHorizontal only, which still permits bounce with wide
-  content. PROBE_HBOUNCE=0 now also sets bounces=false.
-- The commit rule's returning-flick anomaly below; synthesized gesture
-  commands must be compared with delivered touches, not requested paths.
-
-- +1.25 widths/s returning flicks.
+- Three fresh no-bounce and already-scrolled horizontal-strip captures
+  retain their scroll gesture, with no content-pop callback. The original
+  probe disabled alwaysBounceHorizontal only; the verified version sets
+  bounces=false too. Handoff outside these cases remains unmeasured.
+- Synthesized gesture commands must be compared with delivered touches,
+  not requested paths. Historical release captures without event-time
+  speed/statistics do not isolate a new threshold or a returning-flick rule.
 - Exact push curve is a fit (no read value for v0).
 
 ## API gaps
@@ -220,8 +250,8 @@ bars no longer repaints with them. Host recorder, flat: push 6/5/75-97 ->
 
 ## Implementation notes (morph side, moved from CLAUDE.md)
 
-- Commit rule constants live on the transition (`popDistance`,
-  `popVelocity`, `cancelVelocityScale`). Edge-swipe ownership: see bars.md
+- Release prediction and settle speed live in `MorphNavigationPopMotion`;
+  spring parameters remain on `MorphNavigationTuning`. Edge-swipe ownership: see bars.md
   (NavigatorPopHandler, MorphNavigationRoute's edge gesture).
 - PUSH ZOOM API: `pushMorphZoom(context, from: tagId, builder:)` /
   `MorphNavigationRoute(from:)` - the page grows out of the tag as

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -197,6 +199,59 @@ void main() {
         await gesture.cancel();
         await _settle(tester);
         expect(_scaffold('Message'), findsOneWidget);
+      });
+    }
+
+    final fixture =
+        jsonDecode(
+              File(
+                'test/fixtures/ios27-device/navigation/release-decision.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, Object?>;
+    for (final raw in fixture['captures']! as List<Object?>) {
+      final capture = raw! as Map<String, Object?>;
+      if (capture['name'] != 'repeat-1/pages-c25' &&
+          capture['name'] != 'repeat-2/pages-c25') {
+        continue;
+      }
+      testWidgets('held content release follows the captured history: '
+          '${capture['name']}', (tester) async {
+        await _pump(tester);
+        final start = capture['start']! as List<Object?>;
+        final origin = Offset(
+          (start[0]! as num).toDouble(),
+          (start[1]! as num).toDouble(),
+        );
+        final gesture = await tester.createGesture();
+        await gesture.down(origin, timeStamp: const Duration(seconds: 1));
+        var previous = Duration.zero;
+        for (final rawPoint in (capture['points']! as List<Object?>).skip(1)) {
+          final point = rawPoint! as List<Object?>;
+          final time = Duration(
+            microseconds: ((point[0]! as num).toDouble() * 1e6).round(),
+          );
+          await tester.pump(time - previous);
+          previous = time;
+          final stamp = const Duration(seconds: 1) + time;
+          if (point[3] == 3) {
+            await gesture.up(timeStamp: stamp);
+          } else {
+            await gesture.moveTo(
+              origin +
+                  Offset(
+                    (point[1]! as num).toDouble(),
+                    (point[2]! as num).toDouble(),
+                  ),
+              timeStamp: stamp,
+            );
+          }
+        }
+        await _settle(tester);
+        expect(
+          _scaffold('Message'),
+          capture['popped']! as bool ? findsNothing : findsOneWidget,
+        );
       });
     }
 

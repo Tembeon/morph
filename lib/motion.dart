@@ -52,7 +52,10 @@ export 'src/widgets/menu_motion.dart'
         MorphMenuProgress,
         MorphMenuTuning;
 export 'src/widgets/navigation_motion.dart'
-    show MorphNavigationTitleMotion, MorphNavigationTuning;
+    show
+        MorphNavigationPopMotion,
+        MorphNavigationTitleMotion,
+        MorphNavigationTuning;
 export 'src/widgets/page_control.dart'
     show MorphPageControlMotion, MorphPageControlTuning;
 export 'src/widgets/progress.dart' show MorphProgressMotion;

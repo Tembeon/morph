@@ -227,6 +227,54 @@ autodemo on the iPhone waits for an unobstructed active screen; the earlier
 Pixel autodemo is passed evidence for its recorded checkpoint, not a final
 iPhone gate. No release, tag, push or owner permission change was performed.
 
+## Resumed device checks and release prediction, 2026-10-15
+
+The owner closed the local-network dialog and unlocked the iPhone. The
+prepared native probe then passed its smoke test and three complete runs
+of 14 selected captures each: 42 captures, zero test failures and no Probe
+crashes. These include the previously crashing dark push and held page,
+the true no-bounce horizontal strip, and the already-scrolled strip.
+Both strips retain their scroll gesture without a content-pop callback.
+
+Event-time data confirms that the native projection branch is active.
+All 33 release decisions match its prediction, including identical requested
+paths with different outcomes. Reconstructing pan speed and its three-sample
+velocity/acceleration history from delivered touch coordinates reproduces
+the native statistics within 1e-5. Own numeric inputs and geometry are in
+`test/fixtures/ios27-device/navigation/release-decision.json`; private runtime
+rows, static derivations and diagnostic tools remain outside Git.
+
+`MorphNavigationPopMotion` replaces the former distance/flick approximation
+in both edge and content gestures. It preserves the last movement speed
+during a hold and updates statistics on lift. Completion and return carry
+that speed into the existing 0.3 / 0.85 spring. The old 2.9 multiplier fitted
+a 50 ms touch-window estimate; it does not multiply the reconstructed pan
+speed. Old tuning constants remain for source compatibility. Current-page
+PointerCancel still returns, and an interrupted route retains its own-route
+bookkeeping contract.
+
+All 33 decisions, statistics and release curves replay in Dart. A retained
+presentation sample exposes the next frame early and then holds; spring
+comparison therefore brackets timestamp phase by one measured 120 Hz frame,
+with geometry RMS outside that interval below 0.2 pt. Existing replay/pixel
+tolerances and performance ceilings are unchanged. Two widget replays check
+the same c25 path committing in one run and returning in another. All 96
+focused predictor, route, card, cancellation, API and motion tests pass.
+
+Six additional fast edge/content releases pass in three fresh runs. All
+39 release outcomes match the native projection. The six fast releases
+confirm an initial 4.25 speed boost while mean speed stays above 1.5 widths/s;
+the predictor carries this speed into the spring too. Their terminal speed
+measurements are retained as separate checks: coalesced fast event/touch
+timestamps do not permit the same complete input reconstruction as the
+33 slower captures. One XCTest initialization timeout occurred before any
+fast scenario; a clean session and all subsequent runs passed. It is kept
+as failed infrastructure evidence, not counted as a successful capture.
+
+Final full-suite, packaging and remaining visual device checks are being
+refreshed for this implementation; earlier validation above refers to its
+recorded checkpoints.
+
 ## Preserved history and cleanup
 
 The four interrupted agent worktrees and the sheets-device worktree were clean,

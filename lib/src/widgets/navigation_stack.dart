@@ -301,9 +301,9 @@ class MorphNavigationStack extends StatefulWidget {
   /// false leaves only the swipe from the leading edge.
   ///
   /// The content swipe uses the edge swipe's motion and release policy.
-  /// This release policy approximates UIKit: device captures include
-  /// returns past the edge swipe's distance threshold whose exact rule
-  /// is not reproduced. A horizontal scrollable, slider or other horizontal
+  /// Its release predicts progress from recent velocity and acceleration
+  /// ([MorphNavigationPopMotion]); platform event timing and the begin
+  /// boundary remain NEAR. A horizontal scrollable, slider or other horizontal
   /// drag under the finger keeps its drag; a drag toward the leading side never
   /// starts the swipe. A touch starts after 30 points of radial travel,
   /// within 30 degrees of horizontal (device-fitted boundary, NEAR).
@@ -656,12 +656,10 @@ class _Observer extends NavigatorObserver {
 /// slides 30 percent of the width the other way; both ride
 /// [MorphNavigationTuning.pushSpring], starting at full speed. A swipe
 /// that starts within [MorphNavigationTuning.edgeWidth] of the leading
-/// edge moves the page with the finger; on release it pops when the page
-/// is more than [MorphNavigationTuning.popDistance] of the width out
-/// or the finger flicks out, and settles on
-/// [MorphNavigationTuning.interactiveSpring]: a popping page from
-/// rest, a returning one carrying the release speed scaled by
-/// [MorphNavigationTuning.cancelVelocityScale]. Inside a
+/// edge moves the page with the finger; on release [MorphNavigationPopMotion]
+/// predicts the outcome from recent speed and acceleration, and settles on
+/// [MorphNavigationTuning.interactiveSpring], carrying the pan speed
+/// into either the completion or return. Inside a
 /// [MorphNavigationStack] whose
 /// [MorphNavigationStack.contentPopGestureEnabled] is on (and outside
 /// any stack) a drag toward the trailing side from anywhere in the page
@@ -671,7 +669,7 @@ class _Observer extends NavigatorObserver {
 /// corners ([MediaQueryData.displayCornerRadii], else
 /// [MorphNavigationTuning.fallbackCardRadius]), and the page underneath
 /// dims with black up to [MorphNavigationTuning.underDimOpacity] as the
-/// page on top covers it (APPROXIMATION, see that constant).
+/// page on top covers it (measured alpha and progress law).
 ///
 /// With a [from] the page instead zooms out of that tag, as a UIKit
 /// page pushed with `preferredTransition = .zoom`: the source hides, a
@@ -707,6 +705,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   final MorphPushZoomTuning zoom;
 
   bool _interactivePop = false;
+  double _interactivePopVelocity = 0;
   MorphPushZoomPageState? _zoomView;
   Listenable? _slide;
   Animation<double>? _slideAnimation;
@@ -841,7 +840,9 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     if (_zooms) return popped;
     if (c == null) return popped;
     final interactive = _interactivePop;
+    final interactiveVelocity = _interactivePopVelocity;
     _interactivePop = false;
+    _interactivePopVelocity = 0;
     c.animateBackWith(
       !interactive && _reduced
           ? _CrossFade(c.value, 0)
@@ -851,7 +852,9 @@ class MorphNavigationRoute<T> extends PageRoute<T>
                   : MorphNavigationTuning.pushSpring.description,
               c.value,
               0,
-              interactive ? 0 : -MorphNavigationTuning.pushVelocity,
+              interactive
+                  ? -interactiveVelocity
+                  : -MorphNavigationTuning.pushVelocity,
             ),
     );
     return popped;
@@ -1137,6 +1140,9 @@ class _EdgePopState extends State<_EdgePop> {
       true;
   bool _active = false;
   int? _pointer;
+  MorphNavigationPopMotion? _popMotion;
+  double _eventTime = 0;
+  double _forward = 1;
   _MorphNavigationStackState? _stack;
   NavigatorState? _navigator;
   VoidCallback? _detach;
@@ -1190,15 +1196,35 @@ class _EdgePopState extends State<_EdgePop> {
     drag.onEnd = _end;
     drag.onCancel = _cancel;
     _pointer = event.pointer;
+    _forward = _rtl ? -1 : 1;
+    _eventTime = _time(event.timeStamp);
+    _popMotion = MorphNavigationPopMotion(_width);
+    _popMotion!.addPosition(_eventTime, event.position.dx * _forward);
     drag.addPointer(event);
   }
 
+  double _time(Duration stamp) =>
+      (stamp == Duration.zero
+              ? SchedulerBinding.instance.currentSystemFrameTimeStamp
+              : stamp)
+          .inMicroseconds /
+      Duration.microsecondsPerSecond;
+
+  void _move(PointerMoveEvent event) {
+    if (event.pointer != _pointer) return;
+    _eventTime = _time(event.timeStamp);
+    _popMotion?.addPosition(_eventTime, event.position.dx * _forward);
+  }
+
   void _up(PointerUpEvent event) {
-    if (event.pointer == _pointer) _pointer = null;
+    if (event.pointer != _pointer) return;
+    _eventTime = _time(event.timeStamp);
+    _pointer = null;
   }
 
   void _pointerCancelled(PointerCancelEvent event) {
     if (event.pointer != _pointer) return;
+    _eventTime = _time(event.timeStamp);
     _pointer = null;
     // An accepted Flutter drag reports PointerCancel through onEnd.
     if (widget.route.isCurrent) {
@@ -1212,6 +1238,7 @@ class _EdgePopState extends State<_EdgePop> {
   void _start(DragStartDetails details) {
     final route = widget.route;
     _active = true;
+    _popMotion?.begin(_eventTime);
     final navigator = route.navigator;
     _navigator = navigator;
     navigator?.didStartUserGesture();
@@ -1228,22 +1255,23 @@ class _EdgePopState extends State<_EdgePop> {
     if (!_active || c == null) return;
     final d = (details.primaryDelta ?? 0) / _width;
     c.value = (c.value - (_rtl ? -d : d)).clamp(0.0, 1.0);
+    _popMotion?.update(_eventTime, 1 - c.value);
   }
 
-  void _end(DragEndDetails details) {
+  void _end(DragEndDetails _) {
     final route = widget.route;
     final c = route._gestureController;
     if (!_active || c == null) return;
     _active = false;
-    final v = (details.primaryVelocity ?? 0) / _width * (_rtl ? -1 : 1);
-    const flick = MorphNavigationTuning.popVelocity;
-    final commit =
-        v > flick ||
-        (v > -flick && c.value < 1 - MorphNavigationTuning.popDistance);
+    final motion = _popMotion;
+    motion?.update(_eventTime, 1 - c.value, ending: true);
+    final v = motion?.settleVelocity ?? 0;
+    final commit = motion?.shouldPop(1 - c.value) ?? false;
     if (commit) {
       final navigator = route.navigator;
       if (route.isCurrent) {
         route._interactivePop = true;
+        route._interactivePopVelocity = v;
         navigator?.pop();
       } else if (route.isActive) {
         navigator?.removeRoute(route);
@@ -1254,7 +1282,7 @@ class _EdgePopState extends State<_EdgePop> {
           MorphNavigationTuning.interactiveSpring.description,
           c.value,
           1,
-          -v * MorphNavigationTuning.cancelVelocityScale,
+          -v,
         ),
       );
     }
@@ -1305,6 +1333,7 @@ class _EdgePopState extends State<_EdgePop> {
   @override
   Widget build(BuildContext context) => Listener(
     onPointerDown: _down,
+    onPointerMove: _move,
     onPointerUp: _up,
     onPointerCancel: _pointerCancelled,
     behavior: HitTestBehavior.translucent,

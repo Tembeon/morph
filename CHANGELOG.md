@@ -93,12 +93,17 @@ no behaviour or pixel change: every rename keeps what the old name did.
     (`MediaQueryData.displayCornerRadii`, else 62 points,
     `MorphNavigationTuning.fallbackCardRadius`); at rest it is square.
   - the page underneath dims with black that follows the top page's
-    progress up to `MorphNavigationTuning.underDimOpacity` (0.11, an
-    approximation from one simulator frame, pending the iPhone).
+    progress up to `MorphNavigationTuning.underDimOpacity` (0.1,
+    confirmed on the iPhone for push, edge and content pop).
+  - interactive release uses `MorphNavigationPopMotion`: recent speed
+    and acceleration predict completion, including a finger held before
+    release. The former distance/flick approximation is replaced by the
+    UIKit rule, replayed from 33 physical captures.
   - `MorphNavigationStack.contentPopGestureEnabled` (on by default, as
     UIKit's `interactiveContentPopGestureRecognizer`): a drag toward the
     trailing side from anywhere in a pushed page pops it like the edge
-    swipe once it has travelled the pan slop; horizontal scrollables,
+    swipe after 30 points of radial touch travel within 30 degrees of
+    horizontal (NEAR); horizontal scrollables,
     sliders and pan or scale gestures under the finger keep their drags. Set it false for the edge swipe alone.
 
 - Accessibility read from UIKit: Reduce Motion branches for the switch,

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/animation.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -192,22 +194,20 @@ abstract final class MorphNavigationTuning {
   /// on a 402 point page give 0.8375 / 0.6376 / 0.4303 / 0.1857 opacity.
   static const double underDimOpacity = 0.1;
 
-  /// How far out, as a share of the width, a page released without a
-  /// flick has to be for the swipe to pop it: device recordings stay at
-  /// 0.27 and pop from 0.32.
+  /// The distance fraction of the legacy distance/flick approximation.
+  /// [MorphNavigationPopMotion] predicts the release from recent movement
+  /// instead; the recorded 0.27-return / 0.32-pop bracket alone does not
+  /// establish a distance threshold when the finger has been held.
   static const double popDistance = 0.3;
 
-  /// The release speed, in page widths per second, past which a flick
-  /// decides the swipe on its own: outward it pops (device recordings
-  /// stay at 1.02 and pop from 1.10), back toward the edge it returns
-  /// (pops at -1.02, returns from -1.28).
+  /// The speed of the legacy distance/flick approximation, in widths/s.
+  /// [MorphNavigationPopMotion] uses recent velocity and acceleration;
+  /// a single release-speed threshold does not decide its outcome.
   static const double popVelocity = 1.06;
 
-  /// The factor a returning page's starting speed carries the release
-  /// speed by: a page flicked short of the threshold keeps travelling
-  /// outward about three times as fast as the finger left it before it
-  /// springs back (device fits 2.7..3.1). A popping page starts from
-  /// rest.
+  /// The legacy scale fitted against a 50 ms touch-window speed estimate.
+  /// [MorphNavigationPopMotion] reconstructs the pan speed directly;
+  /// the interactive spring carries that speed without this multiplier.
   static const double cancelVelocityScale = 2.9;
 
   /// The share of an interactive pop's progress the navigation bar's
@@ -226,4 +226,166 @@ abstract final class MorphNavigationTuning {
 
   /// The easing of the cross-fade: UIView's default animation curve.
   static const Curve crossFadeCurve = Curves.easeInOut;
+}
+
+/// Predicts whether an interactive back swipe completes.
+///
+/// Read from UIKit (notes private), then replayed from iPhone 16 Pro,
+/// iOS 27.0.1 touches: pan speed mixes the last two movement speeds with
+/// weights 0.2 / 0.8. The last three normalized speeds and accelerations
+/// predict progress after 0.35 s. The page pops past the smaller of
+/// 187.5 points and half its width. Holding a finger keeps its last pan
+/// speed; a lift updates the statistics without adding a stationary move.
+/// An uninterrupted fast flick also boosts the spring's starting speed
+/// by [flickBoost] until its mean speed falls below [flickThreshold].
+///
+/// Supply positions before recognition with [addPosition], call [begin]
+/// when the drag wins, then [update] after each page movement and at lift.
+/// Times are monotonic seconds; positions increase toward the popping side.
+/// The equations reproduce the recorded inputs; platform event timing and
+/// gesture admission can differ (NEAR).
+class MorphNavigationPopMotion {
+  /// Creates a predictor for a page [width] points wide.
+  MorphNavigationPopMotion(this.width) : assert(width > 0);
+
+  /// The page width captured when the pointer starts.
+  final double width;
+
+  /// The native prediction interval, in seconds (read from UIKit).
+  static const double predictionTime = 0.35;
+
+  /// The maximum projected distance needed to pop, in points.
+  static const double predictionDistance = 187.5;
+
+  /// The projected fraction needed on narrower pages.
+  static const double predictionFraction = 0.5;
+
+  /// The mean speed below which the initial flick phase ends, in widths/s.
+  /// Read from UIKit on iOS 27.0.1, notes private.
+  static const double flickThreshold = 1.5;
+
+  /// The settle-speed boost while the initial flick phase persists.
+  /// Read from UIKit on iOS 27.0.1, notes private.
+  static const double flickBoost = 4.25;
+
+  final _velocities = List<double>.filled(3, 0);
+  final _accelerations = List<double>.filled(3, 0);
+  double? _positionTime;
+  double _position = 0;
+  double? _rawVelocity;
+  double _panVelocity = 0;
+  double _previousVelocity = 0;
+  double _previousAcceleration = 0;
+  double _previousDisplacement = 0;
+  double _previousTime = 0;
+  double _attemptTime = 0;
+  bool _changed = false;
+  bool _flick = true;
+  int _sampleCount = 0;
+  double _averageVelocity = 0;
+  double _averageAcceleration = 0;
+
+  /// The number of accepted statistics samples, including recognition.
+  int get sampleCount => _sampleCount;
+
+  double get _currentVelocity => _panVelocity / width;
+
+  /// The last accepted pan speed in page widths per second.
+  double get velocity => _previousVelocity;
+
+  /// The initial settle speed, including an uninterrupted fast flick.
+  double get settleVelocity => velocity * (_flick ? flickBoost : 1);
+
+  /// The mean of the last three accepted speeds, in widths per second.
+  double get averageVelocity => _averageVelocity;
+
+  /// The mean of the last three limited accelerations, in widths/s².
+  double get averageAcceleration => _averageAcceleration;
+
+  /// Records a pointer position, including movement before recognition.
+  /// A lift does not add a position: UIKit preserves the last move speed.
+  void addPosition(double t, double x) {
+    final previous = _positionTime;
+    if (previous != null) {
+      final dt = t - previous;
+      if (dt > 0) {
+        final raw = dt >= 0.001 ? (x - _position) / dt : 0.0;
+        final old = _rawVelocity;
+        _panVelocity = old == null ? raw : 0.2 * raw + 0.8 * old;
+        _rawVelocity = raw;
+      }
+    }
+    _positionTime = t;
+    _position = x;
+  }
+
+  /// Starts statistics at recognition, with the current drag [progress].
+  void begin(double t, {double progress = 0}) {
+    _previousTime = t;
+    _attemptTime = t;
+    _previousDisplacement = progress;
+    _previousVelocity = _currentVelocity;
+    _previousAcceleration = 0;
+    _averageVelocity = _currentVelocity;
+    _averageAcceleration = 0;
+    _velocities.fillRange(0, 3, 0);
+    _accelerations.fillRange(0, 3, 0);
+    _velocities[0] = _currentVelocity;
+    _sampleCount = 1;
+    _changed = false;
+    _flick = true;
+  }
+
+  /// Samples movement or a lift at [t], with the actual page [progress].
+  /// Set [ending] for a lift so a never-updated drag cannot complete.
+  void update(double t, double progress, {bool ending = false}) {
+    if (_sampleCount == 0) return;
+    if (!ending && t > _attemptTime) _changed = true;
+    final attempt = t - _attemptTime;
+    _attemptTime = t;
+    final displacement = math.max(0.0, progress);
+    if (attempt < 0.01 &&
+        (attempt <= 0.001 || displacement == _previousDisplacement)) {
+      return;
+    }
+    final dt = t - _previousTime;
+    if (dt <= 0) return;
+    final v = _currentVelocity;
+    final acceleration = (v - _previousVelocity) / dt;
+    final limited =
+        _previousAcceleration +
+        (acceleration - _previousAcceleration).clamp(-5.0, 5.0);
+    final slot = _sampleCount % 3;
+    final count = math.min(3, _sampleCount);
+    final divisor = math.min(3, _sampleCount + 1);
+    _averageVelocity =
+        (v +
+            _averageVelocity * count -
+            (_sampleCount >= 3 ? _velocities[slot] : 0)) /
+        divisor;
+    _averageAcceleration =
+        (limited +
+            _averageAcceleration * count -
+            (_sampleCount >= 3 ? _accelerations[slot] : 0)) /
+        divisor;
+    if (_averageVelocity.abs() < flickThreshold) _flick = false;
+    _velocities[slot] = v;
+    _accelerations[slot] = limited;
+    _previousVelocity = v;
+    _previousAcceleration = limited;
+    _previousDisplacement = displacement;
+    _previousTime = t;
+    _sampleCount++;
+  }
+
+  /// Whether the page released at [progress] completes its pop.
+  bool shouldPop(double progress) {
+    if (!_changed) return false;
+    if (_sampleCount < 3) return _averageVelocity > 0;
+    final projected =
+        progress +
+        predictionTime * _averageVelocity +
+        0.5 * predictionTime * predictionTime * _averageAcceleration;
+    return projected > math.min(predictionDistance / width, predictionFraction);
+  }
 }

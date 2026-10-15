@@ -733,7 +733,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 16));
       }
       expect(tester.getTopLeft(message).dx, inInclusiveRange(30, 61));
-      await gesture.up();
+      await gesture.cancel();
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),
         EnginePhase.sendSemanticsUpdate,

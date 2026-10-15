@@ -126,14 +126,6 @@ class _Swipe {
   late final List<(double, double)> after;
 }
 
-/// Whether a swipe released with the page [out] of the width out at
-/// [velocity] widths per second pops, as MorphNavigationRoute decides.
-bool _pops(double out, double velocity) {
-  const flick = MorphNavigationTuning.popVelocity;
-  return velocity > flick ||
-      (velocity > -flick && out > MorphNavigationTuning.popDistance);
-}
-
 void main() {
   group('inline title and edge effect replay (iOS 27.0 simulator)', () {
     for (final name in ['drag-collapse', 'fling', 'drag-partial45']) {
@@ -276,31 +268,6 @@ void main() {
           rest,
           atLift < half ? 0 : MorphNavigationBarMetrics.largeTitleHeight,
           reason: 'released at $atLift',
-        );
-      }
-    });
-
-    test('an edge swipe pops by distance or by flick like UIKit', () {
-      for (final name in [
-        'commit',
-        'cancel',
-        'slow25',
-        'slow30',
-        'slow35',
-        'flick-v400',
-        'flick-v450',
-        'flickback',
-        'flickback3',
-      ]) {
-        final swipe = _Swipe(
-          _rows('test/fixtures/ios27-device/bars/pop-edge-$name.jsonl'),
-        );
-        expect(
-          _pops(swipe.offset / swipe.width, swipe.velocity),
-          swipe.popped,
-          reason:
-              '$name: ${(swipe.offset / swipe.width).toStringAsFixed(2)} W '
-              'at ${swipe.velocity.toStringAsFixed(2)} W/s',
         );
       }
     });
