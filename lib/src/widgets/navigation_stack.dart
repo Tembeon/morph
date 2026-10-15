@@ -1199,7 +1199,7 @@ class _EdgePopState extends State<_EdgePop> {
     _forward = _rtl ? -1 : 1;
     _eventTime = _time(event.timeStamp);
     _popMotion = MorphNavigationPopMotion(_width);
-    _popMotion!.addPosition(_eventTime, event.position.dx * _forward);
+    _popMotion!.addPosition(_eventTime, event.localPosition.dx * _forward);
     drag.addPointer(event);
   }
 
@@ -1213,7 +1213,9 @@ class _EdgePopState extends State<_EdgePop> {
   void _move(PointerMoveEvent event) {
     if (event.pointer != _pointer) return;
     _eventTime = _time(event.timeStamp);
-    _popMotion?.addPosition(_eventTime, event.position.dx * _forward);
+    // The down hit-test transform keeps these coordinates stable while the
+    // page slides, and removes any ancestor scale from the measured speed.
+    _popMotion?.addPosition(_eventTime, event.localPosition.dx * _forward);
   }
 
   void _up(PointerUpEvent event) {

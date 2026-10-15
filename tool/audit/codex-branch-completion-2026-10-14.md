@@ -271,9 +271,31 @@ timestamps do not permit the same complete input reconstruction as the
 fast scenario; a clean session and all subsequent runs passed. It is kept
 as failed infrastructure evidence, not counted as a successful capture.
 
-Final full-suite, packaging and remaining visual device checks are being
-refreshed for this implementation; earlier validation above refers to its
-recorded checkpoints.
+The final unobstructed Flutter release badge capture passes: its result is
+complete with liquid_available=true; held count, held dot, drag and return
+are visible in both the four screenshots and the 25-second physical film.
+The count and dot stay crisp above the lens. A transient CoreDevice file-copy
+disconnect was retried successfully; it does not invalidate the saved film
+or completed app result. Badge placement keeps its declared glyph-box NEAR
+classification.
+
+The forced-liquid iPhone release autodemo visits all 22 gallery pages,
+prints AUTODEMO done, exits normally and logs no framework exceptions.
+Its console/syslog and result are retained privately. The final ordinary
+iOS release gallery (19.6 MB) is installed and launched; autodemo defines
+are absent. Original Probe is restored and its navtitle completion marker
+survives, confirming the native documents remain. The iPhone lock is
+released; recorders and device test sessions are stopped. Code checkpoint:
+`2bdb3e47`. Its final full root run passes 2,351 tests with two intentional
+skips; all 90 example tests, analysis, dartdoc and the iOS/macOS/Android
+release builds pass. No original tolerance or count ceiling is raised.
+
+A final coordinate-scale regression reproduces an additional edge case:
+inside a 0.5-scale ancestor the predictor underestimates speed if it mixes
+global pointer coordinates with the page's logical width. The listener now
+uses the cached down-hit-test local coordinates, as the drag recognizer
+does. The failing scaled-page test passes after this two-coordinate fix;
+full validation and release binaries are refreshed again for it.
 
 ## Preserved history and cleanup
 

@@ -35,6 +35,7 @@ Future<void> _pump(
   bool contentPop = true,
   Widget? strip,
   BorderRadius? displayCorners,
+  double scale = 1,
 }) async {
   tester.view.physicalSize = _screen * 3;
   tester.view.devicePixelRatio = 3;
@@ -61,13 +62,16 @@ Future<void> _pump(
       child: app,
     );
   }
-  await tester.pumpWidget(app);
+  await tester.pumpWidget(Transform.scale(scale: scale, child: app));
   await _settle(tester);
   Navigator.of(inbox).push(
     MorphNavigationRoute<void>(builder: (_) => _page('Message', strip: strip)),
   );
   await _settle(tester);
-  expect(tester.getTopLeft(_scaffold('Message')).dx, closeTo(0, 0.5));
+  expect(
+    tester.getTopLeft(_scaffold('Message')).dx,
+    closeTo(_screen.width * (1 - scale) / 2, 0.5),
+  );
 }
 
 Future<TestGesture> _drag(WidgetTester tester, Offset from, double dx) async {
@@ -254,6 +258,23 @@ void main() {
         );
       });
     }
+
+    testWidgets('release speed uses the scaled page coordinate system', (
+      tester,
+    ) async {
+      await _pump(tester, scale: 0.5);
+      final box = tester.renderObject<RenderBox>(_scaffold('Message'));
+      final start = box.localToGlobal(const Offset(4, 700));
+      final step = box.localToGlobal(const Offset(14, 700)) - start;
+      final gesture = await tester.startGesture(start);
+      for (var i = 0; i < 16; i++) {
+        await tester.pump(const Duration(milliseconds: 40));
+        await gesture.moveBy(step);
+      }
+      await gesture.up();
+      await _settle(tester);
+      expect(_scaffold('Message'), findsNothing);
+    });
 
     testWidgets('a drag toward the trailing side from inside the page pops '
         'it', (tester) async {
