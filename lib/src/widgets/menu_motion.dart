@@ -13,6 +13,17 @@ import 'package:morph/src/widgets/menu_morph_spec.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
 
+/// Installs a synchronous admission check for measured, input-driven dismissal.
+///
+/// The check runs at the reaction time before any closing channel changes.
+/// It must not mutate the model. Explicit [MorphMenuMotion.close] is a command
+/// and bypasses this check. A null check preserves autonomous dismissal.
+@internal
+void morphMenuSetCloseAdmission(
+  MorphMenuMotion motion,
+  bool Function(double time)? admission,
+) => motion._closeAdmission = admission;
+
 /// The tuning of a glass button's menu, as measured on iOS 27.
 ///
 /// The springs, delays and metrics are fitted to frame-by-frame
@@ -1317,6 +1328,7 @@ class MorphMenuMotion {
   double _glowTarget = 0;
 
   final MorphTimeline _timeline = MorphTimeline(now: 0);
+  bool Function(double time)? _closeAdmission;
 
   /// Called with the target index when a target of the root list runs its
   /// action, which is before the menu starts closing.
@@ -2723,7 +2735,7 @@ class MorphMenuMotion {
     if (hit.beside) {
       _timeline.at(t + tuning.backDelay, _back);
     } else if (!pointer.fromButton && !_onMenu(position)) {
-      _timeline.at(t + tuning.dismissDelay, _close);
+      _timeline.at(t + tuning.dismissDelay, _requestClose);
     }
   }
 
@@ -3025,10 +3037,15 @@ class MorphMenuMotion {
         target.kind == MorphMenuTargetKind.action) {
       _setHighlight(row, 0);
       _timeline.at(t + tuning.actionDelay, (double s) => _activate(0, row));
-      _timeline.at(t + tuning.earlyCloseDelay, _close);
+      _timeline.at(t + tuning.earlyCloseDelay, _requestClose);
     } else if (!_onMenu(release.position)) {
-      _timeline.at(t + tuning.earlyCloseDelay, _close);
+      _timeline.at(t + tuning.earlyCloseDelay, _requestClose);
     }
+  }
+
+  void _requestClose(double t) {
+    if (_phase != _Phase.opening) return;
+    if (_closeAdmission?.call(t) ?? true) _close(t);
   }
 
   void _close(double t) {
@@ -3126,7 +3143,7 @@ class MorphMenuMotion {
         _timeline.at(t + delay, (double s) => _activate(card, index));
         _timeline.at(
           t + (card == 0 ? tuning.dismissDelay : tuning.submenuCloseDelay),
-          _close,
+          _requestClose,
         );
     }
   }

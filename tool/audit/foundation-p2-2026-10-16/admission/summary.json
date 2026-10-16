@@ -1,0 +1,79 @@
+{
+  "packageSuite": {
+    "passed": 2362,
+    "skipped": 2
+  },
+  "exampleSuite": {
+    "passed": 239,
+    "skipped": 0
+  },
+  "prototypeChecks": 149,
+  "modelAdmissionChecks": 6,
+  "synchronousVetoScenarios": 5,
+  "inputLifecycleChecks": 14,
+  "scenes": [
+    {
+      "rate": 60,
+      "gap": 0.0,
+      "frames": 51,
+      "routeFrames": 19,
+      "sourceFrames": 32,
+      "scale": 3.0,
+      "changedPixels": 0
+    },
+    {
+      "rate": 60,
+      "gap": 8.0,
+      "frames": 51,
+      "routeFrames": 19,
+      "sourceFrames": 32,
+      "scale": 3.0,
+      "changedPixels": 0
+    },
+    {
+      "rate": 60,
+      "gap": 12.0,
+      "frames": 51,
+      "routeFrames": 19,
+      "sourceFrames": 32,
+      "scale": 3.0,
+      "changedPixels": 0
+    },
+    {
+      "rate": 120,
+      "gap": 0.0,
+      "frames": 102,
+      "routeFrames": 38,
+      "sourceFrames": 64,
+      "scale": 3.0,
+      "changedPixels": 0
+    },
+    {
+      "rate": 120,
+      "gap": 8.0,
+      "frames": 102,
+      "routeFrames": 38,
+      "sourceFrames": 64,
+      "scale": 3.0,
+      "changedPixels": 0
+    },
+    {
+      "rate": 120,
+      "gap": 12.0,
+      "frames": 102,
+      "routeFrames": 38,
+      "sourceFrames": 64,
+      "scale": 3.0,
+      "changedPixels": 0
+    }
+  ],
+  "sceneFrames": 459,
+  "recordingReplays": 20,
+  "recordedPointers": 2346,
+  "recordedRoutes": 40,
+  "recordedHandBacks": 40,
+  "analyzeIssues": 0,
+  "remainingNegativeControls": 4,
+  "p2Complete": false,
+  "deviceRun": false
+}

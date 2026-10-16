@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/motion.dart';
 import 'package:morph_example/proto/menu_route_probe.dart';
 
 const _button = Rect.fromLTWH(24, 80, 44, 44);
@@ -21,6 +23,7 @@ Widget _app(
   required WidgetBuilder menuBuilder,
   ValueChanged<ProbeMenuSample>? onSample,
   Widget Function(Widget)? home,
+  MorphMenuMotion Function()? createMotion,
 }) => WidgetsApp(
   color: const Color(0xFFFFFFFF),
   navigatorKey: nav,
@@ -35,6 +38,7 @@ Widget _app(
         ),
         pointerOffset: () => null,
         onSample: onSample,
+        createMotion: createMotion,
         menuBuilder: menuBuilder,
       );
       return home?.call(widget) ?? widget;
@@ -43,6 +47,82 @@ Widget _app(
 );
 
 void main() {
+  for (final input in ['pointer', 'back']) {
+    testWidgets('$input consumes local history before closing the menu', (
+      tester,
+    ) async {
+      final nav = GlobalKey<NavigatorState>();
+      final source = GlobalKey<ProbeMenuSourceState>();
+      await tester.pumpWidget(
+        _app(tester, nav, source, menuBuilder: (_) => const SizedBox.expand()),
+      );
+      await tester.tapAt(_button.center);
+      final route = source.currentState!.activeRoute!;
+      await _until(tester, () => route.animation!.isCompleted);
+      var removed = 0;
+      route.addLocalHistoryEntry(LocalHistoryEntry(onRemove: () => removed++));
+      if (input == 'pointer') {
+        await tester.tapAt(const Offset(350, 500));
+      } else {
+        await nav.currentState!.maybePop();
+      }
+      await _until(tester, () => removed == 1);
+      await tester.pump(const Duration(seconds: 1));
+      expect(route.closing, isFalse);
+      expect(route.frame.progress, closeTo(1, 1e-3));
+      expect(route.closedAt, isNull);
+      expect(route.isCurrent, isTrue);
+      await tester.tapAt(const Offset(350, 500));
+      await _until(tester, () => route.disposed);
+      await _until(tester, () => source.currentState!.motionSettled);
+    });
+  }
+
+  for (final teardown in ['remove route', 'unmount']) {
+    testWidgets('$teardown releases admission on a retained model', (
+      tester,
+    ) async {
+      final nav = GlobalKey<NavigatorState>();
+      final source = GlobalKey<ProbeMenuSourceState>();
+      final models = <MorphMenuMotion>[];
+      await tester.pumpWidget(
+        _app(
+          tester,
+          nav,
+          source,
+          menuBuilder: (_) => const SizedBox.expand(),
+          createMotion: () {
+            final motion = MorphMenuMotion(
+              button: _button,
+              bounds: const Size(402, 874),
+              itemCount: 3,
+            );
+            models.add(motion);
+            return motion;
+          },
+        ),
+      );
+      await tester.tapAt(_button.center);
+      final route = source.currentState!.activeRoute!;
+      await _until(tester, () => route.animation!.isCompleted);
+      final retained = models.single;
+      if (teardown == 'remove route') {
+        nav.currentState!.removeRoute(route);
+        await _until(tester, () => route.disposed);
+        expect(models, hasLength(2));
+      } else {
+        await tester.pumpWidget(const SizedBox.shrink());
+        expect(route.disposed, isTrue);
+      }
+      final time = retained.time + 1;
+      retained.pointerDown(time, const Offset(350, 500));
+      retained.pointerUp(time + 0.01, const Offset(350, 500));
+      retained.advance(time + 0.2);
+      expect(retained.isClosing, isTrue);
+      expect(tester.binding.transientCallbackCount, 0);
+    });
+  }
+
   testWidgets(
     'holding the source during its landing tail preserves move and up',
     (tester) async {
@@ -246,28 +326,71 @@ void main() {
     await gesture.up();
   });
 
-  testWidgets(
-    'negative control: model-driven pointer close currently bypasses PopScope',
-    (tester) async {
-      final nav = GlobalKey<NavigatorState>();
-      final source = GlobalKey<ProbeMenuSourceState>();
-      await tester.pumpWidget(
-        _app(
-          tester,
-          nav,
-          source,
-          menuBuilder: (_) =>
-              const PopScope<void>(canPop: false, child: SizedBox.expand()),
-        ),
-      );
-      await tester.tapAt(_button.center);
-      final route = source.currentState!.activeRoute!;
-      await _until(tester, () => route.animation!.isCompleted);
-      expect(route.popDisposition, RoutePopDisposition.doNotPop);
-      await tester.tapAt(const Offset(350, 500));
-      await _until(tester, () => route.closing);
-      await _until(tester, () => route.disposed);
-      await _until(tester, () => source.currentState!.motionSettled);
-    },
-  );
+  for (final input in ['outside', 'row', 'early outside', 'back', 'escape']) {
+    testWidgets(
+      'PopScope rejects $input dismissal before closing, then allows retry',
+      (tester) async {
+        final nav = GlobalKey<NavigatorState>();
+        final source = GlobalKey<ProbeMenuSourceState>();
+        final canPop = ValueNotifier(false);
+        addTearDown(canPop.dispose);
+        final results = <bool>[];
+        await tester.pumpWidget(
+          _app(
+            tester,
+            nav,
+            source,
+            menuBuilder: (_) => ValueListenableBuilder<bool>(
+              valueListenable: canPop,
+              builder: (_, allowed, _) => PopScope<void>(
+                canPop: allowed,
+                onPopInvokedWithResult: (didPop, _) {
+                  results.add(didPop);
+                  if (!didPop) {
+                    expect(source.currentState!.activeRoute!.closing, isFalse);
+                  }
+                },
+                child: const SizedBox.expand(),
+              ),
+            ),
+          ),
+        );
+        await tester.tapAt(_button.center);
+        final route = source.currentState!.activeRoute!;
+        if (input == 'early outside') {
+          await tester.pump(const Duration(milliseconds: 10));
+          await tester.tapAt(const Offset(350, 500));
+        } else {
+          await _until(tester, () => route.animation!.isCompleted);
+          expect(route.popDisposition, RoutePopDisposition.doNotPop);
+          switch (input) {
+            case 'back':
+              await nav.currentState!.maybePop();
+            case 'escape':
+              await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+            default:
+              await tester.tapAt(
+                input == 'row'
+                    ? route.frame.menu.outerRect.center
+                    : const Offset(350, 500),
+              );
+          }
+        }
+        await _until(tester, () => results.isNotEmpty);
+        await tester.pump(const Duration(seconds: 1));
+        expect(results, [false]);
+        expect(route.closing, isFalse);
+        expect(route.disposed, isFalse);
+        expect(route.frame.progress, closeTo(1, 1e-3));
+        expect(source.currentState!.activeRoute, same(route));
+        canPop.value = true;
+        await tester.pump();
+        await tester.tapAt(const Offset(350, 500));
+        await _until(tester, () => route.closing);
+        expect(results, [false, true]);
+        await _until(tester, () => route.disposed);
+        await _until(tester, () => source.currentState!.motionSettled);
+      },
+    );
+  }
 }

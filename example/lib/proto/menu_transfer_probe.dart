@@ -1,6 +1,7 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter/gestures.dart';
 import 'package:morph/motion.dart';
+import 'package:morph/glass_painter.dart';
 
 /// The widget responsible for sampling the menu model.
 enum ProbeMenuOwnerKind {
@@ -72,6 +73,9 @@ class ProbeMenuTransfer {
 
   /// Whether a visible morph, including its closing tail, still exists.
   bool get isPresented => _motion.isPresented;
+
+  /// The carried menu edge under its own fusion law, including the landing tail.
+  MorphGlassOutline? get flatOutline => _motion.silhouetteFor(withField: false);
 
   /// Applies raw input on the active owner's local clock.
   double? pointer(ProbeMenuLease lease, double localTime, PointerEvent event) {

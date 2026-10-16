@@ -5,6 +5,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/motion.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
+import 'package:morph/src/widgets/menu_motion.dart'
+    show morphMenuSetCloseAdmission;
 import 'package:morph_example/proto/menu_transfer_probe.dart';
 import 'package:morph_example/proto/motion_clock_probe.dart';
 
@@ -46,6 +49,7 @@ class ProbeMenuSource extends StatefulWidget {
     this.pointerOffset,
     this.createMotion,
     this.onSample,
+    this.neighbors = const [],
     super.key,
   });
 
@@ -72,6 +76,9 @@ class ProbeMenuSource extends StatefulWidget {
 
   /// Observes commands and every model sample for replay comparison.
   final ValueChanged<ProbeMenuSample>? onSample;
+
+  /// Fixed neighboring capsules in the reduced bar scene.
+  final List<RRect> neighbors;
 
   @override
   State<ProbeMenuSource> createState() => ProbeMenuSourceState();
@@ -154,6 +161,7 @@ class _MenuSession {
       now = widget.now ?? _engineNow,
       pointerOffset = widget.pointerOffset ?? _unknownOffset,
       createMotion = widget.createMotion,
+      neighbors = List.unmodifiable(widget.neighbors),
       onSample = widget.onSample {
     transfer = _newMotion();
     sourceClock = ProbeMotionClock(
@@ -186,6 +194,7 @@ class _MenuSession {
   final Duration? Function() pointerOffset;
   final MorphMenuMotion Function()? createMotion;
   final ValueChanged<ProbeMenuSample>? onSample;
+  final List<RRect> neighbors;
   VoidCallback? present;
   int? _pointer;
   final source = ProbeMenuLease(.source);
@@ -195,9 +204,14 @@ class _MenuSession {
   ProbeMotionClock? sourceClock;
   ProbeMenuRoute? activeRoute;
   int sourceFrames = 0;
+  MorphMenuMotion? _admittedMotion;
+  final _closeRequests =
+      <({ProbeMenuRoute route, bool admitted, double time})>[];
 
-  ProbeMenuTransfer _newMotion() => ProbeMenuTransfer(
-    motion:
+  ProbeMenuTransfer _newMotion() {
+    final previous = _admittedMotion;
+    if (previous != null) morphMenuSetCloseAdmission(previous, null);
+    final motion =
         createMotion?.call() ??
         MorphMenuMotion(
           button: button,
@@ -205,10 +219,23 @@ class _MenuSession {
           itemCount: 3,
           sourceHeight: 64,
           sourceRadius: 22,
-        ),
-    source: source,
-    sourceTime: sourceClock?.time ?? 0,
-  );
+        );
+    if (pointerInput) {
+      _admittedMotion = motion;
+      morphMenuSetCloseAdmission(motion, (time) {
+        final route = activeRoute;
+        if (route == null || route.closing || !route.isCurrent) return false;
+        final admitted = route.popDisposition == RoutePopDisposition.pop;
+        _closeRequests.add((route: route, admitted: admitted, time: time));
+        return admitted && !route.willHandlePopInternally;
+      });
+    }
+    return ProbeMenuTransfer(
+      motion: motion,
+      source: source,
+      sourceTime: sourceClock?.time ?? 0,
+    );
+  }
 
   void acquire(ProbeMenuRoute route) {
     final previous = activeRoute;
@@ -273,6 +300,11 @@ class _MenuSession {
 
   void _disposeIfUnused() {
     if (sourceClock == null && _routes.isEmpty) {
+      final motion = _admittedMotion;
+      if (motion != null) {
+        morphMenuSetCloseAdmission(motion, null);
+        _admittedMotion = null;
+      }
       if (pointerInput) {
         GestureBinding.instance.pointerRouter.removeGlobalRoute(handlePointer);
       }
@@ -291,6 +323,20 @@ class _MenuSession {
 
   void syncInputPhase() {
     if (!pointerInput) return;
+    final requests = List.of(_closeRequests);
+    _closeRequests.clear();
+    for (final request in requests) {
+      final route = request.route;
+      if (!identical(activeRoute, route) || route.closing || !route.isCurrent) {
+        continue;
+      }
+      if (request.admitted) {
+        route._admittedCloseTime = transfer.isClosing ? request.time : null;
+        route.navigator!.pop();
+      } else {
+        route.onPopInvokedWithResult(false, null);
+      }
+    }
     final route = activeRoute;
     if (transfer.isOpen) {
       if (route == null || route.closing) {
@@ -298,11 +344,6 @@ class _MenuSession {
       } else {
         route._reveal();
       }
-    } else if (transfer.isClosing &&
-        route != null &&
-        route._revealed.value &&
-        !route.closing) {
-      route.navigator!.pop();
     } else if (route != null &&
         !route._revealed.value &&
         !transfer.isArming &&
@@ -355,6 +396,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
   final _pushSignal = Ticker((_) {});
   final ValueNotifier<bool> _revealed;
   bool _pendingBarrier = false;
+  double? _admittedCloseTime;
   late final ProbeMotionClock _clock;
 
   /// Whether logical pop has started closing this presentation.
@@ -435,7 +477,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
       _session.transfer.close(_lease, _clock.time);
       _session.emit(.close);
     }
-    closedAt = frame.time;
+    closedAt = _admittedCloseTime ?? frame.time;
     _projection.update(frame.progress, .reverse);
     if (!modelClosing) _clock.resumeAt(_session.now());
     return true;
@@ -548,11 +590,16 @@ class _MenuPainter extends CustomPainter {
     final frame = session.transfer.frame;
     final paint = Paint();
     paint.color = const Color(0xFF8888AA);
-    canvas.drawRRect(frame.button, paint);
-    if (lease.kind == .route && session.activeRoute?._revealed.value == true) {
-      paint.color = const Color(0xFFCCCCDD);
-      canvas.drawRRect(frame.menu, paint);
-    }
+    final bar = morphGlassContainerOutline(
+      [...session.neighbors, frame.button],
+      12,
+      withField: false,
+    ).path;
+    final carried = session.transfer.flatOutline;
+    final path = carried == null
+        ? bar
+        : Path.combine(.union, bar, carried.path);
+    canvas.drawPath(path, paint);
   }
 
   @override
@@ -632,3 +679,5 @@ class _MenuAnimation extends Animation<double> with ChangeNotifier {
 Duration _engineNow() => Duration(microseconds: Timeline.now);
 
 Duration? _unknownOffset() => null;
+
+// ignore_for_file: implementation_imports, invalid_use_of_internal_member
