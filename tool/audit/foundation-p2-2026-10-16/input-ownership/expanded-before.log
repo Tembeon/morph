@@ -1,0 +1,307 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart
+00:00 +0: covered closed source cannot acquire a pointer from another page
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: empty
+  Actual: WhereIterable<({PointerEvent? event, ({RRect button, double buttonKick, double
+buttonOpacity, double contentOpacity, double fusionRadius, RRect menu, double menuKick, double
+progress, double time}) frame, ProbeMenuSampleKind kind, double time})>:[
+            ({PointerDownEvent event, ({RRect button, double buttonKick, double buttonOpacity,
+double contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double
+time}) frame, ProbeMenuSampleKind kind, double time}):(event: PointerDownEvent#eac39(position:
+Offset(46.0, 102.0)), frame: (button: RRect.fromLTRBR(24.0, 80.0, 68.0, 124.0, 22.0), buttonKick:
+0.0, buttonOpacity: 1.0, contentOpacity: 0.0, fusionRadius: 0.0, menu: RRect.fromLTRBR(30.0, 86.0,
+62.0, 118.0, 0.0), menuKick: 0.0, progress: 0.0, time: 0.0), kind: ProbeMenuSampleKind.pointer,
+time: 0.0),
+            ({PointerUpEvent event, ({RRect button, double buttonKick, double buttonOpacity, double
+contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double time})
+frame, ProbeMenuSampleKind kind, double time}):(event: PointerUpEvent#7b1da(position: Offset(46.0,
+102.0)), frame: (button: RRect.fromLTRBR(24.0, 80.0, 68.0, 124.0, 22.0), buttonKick: 0.0,
+buttonOpacity: 1.0, contentOpacity: 0.0, fusionRadius: 0.0, menu: RRect.fromLTRBR(30.0, 86.0, 62.0,
+118.0, 0.0), menuKick: 0.0, progress: 0.0, time: 0.0), kind: ProbeMenuSampleKind.pointer, time: 0.0)
+          ]
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:126:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 126
+The test description was:
+  covered closed source cannot acquire a pointer from another page
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: covered closed source cannot acquire a pointer from another page [E]
+  Test failed. See exception logs above.
+  The test description was: covered closed source cannot acquire a pointer from another page
+
+00:01 +0 -1: covered open menu ignores the top page gesture, opaque=false
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: empty
+  Actual: WhereIterable<({PointerEvent? event, ({RRect button, double buttonKick, double
+buttonOpacity, double contentOpacity, double fusionRadius, RRect menu, double menuKick, double
+progress, double time}) frame, ProbeMenuSampleKind kind, double time})>:[
+            ({PointerDownEvent event, ({RRect button, double buttonKick, double buttonOpacity,
+double contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double
+time}) frame, ProbeMenuSampleKind kind, double time}):(event: PointerDownEvent#90451(position:
+Offset(149.0, 153.0)), frame: (button: RRect.fromLTRBR(66.3, 109.3, 77.3, 120.2, 5.5), buttonKick:
+0.0, buttonOpacity: 0.0, contentOpacity: 1.0, fusionRadius: 0.0, menu: RRect.fromLTRBR(24.0, 80.0,
+274.0, 226.0, 32.0), menuKick: 0.0024440200610499696, progress: 1.0000226093247155, time: 0.874965),
+kind: ProbeMenuSampleKind.pointer, time: 0.874965),
+            ({PointerMoveEvent event, ({RRect button, double buttonKick, double buttonOpacity,
+double contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double
+time}) frame, ProbeMenuSampleKind kind, double time}):(event: PointerMoveEvent#15842(position:
+Offset(149.0, 161.0)), frame: (button: RRect.fromLTRBR(66.3, 109.3, 77.3, 120.2, 5.5), buttonKick:
+0.0, buttonOpacity: 0.0, contentOpacity: 1.0, fusionRadius: 0.0, menu: RRect.fromLTRBR(24.0, 80.0,
+274.0, 226.0, 32.0), menuKick: 0.0024440200610499696, progress: 1.0000226093247155, time: 0.874965),
+kind: ProbeMenuSampleKind.pointer, time: 0.874965),
+            ({PointerUpEvent event, ({RRect button, double buttonKick, double buttonOpacity, double
+contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double time})
+frame, ProbeMenuSampleKind kind, double time}):(event: PointerUpEvent#19677(position: Offset(149.0,
+161.0)), frame: (button: RRect.fromLTRBR(66.3, 109.3, 77.3, 120.2, 5.5), buttonKick: 0.0,
+buttonOpacity: 0.0, contentOpacity: 1.0, fusionRadius: 0.0, menu: RRect.fromLTRBR(24.0, 80.0, 274.0,
+226.0, 32.0), menuKick: 0.0024440200610499696, progress: 1.0000226093247155, time: 0.874965), kind:
+ProbeMenuSampleKind.pointer, time: 0.874965)
+          ]
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:151:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 151
+The test description was:
+  covered open menu ignores the top page gesture, opaque=false
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +0 -2: covered open menu ignores the top page gesture, opaque=false [E]
+  Test failed. See exception logs above.
+  The test description was: covered open menu ignores the top page gesture, opaque=false
+
+00:02 +0 -2: covered open menu ignores the top page gesture, opaque=true
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: empty
+  Actual: WhereIterable<({PointerEvent? event, ({RRect button, double buttonKick, double
+buttonOpacity, double contentOpacity, double fusionRadius, RRect menu, double menuKick, double
+progress, double time}) frame, ProbeMenuSampleKind kind, double time})>:[
+            ({PointerDownEvent event, ({RRect button, double buttonKick, double buttonOpacity,
+double contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double
+time}) frame, ProbeMenuSampleKind kind, double time}):(event: PointerDownEvent#f220e(position:
+Offset(149.0, 153.0)), frame: (button: RRect.fromLTRBR(66.3, 109.3, 77.3, 120.2, 5.5), buttonKick:
+0.0, buttonOpacity: 0.0, contentOpacity: 1.0, fusionRadius: 0.0, menu: RRect.fromLTRBR(24.0, 80.0,
+274.0, 226.0, 32.0), menuKick: 0.0024440200610499696, progress: 1.0000226093247155, time: 0.874965),
+kind: ProbeMenuSampleKind.pointer, time: 0.874965),
+            ({PointerMoveEvent event, ({RRect button, double buttonKick, double buttonOpacity,
+double contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double
+time}) frame, ProbeMenuSampleKind kind, double time}):(event: PointerMoveEvent#2ea96(position:
+Offset(149.0, 161.0)), frame: (button: RRect.fromLTRBR(66.3, 109.3, 77.3, 120.2, 5.5), buttonKick:
+0.0, buttonOpacity: 0.0, contentOpacity: 1.0, fusionRadius: 0.0, menu: RRect.fromLTRBR(24.0, 80.0,
+274.0, 226.0, 32.0), menuKick: 0.0024440200610499696, progress: 1.0000226093247155, time: 0.874965),
+kind: ProbeMenuSampleKind.pointer, time: 0.874965),
+            ({PointerUpEvent event, ({RRect button, double buttonKick, double buttonOpacity, double
+contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double time})
+frame, ProbeMenuSampleKind kind, double time}):(event: PointerUpEvent#7b932(position: Offset(149.0,
+161.0)), frame: (button: RRect.fromLTRBR(66.3, 109.3, 77.3, 120.2, 5.5), buttonKick: 0.0,
+buttonOpacity: 0.0, contentOpacity: 1.0, fusionRadius: 0.0, menu: RRect.fromLTRBR(24.0, 80.0, 274.0,
+226.0, 32.0), menuKick: 0.0024440200610499696, progress: 1.0000226093247155, time: 0.874965), kind:
+ProbeMenuSampleKind.pointer, time: 0.874965)
+          ]
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:151:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 151
+The test description was:
+  covered open menu ignores the top page gesture, opaque=true
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +0 -3: covered open menu ignores the top page gesture, opaque=true [E]
+  Test failed. See exception logs above.
+  The test description was: covered open menu ignores the top page gesture, opaque=true
+
+00:02 +0 -3: cover revokes held input: source=false, uncover=false
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: <1>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:188:11)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 188
+The test description was:
+  cover revokes held input: source=false, uncover=false
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +0 -4: cover revokes held input: source=false, uncover=false [E]
+  Test failed. See exception logs above.
+  The test description was: cover revokes held input: source=false, uncover=false
+
+00:03 +0 -4: cover revokes held input: source=false, uncover=true
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: <1>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:188:11)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 188
+The test description was:
+  cover revokes held input: source=false, uncover=true
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +0 -5: cover revokes held input: source=false, uncover=true [E]
+  Test failed. See exception logs above.
+  The test description was: cover revokes held input: source=false, uncover=true
+
+00:03 +0 -5: cover revokes held input: source=true, uncover=false
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: <1>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:188:11)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 188
+The test description was:
+  cover revokes held input: source=true, uncover=false
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +0 -6: cover revokes held input: source=true, uncover=false [E]
+  Test failed. See exception logs above.
+  The test description was: cover revokes held input: source=true, uncover=false
+
+00:03 +0 -6: cover revokes held input: source=true, uncover=true
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: <1>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:188:11)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 188
+The test description was:
+  cover revokes held input: source=true, uncover=true
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +0 -7: cover revokes held input: source=true, uncover=true [E]
+  Test failed. See exception logs above.
+  The test description was: cover revokes held input: source=true, uncover=true
+
+00:04 +0 -7: cover preserves an action already committed by a valid release
+00:04 +1 -7: cover from tracked highlight cancels relaxation after command exits
+00:05 +2 -7: due action cover prevents a new release from committing
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: an object with length of <1>
+  Actual: [1, 1]
+   Which: has length of <2>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:278:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 278
+The test description was:
+  due action cover prevents a new release from committing
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:05 +2 -8: due action cover prevents a new release from committing [E]
+  Test failed. See exception logs above.
+  The test description was: due action cover prevents a new release from committing
+
+00:05 +2 -8: covered source landing tail continues without acquiring new input
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: true
+  Actual: <false>
+
+When the exception was thrown, this was the stack:
+#4      _until (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:16:3)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:299:7)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 16
+The test description was:
+  covered source landing tail continues without acquiring new input
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:06 +2 -9: covered source landing tail continues without acquiring new input [E]
+  Test failed. See exception logs above.
+  The test description was: covered source landing tail continues without acquiring new input
+
+00:06 +2 -9: characterization: hidden platform Back with nested=false
+00:06 +3 -9: characterization: hidden Escape with nested=false
+00:06 +4 -9: characterization: hidden platform Back with nested=true
+00:06 +5 -9: characterization: hidden Escape with nested=true
+00:06 +6 -9: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=false
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+  ... and 5 more

@@ -104,6 +104,8 @@ void _apply(MorphMenuMotion reference, ProbeMenuSample sample) {
       reference.open(sample.time);
     case .close:
       reference.close(sample.time);
+    case .cancelInput:
+      reference.pointerCancel(sample.time);
     case .pointer:
       switch (sample.event!) {
         case PointerDownEvent(:final position):

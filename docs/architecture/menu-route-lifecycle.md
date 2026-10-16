@@ -65,3 +65,7 @@ Cover/uncover, replace/remove, programmatic pop, relinquish и Navigator disposa
 - [x] Agree: синтез без запрошенного human checkpoint.
 - [x] Implement: mount gate, отмена запроса, lifetime часов/фокуса, ограничение невидимого closing input.
 - [x] Verify: 194 проверки прототипов; результаты, исходные провалы, хеши и границы — `tool/audit/foundation-p2-2026-10-16/lifecycle/report.md`.
+
+## Продолжение: input ownership
+
+Следующий проход `menu-input-ownership.md` воспроизводит и исправляет описанный выше ввод под покрывающим route, включая held sequence и повторный вход. Отдельно проверены plain/nested Escape и настоящий binding Back с root/приоритетным child Router dispatcher. Это дополняет исторические 194 проверки до 217; текущие результаты и границы — `tool/audit/foundation-p2-2026-10-16/input-ownership/report.md`. Продуктовый выбор раннего push/keyboard policy, context/доступность и P2 в целом остаются открытыми.

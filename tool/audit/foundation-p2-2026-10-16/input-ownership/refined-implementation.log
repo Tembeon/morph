@@ -1,0 +1,100 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered closed source cannot acquire a pointer from another page
+00:01 +1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-tap","rate":60,"pointerOffsetUs":0,"touches":2,"samples":125,"routes":1,"handBacks":1,"selected":[]}
+00:02 +2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered open menu ignores the top page gesture, opaque=false
+00:02 +3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":60,"pointerOffsetUs":0,"touches":4,"samples":133,"routes":1,"handBacks":1,"selected":[]}
+00:02 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered open menu ignores the top page gesture, opaque=true
+00:03 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":60,"pointerOffsetUs":0,"touches":2,"samples":160,"routes":1,"handBacks":1,"selected":[]}
+00:03 +5: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered open menu ignores the top page gesture, opaque=true
+00:03 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-select","rate":60,"pointerOffsetUs":0,"touches":4,"samples":134,"routes":1,"handBacks":1,"selected":[1]}
+00:04 +7: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+00:04 +8: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":60,"pointerOffsetUs":0,"touches":14,"samples":146,"routes":1,"handBacks":1,"selected":[2]}
+00:04 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+00:05 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":60,"pointerOffsetUs":0,"touches":4,"samples":74,"routes":1,"handBacks":1,"selected":[]}
+00:05 +10: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+00:05 +11: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+00:06 +12: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":60,"pointerOffsetUs":0,"touches":16,"samples":452,"routes":4,"handBacks":2,"selected":[]}
+00:06 +13: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+00:07 +14: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+00:07 +15: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":60,"pointerOffsetUs":0,"touches":16,"samples":489,"routes":4,"handBacks":4,"selected":[]}
+00:08 +16: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+00:08 +17: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:09 +18: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:09 +19: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:09 +20: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:09 +20: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: force removal inside tracking skips stale observation and old clock
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: empty
+  Actual: WhereIterable<({PointerEvent? event, ({RRect button, double buttonKick, double
+buttonOpacity, double contentOpacity, double fusionRadius, RRect menu, double menuKick, double
+progress, double time}) frame, ProbeMenuSampleKind kind, double time})>:[
+            ({PointerDownEvent event, ({RRect button, double buttonKick, double buttonOpacity,
+double contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double
+time}) frame, ProbeMenuSampleKind kind, double time}):(event: PointerDownEvent#13367(position:
+Offset(149.0, 153.0)), frame: (button: RRect.fromLTRBR(66.3, 109.3, 77.3, 120.2, 5.5), buttonKick:
+0.0, buttonOpacity: 0.0, contentOpacity: 1.0, fusionRadius: 0.0, menu: RRect.fromLTRBR(24.0, 80.0,
+274.0, 226.0, 32.0), menuKick: 0.0024440200610499696, progress: 1.0000226093247155, time: 0.874965),
+kind: ProbeMenuSampleKind.pointer, time: 0.874965)
+          ]
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:338:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 338
+The test description was:
+  force removal inside tracking skips stale observation and old clock
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:09 +20 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:09 +20 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: force removal inside tracking skips stale observation and old clock [E]
+  Test failed. See exception logs above.
+  The test description was: force removal inside tracking skips stale observation and old clock
+
+00:09 +20 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":60,"pointerOffsetUs":0,"touches":778,"samples":1921,"routes":4,"handBacks":4,"selected":[]}
+00:09 +21 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: characterization: hidden platform Back with nested=false
+00:09 +22 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+00:10 +23 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+00:10 +24 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+00:10 +25 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":60,"pointerOffsetUs":0,"touches":333,"samples":938,"routes":2,"handBacks":2,"selected":[]}
+00:10 +26 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-tap","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":246,"routes":1,"handBacks":1,"selected":[]}
+00:10 +27 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":261,"routes":1,"handBacks":1,"selected":[]}
+00:10 +28 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":317,"routes":1,"handBacks":1,"selected":[]}
+00:10 +29 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-select","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":262,"routes":1,"handBacks":1,"selected":[1]}
+00:10 +30 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":120,"pointerOffsetUs":37000000,"touches":14,"samples":277,"routes":1,"handBacks":1,"selected":[2]}
+00:10 +31 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":143,"routes":1,"handBacks":1,"selected":[]}
+00:10 +32 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":883,"routes":4,"handBacks":2,"selected":[]}
+00:10 +33 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":957,"routes":4,"handBacks":4,"selected":[]}
+00:11 +34 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":120,"pointerOffsetUs":37000000,"touches":778,"samples":3044,"routes":4,"handBacks":4,"selected":[]}
+00:11 +35 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":120,"pointerOffsetUs":37000000,"touches":333,"samples":1533,"routes":2,"handBacks":2,"selected":[]}
+00:11 +36 -1: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: force removal inside tracking skips stale observation and old clock

@@ -52,6 +52,13 @@ class ProbeMenuTransfer {
   /// The only lease allowed to sample or command the model.
   ProbeMenuLease get owner => _owner;
 
+  /// Cancels the held interaction without removing committed release work.
+  bool cancelPointer(ProbeMenuLease lease) {
+    if (!identical(lease, _owner)) return false;
+    _motion.pointerCancel(_motion.time);
+    return true;
+  }
+
   /// Whether this closing frame may pass the landing tail to the source.
   bool get readyToHandBack =>
       _owner.kind == .route && _motion.isClosing && _motion.progress <= 0;

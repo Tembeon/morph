@@ -1,0 +1,449 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered closed source cannot acquire a pointer from another page
+00:01 +1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-tap","rate":60,"pointerOffsetUs":0,"touches":2,"samples":125,"routes":1,"handBacks":1,"selected":[]}
+00:02 +2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered open menu ignores the top page gesture, opaque=false
+00:02 +3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":60,"pointerOffsetUs":0,"touches":4,"samples":133,"routes":1,"handBacks":1,"selected":[]}
+00:03 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered open menu ignores the top page gesture, opaque=true
+00:03 +5: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":60,"pointerOffsetUs":0,"touches":2,"samples":160,"routes":1,"handBacks":1,"selected":[]}
+00:03 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+00:04 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-select","rate":60,"pointerOffsetUs":0,"touches":4,"samples":134,"routes":1,"handBacks":1,"selected":[1]}
+00:04 +7: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+00:04 +8: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":60,"pointerOffsetUs":0,"touches":14,"samples":146,"routes":1,"handBacks":1,"selected":[2]}
+00:04 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+00:04 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":60,"pointerOffsetUs":0,"touches":4,"samples":74,"routes":1,"handBacks":1,"selected":[]}
+00:04 +10: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+00:05 +11: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+══╡ EXCEPTION CAUGHT BY GESTURE LIBRARY ╞═══════════════════════════════════════════════════════════
+The following TestFailure was thrown while routing a pointer event:
+Expected: null
+  Actual: ProbeMenuRoute:<ProbeMenuRoute(RouteSettings(none, null), animation:
+_MenuAnimation#fbdb8(◀))>
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure>.<anonymous closure>.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:192:23)
+#5      _MenuSession.emit (package:morph_example/proto/menu_route_probe.dart:414:15)
+#6      _MenuSession.handlePointer (package:morph_example/proto/menu_route_probe.dart:470:9)
+#7      PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:97:12)
+#8      PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:140:9)
+#9      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#10     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:138:18)
+#11     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:130:5)
+#12     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:538:19)
+#13     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:508:22)
+#14     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#15     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:447:7)
+#16     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:404:5)
+#17     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1571:42)
+#18     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1581:11)
+#19     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1571:5)
+#20     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#23     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#24     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#25     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:256:26)
+<asynchronous suspension>
+#26     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#27     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+router: Instance of 'PointerRouter'
+route: Closure: (PointerEvent, {bool sourceHit}) => void from Function 'handlePointer':.
+event: PointerDownEvent#56490(position: Offset(201.0, 437.0))
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY GESTURE LIBRARY ╞═══════════════════════════════════════════════════════════
+The following TestFailure was thrown while routing a pointer event:
+Expected: true
+  Actual: <false>
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure>.<anonymous closure>.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:199:23)
+#5      _MenuSession.emit (package:morph_example/proto/menu_route_probe.dart:414:15)
+#6      _MenuSession.handlePointer (package:morph_example/proto/menu_route_probe.dart:478:9)
+#7      PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:97:12)
+#8      PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:140:9)
+#9      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#10     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:138:18)
+#11     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:130:5)
+#12     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:538:19)
+#13     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:508:22)
+#14     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#15     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:447:7)
+#16     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:404:5)
+#17     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1571:42)
+#18     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1581:11)
+#19     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1571:5)
+#20     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#23     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#24     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#25     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:256:26)
+<asynchronous suspension>
+#26     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#27     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+router: Instance of 'PointerRouter'
+route: Closure: (PointerEvent, {bool sourceHit}) => void from Function 'handlePointer':.
+event: PointerUpEvent#2e575(position: Offset(201.0, 437.0))
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY GESTURE LIBRARY ╞═══════════════════════════════════════════════════════════
+The following TestFailure was thrown while routing a pointer event:
+Expected: null
+  Actual: ProbeMenuRoute:<ProbeMenuRoute(RouteSettings(none, null), animation:
+_MenuAnimation#14424(◀))>
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure>.<anonymous closure>.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:192:23)
+#5      _MenuSession.emit (package:morph_example/proto/menu_route_probe.dart:414:15)
+#6      _MenuSession.handlePointer (package:morph_example/proto/menu_route_probe.dart:470:9)
+#7      PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:97:12)
+#8      PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:140:9)
+#9      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#10     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:138:18)
+#11     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:130:5)
+#12     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:538:19)
+#13     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:508:22)
+#14     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#15     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:447:7)
+#16     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:404:5)
+#17     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1571:42)
+#18     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1581:11)
+#19     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1571:5)
+#20     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#23     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#24     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#25     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:256:26)
+<asynchronous suspension>
+#26     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#27     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+router: Instance of 'PointerRouter'
+route: Closure: (PointerEvent, {bool sourceHit}) => void from Function 'handlePointer':.
+event: PointerDownEvent#d39fe(position: Offset(201.0, 437.0))
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY GESTURE LIBRARY ╞═══════════════════════════════════════════════════════════
+The following TestFailure was thrown while routing a pointer event:
+Expected: true
+  Actual: <false>
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure>.<anonymous closure>.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:199:23)
+#5      _MenuSession.emit (package:morph_example/proto/menu_route_probe.dart:414:15)
+#6      _MenuSession.handlePointer (package:morph_example/proto/menu_route_probe.dart:478:9)
+#7      PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:97:12)
+#8      PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:140:9)
+#9      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#10     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:138:18)
+#11     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:130:5)
+#12     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:538:19)
+#13     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:508:22)
+#14     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#15     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:447:7)
+#16     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:404:5)
+#17     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1571:42)
+#18     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1581:11)
+#19     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1571:5)
+#20     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#23     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#24     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#25     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:256:26)
+<asynchronous suspension>
+#26     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#27     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+router: Instance of 'PointerRouter'
+route: Closure: (PointerEvent, {bool sourceHit}) => void from Function 'handlePointer':.
+event: PointerUpEvent#61fd7(position: Offset(201.0, 437.0))
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:05 +12: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":60,"pointerOffsetUs":0,"touches":16,"samples":275,"routes":2,"handBacks":2,"selected":[]}
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (4) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:05 +12 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+00:05 +12 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz [E]
+  Test failed. See exception logs above.
+  The test description was: center3-reopen2-50: raw recorded input through root route at 60 Hz
+
+00:06 +13 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+00:07 +14 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":60,"pointerOffsetUs":0,"touches":16,"samples":489,"routes":4,"handBacks":4,"selected":[]}
+00:07 +15 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+00:07 +16 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:08 +17 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:08 +17 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered source landing tail continues without acquiring new input
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: true
+  Actual: <false>
+
+When the exception was thrown, this was the stack:
+#4      _until (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:16:3)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart:299:7)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart line 16
+The test description was:
+  covered source landing tail continues without acquiring new input
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:08 +17 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:08 +17 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered source landing tail continues without acquiring new input [E]
+  Test failed. See exception logs above.
+  The test description was: covered source landing tail continues without acquiring new input
+
+00:08 +18 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:09 +19 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:09 +20 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:09 +21 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":60,"pointerOffsetUs":0,"touches":778,"samples":1921,"routes":4,"handBacks":4,"selected":[]}
+00:09 +22 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":60,"pointerOffsetUs":0,"touches":333,"samples":938,"routes":2,"handBacks":2,"selected":[]}
+00:10 +23 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-tap","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":246,"routes":1,"handBacks":1,"selected":[]}
+00:11 +24 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":261,"routes":1,"handBacks":1,"selected":[]}
+00:11 +25 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":317,"routes":1,"handBacks":1,"selected":[]}
+00:12 +26 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-select","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":262,"routes":1,"handBacks":1,"selected":[1]}
+00:12 +27 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":120,"pointerOffsetUs":37000000,"touches":14,"samples":277,"routes":1,"handBacks":1,"selected":[2]}
+00:13 +28 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":143,"routes":1,"handBacks":1,"selected":[]}
+00:13 +29 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 120 Hz
+══╡ EXCEPTION CAUGHT BY GESTURE LIBRARY ╞═══════════════════════════════════════════════════════════
+The following TestFailure was thrown while routing a pointer event:
+Expected: null
+  Actual: ProbeMenuRoute:<ProbeMenuRoute(RouteSettings(none, null), animation:
+_MenuAnimation#ced1b(◀))>
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure>.<anonymous closure>.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:192:23)
+#5      _MenuSession.emit (package:morph_example/proto/menu_route_probe.dart:414:15)
+#6      _MenuSession.handlePointer (package:morph_example/proto/menu_route_probe.dart:470:9)
+#7      PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:97:12)
+#8      PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:140:9)
+#9      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#10     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:138:18)
+#11     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:130:5)
+#12     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:538:19)
+#13     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:508:22)
+#14     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#15     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:447:7)
+#16     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:404:5)
+#17     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1571:42)
+#18     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1581:11)
+#19     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1571:5)
+#20     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#23     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#24     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#25     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:256:26)
+<asynchronous suspension>
+#26     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#27     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+router: Instance of 'PointerRouter'
+route: Closure: (PointerEvent, {bool sourceHit}) => void from Function 'handlePointer':.
+event: PointerDownEvent#6d39d(position: Offset(201.0, 437.0))
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY GESTURE LIBRARY ╞═══════════════════════════════════════════════════════════
+The following TestFailure was thrown while routing a pointer event:
+Expected: true
+  Actual: <false>
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure>.<anonymous closure>.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:199:23)
+#5      _MenuSession.emit (package:morph_example/proto/menu_route_probe.dart:414:15)
+#6      _MenuSession.handlePointer (package:morph_example/proto/menu_route_probe.dart:478:9)
+#7      PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:97:12)
+#8      PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:140:9)
+#9      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#10     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:138:18)
+#11     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:130:5)
+#12     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:538:19)
+#13     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:508:22)
+#14     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#15     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:447:7)
+#16     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:404:5)
+#17     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1571:42)
+#18     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1581:11)
+#19     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1571:5)
+#20     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#23     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#24     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#25     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:256:26)
+<asynchronous suspension>
+#26     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#27     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+router: Instance of 'PointerRouter'
+route: Closure: (PointerEvent, {bool sourceHit}) => void from Function 'handlePointer':.
+event: PointerUpEvent#d46b8(position: Offset(201.0, 437.0))
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY GESTURE LIBRARY ╞═══════════════════════════════════════════════════════════
+The following TestFailure was thrown while routing a pointer event:
+Expected: null
+  Actual: ProbeMenuRoute:<ProbeMenuRoute(RouteSettings(none, null), animation:
+_MenuAnimation#84642(◀))>
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure>.<anonymous closure>.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:192:23)
+#5      _MenuSession.emit (package:morph_example/proto/menu_route_probe.dart:414:15)
+#6      _MenuSession.handlePointer (package:morph_example/proto/menu_route_probe.dart:470:9)
+#7      PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:97:12)
+#8      PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:140:9)
+#9      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#10     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:138:18)
+#11     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:130:5)
+#12     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:538:19)
+#13     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:508:22)
+#14     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#15     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:447:7)
+#16     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:404:5)
+#17     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1571:42)
+#18     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1581:11)
+#19     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1571:5)
+#20     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#23     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#24     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#25     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:256:26)
+<asynchronous suspension>
+#26     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#27     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+router: Instance of 'PointerRouter'
+route: Closure: (PointerEvent, {bool sourceHit}) => void from Function 'handlePointer':.
+event: PointerDownEvent#8af65(position: Offset(201.0, 437.0))
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY GESTURE LIBRARY ╞═══════════════════════════════════════════════════════════
+The following TestFailure was thrown while routing a pointer event:
+Expected: true
+  Actual: <false>
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect (package:matcher/src/expect/expect.dart:182:3)
+#2      expect (package:matcher/src/expect/expect.dart:65:3)
+#3      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#4      main.<anonymous closure>.<anonymous closure>.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:199:23)
+#5      _MenuSession.emit (package:morph_example/proto/menu_route_probe.dart:414:15)
+#6      _MenuSession.handlePointer (package:morph_example/proto/menu_route_probe.dart:478:9)
+#7      PointerRouter._dispatch (package:flutter/src/gestures/pointer_router.dart:97:12)
+#8      PointerRouter._dispatchEventToRoutes.<anonymous closure> (package:flutter/src/gestures/pointer_router.dart:140:9)
+#9      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#10     PointerRouter._dispatchEventToRoutes (package:flutter/src/gestures/pointer_router.dart:138:18)
+#11     PointerRouter.route (package:flutter/src/gestures/pointer_router.dart:130:5)
+#12     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:538:19)
+#13     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:508:22)
+#14     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#15     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:447:7)
+#16     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:404:5)
+#17     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1571:42)
+#18     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1581:11)
+#19     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1571:5)
+#20     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#23     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#24     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#25     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart:256:26)
+<asynchronous suspension>
+#26     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#27     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from dart:async and package:stack_trace)
+
+router: Instance of 'PointerRouter'
+route: Closure: (PointerEvent, {bool sourceHit}) => void from Function 'handlePointer':.
+event: PointerUpEvent#2acf0(position: Offset(201.0, 437.0))
+════════════════════════════════════════════════════════════════════════════════════════════════════
+P2_REPLAY {"recording":"center3-reopen2-50","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":531,"routes":2,"handBacks":2,"selected":[]}
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (4) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:14 +29 -3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 120 Hz [E]
+  Test failed. See exception logs above.
+  The test description was: center3-reopen2-50: raw recorded input through root route at 120 Hz
+
+00:14 +29 -3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":957,"routes":4,"handBacks":4,"selected":[]}
+00:15 +30 -3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":120,"pointerOffsetUs":37000000,"touches":778,"samples":3044,"routes":4,"handBacks":4,"selected":[]}
+00:18 +31 -3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":120,"pointerOffsetUs":37000000,"touches":333,"samples":1533,"routes":2,"handBacks":2,"selected":[]}
+00:19 +32 -3: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered source landing tail continues without acquiring new input
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 120 Hz
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz

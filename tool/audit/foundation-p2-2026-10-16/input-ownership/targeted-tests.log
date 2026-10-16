@@ -1,0 +1,62 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered closed source cannot acquire a pointer from another page
+00:01 +1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-tap","rate":60,"pointerOffsetUs":0,"touches":2,"samples":125,"routes":1,"handBacks":1,"selected":[]}
+00:02 +2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered open menu ignores the top page gesture, opaque=false
+00:02 +3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":60,"pointerOffsetUs":0,"touches":4,"samples":133,"routes":1,"handBacks":1,"selected":[]}
+00:02 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered open menu ignores the top page gesture, opaque=true
+00:03 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":60,"pointerOffsetUs":0,"touches":2,"samples":160,"routes":1,"handBacks":1,"selected":[]}
+00:03 +5: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:03 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+00:04 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-select","rate":60,"pointerOffsetUs":0,"touches":4,"samples":134,"routes":1,"handBacks":1,"selected":[1]}
+00:04 +7: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+00:04 +8: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":60,"pointerOffsetUs":0,"touches":14,"samples":146,"routes":1,"handBacks":1,"selected":[2]}
+00:04 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+00:04 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":60,"pointerOffsetUs":0,"touches":4,"samples":74,"routes":1,"handBacks":1,"selected":[]}
+00:04 +10: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+00:04 +11: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+00:05 +12: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":60,"pointerOffsetUs":0,"touches":16,"samples":452,"routes":4,"handBacks":4,"selected":[]}
+00:06 +13: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+00:06 +14: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+00:06 +15: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":60,"pointerOffsetUs":0,"touches":16,"samples":489,"routes":4,"handBacks":4,"selected":[]}
+00:07 +16: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+00:07 +17: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:07 +18: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:08 +19: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:08 +20: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":60,"pointerOffsetUs":0,"touches":778,"samples":1921,"routes":4,"handBacks":4,"selected":[]}
+00:09 +21: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: force removal inside tracking skips stale observation and old clock
+00:09 +22: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+00:09 +23: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+00:09 +24: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+00:10 +25: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+00:10 +26: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":60,"pointerOffsetUs":0,"touches":333,"samples":938,"routes":2,"handBacks":2,"selected":[]}
+00:10 +27: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-tap","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":246,"routes":1,"handBacks":1,"selected":[]}
+00:11 +28: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":261,"routes":1,"handBacks":1,"selected":[]}
+00:11 +29: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":317,"routes":1,"handBacks":1,"selected":[]}
+00:11 +30: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-select","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":262,"routes":1,"handBacks":1,"selected":[1]}
+00:12 +31: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":120,"pointerOffsetUs":37000000,"touches":14,"samples":277,"routes":1,"handBacks":1,"selected":[2]}
+00:12 +32: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":143,"routes":1,"handBacks":1,"selected":[]}
+00:13 +33: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":883,"routes":4,"handBacks":4,"selected":[]}
+00:14 +34: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":957,"routes":4,"handBacks":4,"selected":[]}
+00:16 +35: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":120,"pointerOffsetUs":37000000,"touches":778,"samples":3044,"routes":4,"handBacks":4,"selected":[]}
+00:18 +36: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":120,"pointerOffsetUs":37000000,"touches":333,"samples":1533,"routes":2,"handBacks":2,"selected":[]}
+00:20 +37: All tests passed!

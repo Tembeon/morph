@@ -107,6 +107,7 @@ void main() {
                             reference.close(sample.time);
                           case .frame:
                             reference.advance(sample.time);
+                          case .cancelInput:
                           case .pointer:
                           case .ignoredPointer:
                             fail(
