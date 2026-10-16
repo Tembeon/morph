@@ -358,6 +358,15 @@ class _MenuSession {
   }
 
   void handlePointer(PointerEvent event) {
+    final route = activeRoute;
+    if (route != null && route.closing && !route._revealed.value) {
+      if (event.pointer == _pointer &&
+          (event is PointerUpEvent || event is PointerCancelEvent)) {
+        _pointer = null;
+      }
+      emit(.ignoredPointer, event: event);
+      return;
+    }
     if (event is PointerDownEvent) {
       if (_pointer != null || event.buttons != kPrimaryButton) return;
       if (activeRoute == null &&
@@ -388,11 +397,17 @@ class _MenuSession {
 }
 
 class _DismissAttempt {
-  _DismissAttempt(this.requestedAt, {required this.fromModel});
+  _DismissAttempt(
+    this.requestedAt, {
+    required this.fromModel,
+    this.consultPolicy = true,
+  });
 
   final double requestedAt;
+  final bool consultPolicy;
   bool fromModel;
   Completer<RoutePopDisposition>? permission;
+  Completer<bool>? firstMount;
   bool approved = false;
   bool claimed = false;
 }
@@ -412,6 +427,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
   double? _admittedCloseTime;
   Route<Object?>? _nextRoute;
   _DismissAttempt? _dismissal;
+  _MountedMenuPolicyState? _policyMount;
   late final ProbeMotionClock _clock;
 
   /// Whether logical pop has started closing this presentation.
@@ -441,6 +457,8 @@ class ProbeMenuRoute extends PopupRoute<void> {
   /// Whether this close was committed after waiting for SDK permission.
   bool deferredClose = false;
 
+  bool get _policyReady => _policyMount?._ready ?? false;
+
   bool _isLive(_DismissAttempt request) =>
       identical(_dismissal, request) &&
       !disposed &&
@@ -456,7 +474,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
       current.fromModel = true;
       return true;
     }
-    if (!hasScopedWillPopCallback) return false;
+    if (_policyReady && !hasScopedWillPopCallback) return false;
     closeRequestedAt = time;
     _dismissal = _DismissAttempt(time, fromModel: true);
     return true;
@@ -474,6 +492,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     final request = _dismissal ??= _DismissAttempt(
       frame.time,
       fromModel: false,
+      consultPolicy: _revealed.value || _session.transfer.isOpen,
     );
     closeRequestedAt = request.requestedAt;
     if (!_isLive(request)) {
@@ -501,7 +520,13 @@ class ProbeMenuRoute extends PopupRoute<void> {
   ) async {
     var result = RoutePopDisposition.doNotPop;
     try {
-      final answer = await super.willPop();
+      if (request.consultPolicy && !_policyReady) {
+        final mounted = request.firstMount ??= Completer<bool>();
+        if (!await mounted.future || !_isLive(request)) return;
+      }
+      final answer = request.consultPolicy
+          ? await super.willPop()
+          : RoutePopDisposition.pop;
       if (_isLive(request)) {
         if (answer == RoutePopDisposition.doNotPop) {
           _invalidateDismissal();
@@ -551,8 +576,13 @@ class ProbeMenuRoute extends PopupRoute<void> {
   }
 
   void _invalidateDismissal() {
-    final permission = _dismissal?.permission;
+    final request = _dismissal;
     _dismissal = null;
+    final firstMount = request?.firstMount;
+    if (firstMount != null && !firstMount.isCompleted) {
+      firstMount.complete(false);
+    }
+    final permission = request?.permission;
     if (permission != null && !permission.isCompleted) {
       permission.complete(RoutePopDisposition.doNotPop);
     }
@@ -581,7 +611,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
   }
 
   @override
-  bool get requestFocus => _revealed.value;
+  bool get requestFocus => !disposed && _revealed.value;
 
   @override
   Duration get transitionDuration => Duration.zero;
@@ -723,7 +753,9 @@ class ProbeMenuRoute extends PopupRoute<void> {
           builder: (context, revealed, _) => revealed
               ? Flow(
                   delegate: _MenuContentFlow(_session, _lease),
-                  children: [_builder(context)],
+                  children: [
+                    _MountedMenuPolicy(route: this, builder: _builder),
+                  ],
                 )
               : const SizedBox.shrink(),
         ),
@@ -733,14 +765,60 @@ class ProbeMenuRoute extends PopupRoute<void> {
 
   @override
   void dispose() {
+    disposed = true;
     _invalidateDismissal();
     _clock.dispose();
     _pushSignal.dispose();
     super.dispose();
     _projection.dispose();
     _revealed.dispose();
-    disposed = true;
     _session.routeDisposed(this);
+  }
+}
+
+class _MountedMenuPolicy extends StatefulWidget {
+  const _MountedMenuPolicy({required this.route, required this.builder});
+
+  final ProbeMenuRoute route;
+  final WidgetBuilder builder;
+
+  @override
+  State<_MountedMenuPolicy> createState() => _MountedMenuPolicyState();
+}
+
+class _MountedMenuPolicyState extends State<_MountedMenuPolicy> {
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.route._policyMount = this;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final route = widget.route;
+      if (!mounted || !identical(route._policyMount, this)) return;
+      _ready = true;
+      final request = route._dismissal;
+      final firstMount = request?.firstMount;
+      if (request != null &&
+          route._isLive(request) &&
+          firstMount != null &&
+          !firstMount.isCompleted) {
+        firstMount.complete(true);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(context);
+
+  @override
+  void dispose() {
+    final route = widget.route;
+    if (identical(route._policyMount, this)) {
+      route._policyMount = null;
+      route._invalidateDismissal();
+    }
+    super.dispose();
   }
 }
 

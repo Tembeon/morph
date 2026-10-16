@@ -1,0 +1,224 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart
+00:00 +0: clock disposal from sample with settled=false stops publication
+══╡ EXCEPTION CAUGHT BY SCHEDULER LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during a scheduler callback:
+A ValueNotifier<int> was used after being disposed.
+Once you have called dispose() on a ValueNotifier<int>, it can no longer be used.
+
+When the exception was thrown, this was the stack:
+#0      ChangeNotifier.debugAssertNotDisposed.<anonymous closure> (package:flutter/src/foundation/change_notifier.dart:184:9)
+#1      ChangeNotifier.debugAssertNotDisposed (package:flutter/src/foundation/change_notifier.dart:191:6)
+#2      ChangeNotifier.notifyListeners (package:flutter/src/foundation/change_notifier.dart:414:27)
+#3      ValueNotifier.value= (package:flutter/src/foundation/change_notifier.dart:563:5)
+#4      ProbeMotionClock._tick (package:morph_example/proto/motion_clock_probe.dart:141:13)
+#5      Ticker._tick (package:flutter/src/scheduler/ticker.dart:278:12)
+#6      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#7      SchedulerBinding.handleBeginFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1263:11)
+#8      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#9      SchedulerBinding.handleBeginFrame (package:flutter/src/scheduler/binding.dart:1261:17)
+#10     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2259:9)
+#13     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#14     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2250:27)
+#15     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
+#18     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#19     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
+#20     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart:30:24)
+#21     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#22     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+
+
+This exception was thrown in the context of a scheduler callback. When the scheduler callback was _registered_ (as opposed to when the exception was thrown), this was the stack:
+#2      SchedulerBinding.scheduleFrameCallback (package:flutter/src/scheduler/binding.dart:617:49)
+#3      Ticker.scheduleTick (package:flutter/src/scheduler/ticker.dart:299:46)
+#4      Ticker.start (package:flutter/src/scheduler/ticker.dart:201:7)
+#5      ProbeMotionClock.wake (package:morph_example/proto/motion_clock_probe.dart:173:36)
+#6      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart:29:17)
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from class _FrameCallbackEntry and package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -1: clock disposal from sample with settled=false stops publication [E]
+  Test failed. See exception logs above.
+  The test description was: clock disposal from sample with settled=false stops publication
+
+00:00 +0 -1: clock disposal from sample with settled=true stops publication
+══╡ EXCEPTION CAUGHT BY SCHEDULER LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during a scheduler callback:
+A ValueNotifier<int> was used after being disposed.
+Once you have called dispose() on a ValueNotifier<int>, it can no longer be used.
+
+When the exception was thrown, this was the stack:
+#0      ChangeNotifier.debugAssertNotDisposed.<anonymous closure> (package:flutter/src/foundation/change_notifier.dart:184:9)
+#1      ChangeNotifier.debugAssertNotDisposed (package:flutter/src/foundation/change_notifier.dart:191:6)
+#2      ChangeNotifier.notifyListeners (package:flutter/src/foundation/change_notifier.dart:414:27)
+#3      ValueNotifier.value= (package:flutter/src/foundation/change_notifier.dart:563:5)
+#4      ProbeMotionClock._tick (package:morph_example/proto/motion_clock_probe.dart:141:13)
+#5      Ticker._tick (package:flutter/src/scheduler/ticker.dart:278:12)
+#6      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#7      SchedulerBinding.handleBeginFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1263:11)
+#8      _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#9      SchedulerBinding.handleBeginFrame (package:flutter/src/scheduler/binding.dart:1261:17)
+#10     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2259:9)
+#13     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#14     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2250:27)
+#15     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
+#18     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#19     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
+#20     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart:30:24)
+#21     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#22     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+
+
+This exception was thrown in the context of a scheduler callback. When the scheduler callback was _registered_ (as opposed to when the exception was thrown), this was the stack:
+#2      SchedulerBinding.scheduleFrameCallback (package:flutter/src/scheduler/binding.dart:617:49)
+#3      Ticker.scheduleTick (package:flutter/src/scheduler/ticker.dart:299:46)
+#4      Ticker.start (package:flutter/src/scheduler/ticker.dart:201:7)
+#5      ProbeMotionClock.wake (package:morph_example/proto/motion_clock_probe.dart:173:36)
+#6      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart:29:17)
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 3 frames from class _FrameCallbackEntry and package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -2: clock disposal from sample with settled=true stops publication [E]
+  Test failed. See exception logs above.
+  The test description was: clock disposal from sample with settled=true stops publication
+
+00:00 +0 -2: clock disposal from listener with settled=false stops publication
+══╡ EXCEPTION CAUGHT BY FOUNDATION LIBRARY ╞════════════════════════════════════════════════════════
+The following assertion was thrown while dispatching notifications for ValueNotifier<int>:
+The "dispose()" method on ValueNotifier<int>#aaa0e(1) was called during the call to
+"notifyListeners()". This is likely to cause errors since it modifies the list of listeners while
+the list is being used.
+'package:flutter/src/foundation/change_notifier.dart':
+Failed assertion: line 379 pos 7: '_notificationCallStackDepth == 0'
+
+When the exception was thrown, this was the stack:
+#2      ChangeNotifier.dispose (package:flutter/src/foundation/change_notifier.dart:379:7)
+#3      ProbeMotionClock.dispose (package:morph_example/proto/motion_clock_probe.dart:214:13)
+#4      main.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart:27:37)
+#5      ChangeNotifier.notifyListeners (package:flutter/src/foundation/change_notifier.dart:435:24)
+#6      ValueNotifier.value= (package:flutter/src/foundation/change_notifier.dart:563:5)
+#7      ProbeMotionClock._tick (package:morph_example/proto/motion_clock_probe.dart:141:13)
+#8      Ticker._tick (package:flutter/src/scheduler/ticker.dart:278:12)
+#9      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#10     SchedulerBinding.handleBeginFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1263:11)
+#11     _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#12     SchedulerBinding.handleBeginFrame (package:flutter/src/scheduler/binding.dart:1261:17)
+#13     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2259:9)
+#16     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#17     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2250:27)
+#18     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
+#21     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#22     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
+#23     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart:30:24)
+#24     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#25     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 7 frames from class _AssertionError, dart:async, and package:stack_trace)
+
+The ValueNotifier<int> sending notification was:
+  ValueNotifier<int>#aaa0e(1)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+'package:flutter/src/scheduler/ticker.dart': Failed assertion: line 198 pos 12: '_startTime ==
+null': is not true.
+
+When the exception was thrown, this was the stack:
+#2      Ticker.start (package:flutter/src/scheduler/ticker.dart:198:12)
+#3      ProbeMotionClock._endDoze (package:morph_example/proto/motion_clock_probe.dart:166:36)
+#13     FakeTimer._fire (package:fake_async/fake_async.dart:364:13)
+#14     FakeAsync._fireTimersWhile (package:fake_async/fake_async.dart:247:13)
+#15     FakeAsync.elapse (package:fake_async/fake_async.dart:141:5)
+#16     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2254:28)
+#19     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#20     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2250:27)
+#21     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
+#24     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#25     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
+#26     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart:31:24)
+<asynchronous suspension>
+#27     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#28     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 16 frames from class _AssertionError, dart:async, and package:stack_trace)
+
+The test description was:
+  clock disposal from listener with settled=false stops publication
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (2) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -3: clock disposal from listener with settled=false stops publication [E]
+  Test failed. See exception logs above.
+  The test description was: clock disposal from listener with settled=false stops publication
+
+00:00 +0 -3: clock disposal from listener with settled=true stops publication
+══╡ EXCEPTION CAUGHT BY FOUNDATION LIBRARY ╞════════════════════════════════════════════════════════
+The following assertion was thrown while dispatching notifications for ValueNotifier<int>:
+The "dispose()" method on ValueNotifier<int>#6cc78(1) was called during the call to
+"notifyListeners()". This is likely to cause errors since it modifies the list of listeners while
+the list is being used.
+'package:flutter/src/foundation/change_notifier.dart':
+Failed assertion: line 379 pos 7: '_notificationCallStackDepth == 0'
+
+When the exception was thrown, this was the stack:
+#2      ChangeNotifier.dispose (package:flutter/src/foundation/change_notifier.dart:379:7)
+#3      ProbeMotionClock.dispose (package:morph_example/proto/motion_clock_probe.dart:214:13)
+#4      main.<anonymous closure>.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart:27:37)
+#5      ChangeNotifier.notifyListeners (package:flutter/src/foundation/change_notifier.dart:435:24)
+#6      ValueNotifier.value= (package:flutter/src/foundation/change_notifier.dart:563:5)
+#7      ProbeMotionClock._tick (package:morph_example/proto/motion_clock_probe.dart:141:13)
+#8      Ticker._tick (package:flutter/src/scheduler/ticker.dart:278:12)
+#9      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#10     SchedulerBinding.handleBeginFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1263:11)
+#11     _LinkedHashMapMixin.forEach (dart:_compact_hash:721:13)
+#12     SchedulerBinding.handleBeginFrame (package:flutter/src/scheduler/binding.dart:1261:17)
+#13     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2259:9)
+#16     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#17     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2250:27)
+#18     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
+#21     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#22     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
+#23     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart:30:24)
+#24     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#25     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 7 frames from class _AssertionError, dart:async, and package:stack_trace)
+
+The ValueNotifier<int> sending notification was:
+  ValueNotifier<int>#6cc78(1)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -4: clock disposal from listener with settled=true stops publication [E]
+  Test failed. See exception logs above.
+  The test description was: clock disposal from listener with settled=true stops publication
+
+00:01 +0 -4: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart: clock disposal from listener with settled=false stops publication
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart: clock disposal from listener with settled=true stops publication
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart: clock disposal from sample with settled=false stops publication
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart: clock disposal from sample with settled=true stops publication

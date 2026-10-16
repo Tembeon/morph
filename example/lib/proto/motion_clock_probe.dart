@@ -39,6 +39,8 @@ class ProbeMotionClock {
   double _time = 0;
   double _tickTime = 0;
   bool _ticking = false;
+  bool _disposed = false;
+  bool _publishing = false;
   bool _stampsAgree = false;
   Duration? _tickStamp;
   Duration? _stampFrom;
@@ -138,7 +140,15 @@ class ProbeMotionClock {
     _ticking = true;
     _stampFrom = null;
     final outcome = onFrame(_time);
-    _frames.value++;
+    if (_disposed) return;
+    _publishing = true;
+    try {
+      _frames.value++;
+    } finally {
+      _publishing = false;
+      if (_disposed) _frames.dispose();
+    }
+    if (_disposed) return;
     if (outcome.settled) {
       _base = _time;
       _ticking = false;
@@ -209,8 +219,9 @@ class ProbeMotionClock {
 
   /// Releases the ticker, delayed wake and frame listeners.
   void dispose() {
+    _disposed = true;
     _doze?.cancel();
     _ticker.dispose();
-    _frames.dispose();
+    if (!_publishing) _frames.dispose();
   }
 }

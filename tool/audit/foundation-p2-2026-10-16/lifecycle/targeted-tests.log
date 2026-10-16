@@ -1,0 +1,21 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: hidden preparation is a real root route and cancellation is visible
+00:00 +1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: hidden preparation is a real root route and cancellation is visible
+00:00 +2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: hidden preparation is a real root route and cancellation is visible
+00:00 +3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: hidden preparation is a real root route and cancellation is visible
+00:00 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: hidden preparation is a real root route and cancellation is visible
+00:01 +5: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: root Back cancels unmounted preparation without building menu
+00:01 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: abandoned hidden press consumes move and up before disposal
+00:02 +7: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: new down during abandoned preparation cannot rearm its model
+00:03 +8: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: nested raw hold keeps pointer and mounts policy on root route
+00:03 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: first-mount waiting is canceled by cover
+00:04 +10: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: first-mount waiting is canceled by cover-uncover
+00:04 +11: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: first-mount waiting is canceled by remove
+00:04 +12: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: first-mount waiting is canceled by replace
+00:04 +13: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: first-mount waiting is canceled by pop
+00:04 +14: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: first-mount waiting is canceled by unmount
+00:04 +15: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: pre-mount maybePop waits for revealed policy: false
+00:04 +16: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: pre-mount maybePop waits for revealed policy: true
+00:04 +17: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: first mount discovers async guard and coalesces SDK requests
+00:04 +18: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: coarse first frame mounts policy before early pointer dismissal
+00:05 +19: All tests passed!
