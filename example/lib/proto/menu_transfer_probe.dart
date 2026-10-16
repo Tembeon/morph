@@ -1,4 +1,5 @@
 import 'package:flutter/painting.dart';
+import 'package:flutter/gestures.dart';
 import 'package:morph/motion.dart';
 
 /// The widget responsible for sampling the menu model.
@@ -56,6 +57,40 @@ class ProbeMenuTransfer {
 
   /// Whether the complete measured model has no remaining work.
   bool get isSettled => _motion.isSettled;
+
+  /// Whether the measured opening has started.
+  bool get isOpen => _motion.isOpen;
+
+  /// Whether the model has begun its measured closing.
+  bool get isClosing => _motion.isClosing;
+
+  /// Whether an early touch belongs to a pending menu.
+  bool get isOpenPending => _motion.isOpenPending;
+
+  /// Whether a source press or delayed opening is still armed.
+  bool get isArming => _motion.isArming;
+
+  /// Whether a visible morph, including its closing tail, still exists.
+  bool get isPresented => _motion.isPresented;
+
+  /// Applies raw input on the active owner's local clock.
+  double? pointer(ProbeMenuLease lease, double localTime, PointerEvent event) {
+    if (!identical(lease, _owner)) return null;
+    final time = localTime + _offset;
+    switch (event) {
+      case PointerDownEvent():
+        _motion.pointerDown(time, event.position);
+      case PointerMoveEvent():
+        _motion.pointerMove(time, event.position);
+      case PointerUpEvent():
+        _motion.pointerUp(time, event.position);
+      case PointerCancelEvent():
+        _motion.pointerCancel(time);
+      default:
+        return null;
+    }
+    return time;
+  }
 
   /// A value snapshot; no writable motion reference is exposed.
   ProbeMenuFrame get frame => (

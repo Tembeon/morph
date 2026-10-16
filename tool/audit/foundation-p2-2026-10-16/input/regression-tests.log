@@ -1,0 +1,124 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/test/menu_drag_out_test.dart: the captures hold the drags off the menu
+00:00 +1: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +2: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +3: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +4: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +5: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +6: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +7: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +8: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +9: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +10: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap during the close re-opens the same morph on its release
+00:00 +11: /Users/tembeon/IdeaProjects/morph/test/menu_drag_out_test.dart: the drawn frames of the older capture agree
+00:00 +12: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a touch that starts as the close starts is swallowed
+00:00 +13: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a touch that starts as the close starts is swallowed
+00:00 +14: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a touch that starts as the close starts is swallowed
+00:00 +15: /Users/tembeon/IdeaProjects/morph/test/menu_drag_out_test.dart: the content rides the menu flexed left on every recorded frame
+00:00 +16: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a touch before the menu appears belongs to the menu
+00:00 +17: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a touch before the menu appears belongs to the menu
+00:00 +18: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a touch before the menu appears belongs to the menu
+00:00 +19: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a touch before the menu appears belongs to the menu
+00:00 +20: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap opens the glass at the mean recorded delay
+00:00 +21: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: every capture replays through the motion
+00:00 +22: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: every capture replays through the motion
+00:00 +23: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +24: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +25: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +26: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +27: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +28: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +29: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +30: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +31: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +32: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +33: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +34: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +35: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +36: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +37: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: any widget opens its menu on tap and keeps its state
+00:00 +38: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap opens the menu on release and it settles open
+00:01 +39: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap opens the menu on release and it settles open
+00:01 +40: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap opens the menu on release and it settles open
+00:01 +41: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap opens the menu on release and it settles open
+00:01 +42: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap opens the menu on release and it settles open
+00:01 +43: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap opens the menu on release and it settles open
+00:01 +44: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: a glass button with a menu is focusable and keyboard driven
+00:01 +45: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: a glass button with a menu is focusable and keyboard driven
+00:01 +46: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a resting button draws its glyph without a layer
+00:01 +47: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a resting button draws its glyph without a layer
+00:01 +48: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: the source shape starts and lands in the button tint
+00:01 +49: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: the source shape starts and lands in the button tint
+00:01 +50: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: the source shape starts and lands in the button tint
+00:01 +51: /Users/tembeon/IdeaProjects/morph/test/menu_source_test.dart: the source shape starts and lands in the button tint
+00:01 +52: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a touch held from before the menu appears acts on release
+00:01 +53: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a second tap on the button before the menu appears picks the row under it
+00:01 +54: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a pop closes the menu, not the page
+00:01 +55: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a hold opens without a release and selects on release
+00:01 +56: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a menu below the middle opens up with its rows reversed
+00:01 +57: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a semantic tap on a parent row while a card grows chooses nothing in the card
+00:01 +58: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: rows built ahead of the opening are built once per press
+00:01 +59: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a parent rebuild keeps the resting face
+00:01 +60: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a closed menu does not lay out or load on parent rebuilds
+00:01 +61: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a finger resting on a submenu row draws no frames until the card opens
+00:01 +62: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: an upward menu keeps its rows reversed on every opening
+00:01 +63: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the menu flies on an engine flight and reports its moments
+00:02 +64: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: blurred faces do not smear their box edges
+00:02 +65: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the menu moves from its first frame on
+00:02 +66: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion radius replays the device opens 1
+00:02 +67: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the rows ride the menu a finger stretches off it
+00:02 +68: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the rows ride the menu a finger stretches off it
+00:02 +69: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the rows ride the menu a finger stretches off it
+00:02 +70: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the rows ride the menu a finger stretches off it
+00:02 +71: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the rows ride the menu a finger stretches off it
+00:02 +72: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the silhouette replays the filmed close frame at 17.6621
+00:02 +73: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the close plays out on the button after the latch
+00:02 +74: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the close plays out on the button after the latch
+00:02 +75: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: the close plays out on the button after the latch
+00:02 +76: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the silhouette replays the filmed close frame at 17.7287
+00:02 +77: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap on the button during the close re-opens the same flight
+00:02 +78: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a tap on the button during the close re-opens the same flight
+00:02 +79: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: a tall menu closing into a bottom button keeps no separate ball
+00:02 +80: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: a tall menu closing into a bottom button keeps no separate ball
+00:02 +81: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a button removed under its open menu lets the menu go
+00:02 +82: /Users/tembeon/IdeaProjects/morph/test/menu_button_test.dart: a button removed under its open menu lets the menu go
+00:02 +83: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the sparse field is the blurred union, its path the zero contour
+00:02 +84: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: a small radius leaves the plain union
+00:02 +85: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the kernel reaches three radii, nine steps where a step is a third of the radius
+00:02 +86: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the flat glass of a tall menu closing into a bottom button stays one body
+00:02 +87: /Users/tembeon/IdeaProjects/morph/test/morph_clock_test.dart: an event is stamped at its own time stamp
+00:02 +88: /Users/tembeon/IdeaProjects/morph/test/morph_clock_test.dart: an event is stamped at its own time stamp
+00:02 +89: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:02 +90: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:02 +91: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:02 +92: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:02 +93: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:02 +94: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:02 +95: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:02 +96: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:03 +97: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:03 +98: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:03 +99: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:03 +100: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +101: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +102: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +103: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +104: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +105: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +106: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +107: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +108: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +109: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +110: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion at a steady frame rate is served ahead, a dropped frame too
+00:04 +111: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead fuses the edge alone for a flat body, and serves only a flat frame with it
+00:04 +112: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a field fusion serves a flat frame too
+00:04 +113: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead settling drops the fusions still on their way
+00:05 +114: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead settling one fusion keeps another fusion's prefetch
+00:05 +115: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion that comes to rest leaves no fusion behind
+00:05 +116: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion that comes to rest leaves no fusion behind
+00:05 +117: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion that comes to rest leaves no fusion behind
+00:05 +118: /Users/tembeon/IdeaProjects/morph/test/menu_fusion_test.dart: the fusion computed ahead a motion that comes to rest leaves no fusion behind
+00:05 +119: /Users/tembeon/IdeaProjects/morph/test/bar_fusion_test.dart: flat capsules fuse while a group splits and part at rest
+00:05 +120: /Users/tembeon/IdeaProjects/morph/test/bar_fusion_test.dart: flat capsules fuse while a group splits and part at rest
+00:05 +121: /Users/tembeon/IdeaProjects/morph/test/bar_fusion_test.dart: flat capsules fuse across colors, as every glass tier does
+00:05 +122: All tests passed!

@@ -185,6 +185,7 @@ void main() {
       expect(motion.advance(route, 1000), isFalse);
       expect(motion.close(route, 1000), isFalse);
       expect(motion.open(route, 1000), isFalse);
+      expect(motion.pointer(route, 1000, const PointerDownEvent()), isNull);
       expect(
         motion.transfer(route, fromTime: 1000, to: source, toTime: 0),
         isFalse,

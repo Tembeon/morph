@@ -2,10 +2,37 @@ import 'dart:async';
 import 'dart:developer' show Timeline;
 
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/motion.dart';
 import 'package:morph_example/proto/menu_transfer_probe.dart';
 import 'package:morph_example/proto/motion_clock_probe.dart';
+
+/// A command or frame observed by the independent replay model.
+enum ProbeMenuSampleKind {
+  /// A frame sample.
+  frame,
+
+  /// A raw pointer command.
+  pointer,
+
+  /// Input outside a closed menu that does not belong to this source.
+  ignoredPointer,
+
+  /// An explicit programmatic open.
+  open,
+
+  /// An explicit programmatic close.
+  close,
+}
+
+/// An input's canonical time and resulting frame, including delayed input.
+typedef ProbeMenuSample = ({
+  ProbeMenuSampleKind kind,
+  double time,
+  PointerEvent? event,
+  ProbeMenuFrame frame,
+});
 
 /// A reduced source/menu pair for Navigator ownership experiments.
 class ProbeMenuSource extends StatefulWidget {
@@ -15,6 +42,10 @@ class ProbeMenuSource extends StatefulWidget {
     this.button = const Rect.fromLTWH(24, 80, 44, 44),
     this.bounds = const Size(402, 874),
     this.now,
+    this.pointerInput = false,
+    this.pointerOffset,
+    this.createMotion,
+    this.onSample,
     super.key,
   });
 
@@ -29,6 +60,18 @@ class ProbeMenuSource extends StatefulWidget {
 
   /// Engine-clock time at input delivery; tests supply their fake clock.
   final Duration Function()? now;
+
+  /// Runs measured pointer behavior instead of opening on a recognized tap.
+  final bool pointerInput;
+
+  /// Converts recorded pointer timestamps onto the engine clock.
+  final Duration? Function()? pointerOffset;
+
+  /// Creates a fixed-geometry model matching a recording's configuration.
+  final MorphMenuMotion Function()? createMotion;
+
+  /// Observes commands and every model sample for replay comparison.
+  final ValueChanged<ProbeMenuSample>? onSample;
 
   @override
   State<ProbeMenuSource> createState() => ProbeMenuSourceState();
@@ -51,10 +94,14 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
   /// How many frames the source clock has sampled.
   int get motionFrames => _session.sourceFrames;
 
+  /// The route currently holding the model, if any.
+  ProbeMenuRoute? get activeRoute => _session.activeRoute;
+
   @override
   void initState() {
     super.initState();
-    _session = _MenuSession(this, widget.button, widget.bounds, widget.now);
+    _session = _MenuSession(this, widget);
+    _session.present = open;
   }
 
   /// Opens on the root navigator, or reverses the current closing owner.
@@ -75,7 +122,19 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
       ),
       Positioned.fromRect(
         rect: widget.button,
-        child: GestureDetector(behavior: .opaque, onTap: open),
+        child: widget.pointerInput
+            ? Listener(
+                behavior: .opaque,
+                onPointerDown: (event) {
+                  _session.handlePointer(event);
+                  // Push before Navigator's ancestor Listener records this down.
+                  if (_session.activeRoute == null &&
+                      _session._pointer == event.pointer) {
+                    open();
+                  }
+                },
+              )
+            : GestureDetector(behavior: .opaque, onTap: open),
       ),
     ],
   );
@@ -88,31 +147,47 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
 }
 
 class _MenuSession {
-  _MenuSession(
-    TickerProvider vsync,
-    this.button,
-    this.bounds,
-    Duration Function()? now,
-  ) : now = now ?? _engineNow {
+  _MenuSession(TickerProvider vsync, ProbeMenuSource widget)
+    : button = widget.button,
+      bounds = widget.bounds,
+      pointerInput = widget.pointerInput,
+      now = widget.now ?? _engineNow,
+      pointerOffset = widget.pointerOffset ?? _unknownOffset,
+      createMotion = widget.createMotion,
+      onSample = widget.onSample {
     transfer = _newMotion();
     sourceClock = ProbeMotionClock(
       vsync: vsync,
-      now: this.now,
-      pointerOffset: () => Duration.zero,
+      now: now,
+      pointerOffset: pointerOffset,
       onFrame: (time) {
         if (!transfer.advance(source, time)) {
           return (settled: true, wakeTime: null);
         }
         sourceFrames++;
+        emit(.frame);
+        syncInputPhase();
         frames.value++;
-        return (settled: transfer.isSettled, wakeTime: null);
+        return (
+          settled: !identical(transfer.owner, source) || transfer.isSettled,
+          wakeTime: null,
+        );
       },
     );
+    if (pointerInput) {
+      GestureBinding.instance.pointerRouter.addGlobalRoute(handlePointer);
+    }
   }
 
   final Rect button;
   final Size bounds;
   final Duration Function() now;
+  final bool pointerInput;
+  final Duration? Function() pointerOffset;
+  final MorphMenuMotion Function()? createMotion;
+  final ValueChanged<ProbeMenuSample>? onSample;
+  VoidCallback? present;
+  int? _pointer;
   final source = ProbeMenuLease(.source);
   final frames = ValueNotifier<int>(0);
   final _routes = <ProbeMenuRoute>{};
@@ -122,13 +197,15 @@ class _MenuSession {
   int sourceFrames = 0;
 
   ProbeMenuTransfer _newMotion() => ProbeMenuTransfer(
-    motion: MorphMenuMotion(
-      button: button,
-      bounds: bounds,
-      itemCount: 3,
-      sourceHeight: 64,
-      sourceRadius: 22,
-    ),
+    motion:
+        createMotion?.call() ??
+        MorphMenuMotion(
+          button: button,
+          bounds: bounds,
+          itemCount: 3,
+          sourceHeight: 64,
+          sourceRadius: 22,
+        ),
     source: source,
     sourceTime: sourceClock?.time ?? 0,
   );
@@ -137,7 +214,10 @@ class _MenuSession {
     final previous = activeRoute;
     final previousClock = previous?._clock ?? sourceClock!;
     final lease = transfer.owner;
-    transfer.open(lease, previousClock.time);
+    if (!pointerInput) {
+      transfer.open(lease, previousClock.time);
+      emit(.open);
+    }
     transfer.transfer(
       lease,
       fromTime: previousClock.time,
@@ -172,6 +252,7 @@ class _MenuSession {
   }
 
   void detachSource() {
+    present = null;
     sourceClock!.dispose();
     sourceClock = null;
     _disposeIfUnused();
@@ -191,19 +272,89 @@ class _MenuSession {
   }
 
   void _disposeIfUnused() {
-    if (sourceClock == null && _routes.isEmpty) frames.dispose();
+    if (sourceClock == null && _routes.isEmpty) {
+      if (pointerInput) {
+        GestureBinding.instance.pointerRouter.removeGlobalRoute(handlePointer);
+      }
+      frames.dispose();
+    }
+  }
+
+  void emit(ProbeMenuSampleKind kind, {PointerEvent? event, double? time}) {
+    onSample?.call((
+      kind: kind,
+      time: time ?? transfer.frame.time,
+      event: event,
+      frame: transfer.frame,
+    ));
+  }
+
+  void syncInputPhase() {
+    if (!pointerInput) return;
+    final route = activeRoute;
+    if (transfer.isOpen) {
+      if (route == null || route.closing) {
+        present?.call();
+      } else {
+        route._reveal();
+      }
+    } else if (transfer.isClosing &&
+        route != null &&
+        route._revealed.value &&
+        !route.closing) {
+      route.navigator!.pop();
+    } else if (route != null &&
+        !route._revealed.value &&
+        !transfer.isArming &&
+        !transfer.isPresented &&
+        !route.closing) {
+      route.navigator!.pop();
+    }
+    activeRoute?._updatePendingBarrier();
+  }
+
+  void handlePointer(PointerEvent event) {
+    if (event is PointerDownEvent) {
+      if (_pointer != null || event.buttons != kPrimaryButton) return;
+      if (activeRoute == null &&
+          !transfer.isOpenPending &&
+          !button.contains(event.position)) {
+        emit(.ignoredPointer, event: event);
+        return;
+      }
+      _pointer = event.pointer;
+    } else if (event.pointer != _pointer) {
+      if (event is PointerMoveEvent ||
+          event is PointerUpEvent ||
+          event is PointerCancelEvent) {
+        emit(.ignoredPointer, event: event);
+      }
+      return;
+    }
+    final clock = activeRoute?._clock ?? sourceClock;
+    if (clock == null) return;
+    final local = clock.stamp(event);
+    final time = transfer.pointer(transfer.owner, local, event);
+    if (time == null) return;
+    emit(.pointer, event: event, time: time);
+    if (event is PointerUpEvent || event is PointerCancelEvent) _pointer = null;
+    syncInputPhase();
+    frames.value++;
   }
 }
 
 /// A real PopupRoute driven by the same menu model the source later resumes.
 class ProbeMenuRoute extends PopupRoute<void> {
-  ProbeMenuRoute._(this._session, this._builder);
+  ProbeMenuRoute._(this._session, this._builder)
+    : _revealed = ValueNotifier(!_session.pointerInput);
 
   final _MenuSession _session;
   final WidgetBuilder _builder;
   final _lease = ProbeMenuLease(.route);
   final _projection = _MenuAnimation();
   final _pushSignal = Ticker((_) {});
+  final ValueNotifier<bool> _revealed;
+  bool _pendingBarrier = false;
   late final ProbeMotionClock _clock;
 
   /// Whether logical pop has started closing this presentation.
@@ -226,6 +377,9 @@ class ProbeMenuRoute extends PopupRoute<void> {
 
   /// The canonical model time at logical closing.
   double? closedAt;
+
+  @override
+  bool get requestFocus => _revealed.value;
 
   @override
   Duration get transitionDuration => Duration.zero;
@@ -254,7 +408,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     _clock = ProbeMotionClock(
       vsync: navigator!,
       now: _session.now,
-      pointerOffset: () => Duration.zero,
+      pointerOffset: _session.pointerOffset,
       onFrame: _sample,
     );
   }
@@ -265,6 +419,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     _pushSignal.muted = true;
     final signal = _pushSignal.start();
     _session.acquire(this);
+    if (_session.transfer.isOpen) _reveal();
     _projection.update(frame.progress, .forward);
     return signal;
   }
@@ -275,10 +430,14 @@ class ProbeMenuRoute extends PopupRoute<void> {
     if (!popped) return false;
     closing = true;
     _pushSignal.stop(canceled: false);
-    _session.transfer.close(_lease, _clock.time);
+    final modelClosing = _session.transfer.isClosing;
+    if (!modelClosing) {
+      _session.transfer.close(_lease, _clock.time);
+      _session.emit(.close);
+    }
     closedAt = frame.time;
     _projection.update(frame.progress, .reverse);
-    _clock.resumeAt(_session.now());
+    if (!modelClosing) _clock.resumeAt(_session.now());
     return true;
   }
 
@@ -287,7 +446,17 @@ class ProbeMenuRoute extends PopupRoute<void> {
       return (settled: true, wakeTime: null);
     }
     motionFrames++;
+    _session.emit(.frame);
+    _session.syncInputPhase();
+    if (!identical(_session.transfer.owner, _lease)) {
+      return (settled: true, wakeTime: null);
+    }
     final settled = _session.transfer.isSettled;
+    if (!_revealed.value && !closing) {
+      _projection.update(0, .forward);
+      _session.frames.value++;
+      return (settled: settled, wakeTime: null);
+    }
     if (closing &&
         ((_session.transfer.readyToHandBack && _session.land(this, time)) ||
             settled)) {
@@ -308,6 +477,27 @@ class ProbeMenuRoute extends PopupRoute<void> {
     _projection.update(0, .dismissed);
   }
 
+  void _reveal() {
+    if (_revealed.value) return;
+    _revealed.value = true;
+    changedInternalState();
+  }
+
+  void _updatePendingBarrier() {
+    final armed = _session.transfer.isOpenPending;
+    if (_pendingBarrier == armed) return;
+    _pendingBarrier = armed;
+    changedInternalState();
+  }
+
+  @override
+  Widget buildModalBarrier() => _session.pointerInput
+      ? IgnorePointer(
+          ignoring: !_revealed.value && !_pendingBarrier,
+          child: ModalBarrier(dismissible: false, semanticsLabel: barrierLabel),
+        )
+      : super.buildModalBarrier();
+
   @override
   Widget buildPage(
     BuildContext context,
@@ -321,9 +511,14 @@ class ProbeMenuRoute extends PopupRoute<void> {
         IgnorePointer(
           child: CustomPaint(painter: _MenuPainter(_session, _lease)),
         ),
-        Flow(
-          delegate: _MenuContentFlow(_session, _lease),
-          children: [_builder(context)],
+        ValueListenableBuilder<bool>(
+          valueListenable: _revealed,
+          builder: (context, revealed, _) => revealed
+              ? Flow(
+                  delegate: _MenuContentFlow(_session, _lease),
+                  children: [_builder(context)],
+                )
+              : const SizedBox.shrink(),
         ),
       ],
     );
@@ -335,6 +530,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     _pushSignal.dispose();
     super.dispose();
     _projection.dispose();
+    _revealed.dispose();
     disposed = true;
     _session.routeDisposed(this);
   }
@@ -353,7 +549,7 @@ class _MenuPainter extends CustomPainter {
     final paint = Paint();
     paint.color = const Color(0xFF8888AA);
     canvas.drawRRect(frame.button, paint);
-    if (lease.kind == .route) {
+    if (lease.kind == .route && session.activeRoute?._revealed.value == true) {
       paint.color = const Color(0xFFCCCCDD);
       canvas.drawRRect(frame.menu, paint);
     }
@@ -434,3 +630,5 @@ class _MenuAnimation extends Animation<double> with ChangeNotifier {
 }
 
 Duration _engineNow() => Duration(microseconds: Timeline.now);
+
+Duration? _unknownOffset() => null;
