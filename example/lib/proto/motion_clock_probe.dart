@@ -48,6 +48,8 @@ class ProbeMotionClock {
   Timer? _doze;
   Duration? _dozeStamp;
   double _dozeTime = 0;
+  Duration? _resumeStamp;
+  double _resumeTime = 0;
 
   /// The display rate used for fallback stamps and wake scheduling.
   double frameRate;
@@ -105,6 +107,14 @@ class ProbeMotionClock {
     final stamp = scheduler.currentSystemFrameTimeStamp;
     _stampsAgree = ((stamp - now()).inMicroseconds / 1e6).abs() < _maxFrameLead;
     _tickStamp = stamp;
+    if (_resumeStamp case final from?) {
+      _resumeStamp = null;
+      final lag = (stamp - from).inMicroseconds / 1e6;
+      if (lag > 0) {
+        final resumed = _resumeTime + lag / timeDilation;
+        if (_base + seconds < resumed) _base = resumed - seconds;
+      }
+    }
     if (_wakeFrom case final from?) {
       _wakeFrom = null;
       final lag = (stamp - from).inMicroseconds / 1e6;
@@ -158,6 +168,27 @@ class ProbeMotionClock {
     _doze?.cancel();
     _doze = null;
     if (!_ticker.isActive) _ticker.start();
+  }
+
+  /// Resumes transferred motion from the current engine frame timestamp.
+  ///
+  /// The first callback includes time since the hand-back frame, even when
+  /// starting a ticker outside a frame would otherwise sample elapsed zero.
+  /// The returned local anchor includes elapsed doze time and is used when
+  /// mapping the captured model onto this clock.
+  /// Call during the hand-back frame with its current system frame timestamp.
+  double resumeFromFrame(Duration frameStamp) {
+    _resumeStamp = frameStamp;
+    _resumeTime = _time;
+    if (_dozeStamp case final dozed?) {
+      _resumeTime =
+          _dozeTime +
+          (SchedulerBinding.instance.currentFrameTimeStamp - dozed)
+                  .inMicroseconds /
+              1e6;
+    }
+    wake();
+    return _resumeTime;
   }
 
   /// Releases the ticker, delayed wake and frame listeners.

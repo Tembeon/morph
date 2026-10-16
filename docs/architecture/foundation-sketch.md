@@ -302,7 +302,6 @@ final class MorphSpringState {
   double value(double t);
   double velocity(double t);
   double reach(double t);
-  void rebase(double offset);
 }
 abstract interface class MorphMotion<E extends Object> {
   double get time;
@@ -375,6 +374,8 @@ abstract final class MorphShaderRegistry {
 Это кандидат до P1. Во Flutter 3.47.2 базовые `didAdd` и `didReplace` меняют только внутренний controller (`routes.dart:353, 364`), поэтому эти обработчики обязаны отдельно согласовать движение и проекцию. P1 проверяет начальные `Pages`, `Navigator.replace` и restoration, включая значение, статус, непрозрачность overlay и завершение route. Проверка `pushReplacement` не заменяет эти сценарии. Вариант на SDK controller сравнивается по требованиям времени: `unbounded` и `animateWith` поддерживаются SDK, перелёт не является самостоятельной причиной отказа.
 
 Сигнатура `MorphHost extends State` тоже является кандидатом. Общие механизмы времени, ввода, событий и согласования проверяются на switch, меню и sheet до массового перевода State. Если обязательная база мешает этим сценариям, допускаются композиция объектов и узкие mixin; route использует `MorphMotionClock` напрямую. После каждой команды ввода события движения доставляются до возврата из обработчика; после кадрового `advance` доставляются события времени, затем публикуется кадр. Очередь не меняет синхронность текущих `onChanged` и haptics.
+
+Уточнение P2 от 2026-10-16: `capture/resume` обязаны переносить целую модель вместе с её непрерывным временем, включая timeline и driven channels. Первый host-прототип сохраняет каноническое время и меняет смещение к часам владельца; отдельный `rebase` в `MorphSpringState` из эскиза убран как неподтверждённая обязанность. При пробуждении источник получает актуальный локальный якорь, а первый кадр учитывает интервал от кадра передачи. Это проверено при сне и дрёме на 1× и 5×; окончательные сигнатуры capture/resume и часов уточняются после настоящего menu route и P3. Отчёт: `tool/audit/foundation-p2-2026-10-16/report.md`.
 
 ## Карта модулей
 
