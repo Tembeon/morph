@@ -1,0 +1,60 @@
+{
+  "baseRevision": "9fcf9d1930dec44ac875756e15f9169afe53bf88",
+  "mainRevision": "b0c3fc20763ee15899ace5b820c6c29d89357ad9",
+  "flutterVersion": "3.47.2",
+  "frameworkRevision": "d3b14c876900e553bc736ca19295fc09e3853e8e",
+  "dartVersion": "3.13.2",
+  "productionModelChanged": false,
+  "productionHostChanged": false,
+  "publicExportsChanged": false,
+  "clockChanged": false,
+  "timelineChanged": false,
+  "measuredTuningChanged": false,
+  "codeGateForMainPassed": false,
+  "p2Complete": false,
+  "deviceRun": false,
+  "remainingGates": [
+    "policy before first content mount",
+    "early route observer/isCurrent and nested navigation",
+    "atomicity after permission success is already handed to SDK",
+    "remaining menu API and complete bar/source-link geometry",
+    "carried optical field and native fidelity",
+    "device frame time/energy and P3 publication ordering"
+  ],
+  "unrelatedWorktreeContextSha256": {
+    "lib/src/widgets/bar_items.dart": "b3c0be7635468f46937c86d3a4704d36eae1495eb3d513c44611a5cb6545f45d",
+    "tool/ios_reference/spec/bars.md": "6e8b4144fe7e2e9007666cb31d9918840b5202d6879004f1c27665757250db53",
+    "example/lib/perf/button_shape_capture.dart": "5daadb71d2e3a609bbd6705bc029ea045c3e48c0fa9a4335d1a53cf8b6b1ae18",
+    "test/bar_press_shape_test.dart": "d72dab7a7d844f41cbd9514e63b6ff1a632833194137b2f7d9dd16c77683f869"
+  },
+  "unchangedCoreSha256": {
+    "lib/src/widgets/menu_motion.dart": "f658d8059ab126bd16a3dac5f4d0919eade6290fd78b407aaaf058dcc652965d",
+    "lib/src/widgets/timeline.dart": "4e9bacbd7b4f0604e701fb2dddfb128d375a9e11769202d54434c773714a62be",
+    "example/lib/proto/motion_clock_probe.dart": "237d402bdf949230eeef81e518b4d99c3de55f17213ba515723f7018b89be5bd"
+  },
+  "sha256": {
+    "docs/architecture/foundation-review.md": "31273c0d172f90912668ff54105d104c30e6f472a5e5cddcd272c006a3235085",
+    "docs/architecture/foundation-sketch.md": "9b8a8e086b5242bafcbdc33be7c4d63b8acd0476142a793b740b2bb946d7839d",
+    "docs/architecture/menu-dismissal-protocol.md": "58fca24851daffb81539e299c8786f7a0884eca9d303fe9ab9df080cd1ef0eec",
+    "docs/standalone-library-plan.md": "706a68cf7ecb91a47e0548749158303ae3f40399d299b6dd130501abc989e2bb",
+    "example/lib/proto/menu_route_probe.dart": "9dc5ee94bd62a66ac69ce8559fec56ed57d3465f6359069227f96646f0c59dac",
+    "example/test/proto/menu_async_time_test.dart": "85cb0efb2f60fe4bac579083a6a99048695d5d6a8cf5a48e540eb452438bdaaf",
+    "example/test/proto/menu_route_async_test.dart": "45608256ecd67c103fbfac03c981deb03b743f9867a44f19b09d0c6952a70a01",
+    "tool/audit/foundation-p2-2026-10-16/async/analyze.log": "2ed89fc3460eee375278dc4b62be6c7368050005fad8b8e88cf9bd495646b7cd",
+    "tool/audit/foundation-p2-2026-10-16/async/async-before.log": "4f8d5f02f248d144d62da872a6210572bd10c15de16f5efccfdf163c478bf5ab",
+    "tool/audit/foundation-p2-2026-10-16/async/design/candidate-a.md": "262dc658e2daa163a738287e66c50a342d77d505d2b5f6bd1a3b5ebda1f585c5",
+    "tool/audit/foundation-p2-2026-10-16/async/design/candidate-b.md": "6ef69e0105d960c42bb47b51e7ec53964237fcf6207c2e869ad410433ba2d653",
+    "tool/audit/foundation-p2-2026-10-16/async/design/ground.md": "aad6dd7af94f7489e17cd773fd0a2fda2d64a75d53103b903689386f4fa51a55",
+    "tool/audit/foundation-p2-2026-10-16/async/design/how.md": "6d7bb88a5a7b0e82ee2cc15223d1e651bc026e75321b217e27e01d952b8844c9",
+    "tool/audit/foundation-p2-2026-10-16/async/design/implementation-review.md": "7b9aab168cf7afeeb1384869e15fe3e744990321ce479a6281ad668c791e29fd",
+    "tool/audit/foundation-p2-2026-10-16/async/design/judge.md": "6f781da235b569a30fe4d4eb949bf07f67b43f25c9ca9dab6976b232a9cc4e6e",
+    "tool/audit/foundation-p2-2026-10-16/async/design/why.md": "08f146c1fae7ff59017bce724cb6b2e57804b83adb4545452df295aac4f26653",
+    "tool/audit/foundation-p2-2026-10-16/async/example-before-final-claim.log": "c23027042faff31554a1cd61bffc7be39a86af5c996471d40643c7b4059ca5e8",
+    "tool/audit/foundation-p2-2026-10-16/async/example-tests.log": "1f2050199ad76b9aac477509585159a3157d6de66fa35c281500d0489122209b",
+    "tool/audit/foundation-p2-2026-10-16/async/prototype-tests.log": "6e70e293e1826b6c7cad693cb67617197d969992e5145cd39af1f20748de49f6",
+    "tool/audit/foundation-p2-2026-10-16/async/rejected-shared-permission-route.dart.txt": "cc4724051be948172b6adcecc50bcced27805519e794da65f3f3761a515366ed",
+    "tool/audit/foundation-p2-2026-10-16/async/report.md": "d86469daf5a734aa03b907cbf8dfbe2eeb78ef10b491b1e7eefbeb858d33601b",
+    "tool/audit/foundation-p2-2026-10-16/async/shared-permission-before.log": "b2f57be0826ea509c4823778dcedbe080a7b562d5c95aa98ca589dffc5b58ed8",
+    "tool/audit/foundation-p2-2026-10-16/async/summary.json": "5965214ebd1bba6aa80dc29ce1f6c97c2e24ed742810b63d042295e045ed2262"
+  }
+}

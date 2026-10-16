@@ -225,6 +225,8 @@ class _MenuSession {
       morphMenuSetCloseAdmission(motion, (time) {
         final route = activeRoute;
         if (route == null || route.closing || !route.isCurrent) return false;
+        if (route._deferDismissal(time)) return false;
+        route.closeRequestedAt = time;
         final admitted = route.popDisposition == RoutePopDisposition.pop;
         _closeRequests.add((route: route, admitted: admitted, time: time));
         return admitted && !route.willHandlePopInternally;
@@ -337,6 +339,7 @@ class _MenuSession {
         route.onPopInvokedWithResult(false, null);
       }
     }
+    activeRoute?._drainDismissal();
     final route = activeRoute;
     if (transfer.isOpen) {
       if (route == null || route.closing) {
@@ -384,6 +387,16 @@ class _MenuSession {
   }
 }
 
+class _DismissAttempt {
+  _DismissAttempt(this.requestedAt, {required this.fromModel});
+
+  final double requestedAt;
+  bool fromModel;
+  Completer<RoutePopDisposition>? permission;
+  bool approved = false;
+  bool claimed = false;
+}
+
 /// A real PopupRoute driven by the same menu model the source later resumes.
 class ProbeMenuRoute extends PopupRoute<void> {
   ProbeMenuRoute._(this._session, this._builder)
@@ -397,6 +410,8 @@ class ProbeMenuRoute extends PopupRoute<void> {
   final ValueNotifier<bool> _revealed;
   bool _pendingBarrier = false;
   double? _admittedCloseTime;
+  Route<Object?>? _nextRoute;
+  _DismissAttempt? _dismissal;
   late final ProbeMotionClock _clock;
 
   /// Whether logical pop has started closing this presentation.
@@ -419,6 +434,151 @@ class ProbeMenuRoute extends PopupRoute<void> {
 
   /// The canonical model time at logical closing.
   double? closedAt;
+
+  /// The canonical time of the latest request to consult presentation policy.
+  double? closeRequestedAt;
+
+  /// Whether this close was committed after waiting for SDK permission.
+  bool deferredClose = false;
+
+  bool _isLive(_DismissAttempt request) =>
+      identical(_dismissal, request) &&
+      !disposed &&
+      !closing &&
+      navigator?.mounted == true &&
+      isCurrent &&
+      identical(_session.activeRoute, this) &&
+      identical(_session.transfer.owner, _lease);
+
+  bool _deferDismissal(double time) {
+    final current = _dismissal;
+    if (current != null) {
+      current.fromModel = true;
+      return true;
+    }
+    if (!hasScopedWillPopCallback) return false;
+    closeRequestedAt = time;
+    _dismissal = _DismissAttempt(time, fromModel: true);
+    return true;
+  }
+
+  void _drainDismissal() {
+    final request = _dismissal;
+    if (request != null && request.permission == null && _isLive(request)) {
+      unawaited(willPop());
+    }
+  }
+
+  @override
+  Future<RoutePopDisposition> willPop() async {
+    final request = _dismissal ??= _DismissAttempt(
+      frame.time,
+      fromModel: false,
+    );
+    closeRequestedAt = request.requestedAt;
+    if (!_isLive(request)) {
+      _invalidateDismissal();
+      return RoutePopDisposition.doNotPop;
+    }
+    final current = request.permission;
+    final permission = current ?? Completer<RoutePopDisposition>();
+    if (current == null) {
+      request.permission = permission;
+      unawaited(_resolvePermission(request, permission));
+    }
+    final answer = await permission.future;
+    if (answer != RoutePopDisposition.pop) return answer;
+    if (!_isLive(request) || request.claimed) {
+      return RoutePopDisposition.doNotPop;
+    }
+    request.claimed = true;
+    return RoutePopDisposition.pop;
+  }
+
+  Future<void> _resolvePermission(
+    _DismissAttempt request,
+    Completer<RoutePopDisposition> permission,
+  ) async {
+    var result = RoutePopDisposition.doNotPop;
+    try {
+      final answer = await super.willPop();
+      if (_isLive(request)) {
+        if (answer == RoutePopDisposition.doNotPop) {
+          _invalidateDismissal();
+        } else {
+          result = popDisposition;
+          if (result == RoutePopDisposition.pop) {
+            request.approved = true;
+            if (request.fromModel) _clock.resumeAt(_session.now());
+          } else {
+            _invalidateDismissal();
+            if (result == RoutePopDisposition.doNotPop) {
+              onPopInvokedWithResult(false, null);
+            }
+          }
+        }
+      }
+    } on Object catch (error, stack) {
+      if (_isLive(request)) _invalidateDismissal();
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'morph P2 prototype',
+          context: ErrorDescription('while awaiting menu dismissal permission'),
+        ),
+      );
+    }
+    if (!permission.isCompleted) permission.complete(result);
+  }
+
+  void _consumeApprovedDismissal() {
+    final request = _dismissal;
+    if (request == null || !request.approved || !request.fromModel) return;
+    if (!_isLive(request)) {
+      _invalidateDismissal();
+      return;
+    }
+    final disposition = popDisposition;
+    if (disposition == RoutePopDisposition.pop) {
+      navigator!.pop();
+    } else {
+      _invalidateDismissal();
+      if (disposition == RoutePopDisposition.doNotPop) {
+        onPopInvokedWithResult(false, null);
+      }
+    }
+  }
+
+  void _invalidateDismissal() {
+    final permission = _dismissal?.permission;
+    _dismissal = null;
+    if (permission != null && !permission.isCompleted) {
+      permission.complete(RoutePopDisposition.doNotPop);
+    }
+  }
+
+  @override
+  void onPopInvokedWithResult(bool didPop, void result) {
+    if (!didPop) _invalidateDismissal();
+    super.onPopInvokedWithResult(didPop, result);
+  }
+
+  @override
+  void didChangeNext(Route<Object?>? nextRoute) {
+    if (!identical(_nextRoute, nextRoute)) {
+      _nextRoute = nextRoute;
+      _invalidateDismissal();
+    }
+    super.didChangeNext(nextRoute);
+  }
+
+  @override
+  void didPopNext(Route<Object?> nextRoute) {
+    _nextRoute = null;
+    _invalidateDismissal();
+    super.didPopNext(nextRoute);
+  }
 
   @override
   bool get requestFocus => _revealed.value;
@@ -468,9 +628,12 @@ class ProbeMenuRoute extends PopupRoute<void> {
 
   @override
   bool didPop(void result) {
+    final approved = _dismissal?.approved ?? false;
+    _invalidateDismissal();
     final popped = super.didPop(result);
     if (!popped) return false;
     closing = true;
+    deferredClose = approved;
     _pushSignal.stop(canceled: false);
     final modelClosing = _session.transfer.isClosing;
     if (!modelClosing) {
@@ -490,6 +653,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     motionFrames++;
     _session.emit(.frame);
     _session.syncInputPhase();
+    _consumeApprovedDismissal();
     if (!identical(_session.transfer.owner, _lease)) {
       return (settled: true, wakeTime: null);
     }
@@ -515,6 +679,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
   }
 
   void _relinquish() {
+    _invalidateDismissal();
     _pushSignal.stop(canceled: false);
     _projection.update(0, .dismissed);
   }
@@ -568,6 +733,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
 
   @override
   void dispose() {
+    _invalidateDismissal();
     _clock.dispose();
     _pushSignal.dispose();
     super.dispose();
@@ -680,4 +846,4 @@ Duration _engineNow() => Duration(microseconds: Timeline.now);
 
 Duration? _unknownOffset() => null;
 
-// ignore_for_file: implementation_imports, invalid_use_of_internal_member
+// ignore_for_file: implementation_imports, invalid_use_of_internal_member, deprecated_member_use
