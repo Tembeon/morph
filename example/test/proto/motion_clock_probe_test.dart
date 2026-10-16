@@ -409,5 +409,84 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(tester.binding.transientCallbackCount, 0);
   });
+
+  for (final dilation in [1.0, 5.0]) {
+    testWidgets(
+      'absolute resume outside a frame includes elapsed doze at ${dilation}x',
+      (tester) async {
+        await tester.pumpWidget(const SizedBox());
+        var samples = 0;
+        var dozing = true;
+        final clock = ProbeMotionClock(
+          vsync: const TestVSync(),
+          now: () => Duration(
+            microseconds: tester.binding.clock.now().microsecondsSinceEpoch,
+          ),
+          pointerOffset: () => Duration.zero,
+          onFrame: (time) {
+            samples++;
+            return (settled: !dozing, wakeTime: dozing ? time + 2 : null);
+          },
+        );
+        final original = timeDilation;
+        timeDilation = dilation;
+        try {
+          clock.wake();
+          await tester.pump();
+          await tester.pump(Duration(milliseconds: (100 * dilation).round()));
+          expect(samples, 1);
+          final anchor = clock.resumeAt(clock.now());
+          expect(anchor, closeTo(0.1, 1e-9));
+          dozing = false;
+          await tester.pump(Duration(milliseconds: (8 * dilation).round()));
+          expect(clock.time, closeTo(0.108, 1e-9));
+          expect(samples, 2);
+          expect(tester.binding.transientCallbackCount, 0);
+        } finally {
+          clock.dispose();
+          timeDilation = original;
+        }
+      },
+    );
+  }
+
+  testWidgets('relinquishing a dozing clock cancels its pending wake', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const SizedBox());
+    var samples = 0;
+    var dozing = true;
+    final clock = ProbeMotionClock(
+      vsync: const TestVSync(),
+      now: () => Duration(
+        microseconds: tester.binding.clock.now().microsecondsSinceEpoch,
+      ),
+      pointerOffset: () => Duration.zero,
+      onFrame: (time) {
+        samples++;
+        return (settled: !dozing, wakeTime: dozing ? time + 0.5 : null);
+      },
+    );
+    try {
+      clock.wake();
+      await tester.pump();
+      expect(samples, 1);
+      await tester.pump(const Duration(milliseconds: 100));
+      clock.pause();
+      final pausedAt = clock.time;
+      await tester.pump(const Duration(seconds: 1));
+      expect(samples, 1);
+      expect(tester.binding.transientCallbackCount, 0);
+      dozing = false;
+      final anchor = clock.resumeAt(clock.now());
+      expect(anchor, pausedAt);
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(clock.time - anchor, closeTo(0.008, 1e-9));
+      expect(samples, 2);
+      expect(tester.binding.transientCallbackCount, 0);
+    } finally {
+      clock.dispose();
+    }
+  });
 }
 // ignore_for_file: invalid_use_of_internal_member

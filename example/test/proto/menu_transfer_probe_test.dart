@@ -254,7 +254,7 @@ void main() {
                   }
                   if (!transfer.readyToHandBack) return;
                   sourceAnchor = anchored
-                      ? clock.resumeFromFrame(
+                      ? clock.resumeAt(
                           SchedulerBinding.instance.currentSystemFrameTimeStamp,
                         )
                       : clock.time;

@@ -47,6 +47,7 @@ class ProbeMotionClock {
   double _wakeTime = 0;
   Timer? _doze;
   Duration? _dozeStamp;
+  Duration? _dozeRawStamp;
   double _dozeTime = 0;
   Duration? _resumeStamp;
   double _resumeTime = 0;
@@ -128,6 +129,7 @@ class ProbeMotionClock {
       final micros = (_dozeTime * 1e6).round() + (now - dozed).inMicroseconds;
       _base = micros / 1e6 - seconds;
       _dozeStamp = null;
+      _dozeRawStamp = null;
     }
     if (_base + seconds < _time) _base = _time - seconds;
     _tickTime = _base + seconds;
@@ -146,6 +148,7 @@ class ProbeMotionClock {
     final until = outcome.wakeTime;
     if (until != null && until - _time > 2 / frameRate) {
       _dozeStamp = scheduler.currentFrameTimeStamp;
+      _dozeRawStamp = stamp;
       _dozeTime = _time;
       _ticker.stop();
       _doze = Timer(
@@ -170,22 +173,35 @@ class ProbeMotionClock {
     if (!_ticker.isActive) _ticker.start();
   }
 
-  /// Resumes transferred motion from the current engine frame timestamp.
+  /// Stops sampling when this clock relinquishes its model to another owner.
+  void pause() {
+    _doze?.cancel();
+    _doze = null;
+    _dozeStamp = null;
+    _dozeRawStamp = null;
+    _resumeStamp = null;
+    _wakeFrom = null;
+    _stampFrom = null;
+    _base = _time;
+    _ticking = false;
+    _ticker.stop();
+  }
+
+  /// Resumes transferred motion from an absolute engine-clock timestamp.
   ///
-  /// The first callback includes time since the hand-back frame, even when
+  /// The first callback includes time since the transfer, even when
   /// starting a ticker outside a frame would otherwise sample elapsed zero.
   /// The returned local anchor includes elapsed doze time and is used when
   /// mapping the captured model onto this clock.
-  /// Call during the hand-back frame with its current system frame timestamp.
-  double resumeFromFrame(Duration frameStamp) {
-    _resumeStamp = frameStamp;
+  /// Use the system frame timestamp during a frame, or [now] for input delivery.
+  /// The dilation factor must stay unchanged during the transfer.
+  double resumeAt(Duration absoluteStamp) {
+    _resumeStamp = absoluteStamp;
     _resumeTime = _time;
-    if (_dozeStamp case final dozed?) {
+    if (_dozeRawStamp case final dozed?) {
       _resumeTime =
           _dozeTime +
-          (SchedulerBinding.instance.currentFrameTimeStamp - dozed)
-                  .inMicroseconds /
-              1e6;
+          (absoluteStamp - dozed).inMicroseconds / 1e6 / timeDilation;
     }
     wake();
     return _resumeTime;

@@ -1,0 +1,110 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.0, reopen=null: complete model stays continuous
+00:00 +1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.0, reopen=0.05: complete model stays continuous
+00:00 +2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.0, reopen=0.3: complete model stays continuous
+00:00 +3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.0, reopen=0.55: complete model stays continuous
+00:00 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.003, reopen=null: complete model stays continuous
+00:00 +5: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.003, reopen=0.05: complete model stays continuous
+00:00 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.003, reopen=0.3: complete model stays continuous
+00:00 +7: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.003, reopen=0.55: complete model stays continuous
+00:00 +8: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=73.0, reopen=null: complete model stays continuous
+00:00 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=73.0, reopen=0.05: complete model stays continuous
+00:00 +10: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=73.0, reopen=0.3: complete model stays continuous
+00:00 +11: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +12: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +13: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +14: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +15: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +16: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +17: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +18: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +19: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +20: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +21: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +22: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +23: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +24: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +25: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +26: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +27: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +28: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +29: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +30: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +31: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +32: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +33: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +34: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: source inside a nested Navigator opens a root PopupRoute
+00:00 +35: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: route hands the same frame to the source and disposes before tail rest
+00:00 +36: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 50ms, frame 16667us keeps one owner
+00:00 +37: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 300ms, frame 16667us keeps one owner
+00:00 +38: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 550ms, frame 16667us keeps one owner
+00:00 +39: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 50ms, frame 8333us keeps one owner
+00:00 +40: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 300ms, frame 8333us keeps one owner
+00:00 +41: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +42: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +43: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +44: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +45: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:00 +46: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:01 +47: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:01 +48: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:01 +49: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:01 +50: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:01 +51: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:01 +52: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:01 +53: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:01 +54: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: editor State survives motion and a covering route; Escape dismisses
+00:01 +55: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: 60.0 Hz: jitter and dropped frames preserve measured samples
+00:01 +56: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: 120.0 Hz: jitter and dropped frames preserve measured samples
+00:01 +57: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: OS pointer offset and delayed delivery keep the event time
+00:01 +58: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: missing offset uses the measured fallback
+00:01 +59: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: stale timestamp uses the measured fallback
+00:01 +60: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: future timestamp uses the measured fallback
+00:01 +61: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: wake after settled sleep includes input delivery lag
+00:01 +62: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: multiple inputs before the first frame preserve their spacing
+00:01 +63: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: an input interrupts doze without losing time asleep
+00:01 +64: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: timed doze resumes on the same clock at 1.0x
+00:01 +65: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: timed doze resumes on the same clock at 5.0x
+00:01 +66: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: slow motion scales delayed pointer time
+00:01 +67: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: settled clocks schedule no more samples
+00:01 +68: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: a frame clock unrelated to platform time uses frame samples
+00:01 +69: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: TickerMode silences callbacks and resumes elapsed time
+00:01 +70: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: disposing during doze cancels its timer and ticker
+00:01 +71: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: absolute resume outside a frame includes elapsed doze at 1.0x
+00:01 +72: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: absolute resume outside a frame includes elapsed doze at 5.0x
+00:01 +73: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: relinquishing a dozing clock cancels its pending wake
+00:01 +74: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+00:02 +75: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected releases input and focus on the first closing frame
+00:02 +76: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected pushReplacement retains the old route until all motion rests
+00:02 +77: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected initial Pages are completed without running an entrance
+00:02 +78: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected replace transfers an in-flight motion without a jump
+00:02 +79: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected replace of a settled page keeps motion and SDK in sync
+00:02 +80: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected restoration adds a completed route that still dismisses
+00:02 +81: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected PopScope veto keeps the open motion and result pending
+00:02 +82: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected uses the input timestamp rather than restarting at delivery
+00:02 +83: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected keeps content stable during frames, insets and a covering route
+00:02 +84: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected paints motion without rebuilding the content each frame
+00:02 +85: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected records SDK rebuilds during steady motion
+P1_BUILDS {"driver":"projected","frames":40,"builds":176,"buildsPerFrame":4.4,"owners":{"AnimatedModalBarrier":22,"ModalBarrier":22,"_ModalBarrierGestureDetector":22,"RawGestureDetector":22,"ListenableBuilder":88}}
+00:02 +86: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected keeps raw overshoot while the SDK progress remains bounded
+00:02 +87: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected pop during entrance preserves geometry and disposes at rest
+00:02 +88: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected forced removal cancels the active clock and push signal
+00:02 +89: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected runs Hero flights with an explicitly installed controller
+00:02 +90: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController publishes progress and completes pop before visual rest
+00:02 +91: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController releases input and focus on the first closing frame
+00:02 +92: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController pushReplacement retains the old route until all motion rests
+00:02 +93: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController initial Pages are completed without running an entrance
+00:02 +94: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController replace transfers an in-flight motion without a jump
+00:02 +95: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController replace of a settled page keeps motion and SDK in sync
+00:02 +96: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController restoration adds a completed route that still dismisses
+00:02 +97: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController PopScope veto keeps the open motion and result pending
+00:02 +98: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController uses the input timestamp rather than restarting at delivery
+00:02 +99: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController keeps content stable during frames, insets and a covering route
+00:02 +100: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController paints motion without rebuilding the content each frame
+00:02 +101: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController records SDK rebuilds during steady motion
+P1_BUILDS {"driver":"sdkController","frames":40,"builds":320,"buildsPerFrame":8.0,"owners":{"AnimatedModalBarrier":40,"ModalBarrier":40,"_ModalBarrierGestureDetector":40,"RawGestureDetector":40,"ListenableBuilder":160}}
+00:02 +102: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController keeps raw overshoot while the SDK progress remains bounded
+00:02 +103: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController pop during entrance preserves geometry and disposes at rest
+00:02 +104: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController forced removal cancels the active clock and push signal
+00:02 +105: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController runs Hero flights with an explicitly installed controller
+00:02 +106: All tests passed!
