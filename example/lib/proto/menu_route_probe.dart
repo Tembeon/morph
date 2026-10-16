@@ -57,7 +57,11 @@ class ProbeMenuSource extends StatefulWidget {
     super.key,
   });
 
-  /// Builds stable menu content in the root route.
+  /// Builds content in the popup context with the source's local themes.
+  ///
+  /// Theme values follow the source while the captured theme kinds and wrap
+  /// topology stay stable. New theme kinds apply to the next presentation.
+  /// Other inherited values come from the root route.
   final WidgetBuilder menuBuilder;
 
   /// The source's rectangle in root navigator coordinates.
@@ -120,6 +124,31 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _session.updateSourceView(View.of(context).viewId);
+    if (_session._routes.isEmpty) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final themes = _captureThemes(navigator);
+    for (final route in _session._routes) {
+      if (identical(route.navigator, navigator)) route._queueThemes(themes);
+    }
+  }
+
+  _SourceThemes _captureThemes(NavigatorState navigator) {
+    final themes = <InheritedTheme>[];
+    final kinds = <Type>{};
+    context.visitAncestorElements((element) {
+      if (identical(element, navigator.context)) return false;
+      if (element case InheritedElement(widget: final InheritedTheme theme)) {
+        if (kinds.add(theme.runtimeType)) {
+          context.dependOnInheritedElement(element);
+          themes.add(theme);
+        }
+      }
+      return true;
+    });
+    return _SourceThemes(
+      InheritedTheme.capture(from: context, to: navigator.context),
+      List.unmodifiable(themes),
+    );
   }
 
   bool _sourceCanAcquire() {
@@ -141,8 +170,13 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
   ProbeMenuRoute open() {
     final current = _session.activeRoute;
     if (current != null && !current.closing) return current;
-    final route = ProbeMenuRoute._(_session, widget.menuBuilder);
-    unawaited(Navigator.of(context, rootNavigator: true).push<void>(route));
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = ProbeMenuRoute._(
+      _session,
+      widget.menuBuilder,
+      _captureThemes(navigator),
+    );
+    unawaited(navigator.push<void>(route));
     return route;
   }
 
@@ -552,13 +586,39 @@ class _DismissAttempt {
   bool claimed = false;
 }
 
+class _SourceThemes {
+  const _SourceThemes(this.capture, this.widgets);
+
+  final CapturedThemes capture;
+  final List<InheritedTheme> widgets;
+
+  bool sameKinds(_SourceThemes other) {
+    if (widgets.length != other.widgets.length) return false;
+    for (var i = 0; i < widgets.length; i++) {
+      if (widgets[i].runtimeType != other.widgets[i].runtimeType) return false;
+    }
+    return true;
+  }
+
+  bool sameWidgets(_SourceThemes other) {
+    if (widgets.length != other.widgets.length) return false;
+    for (var i = 0; i < widgets.length; i++) {
+      if (!identical(widgets[i], other.widgets[i])) return false;
+    }
+    return true;
+  }
+}
+
 /// A real PopupRoute driven by the same menu model the source later resumes.
 class ProbeMenuRoute extends PopupRoute<void> {
-  ProbeMenuRoute._(this._session, this._builder)
-    : _revealed = ValueNotifier(!_session.pointerInput);
+  ProbeMenuRoute._(this._session, this._builder, _SourceThemes themes)
+    : _themes = ValueNotifier(themes),
+      _revealed = ValueNotifier(!_session.pointerInput);
 
   final _MenuSession _session;
   final WidgetBuilder _builder;
+  final ValueNotifier<_SourceThemes> _themes;
+  _SourceThemes? _pendingThemes;
   final _lease = ProbeMenuLease(.route);
   final _projection = _MenuAnimation();
   final _pushSignal = Ticker((_) {});
@@ -596,6 +656,24 @@ class ProbeMenuRoute extends PopupRoute<void> {
 
   /// Whether this close was committed after waiting for SDK permission.
   bool deferredClose = false;
+
+  void _queueThemes(_SourceThemes latest) {
+    if (disposed || !_themes.value.sameKinds(latest)) return;
+    if (_pendingThemes != null) {
+      _pendingThemes = latest;
+      return;
+    }
+    if (_themes.value.sameWidgets(latest)) return;
+    _pendingThemes = latest;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pending = _pendingThemes;
+      _pendingThemes = null;
+      if (disposed || pending == null || _themes.value.sameWidgets(pending)) {
+        return;
+      }
+      _themes.value = pending;
+    });
+  }
 
   bool get _policyReady => _policyMount?._ready ?? false;
 
@@ -907,7 +985,15 @@ class ProbeMenuRoute extends PopupRoute<void> {
                 ? Flow(
                     delegate: _MenuContentFlow(_session, _lease),
                     children: [
-                      _MountedMenuPolicy(route: this, builder: _builder),
+                      ValueListenableBuilder<_SourceThemes>(
+                        valueListenable: _themes,
+                        child: _MountedMenuPolicy(
+                          route: this,
+                          builder: _builder,
+                        ),
+                        builder: (_, themes, child) =>
+                            themes.capture.wrap(child!),
+                      ),
                     ],
                   )
                 : const SizedBox.shrink(),
@@ -920,6 +1006,8 @@ class ProbeMenuRoute extends PopupRoute<void> {
   @override
   void dispose() {
     disposed = true;
+    _pendingThemes = null;
+    _themes.dispose();
     _invalidateDismissal();
     _clock.dispose();
     _pushSignal.dispose();

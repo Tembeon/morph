@@ -1,0 +1,15 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart
+00:00 +0: source themes reach root menu, nested=false
+00:02 +1: source themes reach root menu, nested=true
+00:03 +2: local theme refresh preserves editor, focus and PopScope
+00:04 +3: root system environment stays live and page data stays scoped
+00:05 +4: themes above root Navigator are not frozen by source capture
+00:06 +5: source removal keeps last local themes and live root environment
+00:06 +6: builder explicitly re-provides page data in popup context
+00:07 +7: theme refresh during hidden preparation, cancel=false
+00:08 +8: theme refresh during hidden preparation, cancel=true
+00:08 +9: several local value changes publish latest without remounting
+00:08 +10: queued refresh cannot publish into a removed or next popup
+00:09 +11: motion frames do not rebuild theme content
+00:10 +12: open route keeps theme kinds; next route adopts new topology
+00:11 +13: All tests passed!

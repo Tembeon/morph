@@ -1,0 +1,401 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: (setUpAll)
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:00 +1: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:00 +2: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:00 +3: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:00 +4: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:00 +5: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:00 +6: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:00 +7: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:00 +8: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:00 +9: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:01 +10: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: tab bar options: badges, icons, a disabled tab, tint, reselection
+00:01 +11: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: minimize options: automatic and a direct content scroll
+00:01 +12: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: minimize options: automatic and a direct content scroll
+00:01 +13: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: minimize options: automatic and a direct content scroll
+00:01 +14: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: minimize options: automatic and a direct content scroll
+00:01 +15: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: minimize options: automatic and a direct content scroll
+00:01 +16: /Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart: minimize page: a search tab with a stacked search field
+
+Warning: A call to tap() with finder "Found 1 widget with type "MorphSearchField" (ignoring all but first): [
+  MorphSearchField(dependencies: [InheritedCupertinoTheme, MediaQuery, MorphGlassScope, _InheritedTheme, _LocalizationsScope-[GlobalKey#6cefc], _ViewScope], state: _MorphSearchFieldState#f429e),
+]" derived an Offset (Offset(201.0, 128.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderPointerListener#97e0b relayoutBoundary=up8
+The hit test result at that offset is: HitTestResult(RenderPointerListener#c8266@Offset(185.0, 22.0), RenderSemanticsGestureHandler#2881d@Offset(185.0, 22.0), RenderSemanticsAnnotations#accaf@Offset(185.0, 22.0), RenderPadding#b6a8e@Offset(201.0, 22.0), RenderSliverToBoxAdapter@(mainAxis: 22.0, crossAxis: 201.0), RenderViewport#794d9@Offset(201.0, 128.0), RenderIgnorePointer#d62f2@Offset(201.0, 128.0), RenderSemanticsAnnotations#504fe@Offset(201.0, 128.0), RenderPointerListener#e73f6@Offset(201.0, 128.0), RenderSemanticsGestureHandler#0d401@Offset(201.0, 128.0), RenderPointerListener#65b6d@Offset(201.0, 128.0), _RenderScrollSemantics#ecf8c@Offset(201.0, 128.0), RenderClipRect#a956d@Offset(201.0, 128.0), RenderStack#481fb@Offset(201.0, 128.0), _RenderColoredBox#219b7@Offset(201.0, 128.0), RenderStack#e0e93@Offset(201.0, 128.0), _RenderLayoutBuilder#afd0f@Offset(201.0, 128.0), RenderSemanticsAnnotations#efe00@Offset(201.0, 128.0), RenderStack#296d9@Offset(201.0, 128.0), RenderSemanticsAnnotations#b4940@Offset(201.0, 128.0), RenderRepaintBoundary#c61ac@Offset(201.0, 128.0), RenderIgnorePointer#9b349@Offset(201.0, 128.0), RenderPointerListener#b9a93@Offset(201.0, 128.0), RenderRepaintBoundary#8c6ed@Offset(201.0, 128.0), RenderMorphLiveBox#baf04@Offset(201.0, 128.0), RenderStack#ceda6@Offset(201.0, 128.0), RenderRepaintBoundary#54ae1@Offset(201.0, 128.0), RenderSemanticsAnnotations#c2842@Offset(201.0, 128.0), RenderOffstage#af2a3@Offset(201.0, 128.0), RenderSemanticsAnnotations#74abb@Offset(201.0, 128.0), _RenderTheater#fbceb@Offset(201.0, 128.0), RenderAbsorbPointer#5d097@Offset(201.0, 128.0), RenderPointerListener#7b523@Offset(201.0, 128.0), RenderStack#768ef@Offset(201.0, 128.0), RenderSemanticsAnnotations#a98ec@Offset(201.0, 128.0), RenderRepaintBoundary#eb72a@Offset(201.0, 128.0), RenderIgnorePointer#76ed9@Offset(201.0, 128.0), RenderAnimatedOpacity#67a4a@Offset(201.0, 128.0), RenderAnimatedOpacity#2082f@Offset(201.0, 128.0), _RenderColoredBox#d1a90@Offset(201.0, 128.0), RenderAnimatedOpacity#cd4cf@Offset(201.0, 128.0), RenderIgnorePointer#11700@Offset(201.0, 128.0), RenderAnimatedOpacity#b77fd@Offset(201.0, 128.0), RenderRepaintBoundary#4f4c7@Offset(201.0, 128.0), RenderSemanticsAnnotations#77a97@Offset(201.0, 128.0), RenderOffstage#2f22d@Offset(201.0, 128.0), RenderSemanticsAnnotations#9fd56@Offset(201.0, 128.0), _RenderTheater#ffab0@Offset(201.0, 128.0), RenderAbsorbPointer#39e1e@Offset(201.0, 128.0), RenderPointerListener#ff677@Offset(201.0, 128.0), RenderSemanticsAnnotations#e9b66@Offset(201.0, 128.0), RenderSemanticsAnnotations#26553@Offset(201.0, 128.0), RenderSemanticsAnnotations#20961@Offset(201.0, 128.0), RenderSemanticsAnnotations#e2cce@Offset(201.0, 128.0), RenderTapRegionSurface#e6ac9@Offset(201.0, 128.0), RenderSemanticsAnnotations#2abd6@Offset(201.0, 128.0), RenderSemanticsAnnotations#bd72c@Offset(201.0, 128.0), HitTestEntry<HitTestTarget>#ffe6a(_ReusableRenderView#958a4), HitTestEntry<HitTestTarget>#adfa3(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/gallery_tab_search_options_test.dart:186:18)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:02 +17: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the controls page keeps its controls and applies its options
+00:05 +18: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the controls page keeps its controls and applies its options
+00:06 +19: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the slider reports the start and end of a drag
+00:06 +20: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the slider reports the start and end of a drag
+00:06 +21: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the slider reports the start and end of a drag
+00:06 +22: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the slider reports the start and end of a drag
+00:06 +23: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the segmented page clears, disables and sizes its segments
+00:07 +24: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the glass buttons page shows every style and its menus
+00:08 +25: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the glass buttons page shows every style and its menus
+00:08 +26: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the glass buttons page shows every style and its menus
+00:09 +27: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the indicators page applies its options
+00:10 +28: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: hidden preparation is a real root route and cancellation is visible
+00:11 +29: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the date picker page applies its options
+00:11 +30: /Users/tembeon/IdeaProjects/morph/example/test/gallery_control_pages_test.dart: the date picker page applies its options
+00:12 +31: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: abandoned hidden press consumes move and up before disposal
+00:12 +32: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: new down during abandoned preparation cannot rearm its model
+00:13 +33: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_lifecycle_test.dart: nested raw hold keeps pointer and mounts policy on root route
+00:14 +34: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:14 +35: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:14 +36: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:14 +37: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:14 +38: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:14 +39: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:14 +40: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:14 +41: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:15 +42: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:15 +43: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:15 +44: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+P2_SCENE {"rate":60,"gap":0.0,"frames":51,"routeFrames":19,"sourceFrames":32,"scale":3.0,"changedPixels":0}
+00:17 +45: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=8.0
+P2_SCENE {"rate":60,"gap":8.0,"frames":51,"routeFrames":19,"sourceFrames":32,"scale":3.0,"changedPixels":0}
+00:18 +46: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_input_test.dart: pointer consumes local history before closing the menu
+00:20 +46: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=12.0
+P2_SCENE {"rate":60,"gap":12.0,"frames":51,"routeFrames":19,"sourceFrames":32,"scale":3.0,"changedPixels":0}
+00:20 +47: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_input_test.dart: pointer consumes local history before closing the menu
+00:21 +48: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=0.0
+00:21 +49: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=0.0
+P2_SCENE {"rate":120,"gap":0.0,"frames":102,"routeFrames":38,"sourceFrames":64,"scale":3.0,"changedPixels":0}
+00:22 +50: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_input_test.dart: remove route releases admission on a retained model
+00:22 +51: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=8.0
+00:22 +52: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=8.0
+00:23 +53: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=8.0
+00:23 +54: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=8.0
+P2_SCENE {"rate":120,"gap":8.0,"frames":102,"routeFrames":38,"sourceFrames":64,"scale":3.0,"changedPixels":0}
+00:24 +55: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_input_test.dart: pending route defers menu content and focus until measured opening
+00:24 +56: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=12.0
+00:24 +57: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=12.0
+00:24 +58: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=12.0
+00:25 +59: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=12.0
+00:25 +60: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=12.0
+P2_SCENE {"rate":120,"gap":12.0,"frames":102,"routeFrames":38,"sourceFrames":64,"scale":3.0,"changedPixels":0}
+00:25 +61: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_input_test.dart: PopScope rejects early outside dismissal before closing, then allows retry
+00:26 +62: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_input_test.dart: PopScope rejects back dismissal before closing, then allows retry
+00:26 +63: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_input_test.dart: PopScope rejects escape dismissal before closing, then allows retry
+00:27 +64: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_async_time_test.dart: negative control: backdating approval cannot replay integrated kicks
+P2_BACKDATE {"requestedAt":1,"approvedAfter":2,"sampledAt":2.01,"continuousKick":0.0,"backdatedKick":12.16319224812841,"continuousProgress":0.00004468510866684524,"backdatedProgress":0.00004468510866684524}
+00:29 +65: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.0, reopen=null: complete model stays continuous
+00:29 +66: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.0, reopen=0.05: complete model stays continuous
+00:29 +67: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_transfer_probe_test.dart: 60 Hz, source=0.0, reopen=0.3: complete model stays continuous
+00:29 +68: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +69: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +70: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +71: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +72: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +73: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +74: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +75: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +76: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +77: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +78: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +79: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +80: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +81: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +82: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +83: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +84: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +85: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +86: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +87: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +88: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +89: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:29 +90: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:30 +91: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:30 +92: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:30 +93: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:30 +94: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:30 +95: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:30 +96: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:30 +97: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:31 +98: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:31 +99: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: source inside a nested Navigator opens a root PopupRoute
+00:32 +100: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: route hands the same frame to the source and disposes before tail rest
+00:32 +101: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:33 +102: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:33 +103: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:34 +104: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:34 +105: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 50ms, frame 8333us keeps one owner
+00:34 +106: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=true
+00:34 +107: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 300ms, frame 8333us keeps one owner
+00:35 +108: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: local theme refresh preserves editor, focus and PopScope
+00:35 +109: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 550ms, frame 8333us keeps one owner
+00:36 +110: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 550ms, frame 8333us keeps one owner
+00:36 +111: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: themes above root Navigator are not frozen by source capture
+00:36 +112: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: PopScope veto prevents closing; barrier and closing input use SDK behavior
+00:36 +113: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: source removal keeps last local themes and live root environment
+00:36 +114: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: source removal keeps last local themes and live root environment
+00:36 +115: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: forced removal restores an idle source and permits another open
+00:37 +116: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: builder explicitly re-provides page data in popup context
+00:37 +117: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_context_test.dart: builder explicitly re-provides page data in popup context
+00:37 +118: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:38 +119: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:38 +120: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:38 +121: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:39 +122: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:39 +123: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:40 +124: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:42 +125: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:43 +126: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: editor State survives motion and a covering route; Escape dismisses
+00:43 +127: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: editor State survives motion and a covering route; Escape dismisses
+00:43 +128: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: editor State survives motion and a covering route; Escape dismisses
+00:43 +129: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: editor State survives motion and a covering route; Escape dismisses
+00:43 +130: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: coordinated doze survives parent mode changes and retains the old route
+00:43 +131: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: removing a dozing controller route cancels its wake timer
+00:43 +132: /Users/tembeon/IdeaProjects/morph/example/test/proto/controller_clock_probe_test.dart: expiry of doze cannot unmute a disabled parent
+00:44 +133: /Users/tembeon/IdeaProjects/morph/example/test/proto/clock_disposal_test.dart: clock disposal from sample with settled=false stops publication
+00:45 +134: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:45 +135: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:45 +136: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:45 +137: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-tap","rate":60,"pointerOffsetUs":0,"touches":2,"samples":125,"routes":1,"handBacks":1,"selected":[]}
+00:47 +138: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: 60.0 Hz: jitter and dropped frames preserve measured samples
+00:48 +138: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":60,"pointerOffsetUs":0,"touches":4,"samples":133,"routes":1,"handBacks":1,"selected":[]}
+00:48 +139: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: 60.0 Hz: jitter and dropped frames preserve measured samples
+00:48 +140: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +141: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +142: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +143: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +144: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +145: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +146: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +147: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +148: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +149: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +150: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +151: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +152: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +153: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +154: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +155: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +156: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":60,"pointerOffsetUs":0,"touches":2,"samples":160,"routes":1,"handBacks":1,"selected":[]}
+00:48 +157: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+00:48 +158: /Users/tembeon/IdeaProjects/morph/example/test/proto/motion_clock_probe_test.dart: relinquishing a dozing clock cancels its pending wake
+00:48 +159: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-select","rate":60,"pointerOffsetUs":0,"touches":4,"samples":134,"routes":1,"handBacks":1,"selected":[1]}
+00:49 +160: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":60,"pointerOffsetUs":0,"touches":14,"samples":146,"routes":1,"handBacks":1,"selected":[2]}
+00:49 +161: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":60,"pointerOffsetUs":0,"touches":4,"samples":74,"routes":1,"handBacks":1,"selected":[]}
+00:50 +162: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":60,"pointerOffsetUs":0,"touches":16,"samples":452,"routes":4,"handBacks":4,"selected":[]}
+00:51 +163: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: two SDK requests consume one permission once, history=false
+00:52 +163: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":60,"pointerOffsetUs":0,"touches":16,"samples":489,"routes":4,"handBacks":4,"selected":[]}
+00:52 +164: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: two SDK requests consume one permission once, history=false
+00:53 +165: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:53 +166: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:54 +166: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 60 Hz / 1.0 x
+P2_ASYNC_TIME {"rate":60,"dilation":1.0,"waiting":"opening","requestedAt":0.17566900000000002,"lastSampleAtApproval":0.36333899999999997,"closedAt":0.36333899999999997,"samples":78}
+00:54 +167: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:54 +167: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: settled idle permission preserves current-state physics at 60 Hz / 1.0 x
+P2_ASYNC_TIME {"rate":60,"dilation":1.0,"waiting":"settled idle","requestedAt":0.9423509999999999,"lastSampleAtApproval":0.950019,"closedAt":0.9666859999999999,"samples":115}
+00:54 +168: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":60,"pointerOffsetUs":0,"touches":778,"samples":1921,"routes":4,"handBacks":4,"selected":[]}
+00:55 +169: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 60 Hz / 5.0 x
+P2_ASYNC_TIME {"rate":60,"dilation":5.0,"waiting":"opening","requestedAt":0.1523358,"lastSampleAtApproval":0.3100054,"closedAt":0.3100054,"samples":334}
+00:56 +170: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":60,"pointerOffsetUs":0,"touches":333,"samples":938,"routes":2,"handBacks":2,"selected":[]}
+00:56 +171: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: settled idle permission preserves current-state physics at 60 Hz / 5.0 x
+00:57 +171: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-tap","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":246,"routes":1,"handBacks":1,"selected":[]}
+00:57 +172: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: settled idle permission preserves current-state physics at 60 Hz / 5.0 x
+P2_ASYNC_TIME {"rate":60,"dilation":5.0,"waiting":"settled idle","requestedAt":0.9323513999999999,"lastSampleAtApproval":0.9333524,"closedAt":0.9366858,"samples":542}
+00:57 +173: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 120 Hz
+00:57 +173: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 120 Hz / 1.0 x
+P2_ASYNC_TIME {"rate":120,"dilation":1.0,"waiting":"opening","requestedAt":0.16732999999999998,"lastSampleAtApproval":0.338323,"closedAt":0.338323,"samples":143}
+00:57 +174: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":261,"routes":1,"handBacks":1,"selected":[]}
+00:58 +175: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: settled idle permission preserves current-state physics at 120 Hz / 1.0 x
+P2_ASYNC_TIME {"rate":120,"dilation":1.0,"waiting":"settled idle","requestedAt":0.9339649999999999,"lastSampleAtApproval":0.941629,"closedAt":0.9499620000000001,"samples":222}
+00:58 +176: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":317,"routes":1,"handBacks":1,"selected":[]}
+00:58 +177: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 120 Hz / 5.0 x
+00:59 +177: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-select","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":262,"routes":1,"handBacks":1,"selected":[1]}
+00:59 +178: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 120 Hz / 5.0 x
+00:59 +178: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":120,"pointerOffsetUs":37000000,"touches":14,"samples":277,"routes":1,"handBacks":1,"selected":[2]}
+00:59 +179: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 120 Hz / 5.0 x
+01:00 +179: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":143,"routes":1,"handBacks":1,"selected":[]}
+01:00 +180: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 120 Hz / 5.0 x
+P2_ASYNC_TIME {"rate":120,"dilation":5.0,"waiting":"opening","requestedAt":0.152329,"lastSampleAtApproval":0.30665760000000003,"closedAt":0.30665760000000003,"samples":656}
+01:00 +181: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":883,"routes":4,"handBacks":4,"selected":[]}
+01:01 +182: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: settled idle permission preserves current-state physics at 120 Hz / 5.0 x
+P2_ASYNC_TIME {"rate":120,"dilation":5.0,"waiting":"settled idle","requestedAt":0.9322976000000001,"lastSampleAtApproval":0.9332956,"closedAt":0.9349622,"samples":1077}
+01:02 +183: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+01:03 +184: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+01:03 +185: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":957,"routes":4,"handBacks":4,"selected":[]}
+01:03 +186: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: pointer first shares permission with concurrent maybePop and commits once
+01:04 +187: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+01:04 +188: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+01:05 +189: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+01:05 +190: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+01:06 +191: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+01:06 +192: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+01:06 +193: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":120,"pointerOffsetUs":37000000,"touches":778,"samples":3044,"routes":4,"handBacks":4,"selected":[]}
+01:07 +194: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: remove invalidates a pending dismissal
+01:07 +195: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+01:07 +196: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+01:08 +197: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+01:08 +198: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":120,"pointerOffsetUs":37000000,"touches":333,"samples":1533,"routes":2,"handBacks":2,"selected":[]}
+01:08 +199: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: approval rechecks PopScope and local history before motion closes
+01:09 +200: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_async_test.dart: outside dismissal awaits SDK permission before changing motion
+01:10 +201: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_contour_probe_test.dart: negative control: replacing carried contour at gap=0.0 changes pixels
+P2_CONTOUR {"gap":0.0,"time":1.325,"progress":-0.00014028660063146995,"fusionRadius":2.03077073954383,"containerChangedPixels":1382,"preservedChangedPixels":0,"width":277,"height":154}
+01:11 +202: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered closed source cannot acquire a pointer from another page
+01:11 +202: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_contour_probe_test.dart: negative control: replacing carried contour at gap=8.0 changes pixels
+P2_CONTOUR {"gap":8.0,"time":1.325,"progress":-0.00014028660063146995,"fusionRadius":2.03077073954383,"containerChangedPixels":1086,"preservedChangedPixels":0,"width":301,"height":154}
+01:11 +203: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered closed source cannot acquire a pointer from another page
+01:11 +203: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_contour_probe_test.dart: negative control: replacing carried contour at gap=12.0 changes pixels
+P2_CONTOUR {"gap":12.0,"time":1.325,"progress":-0.00014028660063146995,"fusionRadius":2.03077073954383,"containerChangedPixels":981,"preservedChangedPixels":0,"width":313,"height":154}
+01:11 +204: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered closed source cannot acquire a pointer from another page
+01:12 +205: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered open menu ignores the top page gesture, opaque=false
+01:13 +206: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+01:14 +207: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+01:14 +208: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+01:15 +209: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+01:15 +210: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+01:15 +211: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+01:15 +212: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+01:15 +213: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=false
+01:15 +214: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected restoration adds a completed route that still dismisses
+01:15 +215: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+01:15 +216: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+01:15 +217: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=false, uncover=true
+01:16 +218: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected keeps content stable during frames, insets and a covering route
+01:16 +219: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=false
+01:16 +220: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=false
+01:16 +220: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected records SDK rebuilds during steady motion
+P1_BUILDS {"driver":"projected","frames":40,"builds":176,"buildsPerFrame":4.4,"owners":{"AnimatedModalBarrier":22,"ModalBarrier":22,"_ModalBarrierGestureDetector":22,"RawGestureDetector":22,"ListenableBuilder":88}}
+01:16 +221: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=false
+01:16 +222: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=false
+01:16 +223: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: projected pop during entrance preserves geometry and disposes at rest
+01:16 +224: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+01:16 +225: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+01:17 +226: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+01:17 +227: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+01:17 +228: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+01:17 +229: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover revokes held input: source=true, uncover=true
+01:17 +230: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController initial Pages are completed without running an entrance
+01:17 +231: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover preserves an action already committed by a valid release
+01:17 +232: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover preserves an action already committed by a valid release
+01:17 +233: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover preserves an action already committed by a valid release
+01:17 +234: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover preserves an action already committed by a valid release
+01:17 +235: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover preserves an action already committed by a valid release
+01:17 +236: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover preserves an action already committed by a valid release
+01:17 +237: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController keeps content stable during frames, insets and a covering route
+01:18 +238: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+01:18 +239: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+01:18 +239: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController records SDK rebuilds during steady motion
+P1_BUILDS {"driver":"sdkController","frames":40,"builds":320,"buildsPerFrame":8.0,"owners":{"AnimatedModalBarrier":40,"ModalBarrier":40,"_ModalBarrierGestureDetector":40,"RawGestureDetector":40,"ListenableBuilder":160}}
+01:18 +240: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+01:18 +241: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+01:18 +242: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+01:18 +243: /Users/tembeon/IdeaProjects/morph/example/test/proto/route_probe_test.dart: sdkController forced removal cancels the active clock and push signal
+01:18 +244: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: due action cover prevents a new release from committing
+01:18 +245: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: due action cover prevents a new release from committing
+01:19 +246: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered source tail honors SDK TickerMode, opaque=false
+01:19 +247: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: covered source tail honors SDK TickerMode, opaque=true
+01:20 +248: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: force removal inside tracking skips stale observation and old clock
+01:20 +249: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: force removal inside tracking skips stale observation and old clock
+01:20 +250: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: force removal inside tracking skips stale observation and old clock
+01:20 +251: /Users/tembeon/IdeaProjects/morph/example/test/analytic_geometry_host_test.dart: merged boxes far apart shade as their own shapes
+01:20 +252: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: frame callback removal does not publish a replacement model as the old route
+01:20 +253: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: frame callback removal does not publish a replacement model as the old route
+01:20 +254: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: frame callback removal does not publish a replacement model as the old route
+01:20 +255: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: frame callback removal does not publish a replacement model as the old route
+01:21 +256: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: another source cannot acquire through a hidden current preparation
+01:21 +257: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: Router platform Back follows dispatcher priority: child=false
+01:21 +258: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: Router platform Back follows dispatcher priority: child=true
+01:21 +259: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: revealed Escape uses root popup SDK action with nested=false
+01:22 +260: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_input_ownership_test.dart: revealed Escape uses root popup SDK action with nested=true
+01:22 +261: /Users/tembeon/IdeaProjects/morph/example/test/frost_seed_host_test.dart: a frosted layer blurs a copy of its own surroundings
+01:22 +262: /Users/tembeon/IdeaProjects/morph/example/test/frost_seed_host_test.dart: a frosted layer blurs a copy of its own surroundings
+01:22 +263: /Users/tembeon/IdeaProjects/morph/example/test/frost_seed_host_test.dart: a frosted layer blurs a copy of its own surroundings
+01:23 +264: /Users/tembeon/IdeaProjects/morph/example/test/frost_seed_host_test.dart: a frosted layer blurs a copy of its own surroundings
+01:23 +265: /Users/tembeon/IdeaProjects/morph/example/test/frost_seed_host_test.dart: a frosted layer blurs a copy of its own surroundings
+01:24 +266: /Users/tembeon/IdeaProjects/morph/example/test/analytic_flat_face_host_test.dart: the flat-face skip draws what the full solve draws
+01:25 +267: /Users/tembeon/IdeaProjects/morph/example/test/blur_bound_host_test.dart: cheap small blurs draw the blurs they replace
+01:27 +268: /Users/tembeon/IdeaProjects/morph/example/test/gallery_playground_test.dart: (setUpAll)
+01:27 +268: /Users/tembeon/IdeaProjects/morph/example/test/gallery_playground_test.dart: glass effects: shapes, a container and the inspector
+01:31 +269: /Users/tembeon/IdeaProjects/morph/example/test/gallery_navigation_pages_test.dart: navigation bar: badge, back button modes, zoom, bars
+01:31 +270: /Users/tembeon/IdeaProjects/morph/example/test/gallery_navigation_pages_test.dart: navigation bar: badge, back button modes, zoom, bars
+01:32 +271: /Users/tembeon/IdeaProjects/morph/example/test/gallery_playground_test.dart: morph engine: every flight opens and closes
+01:32 +272: /Users/tembeon/IdeaProjects/morph/example/test/gallery_navigation_pages_test.dart: navigator pages: a list of pages pushes, zooms and pops
+01:33 +273: /Users/tembeon/IdeaProjects/morph/example/test/gallery_navigation_pages_test.dart: navigator pages: a list of pages pushes, zooms and pops
+01:33 +274: /Users/tembeon/IdeaProjects/morph/example/test/gallery_playground_test.dart: lists: checkmarks, info buttons, a disabled row, lazy rows
+01:34 +275: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: (setUpAll)
+01:34 +275: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:34 +276: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:36 +277: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:36 +278: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:37 +279: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:37 +280: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:38 +281: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:38 +282: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:39 +283: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:39 +284: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:41 +285: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:41 +286: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+01:41 +287: /Users/tembeon/IdeaProjects/morph/example/test/control_matrix_test.dart: the date picker open-close composites only its glass offscreen (fake)
+01:42 +288: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+01:42 +289: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+01:47 +290: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+01:48 +291: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+01:48 +292: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+01:50 +293: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+01:52 +294: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+01:52 +295: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+01:52 +296: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+01:52 +297: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+02:13 +298: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the flat tier
+02:15 +299: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the flat tier
+02:17 +300: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the flat tier
+02:18 +301: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the flat tier
+02:21 +302: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the flat tier
+02:22 +303: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the flat tier
+02:22 +304: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the flat tier
+02:22 +305: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the flat tier
+02:25 +306: /Users/tembeon/IdeaProjects/morph/example/test/lab_test.dart: lab observes short menu cards at every nested level
+02:27 +307: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:27 +308: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:27 +309: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:29 +310: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:29 +311: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:31 +312: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:31 +313: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:33 +314: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:33 +315: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:33 +316: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:33 +317: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:33 +318: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+02:33 +319: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: control frames on the fake tier
+03:32 +320: /Users/tembeon/IdeaProjects/morph/example/test/control_goldens_test.dart: (tearDownAll)
+03:32 +320: All tests passed!
