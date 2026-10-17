@@ -1,0 +1,70 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart
+00:00 +0: pre-handback source hold retains physical move and up
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: [
+            <<Instance of 'PointerDownEvent'>>,
+            <<Instance of 'PointerMoveEvent'>>,
+            <<Instance of 'PointerUpEvent'>>
+          ]
+  Actual: MappedIterable<({PointerEvent? event, ({RRect button, double buttonKick, double
+buttonOpacity, double contentOpacity, double fusionRadius, RRect menu, double menuKick, double
+progress, double time}) frame, ProbeMenuSampleKind kind, double time}), PointerEvent?>:[
+            _TransformedPointerDownEvent:_TransformedPointerDownEvent#66840(position: Offset(46.0,
+102.0)),
+            PointerCancelEvent:PointerCancelEvent#cc40d(position: Offset(0.0, 0.0))
+          ]
+   Which: at location [1] is PointerCancelEvent:<PointerCancelEvent#cc40d(position: Offset(0.0,
+0.0))> which is not an instance of 'PointerMoveEvent'
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart:152:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart line 152
+The test description was:
+  pre-handback source hold retains physical move and up
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -1: pre-handback source hold retains physical move and up [E]
+  Test failed. See exception logs above.
+  The test description was: pre-handback source hold retains physical move and up
+
+00:00 +0 -1: new preparation retains painted outgoing content before reveal
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: not same instance as ProbeMenuRoute:<ProbeMenuRoute(RouteSettings(none, null), animation:
+_MenuAnimation#8cdfd(◀))>
+  Actual: ProbeMenuRoute:<ProbeMenuRoute(RouteSettings(none, null), animation:
+_MenuAnimation#8cdfd(◀))>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart:174:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart line 174
+The test description was:
+  new preparation retains painted outgoing content before reveal
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -2: new preparation retains painted outgoing content before reveal [E]
+  Test failed. See exception logs above.
+  The test description was: new preparation retains painted outgoing content before reveal
+
+00:00 +0 -2: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: new preparation retains painted outgoing content before reveal
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: pre-handback source hold retains physical move and up

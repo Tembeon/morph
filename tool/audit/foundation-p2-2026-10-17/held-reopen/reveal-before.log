@@ -1,0 +1,87 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:00 +1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +5: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 550ms, frame 16667us keeps one owner
+00:00 +7: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 1.0x keeps input and model
+00:01 +8: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 50ms, frame 8333us keeps one owner
+00:01 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:01 +10: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:01 +11: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:01 +12: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:01 +13: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:01 +14: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: forced removal restores an idle source and permits another open
+00:01 +15: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 5.0x keeps input and model
+00:01 +16: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 5.0x keeps input and model
+00:02 +17: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:02 +18: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:02 +19: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:02 +20: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+00:02 +21: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+00:03 +22: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 5.0x keeps input and model
+00:03 +23: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:03 +24: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:03 +25: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on cancel
+00:03 +26: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: hidden preparation keeps page semantics until actual reveal
+00:04 +27: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on outside release
+00:04 +28: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=false
+00:04 +29: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=false
+00:04 +30: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on Back pending
+00:04 +31: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: semantic dismiss honors PopScope then closes once: pointer=false
+00:04 +32: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on remove successor
+00:04 +33: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=true
+00:04 +34: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=true
+00:04 +35: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on source loss
+00:04 +36: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: semantic dismiss honors PopScope then closes once: pointer=true
+00:04 +37: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: cover distinguishes held and committed reopen: false
+00:04 +38: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: logical pop removes obsolete menu semantics before landing tail
+00:04 +39: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: cover distinguishes held and committed reopen: true
+00:04 +40: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: cover distinguishes held and committed reopen: true
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: true
+  Actual: <false>
+
+When the exception was thrown, this was the stack:
+#4      _until (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart:22:3)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart:422:9)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart line 22
+The test description was:
+  cover distinguishes held and committed reopen: true
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:04 +40 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation takes over own hidden hold: nested=false
+00:04 +40 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: cover distinguishes held and committed reopen: true [E]
+  Test failed. See exception logs above.
+  The test description was: cover distinguishes held and committed reopen: true
+
+00:04 +41 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: semantic activation promotes its reserved route on actual owner
+00:04 +42 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: semantic activation promotes its reserved route on actual owner
+00:04 +43 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation takes over own hidden hold: nested=true
+00:04 +44 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: fresh successor policy applies before its first dismissal
+00:04 +45 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: fresh successor policy applies before its first dismissal
+00:04 +46 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: stale dismiss cannot pop a covering route: popped=false
+00:04 +47 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: stale dismiss cannot pop a covering route: popped=true
+00:05 +48 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: concurrent semantic dismiss shares async permission and pops once
+00:05 +49 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: semantic dismiss consumes local history before closing menu
+00:05 +50 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: removed source page cannot activate its retained hidden popup
+00:05 +51 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: own hidden popup does not exempt a newly covered nested page
+00:05 +52 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: cover from held cancellation aborts semantic activation
+00:05 +53 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: removal from semantic open observation stops stale publication
+00:05 +54 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: covered hidden cancellation retains the entire press relaxation
+00:05 +55 -1: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: cover distinguishes held and committed reopen: true

@@ -1,0 +1,127 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-tap","rate":60,"pointerOffsetUs":0,"touches":2,"samples":125,"routes":1,"handBacks":1,"selected":[]}
+00:00 +1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":60,"pointerOffsetUs":0,"touches":4,"samples":133,"routes":1,"handBacks":1,"selected":[]}
+00:00 +2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":60,"pointerOffsetUs":0,"touches":2,"samples":160,"routes":1,"handBacks":1,"selected":[]}
+00:00 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 1.0x keeps input and model
+00:00 +4: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-select","rate":60,"pointerOffsetUs":0,"touches":4,"samples":134,"routes":1,"handBacks":1,"selected":[1]}
+00:00 +5: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 1.0x keeps input and model
+00:00 +6: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":60,"pointerOffsetUs":0,"touches":14,"samples":146,"routes":1,"handBacks":1,"selected":[2]}
+00:00 +7: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:00 +7: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":60,"pointerOffsetUs":0,"touches":4,"samples":74,"routes":1,"handBacks":1,"selected":[]}
+00:00 +8: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:01 +8: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":60,"pointerOffsetUs":0,"touches":16,"samples":452,"routes":4,"handBacks":4,"selected":[]}
+00:01 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:01 +9: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":60,"pointerOffsetUs":0,"touches":16,"samples":489,"routes":4,"handBacks":4,"selected":[]}
+00:01 +10: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:01 +11: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":60,"pointerOffsetUs":0,"touches":778,"samples":1921,"routes":4,"handBacks":4,"selected":[]}
+00:01 +12: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 5.0x keeps input and model
+00:01 +13: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":60,"pointerOffsetUs":0,"touches":333,"samples":938,"routes":2,"handBacks":2,"selected":[]}
+00:01 +14: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 1.0x keeps input and model
+00:01 +14: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-tap","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":246,"routes":1,"handBacks":1,"selected":[]}
+00:01 +15: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 1.0x keeps input and model
+00:02 +16: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":261,"routes":1,"handBacks":1,"selected":[]}
+00:02 +17: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 1.0x keeps input and model
+00:02 +17: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":317,"routes":1,"handBacks":1,"selected":[]}
+00:02 +18: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 1.0x keeps input and model
+00:02 +19: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-select","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":262,"routes":1,"handBacks":1,"selected":[1]}
+00:02 +20: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+00:02 +20: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":120,"pointerOffsetUs":37000000,"touches":14,"samples":277,"routes":1,"handBacks":1,"selected":[2]}
+00:02 +21: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+00:02 +21: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":143,"routes":1,"handBacks":1,"selected":[]}
+00:02 +22: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+00:02 +22: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":883,"routes":4,"handBacks":4,"selected":[]}
+00:02 +23: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: true
+  Actual: <false>
+
+When the exception was thrown, this was the stack:
+#4      _until (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart:22:3)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart:247:15)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart line 22
+The test description was:
+  held reopen 40ms at 120 Hz, 5.0x keeps input and model
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +23 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+00:02 +23 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model [E]
+  Test failed. See exception logs above.
+  The test description was: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+
+00:02 +23 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":957,"routes":4,"handBacks":4,"selected":[]}
+00:02 +24 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 5.0x keeps input and model
+00:03 +24 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":120,"pointerOffsetUs":37000000,"touches":778,"samples":3044,"routes":4,"handBacks":4,"selected":[]}
+00:03 +24 -1: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 5.0x keeps input and model
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: true
+  Actual: <false>
+
+When the exception was thrown, this was the stack:
+#4      _until (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart:22:3)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart:247:15)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart line 22
+The test description was:
+  held reopen 300ms at 120 Hz, 5.0x keeps input and model
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +24 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+00:03 +24 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 5.0x keeps input and model [E]
+  Test failed. See exception logs above.
+  The test description was: held reopen 300ms at 120 Hz, 5.0x keeps input and model
+
+00:03 +25 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: new preparation retains painted outgoing content before reveal
+00:03 +25 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":120,"pointerOffsetUs":37000000,"touches":333,"samples":1533,"routes":2,"handBacks":2,"selected":[]}
+00:03 +26 -2: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: new preparation retains painted outgoing content before reveal
+10:03 +26 -3: /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: new preparation retains painted outgoing content before reveal [E]
+  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
+  dart:isolate  _RawReceivePort._handleMessage
+
+10:03 +26 -3: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 5.0x keeps input and model
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_held_reopen_test.dart: new preparation retains painted outgoing content before reveal

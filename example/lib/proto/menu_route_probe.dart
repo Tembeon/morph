@@ -202,7 +202,7 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
 
   bool _canActivateSemantically() {
     if (!mounted) return false;
-    final route = _session.activeRoute;
+    final route = _session._reservation?.route ?? _session.activeRoute;
     if (route == null) return _sourceCanAcquire();
     return route._stage.value == _MenuStage.preparing &&
         route._acceptsActivation &&
@@ -217,7 +217,9 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
     }
   }
 
-  ProbeMenuRoute _prepare() {
+  ProbeMenuRoute _prepare({bool reserve = false}) {
+    final reserved = _session._reservation?.route;
+    if (reserved != null) return reserved;
     final current = _session.activeRoute;
     if (current != null && !current.closing) return current;
     final navigator = Navigator.of(context, rootNavigator: true);
@@ -228,6 +230,13 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
       _rootSourceRoute(),
       widget.menuSemanticLabel,
     );
+    if (reserve) {
+      _session._reservation = _MenuReservation(
+        route,
+        _session.transfer,
+        _session._pointer!,
+      );
+    }
     unawaited(navigator.push<void>(route));
     return route;
   }
@@ -250,11 +259,19 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
               ? Listener(
                   behavior: .opaque,
                   onPointerDown: (event) {
-                    _session.handlePointer(event, sourceHit: true);
+                    final accepted = _session.handlePointer(
+                      event,
+                      sourceHit: true,
+                    );
+                    final owner = _session.activeRoute;
                     // Push before Navigator's ancestor Listener records this down.
-                    if (_session.activeRoute == null &&
-                        _session._pointer?.matches(event) == true) {
-                      _prepare();
+                    if (accepted &&
+                        mounted &&
+                        _session._pointer?.matches(event) == true &&
+                        _sourceCanAcquire() &&
+                        (owner == null ||
+                            (owner.closing && owner._stage.value.revealed))) {
+                      _prepare(reserve: owner != null);
                     }
                   },
                 )
@@ -295,8 +312,14 @@ class _MenuSession {
           return (settled: true, wakeTime: null);
         }
         sourceFrames++;
+        final target = transfer;
         emit(.frame);
         syncInputPhase();
+        if (sourceClock == null ||
+            !identical(target, transfer) ||
+            !identical(transfer.owner, source)) {
+          return (settled: true, wakeTime: null);
+        }
         frames.value++;
         return (
           settled: !identical(transfer.owner, source) || transfer.isSettled,
@@ -318,7 +341,7 @@ class _MenuSession {
   final ValueChanged<ProbeMenuSample>? onSample;
   final List<RRect> neighbors;
   VoidCallback? present;
-  bool Function()? sourceEligible;
+  bool Function({ModalRoute<Object?>? coveredRoot})? sourceEligible;
   _PointerSequence? _pointer;
   int? _viewId;
   int _modelDepth = 0;
@@ -329,6 +352,7 @@ class _MenuSession {
   late ProbeMenuTransfer transfer;
   ProbeMotionClock? sourceClock;
   ProbeMenuRoute? activeRoute;
+  _MenuReservation? _reservation;
   int sourceFrames = 0;
   MorphMenuMotion? _admittedMotion;
   final _closeRequests =
@@ -358,6 +382,9 @@ class _MenuSession {
   }
 
   bool get _menuCanAcquire {
+    if (_reservation != null) {
+      return _reservationCanContinue && transfer.isOpenPending;
+    }
     final route = activeRoute;
     return route != null &&
         !route.closing &&
@@ -365,14 +392,32 @@ class _MenuSession {
         route.isCurrent;
   }
 
+  bool get _reservationCanContinue {
+    final reservation = _reservation;
+    return reservation != null &&
+        identical(reservation.transfer, transfer) &&
+        reservation.route.isCurrent &&
+        !reservation.route.closing &&
+        !reservation.route.disposed &&
+        (sourceEligible?.call(coveredRoot: reservation.route._sourcePage) ??
+            false);
+  }
+
   bool get _sourceCanContinue {
+    if (_reservation case final reservation?) {
+      return _reservationCanContinue &&
+          identical(_pointer, reservation.sequence);
+    }
     final route = activeRoute;
     return (route == null || (route.closing && route._stage.value.revealed)) &&
         (sourceEligible?.call() ?? false);
   }
 
   void revokePointerFor(ProbeMenuRoute route) {
-    if (identical(activeRoute, route)) _revokePointer();
+    if (identical(_reservation?.route, route) ||
+        (identical(activeRoute, route) && !_reservationCanContinue)) {
+      _revokePointer();
+    }
   }
 
   void _revokePointer() {
@@ -413,7 +458,7 @@ class _MenuSession {
     if (pointerInput) {
       _admittedMotion = motion;
       morphMenuSetCloseAdmission(motion, (time) {
-        final route = activeRoute;
+        final route = _reservation?.route ?? activeRoute;
         if (route == null || route.closing || !route.isCurrent) return false;
         if (route._deferDismissal(time)) return false;
         route.closeRequestedAt = time;
@@ -427,6 +472,57 @@ class _MenuSession {
       source: source,
       sourceTime: sourceClock?.time ?? 0,
     );
+  }
+
+  void _retireReservation(
+    _MenuReservation reservation, {
+    _ReservationExit exit = .abandoned,
+  }) {
+    if (!identical(_reservation, reservation)) return;
+    _reservation = null;
+    final target = reservation.transfer;
+    final lease = target.owner;
+    if (identical(transfer, reservation.transfer)) _revokePointer();
+    if (identical(transfer, target) &&
+        identical(target.owner, lease) &&
+        (exit == .popped ||
+            (exit == .removed && (target.isOpen || target.isOpenPending)))) {
+      final clock = activeRoute?._clock ?? sourceClock;
+      if (clock != null) {
+        final time = clock.resumeAt(now());
+        command(() => target.close(lease, time));
+        if (identical(target, transfer) && identical(target.owner, lease)) {
+          emit(.close);
+        }
+      }
+    }
+    final route = reservation.route;
+    if (route.disposed) return;
+    route._invalidateDismissal();
+    route._pushSignal.stop(canceled: false);
+    scheduleMicrotask(() {
+      if (route.disposed) return;
+      if (route.isActive) {
+        route._stage.value = _MenuStage.closingPreparation;
+        route.navigator!.removeRoute(route);
+      } else if (exit == .popped) {
+        route._projection.update(0, .dismissed);
+      }
+    });
+  }
+
+  void _promoteReservation(_MenuReservation reservation) {
+    if (!identical(_reservation, reservation) ||
+        !identical(reservation.transfer, transfer) ||
+        reservation.route.disposed ||
+        reservation.route.closing ||
+        !reservation.route.isActive) {
+      _retireReservation(reservation, exit: .removed);
+      return;
+    }
+    _reservation = null;
+    acquire(reservation.route);
+    reservation.route._reveal();
   }
 
   void acquire(ProbeMenuRoute route) {
@@ -456,14 +552,15 @@ class _MenuSession {
   void activate(ProbeMenuRoute route, {bool Function()? eligible}) {
     if (!route._acceptsActivation || transfer.isOpen) return;
     final target = transfer;
-    final lease = route._lease;
+    final lease = target.owner;
     bool valid() =>
         identical(transfer, target) &&
         route._acceptsActivation &&
         (eligible?.call() ?? true);
     _revokePointer();
     if (!valid()) return;
-    final time = route._clock.resumeAt(now());
+    final clock = activeRoute?._clock ?? sourceClock!;
+    final time = clock.resumeAt(now());
     command(() {
       target.advance(lease, time);
       if (!valid()) return;
@@ -499,6 +596,9 @@ class _MenuSession {
   void detachSource() {
     present = null;
     sourceEligible = null;
+    if (_reservation case final reservation?) {
+      _retireReservation(reservation, exit: .removed);
+    }
     sourceClock!.dispose();
     sourceClock = null;
     _disposeIfUnused();
@@ -506,6 +606,12 @@ class _MenuSession {
 
   void routeDisposed(ProbeMenuRoute route) {
     _routes.remove(route);
+    final reservation = _reservation;
+    if (reservation != null &&
+        (identical(reservation.route, route) ||
+            identical(activeRoute, route))) {
+      _retireReservation(reservation, exit: .removed);
+    }
     if (identical(activeRoute, route)) {
       activeRoute = null;
       _pointer = null;
@@ -543,6 +649,17 @@ class _MenuSession {
 
   void syncInputPhase() {
     if (!pointerInput) return;
+    if (_reservation case final reservation?) {
+      if (!identical(reservation.transfer, transfer) ||
+          sourceEligible == null ||
+          reservation.route._sourcePage?.isActive == false) {
+        _retireReservation(reservation, exit: .removed);
+      } else if (transfer.isOpen) {
+        _promoteReservation(reservation);
+      } else if (_pointer == null && !transfer.isOpenPending) {
+        _retireReservation(reservation);
+      }
+    }
     final requests = List.of(_closeRequests);
     _closeRequests.clear();
     for (final request in requests) {
@@ -579,7 +696,7 @@ class _MenuSession {
     activeRoute?._updatePendingBarrier();
   }
 
-  void handlePointer(PointerEvent event, {bool sourceHit = false}) {
+  bool handlePointer(PointerEvent event, {bool sourceHit = false}) {
     final route = activeRoute;
     if (route != null && route.closing && !route._stage.value.revealed) {
       if (_pointer?.matches(event) == true &&
@@ -587,14 +704,14 @@ class _MenuSession {
         _pointer = null;
       }
       emit(.ignoredPointer, event: event);
-      return;
+      return false;
     }
     if (event is PointerDownEvent) {
-      if (_pointer != null || event.buttons != kPrimaryButton) return;
+      if (_pointer != null || event.buttons != kPrimaryButton) return false;
       if (event.viewId != _viewId ||
           (!_menuCanAcquire && !(sourceHit && _sourceCanContinue))) {
         emit(.ignoredPointer, event: event);
-        return;
+        return false;
       }
       _pointer = _PointerSequence(event.pointer, event.viewId);
     } else if (_pointer?.matches(event) != true) {
@@ -603,16 +720,16 @@ class _MenuSession {
           event is PointerCancelEvent) {
         emit(.ignoredPointer, event: event);
       }
-      return;
+      return false;
     }
     final sequence = _pointer!;
     if (!_menuCanAcquire && !_sourceCanContinue) {
       _revokePointer();
       emit(.ignoredPointer, event: event);
-      return;
+      return false;
     }
     final clock = activeRoute?._clock ?? sourceClock;
-    if (clock == null) return;
+    if (clock == null) return false;
     final local = clock.stamp(event);
     final target = transfer;
     final lease = target.owner;
@@ -640,12 +757,23 @@ class _MenuSession {
     }
     if (time == null) {
       emit(.ignoredPointer, event: event);
-      return;
+      return false;
     }
-    if (!identical(target, transfer)) return;
+    if (!identical(target, transfer)) return false;
     syncInputPhase();
     frames.value++;
+    return true;
   }
+}
+
+enum _ReservationExit { abandoned, popped, removed }
+
+class _MenuReservation {
+  _MenuReservation(this.route, this.transfer, this.sequence);
+
+  final ProbeMenuRoute route;
+  final ProbeMenuTransfer transfer;
+  final _PointerSequence sequence;
 }
 
 class _PointerSequence {
@@ -768,8 +896,10 @@ class ProbeMenuRoute extends PopupRoute<void> {
       !disposed &&
       !closing &&
       isCurrent &&
-      identical(_session.activeRoute, this) &&
-      identical(_session.transfer.owner, _lease);
+      ((identical(_session.activeRoute, this) &&
+              identical(_session.transfer.owner, _lease)) ||
+          (identical(_session._reservation?.route, this) &&
+              identical(_session._reservation?.transfer, _session.transfer)));
 
   void _semanticDismiss() {
     if (_stage.value != _MenuStage.shown || !_acceptsActivation) return;
@@ -802,8 +932,10 @@ class ProbeMenuRoute extends PopupRoute<void> {
       !closing &&
       navigator?.mounted == true &&
       isCurrent &&
-      identical(_session.activeRoute, this) &&
-      identical(_session.transfer.owner, _lease);
+      ((identical(_session.activeRoute, this) &&
+              identical(_session.transfer.owner, _lease)) ||
+          (identical(_session._reservation?.route, this) &&
+              identical(_session._reservation?.transfer, _session.transfer)));
 
   bool _deferDismissal(double time) {
     final current = _dismissal;
@@ -844,6 +976,13 @@ class ProbeMenuRoute extends PopupRoute<void> {
     }
     final answer = await permission.future;
     if (answer != RoutePopDisposition.pop) return answer;
+    if (!request.consultPolicy &&
+        _session.transfer.isOpen &&
+        _isLive(request)) {
+      _session.syncInputPhase();
+      _invalidateDismissal();
+      return willPop();
+    }
     if (!_isLive(request) || request.claimed) {
       return RoutePopDisposition.doNotPop;
     }
@@ -946,6 +1085,12 @@ class ProbeMenuRoute extends PopupRoute<void> {
     _nextRoute = null;
     _invalidateDismissal();
     super.didPopNext(nextRoute);
+    if (_stage.value == _MenuStage.preparing &&
+        identical(_session.activeRoute, this) &&
+        _session.transfer.isOpen) {
+      _reveal();
+      _clock.resumeAt(_session.now());
+    }
   }
 
   @override
@@ -991,6 +1136,11 @@ class ProbeMenuRoute extends PopupRoute<void> {
     super.didPush();
     _pushSignal.muted = true;
     final signal = _pushSignal.start();
+    _session._routes.add(this);
+    if (identical(_session._reservation?.route, this)) {
+      _projection.update(0, .forward);
+      return signal;
+    }
     _session.acquire(this);
     if (_session.transfer.isOpen) _reveal();
     _projection.update(frame.progress, .forward);
@@ -1003,6 +1153,11 @@ class ProbeMenuRoute extends PopupRoute<void> {
     _invalidateDismissal();
     final popped = super.didPop(result);
     if (!popped) return false;
+    final reservation = _session._reservation;
+    if (reservation != null && identical(reservation.route, this)) {
+      _session._retireReservation(reservation, exit: .popped);
+      return true;
+    }
     _beginClosing(approved);
     return true;
   }
@@ -1074,7 +1229,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
   }
 
   void _reveal() {
-    if (_stage.value != _MenuStage.preparing) return;
+    if (_stage.value != _MenuStage.preparing || !isCurrent) return;
     _stage.value = _MenuStage.shown;
     changedInternalState();
   }
