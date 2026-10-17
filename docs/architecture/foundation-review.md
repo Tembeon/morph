@@ -153,7 +153,7 @@ morph становится библиотекой компонентов Liquid 
 
 ## Следующий шаг реализации
 
-В P2 следующий рубеж — решение о цене раннего реального push, nested Escape/Back dispatch и ввод под перекрывающим route. Первый mount policy и root/local семантика настоящего nested hold проверены отдельно. Синхронный и async-допуск смонтированной policy, отмена при смене владельца и сохранение flat-контура на каждом кадре сокращённого бара уже проверены; полный продуктовый бар и перенос оптического поля ещё нужны. Записанные жесты проходят root route. P1 имеет отдельные отчёты в `tool/audit/foundation-p1-2026-10-15/`: полный адаптер времени, продуктовые счётчики, Pixel и энергия ещё нужны. SDK controller не отклонён, отдельная проекция не выбрана.
+В P2 следующий рубеж — pre-handback held reopen и непрерывность content/focus, затем source geometry и оставшийся menu API. Ввод под cover, nested Escape/Back dispatch, local themes и host Semantics имеют отдельные проверки; продуктовая цена раннего push, hidden keyboard policy и source-local locale/RTL ещё не приняты. Синхронный и async-допуск policy и flat-контур сокращённого бара проверены; полный бар/оптика, native accessibility и device/perf ещё нужны. P1 имеет отдельные отчёты в `tool/audit/foundation-p1-2026-10-15/`: полный адаптер времени, продуктовые счётчики, Pixel и энергия ещё нужны. SDK controller не отклонён, отдельная проекция не выбрана.
 
 ## Уточнение по первому проходу P2, 2026-10-16
 
@@ -237,3 +237,13 @@ P2 открыт: цена раннего push и продуктовая keyboard
 13 новых проверок дают 230 проверок прототипов. Редактор, focus и PopScope сохраняются при обычном обновлении значений; исходные theme kinds фиксированы до следующего открытия. Root MediaQuery/locale/direction остаются живыми. Source-local не-тематические scopes не копируются, приложение может передать их содержимому явно. Не все точные порядки pending callbacks воспроизведены: A→B→A, pending после source disposal и guard уже disposed route проверены по структуре кода; тесты проверяют latest value и обычные detach/remove/reopen. Протокол `menu-source-environment.md`, отчёт `tool/audit/foundation-p2-2026-10-16/source-environment/report.md`.
 
 Это не закрывает продуктовую поддержку локального locale/RTL, доступность, arbitrary custom wrap, source reparent/multi-View, геометрию, ранний push, pre-handback held reopen, остальной menu API, оптику и device/perf. Production model/clock/timeline/hosts и измеренные параметры не меняются; P2 открыт.
+
+### Host Semantics и отмена под cover, 2026-10-17
+
+SDK Semantics/ExcludeSemantics связывают доступность с presentation lifetime. Источник имеет именованный tap action, показанный popup — scope/name и один dismiss через maybePop. Hidden preparation не блокирует страницу, closing content исключается из семантики до окончания оптического хвоста. Стабильный child сохраняет policy/editor State; RenderFlow помечает semantic geometry при repaint. Один enum заменяет прежние writable revealed/closing.
+
+21 новая проверка доводит набор до 251 прототипов и 341 example. Проверены veto, async permission, local history, retained actions до pump, root/nested covers и reentrant removal. Independent review воспроизвёл активацию после удаления ещё mounted source page; captured-root исключение теперь требует isActive. Отмена скрытой preparation под cover не вызывает pop чужого экрана и сохраняет исходную модель до передачи или полного покоя. Transparent-cover replay сверяет press scale и время с непрерывной моделью; немедленный forced reset отвергнут. Все прежние replay/timing/flat-scene показатели сохранены, анализатор чистый.
+
+Выбран SDK-вариант 14/15 против 13/15 у custom render gate, разные запуски одной модели. Generic render admission не добавлен. Deslop и Comment Sicko не оставили actionable findings; два публичных label dartdoc и одна узкая deprecation suppression для теста настоящей async SDK policy сохранены. Протокол `menu-accessibility-lifecycle.md`, отчёт `tool/audit/foundation-p2-2026-10-16/accessibility/report.md`.
+
+Это host evidence. VoiceOver/TalkBack announcements/assistive focus, полные item roles, reduced motion/native IME и устройства не проверены. Early push всё ещё меняет observers/currentness/traversal до reveal. Pre-handback held reopen/content continuity и остальные продуктовые gates остаются открыты; P2 не закрыт. Production host/model/clock/timeline, зависимости и измеренные параметры не менялись.

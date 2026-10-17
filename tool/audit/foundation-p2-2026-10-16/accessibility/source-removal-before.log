@@ -1,0 +1,41 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart
+00:00 +0: removed source page cannot activate its retained hidden popup
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: empty
+  Actual: WhereIterable<({PointerEvent? event, ({RRect button, double buttonKick, double
+buttonOpacity, double contentOpacity, double fusionRadius, RRect menu, double menuKick, double
+progress, double time}) frame, ProbeMenuSampleKind kind, double time})>:[
+            ({Null event, ({RRect button, double buttonKick, double buttonOpacity, double
+contentOpacity, double fusionRadius, RRect menu, double menuKick, double progress, double time})
+frame, ProbeMenuSampleKind kind, double time}):(event: null, frame: (button: RRect.fromLTRBR(22.1,
+78.1, 69.9, 125.9, 23.9), buttonKick: 0.0, buttonOpacity: 1.0, contentOpacity: 0.03164332308855744,
+fusionRadius: 0.0, menu: RRect.fromLTRBR(30.0, 86.0, 62.0, 118.0, 16.0), menuKick: 0.0, progress:
+0.0, time: 0.05), kind: ProbeMenuSampleKind.open, time: 0.05)
+          ]
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart:473:7)
+<asynchronous suspension>
+#5      _testSemantics.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart:135:7)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart line 473
+The test description was:
+  removed source page cannot activate its retained hidden popup
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: removed source page cannot activate its retained hidden popup [E]
+  Test failed. See exception logs above.
+  The test description was: removed source page cannot activate its retained hidden popup
+
+00:01 +0 -1: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart: removed source page cannot activate its retained hidden popup

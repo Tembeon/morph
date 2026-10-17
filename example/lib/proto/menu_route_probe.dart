@@ -54,6 +54,8 @@ class ProbeMenuSource extends StatefulWidget {
     this.createMotion,
     this.onSample,
     this.neighbors = const [],
+    this.semanticLabel = 'Open prototype menu',
+    this.menuSemanticLabel = 'Prototype menu',
     super.key,
   });
 
@@ -63,6 +65,12 @@ class ProbeMenuSource extends StatefulWidget {
   /// topology stay stable. New theme kinds apply to the next presentation.
   /// Other inherited values come from the root route.
   final WidgetBuilder menuBuilder;
+
+  /// The accessible name of the source button.
+  final String semanticLabel;
+
+  /// The accessible name of the presented menu route.
+  final String menuSemanticLabel;
 
   /// The source's rectangle in root navigator coordinates.
   final Rect button;
@@ -116,7 +124,7 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
   void initState() {
     super.initState();
     _session = _MenuSession(this, widget);
-    _session.present = open;
+    _session.present = _prepare;
     _session.sourceEligible = _sourceCanAcquire;
   }
 
@@ -151,15 +159,22 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
     );
   }
 
-  bool _sourceCanAcquire() {
-    if (ModalRoute.of(context)?.isCurrent == false) return false;
+  bool _sourceCanAcquire({ModalRoute<Object?>? coveredRoot}) {
+    final retainedRoot = coveredRoot?.isActive == true ? coveredRoot : null;
+    final local = ModalRoute.of(context);
+    if (local?.isCurrent == false && !identical(local, retainedRoot)) {
+      return false;
+    }
     var eligible = true;
     context.visitAncestorElements((element) {
-      if (element is StatefulElement &&
-          element.state is NavigatorState &&
-          ModalRoute.of(element)?.isCurrent == false) {
-        eligible = false;
-        return false;
+      if (element is StatefulElement && element.state is NavigatorState) {
+        final route = ModalRoute.of(element);
+        if (route != null &&
+            !route.isCurrent &&
+            !identical(route, retainedRoot)) {
+          eligible = false;
+          return false;
+        }
       }
       return true;
     });
@@ -168,6 +183,41 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
 
   /// Opens on the root navigator, or reverses the current closing owner.
   ProbeMenuRoute open() {
+    final route = _prepare();
+    if (widget.pointerInput) _session.activate(route);
+    return route;
+  }
+
+  ModalRoute<Object?>? _rootSourceRoute() {
+    var route = ModalRoute.of(context);
+    context.visitAncestorElements((element) {
+      if (element is StatefulElement && element.state is NavigatorState) {
+        final parent = ModalRoute.of(element);
+        if (parent != null) route = parent;
+      }
+      return true;
+    });
+    return route;
+  }
+
+  bool _canActivateSemantically() {
+    if (!mounted) return false;
+    final route = _session.activeRoute;
+    if (route == null) return _sourceCanAcquire();
+    return route._stage.value == _MenuStage.preparing &&
+        route._acceptsActivation &&
+        _sourceCanAcquire(coveredRoot: route._sourcePage);
+  }
+
+  void _semanticOpen() {
+    if (!_canActivateSemantically()) return;
+    final route = _prepare();
+    if (widget.pointerInput) {
+      _session.activate(route, eligible: _canActivateSemantically);
+    }
+  }
+
+  ProbeMenuRoute _prepare() {
     final current = _session.activeRoute;
     if (current != null && !current.closing) return current;
     final navigator = Navigator.of(context, rootNavigator: true);
@@ -175,6 +225,8 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
       _session,
       widget.menuBuilder,
       _captureThemes(navigator),
+      _rootSourceRoute(),
+      widget.menuSemanticLabel,
     );
     unawaited(navigator.push<void>(route));
     return route;
@@ -189,19 +241,29 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
       ),
       Positioned.fromRect(
         rect: widget.button,
-        child: widget.pointerInput
-            ? Listener(
-                behavior: .opaque,
-                onPointerDown: (event) {
-                  _session.handlePointer(event, sourceHit: true);
-                  // Push before Navigator's ancestor Listener records this down.
-                  if (_session.activeRoute == null &&
-                      _session._pointer?.matches(event) == true) {
-                    open();
-                  }
-                },
-              )
-            : GestureDetector(behavior: .opaque, onTap: open),
+        child: Semantics(
+          label: widget.semanticLabel,
+          button: true,
+          expanded: _session.activeRoute?._stage.value == _MenuStage.shown,
+          onTap: _semanticOpen,
+          child: widget.pointerInput
+              ? Listener(
+                  behavior: .opaque,
+                  onPointerDown: (event) {
+                    _session.handlePointer(event, sourceHit: true);
+                    // Push before Navigator's ancestor Listener records this down.
+                    if (_session.activeRoute == null &&
+                        _session._pointer?.matches(event) == true) {
+                      _prepare();
+                    }
+                  },
+                )
+              : GestureDetector(
+                  behavior: .opaque,
+                  excludeFromSemantics: true,
+                  onTap: open,
+                ),
+        ),
       ),
     ],
   );
@@ -305,7 +367,7 @@ class _MenuSession {
 
   bool get _sourceCanContinue {
     final route = activeRoute;
-    return (route == null || (route.closing && route._revealed.value)) &&
+    return (route == null || (route.closing && route._stage.value.revealed)) &&
         (sourceEligible?.call() ?? false);
   }
 
@@ -388,6 +450,28 @@ class _MenuSession {
     activeRoute = route;
     previous?._relinquish();
     route._clock.resumeAt(now());
+    frames.value++;
+  }
+
+  void activate(ProbeMenuRoute route, {bool Function()? eligible}) {
+    if (!route._acceptsActivation || transfer.isOpen) return;
+    final target = transfer;
+    final lease = route._lease;
+    bool valid() =>
+        identical(transfer, target) &&
+        route._acceptsActivation &&
+        (eligible?.call() ?? true);
+    _revokePointer();
+    if (!valid()) return;
+    final time = route._clock.resumeAt(now());
+    command(() {
+      target.advance(lease, time);
+      if (!valid()) return;
+      target.open(lease, time);
+      if (valid()) emit(.open);
+    });
+    if (!valid()) return;
+    syncInputPhase();
     frames.value++;
   }
 
@@ -482,18 +566,22 @@ class _MenuSession {
         route._reveal();
       }
     } else if (route != null &&
-        !route._revealed.value &&
+        !route._stage.value.revealed &&
         !transfer.isArming &&
         !transfer.isPresented &&
         !route.closing) {
-      route.navigator!.pop();
+      if (route.isCurrent) {
+        route.navigator!.pop();
+      } else {
+        route._abandonCoveredPreparation();
+      }
     }
     activeRoute?._updatePendingBarrier();
   }
 
   void handlePointer(PointerEvent event, {bool sourceHit = false}) {
     final route = activeRoute;
-    if (route != null && route.closing && !route._revealed.value) {
+    if (route != null && route.closing && !route._stage.value.revealed) {
       if (_pointer?.matches(event) == true &&
           (event is PointerUpEvent || event is PointerCancelEvent)) {
         _pointer = null;
@@ -609,20 +697,39 @@ class _SourceThemes {
   }
 }
 
+enum _MenuStage {
+  preparing,
+  shown,
+  closingPreparation,
+  closingContent;
+
+  bool get revealed => this == shown || this == closingContent;
+  bool get closing => this == closingPreparation || this == closingContent;
+}
+
 /// A real PopupRoute driven by the same menu model the source later resumes.
 class ProbeMenuRoute extends PopupRoute<void> {
-  ProbeMenuRoute._(this._session, this._builder, _SourceThemes themes)
-    : _themes = ValueNotifier(themes),
-      _revealed = ValueNotifier(!_session.pointerInput);
+  ProbeMenuRoute._(
+    this._session,
+    this._builder,
+    _SourceThemes themes,
+    this._sourcePage,
+    this._semanticLabel,
+  ) : _themes = ValueNotifier(themes),
+      _stage = ValueNotifier(
+        _session.pointerInput ? _MenuStage.preparing : _MenuStage.shown,
+      );
 
   final _MenuSession _session;
   final WidgetBuilder _builder;
+  final ModalRoute<Object?>? _sourcePage;
+  final String _semanticLabel;
   final ValueNotifier<_SourceThemes> _themes;
   _SourceThemes? _pendingThemes;
   final _lease = ProbeMenuLease(.route);
   final _projection = _MenuAnimation();
   final _pushSignal = Ticker((_) {});
-  final ValueNotifier<bool> _revealed;
+  final ValueNotifier<_MenuStage> _stage;
   bool _pendingBarrier = false;
   double? _admittedCloseTime;
   Route<Object?>? _nextRoute;
@@ -631,7 +738,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
   late final ProbeMotionClock _clock;
 
   /// Whether logical pop has started closing this presentation.
-  bool closing = false;
+  bool get closing => _stage.value.closing;
 
   /// Whether Navigator has disposed this route.
   bool disposed = false;
@@ -656,6 +763,18 @@ class ProbeMenuRoute extends PopupRoute<void> {
 
   /// Whether this close was committed after waiting for SDK permission.
   bool deferredClose = false;
+
+  bool get _acceptsActivation =>
+      !disposed &&
+      !closing &&
+      isCurrent &&
+      identical(_session.activeRoute, this) &&
+      identical(_session.transfer.owner, _lease);
+
+  void _semanticDismiss() {
+    if (_stage.value != _MenuStage.shown || !_acceptsActivation) return;
+    unawaited(navigator!.maybePop());
+  }
 
   void _queueThemes(_SourceThemes latest) {
     if (disposed || !_themes.value.sameKinds(latest)) return;
@@ -710,7 +829,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     final request = _dismissal ??= _DismissAttempt(
       frame.time,
       fromModel: false,
-      consultPolicy: _revealed.value || _session.transfer.isOpen,
+      consultPolicy: _stage.value.revealed || _session.transfer.isOpen,
     );
     closeRequestedAt = request.requestedAt;
     if (!_isLive(request)) {
@@ -830,7 +949,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
   }
 
   @override
-  bool get requestFocus => !disposed && _revealed.value;
+  bool get requestFocus => !disposed && _stage.value.revealed;
 
   @override
   Duration get transitionDuration => Duration.zero;
@@ -846,6 +965,9 @@ class ProbeMenuRoute extends PopupRoute<void> {
 
   @override
   Color? get barrierColor => null;
+
+  @override
+  bool get semanticsDismissible => false;
 
   @override
   String get barrierLabel => 'Dismiss prototype menu';
@@ -881,8 +1003,20 @@ class ProbeMenuRoute extends PopupRoute<void> {
     _invalidateDismissal();
     final popped = super.didPop(result);
     if (!popped) return false;
+    _beginClosing(approved);
+    return true;
+  }
+
+  void _abandonCoveredPreparation() {
+    _invalidateDismissal();
+    _beginClosing(false);
+  }
+
+  void _beginClosing(bool approved) {
     _session._pointer = null;
-    closing = true;
+    _stage.value = _stage.value.revealed
+        ? _MenuStage.closingContent
+        : _MenuStage.closingPreparation;
     deferredClose = approved;
     _pushSignal.stop(canceled: false);
     final modelClosing = _session.transfer.isClosing;
@@ -893,7 +1027,6 @@ class ProbeMenuRoute extends PopupRoute<void> {
     closedAt = _admittedCloseTime ?? frame.time;
     _projection.update(frame.progress, .reverse);
     if (!modelClosing) _clock.resumeAt(_session.now());
-    return true;
   }
 
   ProbeFrameOutcome _sample(double time) {
@@ -906,11 +1039,11 @@ class ProbeMenuRoute extends PopupRoute<void> {
     _session.emit(.frame);
     _session.syncInputPhase();
     _consumeApprovedDismissal();
-    if (!identical(_session.transfer.owner, _lease)) {
+    if (disposed || !identical(_session.transfer.owner, _lease)) {
       return (settled: true, wakeTime: null);
     }
     final settled = _session.transfer.isSettled;
-    if (!_revealed.value && !closing) {
+    if (!_stage.value.revealed && !closing) {
       _projection.update(0, .forward);
       _session.frames.value++;
       return (settled: settled, wakeTime: null);
@@ -918,6 +1051,10 @@ class ProbeMenuRoute extends PopupRoute<void> {
     if (closing &&
         ((_session.transfer.readyToHandBack && _session.land(this, time)) ||
             settled)) {
+      if (isActive) {
+        navigator!.removeRoute(this);
+        return (settled: true, wakeTime: null);
+      }
       _projection.update(0, .dismissed);
       return (settled: true, wakeTime: null);
     }
@@ -937,8 +1074,8 @@ class ProbeMenuRoute extends PopupRoute<void> {
   }
 
   void _reveal() {
-    if (_revealed.value) return;
-    _revealed.value = true;
+    if (_stage.value != _MenuStage.preparing) return;
+    _stage.value = _MenuStage.shown;
     changedInternalState();
   }
 
@@ -953,16 +1090,21 @@ class ProbeMenuRoute extends PopupRoute<void> {
       _session.pointerInput ? _MenuHitGate(route: this, child: child) : child;
 
   @override
-  Widget buildModalBarrier() => _inputGate(
-    _session.pointerInput
-        ? IgnorePointer(
-            ignoring: !_revealed.value && !_pendingBarrier,
-            child: ModalBarrier(
-              dismissible: false,
-              semanticsLabel: barrierLabel,
-            ),
-          )
-        : super.buildModalBarrier(),
+  Widget buildModalBarrier() => ValueListenableBuilder<_MenuStage>(
+    valueListenable: _stage,
+    builder: (_, stage, child) =>
+        ExcludeSemantics(excluding: stage != _MenuStage.shown, child: child!),
+    child: _inputGate(
+      _session.pointerInput
+          ? IgnorePointer(
+              ignoring: !_stage.value.revealed && !_pendingBarrier,
+              child: ModalBarrier(
+                dismissible: false,
+                semanticsLabel: barrierLabel,
+              ),
+            )
+          : super.buildModalBarrier(),
+    ),
   );
 
   @override
@@ -979,24 +1121,34 @@ class ProbeMenuRoute extends PopupRoute<void> {
           IgnorePointer(
             child: CustomPaint(painter: _MenuPainter(_session, _lease)),
           ),
-          ValueListenableBuilder<bool>(
-            valueListenable: _revealed,
-            builder: (context, revealed, _) => revealed
-                ? Flow(
-                    delegate: _MenuContentFlow(_session, _lease),
-                    children: [
-                      ValueListenableBuilder<_SourceThemes>(
-                        valueListenable: _themes,
-                        child: _MountedMenuPolicy(
-                          route: this,
-                          builder: _builder,
-                        ),
-                        builder: (_, themes, child) =>
-                            themes.capture.wrap(child!),
-                      ),
-                    ],
+          ValueListenableBuilder<_MenuStage>(
+            valueListenable: _stage,
+            builder: (_, stage, child) => stage.revealed
+                ? ExcludeSemantics(
+                    excluding: stage != _MenuStage.shown,
+                    child: child!,
                   )
                 : const SizedBox.shrink(),
+            child: Semantics(
+              scopesRoute: true,
+              explicitChildNodes: true,
+              child: Semantics(
+                namesRoute: true,
+                label: _semanticLabel,
+                onDismiss: _semanticDismiss,
+                child: _MenuFlow(
+                  delegate: _MenuContentFlow(_session, _lease),
+                  children: [
+                    ValueListenableBuilder<_SourceThemes>(
+                      valueListenable: _themes,
+                      child: _MountedMenuPolicy(route: this, builder: _builder),
+                      builder: (_, themes, child) =>
+                          themes.capture.wrap(child!),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -1013,7 +1165,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     _pushSignal.dispose();
     super.dispose();
     _projection.dispose();
-    _revealed.dispose();
+    _stage.dispose();
     _session.routeDisposed(this);
   }
 }
@@ -1119,6 +1271,24 @@ class _MenuPainter extends CustomPainter {
   @override
   bool shouldRepaint(_MenuPainter oldDelegate) =>
       session != oldDelegate.session || lease != oldDelegate.lease;
+}
+
+class _MenuFlow extends Flow {
+  _MenuFlow({required super.delegate, required super.children});
+
+  @override
+  RenderFlow createRenderObject(BuildContext context) =>
+      _MenuRenderFlow(delegate: delegate, clipBehavior: clipBehavior);
+}
+
+class _MenuRenderFlow extends RenderFlow {
+  _MenuRenderFlow({required super.delegate, required super.clipBehavior});
+
+  @override
+  void markNeedsPaint() {
+    super.markNeedsPaint();
+    markNeedsSemanticsUpdate();
+  }
 }
 
 class _MenuContentFlow extends FlowDelegate {

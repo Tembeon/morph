@@ -1,0 +1,23 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_accessibility_test.dart
+00:00 +0: semantic activation opens the raw pointer source without a gesture
+00:00 +1: hidden preparation keeps page semantics until actual reveal
+00:00 +2: revealed popup owns scoped semantics and hides page: pointer=false
+00:00 +3: semantic dismiss honors PopScope then closes once: pointer=false
+00:00 +4: revealed popup owns scoped semantics and hides page: pointer=true
+00:00 +5: semantic dismiss honors PopScope then closes once: pointer=true
+00:00 +6: logical pop removes obsolete menu semantics before landing tail
+00:00 +7: semantic bounds follow painted menu during opening frames
+00:00 +8: semantic activation takes over own hidden hold: nested=false
+00:01 +9: stale source action cannot open below a cover: nested=false
+00:01 +10: semantic activation takes over own hidden hold: nested=true
+00:01 +11: stale source action cannot open below a cover: nested=true
+00:01 +12: stale dismiss cannot pop a covering route: popped=false
+00:01 +13: stale dismiss cannot pop a covering route: popped=true
+00:01 +14: concurrent semantic dismiss shares async permission and pops once
+00:01 +15: semantic dismiss consumes local history before closing menu
+00:01 +16: removed source page cannot activate its retained hidden popup
+00:01 +17: own hidden popup does not exempt a newly covered nested page
+00:01 +18: cover from held cancellation aborts semantic activation
+00:01 +19: removal from semantic open observation stops stale publication
+00:01 +20: covered hidden cancellation retains the entire press relaxation
+00:01 +21: All tests passed!

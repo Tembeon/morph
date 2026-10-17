@@ -1,0 +1,6 @@
+Analyzing morph...
+
+   info • The import of 'package:flutter/gestures.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/rendering.dart'. Try removing the import directive • example/test/proto/menu_accessibility_test.dart:5:8 • unnecessary_import
+   info • The import of 'package:flutter/semantics.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/rendering.dart'. Try removing the import directive • example/test/proto/menu_accessibility_test.dart:6:8 • unnecessary_import
+
+2 issues found. (ran in 5.1s)
