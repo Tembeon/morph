@@ -1,0 +1,42 @@
+[
+  {
+    "check": "no production geometry-probe imports",
+    "command": [
+      "/usr/bin/grep",
+      "-R",
+      "-n",
+      "menu_route_probe.dart",
+      "lib",
+      "example/lib/gallery",
+      "example/lib/perf"
+    ],
+    "exitCode": 1,
+    "output": "",
+    "stderr": ""
+  },
+  {
+    "check": "no old mutable view state",
+    "command": [
+      "/usr/bin/grep",
+      "-nE",
+      "updateSourceView|_viewId",
+      "example/lib/proto/menu_route_probe.dart"
+    ],
+    "exitCode": 1,
+    "output": "",
+    "stderr": ""
+  },
+  {
+    "check": "no unfinished report markers",
+    "command": [
+      "/usr/bin/grep",
+      "-nE",
+      "PENDING|TODO",
+      "tool/audit/foundation-p2-2026-10-17/source-geometry/report.md",
+      "docs/architecture/menu-source-geometry.md"
+    ],
+    "exitCode": 1,
+    "output": "",
+    "stderr": ""
+  }
+]

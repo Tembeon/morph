@@ -1,0 +1,7 @@
+{
+  "pattern": "0x[0-9a-f]{9,}|Interceptor[.]attach|ObjC[.]classes|import[[:space:]]+(frida|ghidra)",
+  "scope": "All owned source/docs/evidence before artifacts.json",
+  "exitCode": 1,
+  "output": "",
+  "stderr": ""
+}

@@ -1,0 +1,11 @@
+Analyzing morph...
+
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • example/lib/proto/menu_route_probe.dart:207:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • example/lib/proto/menu_route_probe.dart:231:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • example/lib/proto/menu_route_probe.dart:450:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • example/lib/proto/menu_route_probe.dart:475:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • example/lib/proto/menu_route_probe.dart:702:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • example/lib/proto/menu_route_probe.dart:726:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • example/test/proto/menu_source_geometry_test.dart:633:11 • curly_braces_in_flow_control_structures
+
+7 issues found. (ran in 6.0s)

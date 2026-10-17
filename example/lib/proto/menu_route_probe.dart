@@ -58,7 +58,46 @@ class ProbeMenuSource extends StatefulWidget {
     this.semanticLabel = 'Open prototype menu',
     this.menuSemanticLabel = 'Prototype menu',
     super.key,
-  });
+  }) : _measured = false,
+       sourceHeight = 64,
+       sourceRadius = 22,
+       onMotionReady = null;
+
+  /// Measures a source-local button into its root overlay before interaction.
+  ///
+  /// Supports positive uniform scale and translation. Placement padding is zero;
+  /// Active source-to-overlay changes retire the endpoint rather than retargeting.
+  const ProbeMenuSource.measured({
+    required this.menuBuilder,
+    this.button = const Rect.fromLTWH(24, 80, 44, 44),
+    this.sourceHeight = 64,
+    this.sourceRadius = 22,
+    this.onMotionReady,
+    this.now,
+    this.pointerInput = false,
+    this.pointerOffset,
+    this.onSample,
+    this.semanticLabel = 'Open prototype menu',
+    this.menuSemanticLabel = 'Prototype menu',
+    super.key,
+  }) : _measured = true,
+       bounds = const Size(402, 874),
+       neighbors = const [],
+       createMotion = null;
+
+  final bool _measured;
+
+  /// The local height from which the menu shape grows.
+  final double sourceHeight;
+
+  /// The resting source's local corner radius.
+  final double sourceRadius;
+
+  /// Configures a measured model once, after safe geometry admission.
+  ///
+  /// Runs before the first interaction command. Admission during build, layout
+  /// or painting is rejected before this callback.
+  final ValueChanged<MorphMenuMotion>? onMotionReady;
 
   /// Builds content in the popup context with the source's local themes.
   ///
@@ -74,10 +113,10 @@ class ProbeMenuSource extends StatefulWidget {
   /// The accessible name of the presented menu route.
   final String menuSemanticLabel;
 
-  /// The source's rectangle in root navigator coordinates.
+  /// The button in root-overlay coordinates for fixed mode, source-local when measured.
   final Rect button;
 
-  /// The fixed available presentation size.
+  /// The fixed-mode presentation size; measured mode uses the actual overlay.
   final Size bounds;
 
   /// Engine-clock time at input delivery; tests supply their fake clock.
@@ -139,6 +178,10 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
     final session = _MenuSession(this, widget, affinity);
     _current = session;
     session.sourceAttached = () => _isAttached(session);
+    if (widget._measured) {
+      session.readGeometry = () => _readGeometry(session);
+      session.loseGeometry = () => _loseGeometry(session);
+    }
     session.sourceEligible = ({coveredRoot}) =>
         _sourceCanAcquire(session, coveredRoot: coveredRoot);
     session.present = () {
@@ -146,7 +189,73 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
     };
   }
 
-  /// The complete model's most recent sampled frame.
+  _MenuGeometry? _readGeometry(_MenuSession session) {
+    if (!_isAttached(session)) return null;
+    final source = context.findRenderObject();
+    final overlay = session.affinity.navigator.overlay?.context
+        .findRenderObject();
+    if (source is! RenderBox ||
+        overlay is! RenderBox ||
+        !source.attached ||
+        !overlay.attached ||
+        !source.hasSize ||
+        !overlay.hasSize ||
+        !source.size.isFinite ||
+        !overlay.size.isFinite ||
+        source.size.isEmpty ||
+        overlay.size.isEmpty) {
+      return null;
+    }
+    var offstage = false;
+    context.visitAncestorElements((element) {
+      if (element.widget case Offstage(offstage: true)) {
+        offstage = true;
+        return false;
+      }
+      return true;
+    });
+    if (offstage) return null;
+    final map = _UniformMap.read(source.getTransformTo(overlay));
+    if (map == null || _UniformMap.read(overlay.getTransformTo(null)) == null) {
+      return null;
+    }
+    final button = map.rect(widget.button);
+    if (!button.isFinite ||
+        button.isEmpty ||
+        !(Offset.zero & overlay.size).contains(button.topLeft) ||
+        button.right > overlay.size.width ||
+        button.bottom > overlay.size.height ||
+        !widget.sourceHeight.isFinite ||
+        widget.sourceHeight <= 0 ||
+        !widget.sourceRadius.isFinite ||
+        widget.sourceRadius < 0 ||
+        !(widget.sourceHeight * map.scale).isFinite ||
+        !(widget.sourceRadius * map.scale).isFinite) {
+      return null;
+    }
+    return _MenuGeometry(
+      source,
+      overlay,
+      map,
+      button,
+      overlay.size,
+      widget.sourceHeight * map.scale,
+      widget.sourceRadius * map.scale,
+    );
+  }
+
+  void _loseGeometry(_MenuSession session) {
+    if (!identical(_current, session)) return;
+    _current = null;
+    scheduleMicrotask(() {
+      if (!mounted || !_elementActive || _current != null) return;
+      _refreshAttachment();
+      setState(() {});
+    });
+    session.detachSource();
+  }
+
+  /// The model's most recent frame, nominal source-local before measured admission.
   ProbeMenuFrame get frame => _session.transfer.frame;
 
   /// Whether the source currently owns the model.
@@ -234,7 +343,8 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
   /// Opens on the root navigator, or reverses the current closing owner.
   ///
   /// Throws [StateError] before pushing when the source is unattached or its
-  /// FlutterView differs from the root overlay's View.
+  /// FlutterView differs from the root overlay's View. Measured mode also
+  /// rejects unavailable or unsupported geometry and build/layout/paint calls.
   ProbeMenuRoute open() {
     if (_current == null) {
       throw StateError('Menu source attachment is changing.');
@@ -270,6 +380,7 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
   }
 
   void _semanticOpen(_MenuSession session) {
+    if (!_canActivateSemantically(session) || !session.admitGeometry()) return;
     if (!_canActivateSemantically(session)) return;
     final route = _prepare(session);
     if (widget.pointerInput) {
@@ -285,6 +396,9 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
       throw StateError(
         'Menu source and root overlay must share an active FlutterView.',
       );
+    }
+    if (!session.admitGeometry()) {
+      throw StateError('Menu source geometry is unavailable or unsupported.');
     }
     final reserved = session._reservation?.route;
     if (reserved != null) return reserved;
@@ -316,7 +430,14 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
       fit: .expand,
       children: [
         IgnorePointer(
-          child: CustomPaint(painter: _MenuPainter(session, session.source)),
+          child: CustomPaint(
+            painter: _MenuPainter(
+              session,
+              session.source,
+              restingButton: widget.button,
+              restingRadius: widget.sourceRadius,
+            ),
+          ),
         ),
         Positioned.fromRect(
           rect: widget.button,
@@ -329,6 +450,9 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
                 ? Listener(
                     behavior: .opaque,
                     onPointerDown: (event) {
+                      if (!_isAttached(session) || !session.admitGeometry()) {
+                        return;
+                      }
                       if (!_isAttached(session)) return;
                       final accepted = session.handlePointer(
                         event,
@@ -350,7 +474,11 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
                     behavior: .opaque,
                     excludeFromSemantics: true,
                     onTap: () {
-                      if (_isAttached(session)) _prepare(session);
+                      if (_isAttached(session) &&
+                          session.admitGeometry() &&
+                          _isAttached(session)) {
+                        _prepare(session);
+                      }
                     },
                   ),
           ),
@@ -383,6 +511,94 @@ class _MenuAffinity {
       identical(presentationView, other.presentationView);
 }
 
+const _geometryEpsilon = 1e-8;
+
+class _UniformMap {
+  const _UniformMap(this.scale, this.offset);
+
+  final double scale;
+  final Offset offset;
+
+  static _UniformMap? read(Matrix4 matrix) {
+    final values = matrix.storage;
+    if (!values.every((value) => value.isFinite)) return null;
+    final scale = values[0];
+    if (scale <= 0) return null;
+    final expected = [
+      scale,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      scale,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      values[12],
+      values[13],
+      0.0,
+      1.0,
+    ];
+    for (var i = 0; i < 16; i++) {
+      if (values[i] != expected[i]) return null;
+    }
+    return _UniformMap(scale, Offset(values[12], values[13]));
+  }
+
+  Rect rect(Rect local) => Rect.fromLTWH(
+    local.left * scale + offset.dx,
+    local.top * scale + offset.dy,
+    local.width * scale,
+    local.height * scale,
+  );
+
+  Offset inverse(Offset point) => (point - offset) / scale;
+
+  bool agrees(_UniformMap other) =>
+      (scale - other.scale).abs() <= _geometryEpsilon &&
+      (offset - other.offset).distance <= _geometryEpsilon;
+}
+
+class _MenuGeometry {
+  const _MenuGeometry(
+    this.source,
+    this.overlay,
+    this.map,
+    this.button,
+    this.bounds,
+    this.sourceHeight,
+    this.sourceRadius,
+  );
+
+  final RenderBox source;
+  final RenderBox overlay;
+  final _UniformMap map;
+  final Rect button;
+  final Size bounds;
+  final double sourceHeight;
+  final double sourceRadius;
+
+  bool agrees(_MenuGeometry other) =>
+      identical(source, other.source) &&
+      identical(overlay, other.overlay) &&
+      map.agrees(other.map) &&
+      button == other.button &&
+      bounds == other.bounds &&
+      sourceHeight == other.sourceHeight &&
+      sourceRadius == other.sourceRadius;
+
+  Offset? position(Offset global) {
+    if (!overlay.attached || !overlay.hasSize) return null;
+    final current = _UniformMap.read(overlay.getTransformTo(null));
+    if (current == null) return null;
+    final result = current.inverse(global);
+    return result.dx.isFinite && result.dy.isFinite ? result : null;
+  }
+}
+
 class _MenuSession {
   _MenuSession(TickerProvider vsync, ProbeMenuSource widget, this.affinity)
     : button = widget.button,
@@ -392,14 +608,18 @@ class _MenuSession {
       pointerOffset = widget.pointerOffset ?? _unknownOffset,
       createMotion = widget.createMotion,
       neighbors = List.unmodifiable(widget.neighbors),
-      onSample = widget.onSample {
+      onSample = widget.onSample,
+      measured = widget._measured,
+      sourceHeight = widget.sourceHeight,
+      sourceRadius = widget.sourceRadius,
+      onMotionReady = widget.onMotionReady {
     transfer = _newMotion();
     sourceClock = ProbeMotionClock(
       vsync: vsync,
       now: now,
       pointerOffset: pointerOffset,
       onFrame: (time) {
-        if (!advance(source, time)) {
+        if (!checkGeometry() || !advance(source, time)) {
           return (settled: true, wakeTime: null);
         }
         sourceFrames++;
@@ -424,6 +644,15 @@ class _MenuSession {
   }
 
   final _MenuAffinity affinity;
+  final bool measured;
+  final double sourceHeight;
+  final double sourceRadius;
+  final ValueChanged<MorphMenuMotion>? onMotionReady;
+  _MenuGeometry? geometry;
+  _MenuGeometry? Function()? readGeometry;
+  VoidCallback? loseGeometry;
+  late MorphMenuMotion _motion;
+  bool _motionReady = false;
   final Rect button;
   final Size bounds;
   final Duration Function() now;
@@ -451,6 +680,61 @@ class _MenuSession {
   MorphMenuMotion? _admittedMotion;
   final _closeRequests =
       <({ProbeMenuRoute route, bool admitted, double time})>[];
+
+  bool get _canRelayout =>
+      identical(transfer.owner, source) &&
+      _routes.isEmpty &&
+      activeRoute == null &&
+      _reservation == null &&
+      _pointer == null &&
+      !transfer.isPresented &&
+      !transfer.isArming &&
+      !transfer.isOpenPending &&
+      transfer.isSettled;
+
+  bool checkGeometry() {
+    if (!measured || geometry == null) return true;
+    if (sourceClock == null) return false;
+    final current = readGeometry?.call();
+    if (current != null && geometry!.agrees(current)) return true;
+    if (_canRelayout) return true;
+    loseGeometry?.call();
+    return false;
+  }
+
+  bool admitGeometry() {
+    if (!measured) return true;
+    if (SchedulerBinding.instance.schedulerPhase == .persistentCallbacks) {
+      return false;
+    }
+    final current = readGeometry?.call();
+    if (current == null) return false;
+    if (geometry == null || !geometry!.agrees(current)) {
+      if (!_canRelayout) {
+        loseGeometry?.call();
+        return false;
+      }
+      _motion.relayout(
+        button: current.button,
+        bounds: current.bounds,
+        sourceHeight: current.sourceHeight,
+        sourceRadius: current.sourceRadius,
+      );
+      geometry = current;
+    }
+    final target = _motion;
+    if (!_motionReady) {
+      _motionReady = true;
+      onMotionReady?.call(target);
+    }
+    if (!identical(target, _motion) ||
+        sourceClock == null ||
+        !(sourceAttached?.call() ?? false)) {
+      return false;
+    }
+    final latest = readGeometry?.call();
+    return latest != null && geometry!.agrees(latest);
+  }
 
   T command<T>(T Function() operation) {
     _modelDepth++;
@@ -542,9 +826,12 @@ class _MenuSession {
           button: button,
           bounds: bounds,
           itemCount: 3,
-          sourceHeight: 64,
-          sourceRadius: 22,
+          sourceHeight: sourceHeight,
+          sourceRadius: sourceRadius,
         );
+    _motion = motion;
+    geometry = null;
+    _motionReady = false;
     if (pointerInput) {
       _admittedMotion = motion;
       morphMenuSetCloseAdmission(motion, (time) {
@@ -668,7 +955,8 @@ class _MenuSession {
         !identical(activeRoute, route) ||
         !identical(transfer.owner, route._lease) ||
         !identical(route.navigator, affinity.navigator) ||
-        !(sourceAttached?.call() ?? false)) {
+        !(sourceAttached?.call() ?? false) ||
+        !checkGeometry()) {
       return false;
     }
     final before = transfer.frame;
@@ -694,6 +982,8 @@ class _MenuSession {
     present = null;
     sourceEligible = null;
     sourceAttached = null;
+    readGeometry = null;
+    loseGeometry = null;
     _retiringSource = true;
     _revokePointer();
     sourceClock!.dispose();
@@ -754,6 +1044,7 @@ class _MenuSession {
   }
 
   void emit(ProbeMenuSampleKind kind, {PointerEvent? event, double? time}) {
+    if (measured && geometry == null) return;
     onSample?.call((
       kind: kind,
       time: time ?? transfer.frame.time,
@@ -812,6 +1103,16 @@ class _MenuSession {
   }
 
   bool handlePointer(PointerEvent event, {bool sourceHit = false}) {
+    if (measured && geometry == null) return false;
+    checkGeometry();
+    if (_retiringSource) return false;
+    final position = measured
+        ? geometry!.position(event.position)
+        : event.position;
+    if (position == null) {
+      _revokePointer();
+      return false;
+    }
     final route = activeRoute;
     if (route != null && route.closing && !route._stage.value.revealed) {
       if (_pointer?.matches(event) == true &&
@@ -856,7 +1157,11 @@ class _MenuSession {
           (!_menuCanAcquire && !_sourceCanContinue)) {
         return null;
       }
-      final time = target.pointer(lease, local, event);
+      final time = target.pointer(
+        lease,
+        local,
+        measured ? event.copyWith(position: position) : event,
+      );
       if (!identical(target, transfer) ||
           !identical(target.owner, lease) ||
           !identical(_pointer, sequence) ||
@@ -1302,6 +1607,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
   }
 
   ProbeFrameOutcome _sample(double time) {
+    _session.checkGeometry();
     if (!_session.advance(_lease, time) ||
         disposed ||
         !identical(_session.transfer.owner, _lease)) {
@@ -1517,14 +1823,49 @@ class _MountedMenuPolicyState extends State<_MountedMenuPolicy> {
 }
 
 class _MenuPainter extends CustomPainter {
-  _MenuPainter(this.session, this.lease) : super(repaint: session.frames);
+  _MenuPainter(
+    this.session,
+    this.lease, {
+    this.restingButton,
+    this.restingRadius,
+  }) : super(repaint: session.frames);
 
   final _MenuSession session;
   final ProbeMenuLease lease;
+  final Rect? restingButton;
+  final double? restingRadius;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final geometry = session.geometry;
+    if (session.measured && restingButton != null) {
+      if (!session.checkGeometry() ||
+          geometry == null ||
+          (session._canRelayout &&
+              !(session.readGeometry?.call()?.agrees(geometry) ?? false))) {
+        final paint = Paint();
+        paint.color = const Color(0xFF8888AA);
+        final outline = morphGlassContainerOutline(
+          [
+            RRect.fromRectAndRadius(
+              restingButton!,
+              Radius.circular(restingRadius!),
+            ),
+          ],
+          12,
+          withField: false,
+        );
+        canvas.drawPath(outline.path, paint);
+        return;
+      }
+    }
     if (!identical(session.transfer.owner, lease)) return;
+    canvas.save();
+    if (session.measured && restingButton != null) {
+      final map = geometry!.map;
+      canvas.scale(1 / map.scale);
+      canvas.translate(-map.offset.dx, -map.offset.dy);
+    }
     final frame = session.transfer.frame;
     final paint = Paint();
     paint.color = const Color(0xFF8888AA);
@@ -1538,11 +1879,15 @@ class _MenuPainter extends CustomPainter {
         ? bar
         : Path.combine(.union, bar, carried.path);
     canvas.drawPath(path, paint);
+    canvas.restore();
   }
 
   @override
   bool shouldRepaint(_MenuPainter oldDelegate) =>
-      session != oldDelegate.session || lease != oldDelegate.lease;
+      session != oldDelegate.session ||
+      lease != oldDelegate.lease ||
+      restingButton != oldDelegate.restingButton ||
+      restingRadius != oldDelegate.restingRadius;
 }
 
 class _MenuFlow extends Flow {

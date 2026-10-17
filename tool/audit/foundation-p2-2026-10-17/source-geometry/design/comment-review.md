@@ -1,0 +1,32 @@
+# Comment Sicko review
+
+2026-10-17. Read-only review of the working diff against `67afab10`, limited to `example/lib/proto/menu_route_probe.dart` and the new `example/test/proto/menu_source_geometry_test.dart`. Line numbers describe the reviewed working file. Read the local no-comments skill, its installed agent instructions, runtime, repository rules and the geometry architecture judgment. No application edits, tests, heavy jobs, GUI or device access. This report is the only written artifact.
+
+## Actionable contracts
+
+1. **`menu_route_probe.dart:96–98`, `onMotionReady`: narrow or enforce the timing contract.** `admitGeometry` calls `_motion.relayout(...)` before invoking this callback, so “before the first model command” is literally stronger than the implementation. More materially, “never during layout or painting” has no scheduler/render-phase admission fence. `open()` is public; once source and overlay have sizes, a caller can invoke it from a later render-layout callback and reach readiness before the later Navigator push fails or succeeds. The existing before-first-layout test only proves rejection while boxes lack sizes. Cheapest truthful wording describes synchronous invocation after geometry admission, before opening/pointer commands. If the architecture's stronger no-layout/no-paint guarantee is required, reject unsafe explicit admission before relayout/readiness/push, with a focused existing-layout reentry regression. Do not merely suppress a resulting framework assertion or add a comment claiming the guarantee. The parent should settle this runtime contract; this reviewer did not alter it.
+
+2. **`menu_route_probe.dart:68–69`, measured constructor: identify the geometry that invalidates.** “Active geometry changes retire the source endpoint” also reads as covering root-to-global movement. The implementation deliberately measures source-to-overlay agreement and recomputes overlay-to-global input mapping; the test `root global movement preserves local model geometry and input` expects retention. State that active source-to-overlay geometry or overlay size changes retire the endpoint. Preserve the positive uniform scale/translation support and zero-padding limitation as consumer-facing contracts, not commentary to delete.
+
+3. **`menu_route_probe.dart:115`, `button`: restore both coordinate spaces explicitly.** The old root-navigator coordinate contract was replaced by “button rectangle; source-local for the measured constructor.” That leaves the retained fixed constructor's interpretation implicit at the exact boundary this work addresses. Name root-overlay coordinates for fixed mode and source-local coordinates for measured mode. This is a public contract correction; no new type/API/export is justified just to remove the dartdoc.
+
+4. **`menu_route_probe.dart:340–341`, `open`: include measured geometry failure in the throws contract.** `_prepare` now throws `StateError('Menu source geometry is unavailable or unsupported.')` after `admitGeometry` declines. Extend the existing public throws paragraph to cover unavailable/unsupported measured geometry. Existing source/View conditions remain valid. The `bounds` dartdoc at line 118 can similarly say it configures fixed mode; measured mode derives actual overlay size. These are documentation completions, not calls to delete protected public API documentation.
+
+## Kept comments and scoped suppressions
+
+- **`menu_source_geometry_test.dart:7`, `implementation_imports`; line 206, `invalid_use_of_internal_member`: keep both localized exemptions.** The only imported renderer implementation is `glass_outline.dart`, and the only annotated internal call is `morphGlassContainerOutline` inside `_ReferencePainter`. The oracle paints an independent root contour for the measured source inverse-paint comparison. `motion.silhouetteFor` supplies the carried contour, while the resting bar contour needs the existing internal outline function. Replacing it with an ordinary rounded rectangle would change the contour under test; using `_MenuPainter` would share the transform implementation being checked. These are intentional test/package boundaries, not correctness or safety diagnostics. Do not expand the production export surface or duplicate the full renderer to remove these two suppressions.
+- **`menu_route_probe.dart:455`, early Navigator push rationale: keep.** SDK `navigator.dart:5900–5922` records ancestor pointer-down events in `_activePointers` and cancels recorded pointers on navigation. Child listener delivery order lets the source push before this down enters that set. This is an external SDK ordering constraint, retained by the measured path. No local comment-free structural replacement was demonstrated without changing ownership/input behavior.
+- **`menu_route_probe.dart:1008`, forced-removal rationale: keep.** It explains why `routeDisposed` creates fresh idle motion rather than preserving a visual closing model after forced removal. This remains relevant when measured geometry is reset in `_newMotion`; removing the reset to eliminate the comment would change behavior. This review found no new workaround hidden behind the rationale.
+- **File-end existing `ignore_for_file`: unchanged.** The diff adds no suppression there. Its implementation/internal-member diagnostics cover existing prototype renderer/admission boundaries. No fresh deprecated-use diagnostic or removal proof was produced by this read-only review, so it does not prescribe a speculative cleanup. There are no new TypeScript suppressions, `IMPORTANT`, `do not remove`, wording locks, or contact-before-changing comments in the scoped diff.
+
+## Counts and disposition
+
+- Actual deletions: **0**; proposed ordinary comment deletions: **0**.
+- Restored comments: **0**; rejected reports/reruns: **0**.
+- Actionable contract groups: **4**, above; the first includes a runtime guarantee decision.
+- Protected localized test suppressions retained: **2**.
+- Existing non-obvious rationale comments retained with evidence: **2**.
+- New architect sketch: **0**; existing source-geometry judge already supplies the relevant boundary. If the parent accepts runtime phase enforcement, sketch the safe admission boundary there before implementation.
+- Application fixes made by this reviewer: **0**.
+- Constraint encoding offers requiring approval: **0**; encodings: **0**; unenforced wording/contact constraints: **0**.
+- Open work: parent disposition and edits for the four contract groups. No independent runtime test claim is made here.

@@ -1,0 +1,180 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart
+00:00 +0: real source hit opens after offset, scaled root: false
+00:00 +1: real source hit opens after offset, scaled root: true
+00:00 +2: first route frame starts at the measured source rectangle
+00:00 +3: actual smaller overlay and global root transform select the right row at DPR1.0
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: a numeric value within <0.000001> of <250>
+  Actual: <250.00492883278798>
+   Which:  differs by <0.004928832787982174>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart:227:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart line 227
+The test description was:
+  actual smaller overlay and global root transform select the right row at DPR1.0
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +3 -1: actual smaller overlay and global root transform select the right row at DPR1.0 [E]
+  Test failed. See exception logs above.
+  The test description was: actual smaller overlay and global root transform select the right row at DPR1.0
+
+00:00 +3 -1: actual smaller overlay and global root transform select the right row at DPR2.0
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: a numeric value within <0.000001> of <250>
+  Actual: <250.00492883278798>
+   Which:  differs by <0.004928832787982174>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart:227:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart line 227
+The test description was:
+  actual smaller overlay and global root transform select the right row at DPR2.0
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +3 -2: actual smaller overlay and global root transform select the right row at DPR2.0 [E]
+  Test failed. See exception logs above.
+  The test description was: actual smaller overlay and global root transform select the right row at DPR2.0
+
+00:00 +3 -2: source scale changes the source shape without scaling menu metrics
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: a numeric value within <0.000001> of <250>
+  Actual: <250.00479441359906>
+   Which:  differs by <0.004794413599057634>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart:250:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart line 250
+The test description was:
+  source scale changes the source shape without scaling menu metrics
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +3 -3: source scale changes the source shape without scaling menu metrics [E]
+  Test failed. See exception logs above.
+  The test description was: source scale changes the source shape without scaling menu metrics
+
+00:00 +3 -3: held source pointer survives root mapping through row selection
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: contains in order([Type:PointerDownEvent, Type:PointerMoveEvent, Type:PointerUpEvent])
+  Actual: MappedIterable<({PointerEvent? event, ({RRect button, double buttonKick, double
+buttonOpacity, double contentOpacity, double fusionRadius, RRect menu, double menuKick, double
+progress, double time}) frame, ProbeMenuSampleKind kind, double time}), Type>:[
+            Type:_TransformedPointerDownEvent,
+            Type:PointerMoveEvent,
+            Type:PointerUpEvent
+          ]
+   Which: did not find a value matching Type:<PointerDownEvent> following expected prior values
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart:270:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart line 270
+The test description was:
+  held source pointer survives root mapping through row selection
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +3 -4: held source pointer survives root mapping through row selection [E]
+  Test failed. See exception logs above.
+  The test description was: held source pointer survives root mapping through row selection
+
+00:00 +3 -4: semantic activation shares measured admission
+00:00 +4 -4: closed rest recaptures idle movement on the same model
+00:01 +5 -4: scroll before acquisition uses current paint coordinates
+00:01 +6 -4: root global movement preserves local model geometry and input
+00:01 +7 -4: unsupported rotation declines before any model input or push
+00:01 +8 -4: unsupported anisotropic scale declines before any model input or push
+00:01 +9 -4: unsupported reflection declines before any model input or push
+00:01 +10 -4: unsupported singular declines before any model input or push
+00:01 +11 -4: unsupported perspective declines before any model input or push
+00:01 +12 -4: unsupported shear declines before any model input or push
+00:01 +13 -4: unsupported nonfinite declines before any model input or push
+══╡ EXCEPTION CAUGHT BY SCHEDULER LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during a scheduler callback:
+Matrix4 entries must be finite.
+'dart:ui/painting.dart':
+Failed assertion: line 47 pos 10: '<optimized out>'
+
+Either the assertion indicates an error in the framework itself, or we should provide substantially
+more information in this error message to help you determine and fix the underlying cause.
+In either case, please report this assertion by filing a bug on GitHub:
+  https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+
+When the exception was thrown, this was the stack:
+#2      _matrix4IsValid (dart:ui/painting.dart:47:10)
+#3      _NativeSemanticsUpdateBuilder.updateNode (dart:ui/semantics.dart:2064:12)
+#4      SemanticsNode._addToUpdate (package:flutter/src/semantics/semantics.dart:4155:13)
+#5      SemanticsOwner.sendSemanticsUpdate (package:flutter/src/semantics/semantics.dart:5065:14)
+#6      PipelineOwner.flushSemantics (package:flutter/src/rendering/object.dart:1651:24)
+#7      PipelineOwner.flushSemantics (package:flutter/src/rendering/object.dart:1653:15)
+#8      AutomatedTestWidgetsFlutterBinding.drawFrame (package:flutter_test/src/binding.dart:2445:35)
+#9      RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:558:5)
+#10     SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#11     SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1345:9)
+#12     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2261:9)
+#15     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#16     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2250:27)
+#17     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
+#20     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#21     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
+#22     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart:363:22)
+<asynchronous suspension>
+#23     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#24     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 7 frames from class _AssertionError, dart:async, and package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +13 -5: unsupported nonfinite declines before any model input or push [E]
+  Test failed. See exception logs above.
+  The test description was: unsupported nonfinite declines before any model input or push
+
+00:01 +13 -5: Offstage and outside-overlay sources reject explicit and semantic open
+00:01 +14 -5: unprepared global router never publishes nominal samples
+00:01 +15 -5: readiness callback reentry installs only one model and popup
+00:01 +16 -5: moving a shown endpoint leaves its old popup independent
+00:01 +17 -5: moving during hidden hold cancels old preparation finitely
+00:01 +18 -5: moving a source-owned tail abandons it without a hidden ticker
+00:01 +19 -5: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart: actual smaller overlay and global root transform select the right row at DPR1.0
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart: actual smaller overlay and global root transform select the right row at DPR2.0
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart: held source pointer survives root mapping through row selection
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart: source scale changes the source shape without scaling menu metrics
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported nonfinite declines before any model input or push
