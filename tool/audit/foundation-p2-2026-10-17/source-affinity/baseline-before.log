@@ -1,0 +1,92 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart
+00:00 +0: new root gets an independent session while old popup stays alive
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: ProbeMenuRoute:<ProbeMenuRoute(RouteSettings(none, null), animation:
+_MenuAnimation#f468d(⏭))>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart:115:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart line 115
+The test description was:
+  new root gets an independent session while old popup stays alive
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -1: new root gets an independent session while old popup stays alive [E]
+  Test failed. See exception logs above.
+  The test description was: new root gets an independent session while old popup stays alive
+
+00:00 +0 -1: old root does not hand its model to a source moved elsewhere
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: ({({RRect button, double buttonKick, double buttonOpacity, double contentOpacity, double
+fusionRadius, RRect menu, double menuKick, double progress, double time}) after, ({RRect button,
+double buttonKick, double buttonOpacity, double contentOpacity, double fusionRadius, RRect menu,
+double menuKick, double progress, double time}) before}):<(after: (button: RRect.fromLTRBR(24.0,
+77.0, 68.0, 121.0, 22.0), buttonKick: -3.040633268562363, buttonOpacity: 1.0, contentOpacity: 0.0,
+fusionRadius: 2.031079258346104, menu: RRect.fromLTRBR(30.0, 86.1, 62.0, 118.0, 16.0), menuKick:
+0.05761204970632827, progress: -0.0001342523122233899, time: 1.116622), before: (button:
+RRect.fromLTRBR(24.0, 77.0, 68.0, 121.0, 22.0), buttonKick: -3.040633268562363, buttonOpacity: 1.0,
+contentOpacity: 0.0, fusionRadius: 2.031079258346104, menu: RRect.fromLTRBR(30.0, 86.1, 62.0, 118.0,
+16.0), menuKick: 0.05761204970632827, progress: -0.0001342523122233899, time: 1.116622))>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart:143:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart line 143
+The test description was:
+  old root does not hand its model to a source moved elsewhere
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -2: old root does not hand its model to a source moved elsewhere [E]
+  Test failed. See exception logs above.
+  The test description was: old root does not hand its model to a source moved elsewhere
+
+00:00 +0 -2: old popup keeps its view when its source moves to another view
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: empty
+  Actual: [(int, int):(0, 1)]
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart:166:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart line 166
+The test description was:
+  old popup keeps its view when its source moves to another view
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -3: old popup keeps its view when its source moves to another view [E]
+  Test failed. See exception logs above.
+  The test description was: old popup keeps its view when its source moves to another view
+
+00:00 +0 -3: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart: new root gets an independent session while old popup stays alive
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart: old popup keeps its view when its source moves to another view
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart: old root does not hand its model to a source moved elsewhere

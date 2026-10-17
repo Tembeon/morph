@@ -1,0 +1,5 @@
+# Parent verification
+
+17-case targeted suite and 292-case standalone prototype suite pass before the sole deslop cleanup. Accepted removal of _creatingSession uses the existing unpublished `_current == null` state and a pre-refresh guard in public open. Factory reentry is repeated by the final full example suite. No model/clock/transfer source changed. The three Comment Sicko contract corrections are applied; no comments deleted or suppressions added.
+
+Final full-suite, analyzer and staged checks are recorded in report.md/summary.json/artifacts.json. The old draft baseline harness errors are excluded from baseline evidence; retained corrected baseline has three ownership assertion failures, not timeout or widget setup failures. Source/overlay foreign-View rejection uses actual distinct View trees. Source-owned lost tail remains unsettled and frozen by design, without an extra sampler. All35 prior metric records match in the standalone prototype run; final-example equivalence is checked separately before commit.

@@ -1,0 +1,175 @@
+import 'dart:ui' as ui;
+
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/motion.dart';
+import 'package:morph_example/proto/menu_route_probe.dart';
+
+const _step = Duration(microseconds: 8333);
+
+Future<void> _until(WidgetTester tester, bool Function() done) async {
+  for (var i = 0; i < 600 && !done(); i++) {
+    await tester.pump(_step);
+  }
+  expect(done(), isTrue);
+}
+
+class _OtherView extends TestFlutterView {
+  _OtherView(TestFlutterView original)
+    : super(
+        view: original,
+        platformDispatcher: original.platformDispatcher,
+        display: original.display,
+      );
+
+  @override
+  int get viewId => 100;
+
+  @override
+  void render(ui.Scene scene, {Size? size}) {}
+
+  @override
+  void updateSemantics(ui.SemanticsUpdate update) {}
+}
+
+class _Harness {
+  final location = ValueNotifier(0);
+  final navigators = [GlobalKey<NavigatorState>(), GlobalKey<NavigatorState>()];
+  final source = GlobalKey<ProbeMenuSourceState>();
+  final models = <MorphMenuMotion>[];
+  final selected = <(int, int)>[];
+
+  Widget root(WidgetTester tester, int index) => WidgetsApp(
+    color: const Color(0xFFFFFFFF),
+    navigatorKey: navigators[index],
+    onGenerateRoute: (_) => PageRouteBuilder<void>(
+      transitionDuration: Duration.zero,
+      reverseTransitionDuration: Duration.zero,
+      pageBuilder: (_, _, _) => ValueListenableBuilder<int>(
+        valueListenable: location,
+        builder: (_, current, _) => current == index
+            ? ProbeMenuSource(
+                key: source,
+                pointerInput: true,
+                now: () => Duration(
+                  microseconds: tester.binding.clock.now().microsecondsSinceEpoch,
+                ),
+                createMotion: () {
+                  final generation = models.length;
+                  final model = MorphMenuMotion(
+                    button: const Rect.fromLTWH(24, 80, 44, 44),
+                    bounds: const Size(402, 874),
+                    itemCount: 3,
+                    sourceHeight: 64,
+                    sourceRadius: 22,
+                  );
+                  model.onSelected = (item) => selected.add((generation, item));
+                  models.add(model);
+                  return model;
+                },
+                menuBuilder: (_) => const SizedBox.expand(),
+              )
+            : const SizedBox.expand(),
+      ),
+    ),
+  );
+
+  Future<void> mount(WidgetTester tester, {_OtherView? secondView}) =>
+      tester.pumpWidget(
+        secondView == null
+            ? Row(
+                textDirection: .ltr,
+                children: [
+                  Expanded(child: root(tester, 0)),
+                  Expanded(child: root(tester, 1)),
+                ],
+              )
+            : ViewCollection(
+                views: [
+                  View(view: tester.view, child: root(tester, 0)),
+                  View(view: secondView, child: root(tester, 1)),
+                ],
+              ),
+        wrapWithView: secondView == null,
+      );
+
+  Future<ProbeMenuRoute> open(WidgetTester tester) async {
+    final route = source.currentState!.open();
+    await _until(tester, () => route.animation!.isCompleted);
+    return route;
+  }
+}
+
+void main() {
+  testWidgets('new root gets an independent session while old popup stays alive', (
+    tester,
+  ) async {
+    final h = _Harness();
+    addTearDown(h.location.dispose);
+    await h.mount(tester);
+    final originalState = h.source.currentState!;
+    final first = await h.open(tester);
+    h.location.value = 1;
+    await tester.pump();
+    expect(h.source.currentState, same(originalState));
+    expect(originalState.activeRoute, isNull);
+    final next = await h.open(tester);
+    expect(next, isNot(same(first)));
+    expect(first.navigator, same(h.navigators[0].currentState));
+    expect(next.navigator, same(h.navigators[1].currentState));
+    expect(h.models, hasLength(2));
+    h.navigators[0].currentState!.pop();
+    await _until(tester, () => first.disposed);
+    expect(first.handBack, isNull);
+    expect(originalState.activeRoute, same(next));
+    h.navigators[1].currentState!.pop();
+    await _until(tester, () => next.disposed);
+    await _until(tester, () => originalState.motionSettled);
+    expect(next.handBack, isNotNull);
+    expect(tester.binding.transientCallbackCount, 0);
+  });
+
+  testWidgets('old root does not hand its model to a source moved elsewhere', (
+    tester,
+  ) async {
+    final h = _Harness();
+    addTearDown(h.location.dispose);
+    await h.mount(tester);
+    final first = await h.open(tester);
+    h.location.value = 1;
+    await tester.pump();
+    h.navigators[0].currentState!.pop();
+    await _until(tester, () => first.disposed);
+    expect(first.handBack, isNull);
+    expect(h.models.first.isSettled, isTrue);
+    expect(h.source.currentState!.activeRoute, isNull);
+    expect(h.source.currentState!.motionSettled, isTrue);
+    expect(tester.binding.transientCallbackCount, 0);
+  });
+
+  testWidgets('old popup keeps its view when its source moves to another view', (
+    tester,
+  ) async {
+    final h = _Harness();
+    addTearDown(h.location.dispose);
+    final second = _OtherView(tester.view);
+    await h.mount(tester, secondView: second);
+    final originalState = h.source.currentState!;
+    final first = await h.open(tester);
+    h.location.value = 1;
+    await tester.pump();
+    expect(h.source.currentState, same(originalState));
+    final target = first.frame.menu.outerRect.center;
+    final wrongView = await tester.startGesture(target, view: second);
+    await wrongView.up(view: second);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(h.selected, isEmpty);
+    expect(first.closing, isFalse);
+    final correctView = await tester.startGesture(target, view: tester.view);
+    await correctView.up(view: tester.view);
+    await _until(tester, () => first.disposed);
+    expect(h.selected.single.$1, 0);
+    expect(first.handBack, isNull);
+    expect(tester.binding.transientCallbackCount, 0);
+  });
+}

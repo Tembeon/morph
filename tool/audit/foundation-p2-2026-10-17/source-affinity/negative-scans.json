@@ -1,0 +1,41 @@
+[
+  {
+    "check": "no production source imports",
+    "command": [
+      "/usr/bin/grep",
+      "-R",
+      "-n",
+      "menu_route_probe.dart",
+      "lib",
+      "example/lib/gallery",
+      "example/lib/perf"
+    ],
+    "exitCode": 1,
+    "output": "",
+    "stderr": ""
+  },
+  {
+    "check": "removed duplicate construction/view state",
+    "command": [
+      "/usr/bin/grep",
+      "-nE",
+      "_creatingSession|updateSourceView|_viewId",
+      "example/lib/proto/menu_route_probe.dart"
+    ],
+    "exitCode": 1,
+    "output": "",
+    "stderr": ""
+  },
+  {
+    "check": "new test has no comments",
+    "command": [
+      "/usr/bin/grep",
+      "-nE",
+      "//|/\\*",
+      "example/test/proto/menu_source_affinity_test.dart"
+    ],
+    "exitCode": 1,
+    "output": "",
+    "stderr": ""
+  }
+]

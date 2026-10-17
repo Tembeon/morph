@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' show Timeline;
+import 'dart:ui' as ui;
 
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/rendering.dart';
@@ -61,8 +62,9 @@ class ProbeMenuSource extends StatefulWidget {
 
   /// Builds content in the popup context with the source's local themes.
   ///
-  /// Theme values follow the source while the captured theme kinds and wrap
-  /// topology stay stable. New theme kinds apply to the next presentation.
+  /// Theme values follow the source within its root/View attachment while
+  /// captured theme kinds and wrap topology stay stable. A detached popup keeps
+  /// its last capture. New theme kinds apply to the next presentation.
   /// Other inherited values come from the root route.
   final WidgetBuilder menuBuilder;
 
@@ -102,8 +104,47 @@ class ProbeMenuSource extends StatefulWidget {
 
 /// Source controls and observations for the P2 host harness.
 class ProbeMenuSourceState extends State<ProbeMenuSource>
-    with SingleTickerProviderStateMixin {
-  late final _MenuSession _session;
+    with TickerProviderStateMixin {
+  _MenuSession? _current;
+  bool _elementActive = true;
+
+  _MenuSession get _session =>
+      _current ?? (throw StateError('Menu source attachment is changing.'));
+
+  _MenuAffinity _readAffinity() {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    return _MenuAffinity(
+      navigator,
+      View.of(context),
+      View.of(navigator.overlay!.context),
+    );
+  }
+
+  bool _isAttached(_MenuSession session) =>
+      mounted &&
+      _elementActive &&
+      identical(_current, session) &&
+      session.affinity.canPresent &&
+      session.affinity.sameSpace(_readAffinity());
+
+  void _refreshAttachment() {
+    if (!mounted || !_elementActive) {
+      throw StateError('Menu source is not attached to an active element.');
+    }
+    final affinity = _readAffinity();
+    if (_current?.affinity.sameSpace(affinity) ?? false) return;
+    final previous = _current;
+    _current = null;
+    previous?.detachSource();
+    final session = _MenuSession(this, widget, affinity);
+    _current = session;
+    session.sourceAttached = () => _isAttached(session);
+    session.sourceEligible = ({coveredRoot}) =>
+        _sourceCanAcquire(session, coveredRoot: coveredRoot);
+    session.present = () {
+      if (_isAttached(session)) _prepare(session);
+    };
+  }
 
   /// The complete model's most recent sampled frame.
   ProbeMenuFrame get frame => _session.transfer.frame;
@@ -121,23 +162,28 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
   ProbeMenuRoute? get activeRoute => _session.activeRoute;
 
   @override
-  void initState() {
-    super.initState();
-    _session = _MenuSession(this, widget);
-    _session.present = _prepare;
-    _session.sourceEligible = _sourceCanAcquire;
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refreshAttachment();
+    final session = _session;
+    if (session._routes.isEmpty) return;
+    final navigator = session.affinity.navigator;
+    final themes = _captureThemes(navigator);
+    for (final route in session._routes) {
+      if (identical(route.navigator, navigator)) route._queueThemes(themes);
+    }
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _session.updateSourceView(View.of(context).viewId);
-    if (_session._routes.isEmpty) return;
-    final navigator = Navigator.of(context, rootNavigator: true);
-    final themes = _captureThemes(navigator);
-    for (final route in _session._routes) {
-      if (identical(route.navigator, navigator)) route._queueThemes(themes);
-    }
+  void deactivate() {
+    _elementActive = false;
+    super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _elementActive = true;
   }
 
   _SourceThemes _captureThemes(NavigatorState navigator) {
@@ -159,7 +205,11 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
     );
   }
 
-  bool _sourceCanAcquire({ModalRoute<Object?>? coveredRoot}) {
+  bool _sourceCanAcquire(
+    _MenuSession session, {
+    ModalRoute<Object?>? coveredRoot,
+  }) {
+    if (!_isAttached(session)) return false;
     final retainedRoot = coveredRoot?.isActive == true ? coveredRoot : null;
     final local = ModalRoute.of(context);
     if (local?.isCurrent == false && !identical(local, retainedRoot)) {
@@ -182,9 +232,19 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
   }
 
   /// Opens on the root navigator, or reverses the current closing owner.
+  ///
+  /// Throws [StateError] before pushing when the source is unattached or its
+  /// FlutterView differs from the root overlay's View.
   ProbeMenuRoute open() {
-    final route = _prepare();
-    if (widget.pointerInput) _session.activate(route);
+    if (_current == null) {
+      throw StateError('Menu source attachment is changing.');
+    }
+    _refreshAttachment();
+    final session = _session;
+    final route = _prepare(session);
+    if (widget.pointerInput) {
+      session.activate(route, eligible: () => _isAttached(session));
+    }
     return route;
   }
 
@@ -200,41 +260,49 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
     return route;
   }
 
-  bool _canActivateSemantically() {
-    if (!mounted) return false;
-    final route = _session._reservation?.route ?? _session.activeRoute;
-    if (route == null) return _sourceCanAcquire();
+  bool _canActivateSemantically(_MenuSession session) {
+    if (!_isAttached(session)) return false;
+    final route = session._reservation?.route ?? session.activeRoute;
+    if (route == null) return _sourceCanAcquire(session);
     return route._stage.value == _MenuStage.preparing &&
         route._acceptsActivation &&
-        _sourceCanAcquire(coveredRoot: route._sourcePage);
+        _sourceCanAcquire(session, coveredRoot: route._sourcePage);
   }
 
-  void _semanticOpen() {
-    if (!_canActivateSemantically()) return;
-    final route = _prepare();
+  void _semanticOpen(_MenuSession session) {
+    if (!_canActivateSemantically(session)) return;
+    final route = _prepare(session);
     if (widget.pointerInput) {
-      _session.activate(route, eligible: _canActivateSemantically);
+      session.activate(
+        route,
+        eligible: () => _canActivateSemantically(session),
+      );
     }
   }
 
-  ProbeMenuRoute _prepare({bool reserve = false}) {
-    final reserved = _session._reservation?.route;
+  ProbeMenuRoute _prepare(_MenuSession session, {bool reserve = false}) {
+    if (!_isAttached(session)) {
+      throw StateError(
+        'Menu source and root overlay must share an active FlutterView.',
+      );
+    }
+    final reserved = session._reservation?.route;
     if (reserved != null) return reserved;
-    final current = _session.activeRoute;
+    final current = session.activeRoute;
     if (current != null && !current.closing) return current;
-    final navigator = Navigator.of(context, rootNavigator: true);
+    final navigator = session.affinity.navigator;
     final route = ProbeMenuRoute._(
-      _session,
+      session,
       widget.menuBuilder,
       _captureThemes(navigator),
       _rootSourceRoute(),
       widget.menuSemanticLabel,
     );
     if (reserve) {
-      _session._reservation = _MenuReservation(
+      session._reservation = _MenuReservation(
         route,
-        _session.transfer,
-        _session._pointer!,
+        session.transfer,
+        session._pointer!,
       );
     }
     unawaited(navigator.push<void>(route));
@@ -242,58 +310,81 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
   }
 
   @override
-  Widget build(BuildContext context) => Stack(
-    fit: .expand,
-    children: [
-      IgnorePointer(
-        child: CustomPaint(painter: _MenuPainter(_session, _session.source)),
-      ),
-      Positioned.fromRect(
-        rect: widget.button,
-        child: Semantics(
-          label: widget.semanticLabel,
-          button: true,
-          expanded: _session.activeRoute?._stage.value == _MenuStage.shown,
-          onTap: _semanticOpen,
-          child: widget.pointerInput
-              ? Listener(
-                  behavior: .opaque,
-                  onPointerDown: (event) {
-                    final accepted = _session.handlePointer(
-                      event,
-                      sourceHit: true,
-                    );
-                    final owner = _session.activeRoute;
-                    // Push before Navigator's ancestor Listener records this down.
-                    if (accepted &&
-                        mounted &&
-                        _session._pointer?.matches(event) == true &&
-                        _sourceCanAcquire() &&
-                        (owner == null ||
-                            (owner.closing && owner._stage.value.revealed))) {
-                      _prepare(reserve: owner != null);
-                    }
-                  },
-                )
-              : GestureDetector(
-                  behavior: .opaque,
-                  excludeFromSemantics: true,
-                  onTap: open,
-                ),
+  Widget build(BuildContext context) {
+    final session = _session;
+    return Stack(
+      fit: .expand,
+      children: [
+        IgnorePointer(
+          child: CustomPaint(painter: _MenuPainter(session, session.source)),
         ),
-      ),
-    ],
-  );
+        Positioned.fromRect(
+          rect: widget.button,
+          child: Semantics(
+            label: widget.semanticLabel,
+            button: true,
+            expanded: session.activeRoute?._stage.value == _MenuStage.shown,
+            onTap: () => _semanticOpen(session),
+            child: widget.pointerInput
+                ? Listener(
+                    behavior: .opaque,
+                    onPointerDown: (event) {
+                      if (!_isAttached(session)) return;
+                      final accepted = session.handlePointer(
+                        event,
+                        sourceHit: true,
+                      );
+                      final owner = session.activeRoute;
+                      // Push before Navigator's ancestor Listener records this down.
+                      if (accepted &&
+                          mounted &&
+                          session._pointer?.matches(event) == true &&
+                          _sourceCanAcquire(session) &&
+                          (owner == null ||
+                              (owner.closing && owner._stage.value.revealed))) {
+                        _prepare(session, reserve: owner != null);
+                      }
+                    },
+                  )
+                : GestureDetector(
+                    behavior: .opaque,
+                    excludeFromSemantics: true,
+                    onTap: () {
+                      if (_isAttached(session)) _prepare(session);
+                    },
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   void dispose() {
-    _session.detachSource();
+    final session = _current;
+    _current = null;
+    session?.detachSource();
     super.dispose();
   }
 }
 
+class _MenuAffinity {
+  const _MenuAffinity(this.navigator, this.sourceView, this.presentationView);
+
+  final NavigatorState navigator;
+  final ui.FlutterView sourceView;
+  final ui.FlutterView presentationView;
+
+  bool get canPresent => identical(sourceView, presentationView);
+
+  bool sameSpace(_MenuAffinity other) =>
+      identical(navigator, other.navigator) &&
+      identical(sourceView, other.sourceView) &&
+      identical(presentationView, other.presentationView);
+}
+
 class _MenuSession {
-  _MenuSession(TickerProvider vsync, ProbeMenuSource widget)
+  _MenuSession(TickerProvider vsync, ProbeMenuSource widget, this.affinity)
     : button = widget.button,
       bounds = widget.bounds,
       pointerInput = widget.pointerInput,
@@ -332,6 +423,7 @@ class _MenuSession {
     }
   }
 
+  final _MenuAffinity affinity;
   final Rect button;
   final Size bounds;
   final Duration Function() now;
@@ -341,9 +433,11 @@ class _MenuSession {
   final ValueChanged<ProbeMenuSample>? onSample;
   final List<RRect> neighbors;
   VoidCallback? present;
+  bool Function()? sourceAttached;
   bool Function({ModalRoute<Object?>? coveredRoot})? sourceEligible;
   _PointerSequence? _pointer;
-  int? _viewId;
+  bool _retiringSource = false;
+  bool _disposed = false;
   int _modelDepth = 0;
   ProbeMenuTransfer? _cancelAfterCommand;
   final source = ProbeMenuLease(.source);
@@ -374,11 +468,6 @@ class _MenuSession {
     return advanced &&
         identical(target, transfer) &&
         identical(target.owner, lease);
-  }
-
-  void updateSourceView(int viewId) {
-    if (_viewId != null && _viewId != viewId) _revokePointer();
-    _viewId = viewId;
   }
 
   bool get _menuCanAcquire {
@@ -428,6 +517,7 @@ class _MenuSession {
   }
 
   void _drainPointerCancel() {
+    if (_retiringSource) return;
     final target = _cancelAfterCommand;
     _cancelAfterCommand = null;
     if (target == null || !identical(target, transfer)) return;
@@ -574,7 +664,13 @@ class _MenuSession {
 
   bool land(ProbeMenuRoute route, double localTime) {
     final clock = sourceClock;
-    if (clock == null) return false;
+    if (clock == null ||
+        !identical(activeRoute, route) ||
+        !identical(transfer.owner, route._lease) ||
+        !identical(route.navigator, affinity.navigator) ||
+        !(sourceAttached?.call() ?? false)) {
+      return false;
+    }
     final before = transfer.frame;
     final anchor = clock.resumeAt(
       SchedulerBinding.instance.currentSystemFrameTimeStamp,
@@ -594,14 +690,29 @@ class _MenuSession {
   }
 
   void detachSource() {
+    if (sourceClock == null) return;
     present = null;
     sourceEligible = null;
-    if (_reservation case final reservation?) {
-      _retireReservation(reservation, exit: .removed);
-    }
+    sourceAttached = null;
+    _retiringSource = true;
+    _revokePointer();
     sourceClock!.dispose();
     sourceClock = null;
-    _disposeIfUnused();
+    scheduleMicrotask(() {
+      _retiringSource = false;
+      _drainPointerCancel();
+      if (_reservation case final reservation?) {
+        _retireReservation(reservation, exit: .removed);
+      }
+      final route = activeRoute;
+      if (route != null &&
+          !route.disposed &&
+          !route.closing &&
+          !route._stage.value.revealed) {
+        route._abandonCoveredPreparation();
+      }
+      _disposeIfUnused();
+    });
   }
 
   void routeDisposed(ProbeMenuRoute route) {
@@ -625,7 +736,11 @@ class _MenuSession {
   }
 
   void _disposeIfUnused() {
-    if (sourceClock == null && _routes.isEmpty) {
+    if (!_disposed &&
+        !_retiringSource &&
+        sourceClock == null &&
+        _routes.isEmpty) {
+      _disposed = true;
       final motion = _admittedMotion;
       if (motion != null) {
         morphMenuSetCloseAdmission(motion, null);
@@ -648,7 +763,7 @@ class _MenuSession {
   }
 
   void syncInputPhase() {
-    if (!pointerInput) return;
+    if (!pointerInput || _retiringSource) return;
     if (_reservation case final reservation?) {
       if (!identical(reservation.transfer, transfer) ||
           sourceEligible == null ||
@@ -708,7 +823,7 @@ class _MenuSession {
     }
     if (event is PointerDownEvent) {
       if (_pointer != null || event.buttons != kPrimaryButton) return false;
-      if (event.viewId != _viewId ||
+      if (event.viewId != affinity.presentationView.viewId ||
           (!_menuCanAcquire && !(sourceHit && _sourceCanContinue))) {
         emit(.ignoredPointer, event: event);
         return false;
@@ -835,7 +950,9 @@ enum _MenuStage {
   bool get closing => this == closingPreparation || this == closingContent;
 }
 
-/// A real PopupRoute driven by the same menu model the source later resumes.
+/// A real PopupRoute sharing its model with the source while attached.
+///
+/// A detached popup completes on its own clock without returning the model.
 class ProbeMenuRoute extends PopupRoute<void> {
   ProbeMenuRoute._(
     this._session,

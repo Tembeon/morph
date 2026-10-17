@@ -1,0 +1,42 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart
+00:00 +0: new root gets an independent session while old popup stays alive
+00:03 +1: old root does not hand its model to a source moved elsewhere
+00:04 +2: old popup keeps its view when its source moves to another view
+00:05 +3: returning to the old root never resurrects its session
+00:08 +4: nested relocation in the same root keeps its model and popup
+00:08 +5: route-owned closing completes without landing after a move
+00:09 +6: source-owned landing tail is abandoned without a hidden ticker
+00:10 +7: hidden held preparation retires on old root, covered: false
+00:10 +8: hidden held preparation retires on old root, covered: true
+00:10 +9: held reopening detaches finitely at 40ms closing
+00:10 +10: held reopening detaches finitely at 300ms closing
+00:11 +11: stale source semantic and raw callbacks cannot open the new session
+00:11 +12: a source in a foreign overlay view declines every acquisition path
+00:11 +13: factory reentry during attachment replacement fails explicitly
+00:11 +14: old popup keeps editor, focus and dismissal policy after source move
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+A SemanticsHandle was active at the end of the test.
+All SemanticsHandle instances must be disposed by calling dispose() on the SemanticsHandle.
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester._verifySemanticsHandlesWereDisposed (package:flutter_test/src/widget_tester.dart:1074:7)
+#1      WidgetTester._endOfTestVerifications (package:flutter_test/src/widget_tester.dart:1063:5)
+#2      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1969:22)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  old popup keeps editor, focus and dismissal policy after source move
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:12 +14 -1: old popup keeps editor, focus and dismissal policy after source move [E]
+  Test failed. See exception logs above.
+  The test description was: old popup keeps editor, focus and dismissal policy after source move
+
+00:12 +14 -1: deferred cancellation may open the new root without locked-tree publication
+00:13 +15 -1: committed hidden release is canceled on old root after attachment loss
+00:13 +16 -1: Some tests failed.
+
+Failing tests:
+  /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart: old popup keeps editor, focus and dismissal policy after source move

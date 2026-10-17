@@ -1,0 +1,19 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart
+00:00 +0: new root gets an independent session while old popup stays alive
+00:00 +1: old root does not hand its model to a source moved elsewhere
+00:00 +2: old popup keeps its view when its source moves to another view
+00:00 +3: returning to the old root never resurrects its session
+00:01 +4: nested relocation in the same root keeps its model and popup
+00:01 +5: route-owned closing completes without landing after a move
+00:01 +6: source-owned landing tail is abandoned without a hidden ticker
+00:01 +7: hidden held preparation retires on old root, covered: false
+00:01 +8: hidden held preparation retires on old root, covered: true
+00:01 +9: held reopening detaches finitely at 40ms closing
+00:01 +10: held reopening detaches finitely at 300ms closing
+00:01 +11: stale source semantic and raw callbacks cannot open the new session
+00:01 +12: a source in a foreign overlay view declines every acquisition path
+00:01 +13: factory reentry during attachment replacement fails explicitly
+00:01 +14: old popup keeps editor, focus and dismissal policy after source move
+00:01 +15: deferred cancellation may open the new root without locked-tree publication
+00:01 +16: committed hidden release is canceled on old root after attachment loss
+00:01 +17: All tests passed!
