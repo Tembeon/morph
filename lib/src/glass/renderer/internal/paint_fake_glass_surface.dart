@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_shaders/flutter_shaders.dart';
+import 'package:morph/src/glass/renderer/internal/shader_uniforms.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/internal/rounded_superellipse_parameters.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_settings.dart';

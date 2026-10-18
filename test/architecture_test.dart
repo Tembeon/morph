@@ -74,7 +74,6 @@ const _ratchet = <Rule, Set<String>>{
   Rule.forbidden: {
   },
   Rule.dependency: {
-    'flutter_shaders reaches package:flutter/material.dart',
   },
   Rule.direction: {
     'lib/src/glass/renderer/glass_shadow.dart imports lib/src/live.dart',

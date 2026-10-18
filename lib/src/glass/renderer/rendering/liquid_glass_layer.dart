@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_shaders/flutter_shaders.dart';
+import 'package:morph/src/glass/renderer/internal/shader_uniforms.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/liquid_field.dart' show liquidMinMergeWidth;

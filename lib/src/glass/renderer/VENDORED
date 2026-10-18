@@ -111,7 +111,8 @@ Local patches (some commits include related package changes):
 - Dependencies imported with the original package move: equatable,
   flutter_shaders, logging, flutter_gpu_shaders and hooks, plus Flutter GPU
   from the Flutter SDK. The unused logging and equatable dependencies are
-  now removed.
+  now removed, and flutter_shaders' uniform writer lives in
+  internal/shader_uniforms.dart.
 - 2026-10-04 WP-I removals: liquid_glass_blend_group.dart (including
   GlassGroupLink), liquid_glass_capture.dart, internal/capture_pass.dart,
   stretch.dart, internal/glass_drag_builder.dart, upstream glass_glow.dart
