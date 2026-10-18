@@ -65,19 +65,19 @@ morph даёт приложению полный набор Liquid Glass-ком�
 - **Зависит от.** Ничего, вычитание идёт раньше добавления.
 - **Файлы.** Строки единицы 1 в таблице "Legacy-движок" `foundation-sketch.md`. Целиком уходят `route.dart`, `anchor.dart`, `shared.dart`, `measure.dart`, `frame.dart` и `skin.dart`. Из `show.dart`, `target.dart`, `gesture.dart` и `flight.dart` уходят только пресеты, фабрики кроме vessel, функции drag и shuttle без vessel, а `showMorph`, vessel и `morphRubberband` живут до своих единиц. Также `engine_page.dart`, 54 legacy-теста, мёртвый код рендеринга, `navigation_snapshot.dart`, `pubspec.yaml`, новые `test/architecture_test.dart` и `test/api/public_api.txt`.
 - **Сделать.**
-  - [ ] Создать новую `main` от выбранного SHA `wip/measured-liquid-glass`. Старое содержимое `main` остаётся на `v0.4.0`.
-  - [ ] Удалить legacy-движок по строкам единицы 1. Убрать из экспорта `MorphController`, `closeAll`, `MorphFlightScope` и другие имена движка без потребителя в слое виджетов, сами классы умирают в 5.3.
-  - [ ] Удалить мёртвый код рендеринга, флаги отклонённых экспериментов и `equatable`. `GlassCostProbe` перенести в тестовый helper.
-  - [ ] Добавить `test/architecture_test.dart` с таблицей направлений зависимостей и allow-list SDK. Проверять import и export во всём `lib/`, включая точки входа, все условные ветви и достижимые сторонние runtime-зависимости с оговорённой границей SDK. Для чистых `*_motion.dart` отдельно запретить импорт widget/host своего и других семейств. Текущие нарушения (`material_ui`, `package:flutter/material.dart`, `motor`) записаны в тесте списком, который может только сокращаться.
-  - [ ] Добавить golden публичного API, построенный из модели элементов анализатора, вместе с внешними реэкспортами. Генератор заменяет `tool/ios_reference/coverage/export_api.dart`.
+  - [x] Создать новую `main` от выбранного SHA `wip/measured-liquid-glass`. Старое содержимое `main` остаётся на `v0.4.0`. Сделано 2026-10-19 fast-forward до `101bdf9d`; прежний `main` на теге `main-before-foundation`, прототипы на теге `foundation-prototypes`.
+  - [x] Удалить legacy-движок по строкам единицы 1. Убрать из экспорта `MorphController`, `closeAll`, `MorphFlightScope` и другие имена движка без потребителя в слое виджетов, сами классы умирают в 5.3. Коммит `98237e58`, 68 файлов, 19 166 строк.
+  - [x] Удалить мёртвый код рендеринга, флаги отклонённых экспериментов и `equatable`. `GlassCostProbe` перенести в тестовый helper. Удалены navigation snapshot, `MorphLiveBackdropFilter`, `existsIn` и `equatable`. Kill switches рендерера, `LiquidGlassVisibility` и `GlassCostProbe` уходят в единице 6 вместе с путём, который они обслуживают.
+  - [x] Добавить `test/architecture_test.dart` с таблицей направлений зависимостей и allow-list SDK. Проверять import и export во всём `lib/`, включая точки входа, все условные ветви и достижимые сторонние runtime-зависимости с оговорённой границей SDK. Для чистых `*_motion.dart` отдельно запретить импорт widget/host своего и других семейств. Текущие нарушения (`material_ui`, `package:flutter/material.dart`, `motor`) записаны в тесте списком, который может только сокращаться. Коммит `617d2a9f`; правило для motion транзитивное, добавлены правила web-пути и покрытия модулей.
+  - [x] Добавить golden публичного API, построенный из модели элементов анализатора, вместе с внешними реэкспортами. Генератор заменяет `tool/ios_reference/coverage/export_api.dart`. `tool/api/public_api.dart`, golden `test/api/public_api.txt`.
 - **Видно.** В галерее нет страницы движка. Меню, контекстное меню и sheets работают как раньше.
 - **Проверка, unit.**
-  - [ ] Тесты меню и контекстного меню не изменены и зелёные.
-  - [ ] `architecture_test` и golden API зелёные.
-  - [ ] Отрицательные fixtures подтверждают обнаружение запрещённого export, транзитивной runtime-зависимости и импорта host из motion. Golden API не заменяет эти проверки.
+  - [x] Тесты меню и контекстного меню не изменены и зелёные.
+  - [x] `architecture_test` и golden API зелёные.
+  - [x] Отрицательные fixtures подтверждают обнаружение запрещённого export, транзитивной runtime-зависимости и импорта host из motion. Golden API не заменяет эти проверки.
 - **Проверка, устройство.** Не требуется, потому что путь по умолчанию и пиксели не меняются.
-- [ ] **Проверка, perf.** `perf_counts.json` без изменений.
-- [ ] **Гейт кода.** `/deslop`, `/no-comments`, comment-sicko по удалениям и двум новым тестам. Ревизия и итог записаны.
+- [x] **Проверка, perf.** `perf_counts.json` без изменений. `test/perf_counts_test.dart` проходит без изменения потолков.
+- [x] **Гейт кода.** `/deslop`, `/no-comments`, comment-sicko по удалениям и двум новым тестам. Ревизия и итог записаны. Итог в `725b5f4b`: находки ревью про мёртвый код удалены, устаревшие описания переписаны.
 - **Удалить в этом же юните.** Строки единицы 1 таблицы "Legacy-движок" и перечисленный мёртвый код. Старый `main` не сливается с новым.
 
 ## Единица 2. Время
