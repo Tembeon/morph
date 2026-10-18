@@ -2,103 +2,19 @@
 [package:motor] class CupertinoMotion extends SpringMotion
 [package:motor] class CurvedMotion extends Motion
 [package:motor] class MaterialSpringMotion extends SpringMotion
-class MorphAnchor extends StatefulWidget
-  const MorphAnchor({
-    Key? key,
-    required bool isOpen,
-    required void Function() onDismiss,
-    required MorphTargetSpec target,
-    required Widget Function(BuildContext) closedBuilder,
-    required Widget Function(BuildContext, MorphFlight) openBuilder,
-    Object? tagId,
-    MorphSurfaceSpec? spec,
-    ShapeBorder shape = const RoundedRectangleBorder(),
-    Color? surfaceColor,
-    double elevation = 0,
-    Widget? replica,
-    bool snapshotGhost = false,
-    MorphMotion? motion,
-    bool modal = true,
-    bool barrierDismissible = true,
-    double? maxScrimOpacity,
-    Color? scrimColor,
-    MorphScrimMotion? scrimMotion,
-    Color? shadowColor,
-    String? semanticLabel,
-    OverlayState? overlay,
-  })
-  final bool barrierDismissible
-  final Widget Function(BuildContext) closedBuilder
-  final double elevation
-  final bool isOpen
-  final double? maxScrimOpacity
-  final bool modal
-  final MorphMotion? motion
-  final void Function() onDismiss
-  final Widget Function(BuildContext, MorphFlight) openBuilder
-  final OverlayState? overlay
-  final Widget? replica
-  final Color? scrimColor
-  final MorphScrimMotion? scrimMotion
-  final String? semanticLabel
-  final Color? shadowColor
-  final ShapeBorder shape
-  final bool snapshotGhost
-  final MorphSurfaceSpec? spec
-  final Color? surfaceColor
-  final Object? tagId
-  final MorphTargetSpec target
-  overrides: createState
 typedef MorphContentBuilder = Widget Function(BuildContext, MorphFlight)
-class MorphController extends ChangeNotifier
-  MorphController({
-    required TickerProvider vsync,
-    MorphMotion motion = .liquid,
-    void Function()? onHandoff,
-  })
-  late final Animation<double> animation
-  void beginScrub()
-  void close({double? velocity})
-  bool get disableAnimations
-  set disableAnimations(bool disabled)
-  MorphMotion get effectiveMotion
-  bool get hasHandedOff
-  bool get isAnimating
-  bool get isClosing
-  bool get isScrubbing
-  bool get isShowing
-  MorphMotion get motion
-  set motion(MorphMotion next)
-  void Function()? onHandoff
-  void open({double? velocity})
-  MorphPhase get phase
-  double get progress
-  void stop()
-  double get target
-  void updateScrub(double value, {double velocity = 0})
-  double get value
-  double get velocity
-  overrides: dispose
 class MorphFlight
   void abort()
-  Offset get appliedDragOffset
   final bool barrierDismissible
-  void beginDrag()
   final Widget Function(BuildContext, MorphFlight) builder
   void close({double? velocity, Object? result})
   Future<Object?> get closed
-  Size? get contentSize
   late final MorphController controller
   double get dissolveOpacity
-  void dragBy(Offset delta)
-  Offset get dragOffset
-  void endDrag(Offset velocityPerSecond, {bool? commit})
   Stream<MorphFlightEvent> get events
   late final Listenable frameTicks
   late final Listenable geometryTicks
   bool get isAirborne
-  bool get isDragArmed
-  bool get isDragging
   bool get isFinished
   bool get isLanding
   bool get isOpenOrOpening
@@ -106,7 +22,6 @@ class MorphFlight
   Rect get lastTargetRect
   void markNeedsBuild()
   final double maxScrimOpacity
-  Size? get measuredContentSize
   final bool modal
   void Function()? onDismissRequested
   void open({double? velocity})
@@ -119,7 +34,6 @@ class MorphFlight
   String? semanticLabel
   final Color shadowColor
   Rect get sourceRect
-  Image? get sourceSnapshot
   final MorphTagState tag
   Object get tagId
   final MorphTargetSpec target
@@ -131,41 +45,6 @@ enum MorphFlightEvent
   latched,
   landed,
   aborted,
-class MorphFlightScope extends InheritedWidget
-  const MorphFlightScope({
-    Key? key,
-    required MorphFlight flight,
-    required Widget child,
-  })
-  final MorphFlight flight
-  static MorphFlight of(BuildContext context)
-  overrides: updateShouldNotify
-class MorphFrame
-  const MorphFrame({
-    required Rect rect,
-    required ShapeBorder shape,
-    required double? cornerRadius,
-    required double sourceOpacity,
-    required double targetOpacity,
-    required double targetScale,
-    required double scrimOpacity,
-    required double elevation,
-    required Color surfaceColor,
-  })
-  final double? cornerRadius
-  final double elevation
-  final Rect rect
-  final double scrimOpacity
-  final ShapeBorder shape
-  final double sourceOpacity
-  final Color surfaceColor
-  final double targetOpacity
-  final double targetScale
-class MorphLink
-  const MorphLink({required Object from, required Object to, double? width})
-  final Object from
-  final Object to
-  final double? width
 sealed class MorphMass
   const MorphMass()
   const factory MorphMass.box(Rect rect, {double radius})
@@ -193,82 +72,6 @@ class MorphMotion
   Motion get openMotion
   final MorphSpring? openSpring
   overrides: ==, hashCode, toString
-class MorphPageRoute<T> extends PopupRoute<T>
-  MorphPageRoute({
-    required Object from,
-    required Widget Function(BuildContext, MorphFlight) builder,
-    required MorphTargetSpec target,
-    MorphMotion? motion,
-    bool modal = true,
-    BuildContext? sourceContext,
-    bool barrierDismissible = true,
-    String? barrierLabel,
-    double maxScrimOpacity = MorphTheme.defaultMaxScrimOpacity,
-    Color scrimColor = MorphTheme.defaultScrimColor,
-    MorphScrimMotion? scrimMotion,
-    OverlayState? overlay,
-    Color shadowColor = MorphTheme.defaultShadowColor,
-    String? semanticLabel,
-    RouteSettings? settings,
-  })
-  final Widget Function(BuildContext, MorphFlight) builder
-  MorphFlight? get flight
-  final Object from
-  final double maxScrimOpacity
-  final bool modal
-  final MorphMotion? motion
-  final OverlayState? overlay
-  final Color scrimColor
-  final MorphScrimMotion? scrimMotion
-  final String? semanticLabel
-  final Color shadowColor
-  final BuildContext? sourceContext
-  final MorphTargetSpec target
-  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, didChangeNext, didPop, didPopNext, didPush, dispose, handleCancelBackGesture, handleCommitBackGesture, handleStartBackGesture, handleUpdateBackGestureProgress, transitionDuration
-enum MorphPhase
-  idle,
-  detaching,
-  travelling,
-  arriving,
-  settled,
-class MorphPiece
-  const MorphPiece({
-    required Object id,
-    required Rect rect,
-    double radius = 20,
-    bool solid = true,
-    MorphPieceChannel? channel,
-    Color? tint,
-    Widget? child,
-  })
-  const MorphPiece.morphable({
-    required Object id,
-    required Rect rect,
-    double radius = 20,
-    bool solid = true,
-    MorphPieceChannel? channel,
-    Color? tint,
-    required Widget child,
-  })
-  final MorphPieceChannel? channel
-  final Widget? child
-  final Object id
-  final bool morphable
-  final double radius
-  final Rect rect
-  final bool solid
-  final Color? tint
-class MorphPieceChannel extends ChangeNotifier
-  MorphPieceChannel()
-  Rect apply(Rect base)
-  static const double birthScale
-  static const MorphSpring birthSpring
-  bool get isIdentity
-  Offset get offset
-  void reset()
-  double get scaleX
-  double get scaleY
-  void update({Offset? offset, double? scaleX, double? scaleY})
 class MorphPresentationBoundary extends InheritedWidget
   const MorphPresentationBoundary({required Widget child, Key? key})
   overrides: updateShouldNotify
@@ -295,56 +98,6 @@ class MorphScrimMotion
   final MorphMotion motion
   final Duration openDelay
   overrides: ==, hashCode, toString
-class MorphSharedElement extends StatefulWidget
-  const MorphSharedElement({
-    Key? key,
-    required Object id,
-    MorphSharedFade fade = .through,
-    required Widget child,
-  })
-  final Widget child
-  final MorphSharedFade fade
-  final Object id
-  overrides: createState
-enum MorphSharedFade
-  through,
-  none,
-class MorphSkin extends StatelessWidget
-  const MorphSkin({
-    Key? key,
-    required List<MorphPiece> pieces,
-    List<MorphLink> links = const <MorphLink>[],
-    List<MorphMass> extraMasses = const <MorphMass>[],
-    MorphSkinStyle? style,
-    double? blend,
-    double? cell,
-    int? smoothPasses,
-    int? evalBudget = defaultEvalBudget,
-    required Color color,
-    Gradient? gradient,
-    MorphStroke? stroke,
-    double elevation = 0,
-    Color? shadowColor,
-    Clip clipBehavior = .none,
-    FilterQuality? contentFilterQuality,
-  })
-  final double? blend
-  final double? cell
-  final Clip clipBehavior
-  final Color color
-  final FilterQuality? contentFilterQuality
-  static const int defaultEvalBudget
-  final double elevation
-  final int? evalBudget
-  final List<MorphMass> extraMasses
-  final Gradient? gradient
-  final List<MorphLink> links
-  final List<MorphPiece> pieces
-  final Color? shadowColor
-  final int? smoothPasses
-  final MorphStroke? stroke
-  final MorphSkinStyle? style
-  overrides: build
 class MorphSkinStyle
   const MorphSkinStyle({
     required String name,
@@ -369,11 +122,6 @@ class MorphSpring
   final double response
   double get stiffness
   Motion toMotion()
-  overrides: ==, hashCode, toString
-class MorphStroke
-  const MorphStroke({required Color color, double width = 1})
-  final Color color
-  final double width
   overrides: ==, hashCode, toString
 class MorphSurfaceSpec
   const MorphSurfaceSpec({
@@ -400,7 +148,6 @@ class MorphTag extends StatefulWidget
     Color? surfaceColor,
     double elevation = 0,
     Widget? replica,
-    bool snapshotGhost = false,
   })
   final Widget child
   final double elevation
@@ -410,7 +157,6 @@ class MorphTag extends StatefulWidget
   static MorphSurfaceSpec? maybeSpecOf(BuildContext context)
   final Widget? replica
   final ShapeBorder shape
-  final bool snapshotGhost
   final MorphSurfaceSpec? spec
   static MorphSurfaceSpec specOf(BuildContext context)
   final Color? surfaceColor
@@ -424,78 +170,14 @@ class MorphTagState extends State<MorphTag>
   MorphSurfaceSpec get surfaceSpec
   overrides: activate, build, deactivate, didChangeDependencies, didUpdateWidget, dispose
 class MorphTargetSpec
-  MorphTargetSpec({
-    required Rect Function(Size, EdgeInsets) rectFor,
-    MorphSurfaceSpec? surface,
-    ShapeBorder shape = const RoundedRectangleBorder(),
-    Color? surfaceColor,
-    double elevation = MorphTheme.defaultTargetElevation,
-    Alignment contentAlignment = Alignment.topCenter,
-    Clip clipBehavior = Clip.antiAlias,
-    Listenable? repaint,
-  })
-  factory MorphTargetSpec.dialog({
-    double width = 440,
-    double height = 360,
-    double margin = 24,
-    bool fitContent = false,
-    MorphSurfaceSpec? surface,
-    ShapeBorder? shape,
-    Color? surfaceColor,
-  })
-  factory MorphTargetSpec.fullscreen({
-    MorphSurfaceSpec? surface,
-    ShapeBorder? shape,
-    Color? surfaceColor,
-  })
-  MorphTargetSpec.measured({
-    required BoxConstraints Function(Size, EdgeInsets) constraintsFor,
-    required Rect Function(Size, EdgeInsets, Size) placeFor,
-    MorphSurfaceSpec? surface,
-    ShapeBorder shape = const RoundedRectangleBorder(),
-    Color? surfaceColor,
-    double elevation = MorphTheme.defaultTargetElevation,
-    Alignment contentAlignment = Alignment.topCenter,
-    Clip clipBehavior = Clip.antiAlias,
-    Listenable? repaint,
-  })
-  factory MorphTargetSpec.popover({
-    required Rect anchor,
-    Size size = const Size(260, 300),
-    double gap = 10,
-    double margin = 12,
-    bool fitContent = false,
-    MorphSurfaceSpec? surface,
-    ShapeBorder? shape,
-    Color? surfaceColor,
-  })
-  factory MorphTargetSpec.sheet({
-    double? height,
-    double heightFactor = 0.5,
-    double maxWidth = 560,
-    double margin = 14,
-    bool fitContent = false,
-    MorphSurfaceSpec? surface,
-    ShapeBorder? shape,
-    Color? surfaceColor,
-  })
   MorphTargetSpec.vessel({
     required Rect Function(Size, EdgeInsets) rectFor,
     Listenable? repaint,
   })
-  final Clip clipBehavior
-  final BoxConstraints Function(Size, EdgeInsets)? constraintsFor
-  Alignment get contentAlignment
-  final double elevation
-  bool get isMeasured
-  final bool isVessel
-  final Rect Function(Size, EdgeInsets, Size)? placeFor
   final Rect Function(Size, EdgeInsets) rectFor
   final Listenable? repaint
-  Rect resolveRect(Size overlaySize, EdgeInsets padding, Size? content)
-  final ShapeBorder shape
+  Rect resolveRect(Size overlaySize, EdgeInsets padding)
   MorphSurfaceSpec get surface
-  final Color? surfaceColor
 class MorphTheme extends ThemeExtension<MorphTheme>
   const MorphTheme({
     MorphMotion? motion,
@@ -518,38 +200,10 @@ class MorphTheme extends ThemeExtension<MorphTheme>
   final MorphSkinStyle? skinStyle
   overrides: ==, copyWith, hashCode, lerp
 [package:motor] abstract class Motion
-MorphFrame computeMorphFrame({
-  required double value,
-  required Rect sourceRect,
-  required Rect targetRect,
-  required ShapeBorder sourceShape,
-  required ShapeBorder targetShape,
-  required Color sourceColor,
-  required Color targetColor,
-  required double maxScrimOpacity,
-  double sourceElevation = 0,
-  double targetElevation = MorphTheme.defaultTargetElevation,
-})
 Rect? maybeMorphAnchorRect(BuildContext context, {OverlayState? overlay})
 Rect morphAnchorRect(BuildContext context, {OverlayState? overlay})
-double morphDragArm(double distance)
-const double morphDragCommitDistance
-const double morphDragCommitVelocity
-double morphDragRecede(double distance, {double dimension = 400})
-double morphDragScale(double recede, double arm)
-double morphDragScrimFactor(double recede, double arm)
 NavigatorState? morphPresentationNavigatorOf(BuildContext context)
 OverlayState? morphPresentationOverlayOf(BuildContext context)
-double morphProjectValue(
-  double value,
-  double velocityPerSecond, {
-  double decelerationRate = 0.998,
-})
-double morphRubberband(
-  double x, {
-  required double dimension,
-  double coefficient = 0.55,
-})
 MorphFlight showMorph(
   BuildContext context, {
   Object? from,
@@ -566,66 +220,6 @@ MorphFlight showMorph(
   String? semanticLabel,
   OverlayState? overlay,
 })
-MorphFlight showMorphDialogFlight(
-  BuildContext context, {
-  Object? from,
-  required Widget Function(BuildContext, MorphFlight) builder,
-  double width = 440,
-  double height = 360,
-  bool fitContent = false,
-  MorphSurfaceSpec? surface,
-  ShapeBorder? shape,
-  Color? surfaceColor,
-  MorphMotion? motion,
-  bool modal = true,
-  bool barrierDismissible = true,
-  double? maxScrimOpacity,
-  Color? scrimColor,
-  MorphScrimMotion? scrimMotion,
-  Color? shadowColor,
-  void Function()? onDismissRequested,
-  String? semanticLabel,
-  OverlayState? overlay,
-})
-Future<T?> showMorphRoute<T>(
-  BuildContext context, {
-  Object? from,
-  required Widget Function(BuildContext, MorphFlight) builder,
-  MorphTargetSpec? target,
-  MorphMotion? motion,
-  bool barrierDismissible = true,
-  bool modal = true,
-  bool useRootNavigator = false,
-  double? maxScrimOpacity,
-  Color? scrimColor,
-  MorphScrimMotion? scrimMotion,
-  OverlayState? overlay,
-  Color? shadowColor,
-  String? semanticLabel,
-})
-MorphFlight showMorphSheetFlight(
-  BuildContext context, {
-  Object? from,
-  required Widget Function(BuildContext, MorphFlight) builder,
-  double? height,
-  double heightFactor = 0.5,
-  double maxWidth = 560,
-  bool fitContent = false,
-  MorphSurfaceSpec? surface,
-  ShapeBorder? shape,
-  Color? surfaceColor,
-  MorphMotion? motion,
-  bool modal = true,
-  bool barrierDismissible = true,
-  double? maxScrimOpacity,
-  Color? scrimColor,
-  MorphScrimMotion? scrimMotion,
-  Color? shadowColor,
-  void Function()? onDismissRequested,
-  String? semanticLabel,
-  OverlayState? overlay,
-})
-double? uniformMorphRadius(ShapeBorder shape, Size size)
 
 # package:morph/widgets.dart
 class CupertinoMotion (see package:morph/foundation.dart)
@@ -800,7 +394,6 @@ class MorphAlertTextField
   final String? placeholder
   final String? semanticLabel
   final TextCapitalization textCapitalization
-class MorphAnchor (see package:morph/foundation.dart)
 enum MorphBackButtonDisplayMode
   standard,
   generic,
@@ -1047,7 +640,6 @@ class MorphContextMenuRegion extends StatefulWidget
   final String? semanticLabel
   final Object? tagId
   overrides: createState
-class MorphController (see package:morph/foundation.dart)
 class MorphDatePicker extends StatefulWidget
   const MorphDatePicker({
     required DateTime value,
@@ -1170,8 +762,6 @@ enum MorphDatePickerStyle
   wheels,
 class MorphFlight (see package:morph/foundation.dart)
 enum MorphFlightEvent (see package:morph/foundation.dart)
-class MorphFlightScope (see package:morph/foundation.dart)
-class MorphFrame (see package:morph/foundation.dart)
 class MorphGlassButton extends StatefulWidget
   const MorphGlassButton({
     required Widget child,
@@ -1446,7 +1036,6 @@ class MorphLargeTitleScrollPhysics extends ScrollPhysics
   final double collapseExtent
   static const MorphSpring snapSpring
   overrides: applyTo, createBallisticSimulation
-class MorphLink (see package:morph/foundation.dart)
 enum MorphListAccessory
   disclosureIndicator,
   checkmark,
@@ -2273,10 +1862,6 @@ enum MorphPageControlBackgroundStyle
   automatic,
   prominent,
   minimal,
-class MorphPageRoute (see package:morph/foundation.dart)
-enum MorphPhase (see package:morph/foundation.dart)
-class MorphPiece (see package:morph/foundation.dart)
-class MorphPieceChannel (see package:morph/foundation.dart)
 class MorphPresentationBoundary (see package:morph/foundation.dart)
 class MorphProgressView extends StatefulWidget
   const MorphProgressView({
@@ -2693,8 +2278,6 @@ class MorphSegmentedControlAppearance
   final TextStyle textStyle
   final Color trackColor
   overrides: ==, hashCode
-class MorphSharedElement (see package:morph/foundation.dart)
-enum MorphSharedFade (see package:morph/foundation.dart)
 abstract class MorphSheet
   MorphSheet()
   abstract void animateTo(MorphSheetDetent detent)
@@ -2775,7 +2358,6 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T>, Gl
   final String? semanticLabel
   final MorphZoomTuning zoom
   overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, leaveMotionRoute, reverseTransitionDuration, transitionDuration
-class MorphSkin (see package:morph/foundation.dart)
 class MorphSkinStyle (see package:morph/foundation.dart)
 class MorphSlider extends StatefulWidget
   const MorphSlider({
@@ -2915,7 +2497,6 @@ class MorphStepperAppearance
     MorphStepperAppearance? explicit,
   )
   overrides: ==, hashCode
-class MorphStroke (see package:morph/foundation.dart)
 class MorphSubmenu extends MorphMenuEntry
   const MorphSubmenu({
     required String title,
@@ -3222,19 +2803,10 @@ class MorphZoomTuning
   static const MorphSpring zoomInSpring
   static const MorphSpring zoomOutSpring
 class Motion (see package:morph/foundation.dart)
-function computeMorphFrame (see package:morph/foundation.dart)
 function maybeMorphAnchorRect (see package:morph/foundation.dart)
 function morphAnchorRect (see package:morph/foundation.dart)
-function morphDragArm (see package:morph/foundation.dart)
-variable morphDragCommitDistance (see package:morph/foundation.dart)
-variable morphDragCommitVelocity (see package:morph/foundation.dart)
-function morphDragRecede (see package:morph/foundation.dart)
-function morphDragScale (see package:morph/foundation.dart)
-function morphDragScrimFactor (see package:morph/foundation.dart)
 function morphPresentationNavigatorOf (see package:morph/foundation.dart)
 function morphPresentationOverlayOf (see package:morph/foundation.dart)
-function morphProjectValue (see package:morph/foundation.dart)
-function morphRubberband (see package:morph/foundation.dart)
 Future<T?> pushMorphZoom<T>(
   BuildContext context, {
   required Widget Function(BuildContext) builder,
@@ -3262,8 +2834,6 @@ Future<MorphAlertAction?> showMorphAlert(
   MorphAlertAppearance? appearance,
   bool? useRootNavigator,
 })
-function showMorphDialogFlight (see package:morph/foundation.dart)
-function showMorphRoute (see package:morph/foundation.dart)
 Future<T?> showMorphSheet<T>(
   BuildContext context, {
   required Widget Function(BuildContext) builder,
@@ -3281,8 +2851,6 @@ Future<T?> showMorphSheet<T>(
   void Function(MorphSheetDetent)? onDetentChanged,
   void Function()? onDismissAttempt,
 })
-function showMorphSheetFlight (see package:morph/foundation.dart)
-function uniformMorphRadius (see package:morph/foundation.dart)
 
 # package:morph/motion.dart
 abstract final class MorphActivityIndicatorFrames
