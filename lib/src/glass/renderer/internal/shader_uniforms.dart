@@ -27,13 +27,14 @@ class ShaderUniforms {
 
   /// Writes [color] as straight red, green, blue and alpha.
   ///
-  /// The channels are quantized to 8 bits, as the shaders were tuned with.
+  /// Every channel, alpha included, is quantized to 8 bits, as the shaders
+  /// were tuned with.
   void setColor(ui.Color color) {
     final argb = color.toARGB32();
     setFloat(((argb >> 16) & 0xff) / 255);
     setFloat(((argb >> 8) & 0xff) / 255);
     setFloat((argb & 0xff) / 255);
-    setFloat(color.a);
+    setFloat(((argb >> 24) & 0xff) / 255);
   }
 }
 
