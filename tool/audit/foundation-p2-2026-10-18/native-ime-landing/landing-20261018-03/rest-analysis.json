@@ -1,0 +1,105 @@
+{
+  "downscale": 4,
+  "restMeanAbs": 0.5,
+  "dropoutMeanRatio": 0.3,
+  "dropoutMeaning": "frame whose mean crop level is below dropoutMeanRatio of both neighbours; rule chosen after visual inspection of the boards",
+  "restMeaning": "first frame after anchor from which every later frame in the window stays within restMeanAbs of the window's last frame",
+  "clips": [
+    {
+      "clip": "none-1",
+      "frames": 117,
+      "restRelativeSeconds": 0.4333329999999975,
+      "dropouts": [
+        {
+          "relative": 0.0,
+          "meanLevel": 2.0581944444444447,
+          "neighbours": [
+            24.51560185185185,
+            20.366666666666667
+          ]
+        }
+      ],
+      "trajectoryCoverageAccepted": false,
+      "maxTransientGapMs": 66.66699999999892,
+      "finalVsNone1": {
+        "meanAbs": 0.0,
+        "maxAbs": 0,
+        "pixelsOver24": 0
+      }
+    },
+    {
+      "clip": "none-2",
+      "frames": 119,
+      "restRelativeSeconds": 0.43333399999999855,
+      "dropouts": [],
+      "trajectoryCoverageAccepted": false,
+      "maxTransientGapMs": 66.66699999999892,
+      "finalVsNone1": {
+        "meanAbs": 0.00011574074074074075,
+        "maxAbs": 1,
+        "pixelsOver24": 0
+      }
+    },
+    {
+      "clip": "show-1",
+      "frames": 106,
+      "restRelativeSeconds": 0.4166659999999993,
+      "dropouts": [],
+      "trajectoryCoverageAccepted": false,
+      "maxTransientGapMs": 66.66700000000247,
+      "finalVsNone1": {
+        "meanAbs": 0.0077083333333333335,
+        "maxAbs": 3,
+        "pixelsOver24": 0
+      }
+    },
+    {
+      "clip": "show-2",
+      "frames": 106,
+      "restRelativeSeconds": 0.3999999999999986,
+      "dropouts": [
+        {
+          "relative": 0.0,
+          "meanLevel": 2.055902777777778,
+          "neighbours": [
+            29.434305555555557,
+            29.63571759259259
+          ]
+        }
+      ],
+      "trajectoryCoverageAccepted": false,
+      "maxTransientGapMs": 83.3329999999961,
+      "finalVsNone1": {
+        "meanAbs": 0.0077083333333333335,
+        "maxAbs": 3,
+        "pixelsOver24": 0
+      }
+    },
+    {
+      "clip": "hide-1",
+      "frames": 118,
+      "restRelativeSeconds": 0.3833330000000075,
+      "dropouts": [],
+      "trajectoryCoverageAccepted": false,
+      "maxTransientGapMs": 66.6659999999979,
+      "finalVsNone1": {
+        "meanAbs": 0.0,
+        "maxAbs": 0,
+        "pixelsOver24": 0
+      }
+    },
+    {
+      "clip": "hide-2",
+      "frames": 119,
+      "restRelativeSeconds": 0.4333340000000021,
+      "dropouts": [],
+      "trajectoryCoverageAccepted": false,
+      "maxTransientGapMs": 66.6659999999979,
+      "finalVsNone1": {
+        "meanAbs": 0.0004166666666666667,
+        "maxAbs": 1,
+        "pixelsOver24": 0
+      }
+    }
+  ]
+}
