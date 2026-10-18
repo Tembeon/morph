@@ -2,6 +2,8 @@
 
 2026-10-18, база `3095d2fe`. Продолжение [измерения source](menu-source-geometry.md). Только прототип в example; P2 открыт.
 
+Следующий [native IME этап](menu-native-ime.md) измеряет конечные координаты UIButton.menu на iPhone. Он не меняет описанную здесь консервативную политику endpoint: закрытие/landing после IME ещё нужно проверить.
+
 ## Вызов
 
 ```dart

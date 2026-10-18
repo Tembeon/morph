@@ -1,0 +1,88 @@
+shader                                                      vk ops relax fdiv tex  ext   msl  gles
+live/liquid_glass_final_render.frag                            982     0   17   9   22   558   570
+live/liquid_glass_final_render_ios27.frag                     1235     0   24   9   66   742   754
+live/liquid_glass_final_render_tint.frag                       995     0   19  10   22   560   573
+live/liquid_glass_final_render_tint_ios27.frag                1248     0   26  10   66   745   758
+live/liquid_glass_final_render_material.frag                  1439     0   32  15   71   837   851
+live/fake_glass_surface.frag                                   420     0   17   0   26   202   221
+live/glass_shadow.frag                                         325     0    8   0   22   203   174
+live/liquid_glass_final_render_analytic.frag                  1851     0   35   8   65  1139  1122
+live/liquid_glass_final_render_analytic_ios27.frag            2104     0   42   8  109  1323  1306
+live/liquid_glass_final_render_analytic_tint.frag             1870     0   35   8   65  1172  1156
+live/liquid_glass_final_render_analytic_tint_ios27.frag       2123     0   42   8  109  1356  1340
+live/liquid_glass_final_render_analytic_fused.frag            1928     0   45   8   43  1143  1143
+live/liquid_glass_final_render_analytic_fused_ios27.frag      2181     0   52   8   87  1327  1327
+live/liquid_glass_final_render_analytic_fused_tint.frag       2347     0   51   8   63  1409  1411
+live/liquid_glass_final_render_analytic_fused_tint_ios27.frag    2600     0   58   8  107  1593  1595
+live/gpu/geometry_fragment.glsl                               1014     0   22   0   51     -   726
+live/gpu/geometry_field_fragment.glsl                          208     0    8   4    9     -   127
+live/gpu/material_gradient_fragment.glsl                       563     0    9   0   22     -   485
+live/gpu/material_tint_gradient_fragment.glsl                  550     0   10   0   24     -   464
+widgets/flat_fused_body.frag                                   205     0    4   0    3   142   107
+widgets/glyph_reduce.frag                                       69     0    2   1    0    62    58
+widgets/glyph_blur.frag                                        642     0   66  49    2   315   313
+baseline/liquid_glass_final_render.frag                       1202     0   24   8   63   718   730
+baseline/liquid_glass_final_render_ios27.frag                 1202     0   24   8   63   718   730
+baseline/liquid_glass_final_render_tint.frag                  1215     0   26   9   63   722   735
+baseline/liquid_glass_final_render_tint_ios27.frag            1215     0   26   9   63   722   735
+baseline/liquid_glass_final_render_material.frag              1353     0   32  14   66   782   796
+baseline/fake_glass_surface.frag                               420     0   17   0   26   202   221
+
+Mali-G78 (malioc): cycles per fragment A / LS / T, work and uniform registers, occupancy %, spill bytes, uniform computation
+shader                                                     api       longest A/LS/T   shortest A/LS/T total A  wr  ur occ spill uc
+live/liquid_glass_final_render.frag                        gles            18/2/6.5         0.344/0/0      22  63 128  50     0  y
+live/liquid_glass_final_render.frag                        vulk        18.125/0/6.5         0.406/0/0   22.25  64 128  50     0  y
+live/liquid_glass_final_render_ios27.frag                  gles        19.375/6/6.5         0.344/0/0  23.375  63 128  50     0  y
+live/liquid_glass_final_render_ios27.frag                  vulk          19.5/3/6.5         0.406/1/0  23.875  64 128  50     0  y
+live/liquid_glass_final_render_tint.frag                   gles       18.125/2/6.75         0.344/0/0   22.25  63 128  50     0  y
+live/liquid_glass_final_render_tint.frag                   vulk        18.25/0/6.75         0.406/0/0    22.5  64 128  50     0  y
+live/liquid_glass_final_render_tint_ios27.frag             gles        19.75/6/6.75         0.344/0/0   23.75  63 128  50     0  y
+live/liquid_glass_final_render_tint_ios27.frag             vulk       19.875/2/6.75         0.406/1/0   24.25  64 128  50     0  y
+live/liquid_glass_final_render_material.frag               gles           24.25/3/8         0.375/0/0    28.5  63 128  50     0  y
+live/liquid_glass_final_render_material.frag               vulk            24.5/1/8         0.438/1/0      29  64 128  50     0  y
+live/fake_glass_surface.frag                               gles           4.812/0/0         0.781/0/0   5.438  25  72 100     0  y
+live/fake_glass_surface.frag                               vulk            4.85/0/0         0.781/0/0   5.475  28  84 100     0  y
+live/glass_shadow.frag                                     gles            9.25/0/0         0.344/0/0   9.375  31  80 100     0  y
+live/glass_shadow.frag                                     vulk            9.25/0/0         0.344/0/0   9.375  32  88 100     0  y
+live/liquid_glass_final_render_analytic.frag               gles      77.75/100/6.25         0.406/2/0  46.625  64 128  50     0  y
+live/liquid_glass_final_render_analytic.frag               vulk               -/-/-         0.406/1/0   41.75  64 128  50     4  y
+live/liquid_glass_final_render_analytic_ios27.frag         gles     79.125/102/6.25         0.469/2/0  47.875  64 128  50     0  y
+live/liquid_glass_final_render_analytic_ios27.frag         vulk               -/-/-         0.438/2/0      43  64 128  50     4  y
+live/liquid_glass_final_render_analytic_tint.frag          gles      79.25/107/6.25         0.375/2/0  41.875  64 128  50     0  y
+live/liquid_glass_final_render_analytic_tint.frag          vulk               -/-/-         0.406/1/0   41.75  64 128  50     0  y
+live/liquid_glass_final_render_analytic_tint_ios27.frag    gles     80.875/109/6.25         0.375/2/0    43.5  64 128  50     0  y
+live/liquid_glass_final_render_analytic_tint_ios27.frag    vulk               -/-/-         0.438/2/0  43.375  64 128  50     0  y
+live/liquid_glass_final_render_analytic_fused.frag         gles       37.25/33/6.25         0.406/2/0  41.625  63 128  50     0  y
+live/liquid_glass_final_render_analytic_fused.frag         vulk      37.375/37/6.25         0.469/3/0  41.625  64 128  50     0  y
+live/liquid_glass_final_render_analytic_fused_ios27.frag   gles      38.875/33/6.25         0.406/2/0   43.25  63 128  50     0  y
+live/liquid_glass_final_render_analytic_fused_ios27.frag   vulk          39/37/6.25         0.469/3/0  43.375  64 128  50     0  y
+live/liquid_glass_final_render_analytic_fused_tint.frag    gles         95/153/6.25         0.406/2/0      58  63 128  50     0  y
+live/liquid_glass_final_render_analytic_fused_tint.frag    vulk               -/-/-         0.469/3/0      58  64 128  50     0  y
+live/liquid_glass_final_render_analytic_fused_tint_ios27.frag gles      96.75/153/6.25         0.406/2/0   59.75  63 128  50     0  y
+live/liquid_glass_final_render_analytic_fused_tint_ios27.frag vulk               -/-/-         0.469/3/0   59.75  64 128  50    16  y
+live/gpu/geometry_fragment.glsl                            gles        273.75/282/0           0.5/1/0  33.125  64 128  50     0  y
+live/gpu/geometry_fragment.glsl                            vulk               -/-/-         0.719/1/0      33  64 128  50     0  y
+live/gpu/geometry_field_fragment.glsl                      gles           2.688/0/1         1.525/0/1   2.938  27  52 100     0  y
+live/gpu/geometry_field_fragment.glsl                      vulk           2.725/1/1         1.475/1/1   2.875  32  46 100     0  y
+live/gpu/material_gradient_fragment.glsl                   gles        248.75/256/0         0.438/0/0  13.375  64  38  50     0  y
+live/gpu/material_gradient_fragment.glsl                   vulk               -/-/-         0.562/1/0   13.25  64  36  50     0  y
+live/gpu/material_tint_gradient_fragment.glsl              gles        248.75/258/0         0.688/2/0   13.75  64  36  50     0  y
+live/gpu/material_tint_gradient_fragment.glsl              vulk               -/-/-         0.594/2/0    13.5  64  34  50     0  y
+widgets/flat_fused_body.frag                               gles           3.562/0/0         0.656/0/0   3.562  23  36 100     0  y
+widgets/flat_fused_body.frag                               vulk             3.6/0/0         0.469/0/0     3.6  23  36 100     0  y
+widgets/glyph_reduce.frag                                  gles          48.25/0/64      0.969/0/0.25   48.25  18  48 100     0  y
+widgets/glyph_reduce.frag                                  vulk          34.75/0/64         3.188/0/0   3.312  56  34  50     0  y
+widgets/glyph_blur.frag                                    gles       12.25/0/12.25      3.312/0/2.25   12.25  64  24  50     0  y
+widgets/glyph_blur.frag                                    vulk       12.25/0/12.25      3.312/0/2.25   12.25  64  24  50     0  y
+baseline/liquid_glass_final_render.frag                    gles          11.775/0/1         0.344/0/0   13.75  45 128  50     0  y
+baseline/liquid_glass_final_render.frag                    vulk           11.75/0/1         0.344/0/0   13.75  46 128  50     0  y
+baseline/liquid_glass_final_render_ios27.frag              gles          11.775/0/1         0.344/0/0   13.75  45 128  50     0  y
+baseline/liquid_glass_final_render_ios27.frag              vulk           11.75/0/1         0.344/0/0   13.75  46 128  50     0  y
+baseline/liquid_glass_final_render_tint.frag               gles        12.25/0/1.25         0.344/0/0   14.25  49 128  50     0  y
+baseline/liquid_glass_final_render_tint.frag               vulk       12.225/0/1.25         0.344/0/0   14.25  50 128  50     0  y
+baseline/liquid_glass_final_render_tint_ios27.frag         gles        12.25/0/1.25         0.344/0/0   14.25  49 128  50     0  y
+baseline/liquid_glass_final_render_tint_ios27.frag         vulk       12.225/0/1.25         0.344/0/0   14.25  50 128  50     0  y
+baseline/liquid_glass_final_render_material.frag           gles         15.25/0/2.5         0.344/0/0    17.5  58 128  50     0  y
+baseline/liquid_glass_final_render_material.frag           vulk        15.375/0/2.5         0.344/0/0  17.375  63 128  50     0  y
+baseline/fake_glass_surface.frag                           gles           4.812/0/0         0.781/0/0   5.438  25  72 100     0  y
+baseline/fake_glass_surface.frag                           vulk            4.85/0/0         0.781/0/0   5.475  28  84 100     0  y

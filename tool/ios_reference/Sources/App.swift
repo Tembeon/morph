@@ -14,6 +14,13 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
+        if ProcessInfo.processInfo.environment["PROBE_SCENE"] == "menu-keyboard" {
+            let window = UIWindow(windowScene: windowScene)
+            window.rootViewController = MenuKeyboardScene()
+            window.makeKeyAndVisible()
+            self.window = window
+            return
+        }
         let window = RecordingWindow(windowScene: windowScene)
         let chosen = ProcessInfo.processInfo.environment["PROBE_SCENE"]
             ?? UserDefaults.standard.string(forKey: "scene")

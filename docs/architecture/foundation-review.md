@@ -276,3 +276,10 @@ Immediate acquire с paint retention отвергнут по прежним по
 Measured snapshot дополнен доступным прямоугольником actual root overlay. Safe area и keyboard берутся из physical presentation View, объединяются максимумом по каждой стороне и переводятся через DPR и обратную uniform map. Пересечение учитывает уже уменьшенный overlay и его положение в окне. Из available выводится padding существующего idle-only relayout; source-local MediaQuery не отменяет системные ограничения. Непомещающиеся menu minimums и перекрытый source отклоняются до push.
 
 28 новых проверок, 62 geometry cases; исходный и inset tail совпадают с независимым root renderer на 64 кадрах каждый. Active availability mismatch отключает endpoint прежним путём, без retarget старой модели. Показанный popup может остаться за клавиатурой; немедленная реакция settled popup и native IME policy не заявлены. Контракт `menu-viewport.md`, evidence `tool/audit/foundation-p2-2026-10-18/viewport/report.md`. P2/main gate остаются открытыми.
+
+
+### Native button-menu IME endpoints, 2026-10-18
+
+На реальном iPhone проверены 9 сцен: короткий контроль и двукратное повторение трёх tall-режимов. У длинного UIButton.menu первая строка при изначальной клавиатуре выше на 275pt; после её show/hide четыре наблюдаемых ряда и source сохраняют точные endpoints. Клавиатура перекрывает нижние строки ранее открытого меню. Интервалы snapshot отделены от responder command и завершения keyboard transition; отрицательный контроль отвергается. Контракт `menu-native-ime.md`, evidence `tool/audit/foundation-p2-2026-10-18/native-ime/report.md`.
+
+Это ограничение для следующего дизайна placement/source validity, не изменение текущего Dart-прототипа. Право landing из row endpoints не следует; закрытие/выбор после IME, editor focus, context-menu trigger/preview и непрерывная оптика остаются непроверенными. Текущий conservative endpoint detach сохраняется до этих проверок; P2 открыт.

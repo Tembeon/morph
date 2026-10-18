@@ -1,0 +1,8 @@
+{
+  "scope": "new lines of existing scoped source/specs; all new source/docs/scripts/logs",
+  "tool": "/usr/bin/grep -niE",
+  "pattern": "frida|ghidra|objc_msgSend|UIKitCore|0x[0-9A-Fa-f]{12,}",
+  "exitCode": 1,
+  "matches": "",
+  "rawXcodeBundlesPrivate": true
+}

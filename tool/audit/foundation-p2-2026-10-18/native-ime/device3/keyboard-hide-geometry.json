@@ -1,0 +1,100 @@
+{
+  "mode" : "hide",
+  "samples" : [
+    {
+      "endTime" : 980356.95997791691,
+      "keyboard" : [
+        0,
+        590,
+        402,
+        226
+      ],
+      "keyboardExists" : true,
+      "phase" : "before",
+      "rows" : [
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            414.66666666666669,
+            250,
+            42
+          ],
+          "title" : "Native first"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            456.66666666666669,
+            250,
+            42
+          ],
+          "title" : "Native second"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            498.66666666666669,
+            250,
+            42.000000000000057
+          ],
+          "title" : "Native third"
+        }
+      ],
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "startTime" : 980356.38699454186
+    },
+    {
+      "endTime" : 980362.47465229186,
+      "keyboard" : null,
+      "keyboardExists" : false,
+      "phase" : "after",
+      "rows" : [
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            414.66666666666669,
+            250,
+            42
+          ],
+          "title" : "Native first"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            456.66666666666669,
+            250,
+            42
+          ],
+          "title" : "Native second"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            498.66666666666669,
+            250,
+            42.000000000000057
+          ],
+          "title" : "Native third"
+        }
+      ],
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "startTime" : 980362.15819900017
+    }
+  ]
+}

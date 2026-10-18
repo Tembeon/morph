@@ -144,6 +144,8 @@ once); a preview whose content changes while open keeps its open size; the keybo
 not move an open context menu (placement is decided at the open, as for the button
 menu). `previewSize` is morph's `preferredContentSize` for `preview:`.
 
+That paragraph describes morph's implementation. Independent device endpoint evidence for UIButton.menu keyboard changes is recorded in menu-button.md (2026-10-18). The context-menu trigger/preview and close landing have not been measured under that protocol; button-menu observations are not context-menu parity.
+
 One menu implementation - the `MorphMenuSource` path: `MorphMenuController` (gesture,
 motion, content, flight), `MorphMenuMotion` / `MorphMenuTuning`, `MorphMenuLayer` (card,
 rows, highlight, flex, submenu cards, scrolling, keyboard, semantics) - serves the

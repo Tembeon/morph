@@ -1,0 +1,26 @@
+[
+  {
+    "button" : [
+      0,
+      0,
+      0,
+      0
+    ],
+    "fieldFocused" : false,
+    "kind" : "loaded",
+    "mode" : "none",
+    "time" : 980325.82829225017
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "fieldFocused" : false,
+    "kind" : "menuTriggered",
+    "mode" : "none",
+    "time" : 980328.2845367085
+  }
+]

@@ -102,6 +102,14 @@ keepsMenuPresented); `UIDeferredMenuElement`;
   after: ordinary dismiss, device +0.028 s vs dismissDelay 0.04, the
   early-outside-200 capture, not replayed). Replay 0.008 rms of progress.
 
+## Keyboard changes after presentation [device, 2026-10-18]
+
+Public UIButton.menu / showsMenuAsPrimaryAction probe, iPhone16Pro / iOS27.0.1, portrait402×874pt at3×, source `(161,406,80,48)`, safe area `(0,62,0,34)`, Dynamic Type L, Reduce Motion false. No phone settings changed. Evidence: `tool/audit/foundation-p2-2026-10-18/native-ime/` (repo root), `docs/architecture/menu-native-ime.md`.
+
+Three short-menu controls and two repetitions of three ten-row-menu modes execute real keyboard show/hide through UITextField first-responder commands. Settled public XCUI row frames (1/2/3/10 for tall) remain exactly unchanged within each mode. Initial keyboard state changes tall placement: first row y410 without keyboard versus y≈135 with keyboard. Hiding afterward keeps y135. Showing afterward keeps y410 and last-row bottom830, while the keyboard notification top is573; the keyboard visibly covers lower rows. The notification rectangle `(0,573,402,301)` differs from XCUI keyboard element `(0,590,402,226)`.
+
+Snapshots bracket the actual command/completed notification with positive timing margins. A corrupted interval is rejected by the analyzer. This establishes bounded endpoint placement, not transient trajectories, optical-body equality, dismissal/landing, context-menu behavior or Flutter parity. No tuning changes follow from these endpoint observations; active geometry/IME ownership integration remains open.
+
 ## Bar item menu as primary action [device, 2026-10-05]
 
 `UIBarButtonItem(menu:)` WITHOUT a primary action (probe scene `menu`, the

@@ -1,0 +1,57 @@
+{
+  "modes": {
+    "none": {
+      "rowCount": 3,
+      "allObservedRowsRemain": true,
+      "rowDeltasPt": {
+        "Native first": 0.0,
+        "Native second": 0.0,
+        "Native third": 0.0
+      },
+      "maxRowDeltaPt": 0.0,
+      "sourceDeltaPt": 0,
+      "rowsStableWithin1Pt": true,
+      "beforeToCommandGapSeconds": null,
+      "completionToAfterGapSeconds": null,
+      "observedRowBottomBeyondKeyboardTopPt": null,
+      "keyboardBefore": false,
+      "keyboardAfter": false
+    },
+    "show": {
+      "rowCount": 3,
+      "allObservedRowsRemain": true,
+      "rowDeltasPt": {
+        "Native first": 0,
+        "Native second": 0,
+        "Native third": 0
+      },
+      "maxRowDeltaPt": 0,
+      "sourceDeltaPt": 0,
+      "rowsStableWithin1Pt": true,
+      "beforeToCommandGapSeconds": 3.9316955415997654,
+      "completionToAfterGapSeconds": 0.6543012083275244,
+      "observedRowBottomBeyondKeyboardTopPt": 0,
+      "keyboardBefore": false,
+      "keyboardAfter": true
+    },
+    "hide": {
+      "rowCount": 3,
+      "allObservedRowsRemain": true,
+      "rowDeltasPt": {
+        "Native first": 0,
+        "Native second": 0,
+        "Native third": 0
+      },
+      "maxRowDeltaPt": 0,
+      "sourceDeltaPt": 0,
+      "rowsStableWithin1Pt": true,
+      "beforeToCommandGapSeconds": 3.6029187915846705,
+      "completionToAfterGapSeconds": 1.1560890832915902,
+      "observedRowBottomBeyondKeyboardTopPt": null,
+      "keyboardBefore": true,
+      "keyboardAfter": false
+    }
+  },
+  "initialFirstRowShiftWithKeyboardPt": -0.3333333333333144,
+  "claim": "endpoint row geometry only; no transient motion, body pixel equivalence, context-menu, or Flutter parity claim"
+}

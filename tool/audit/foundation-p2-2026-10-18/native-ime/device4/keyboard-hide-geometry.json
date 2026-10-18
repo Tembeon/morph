@@ -1,0 +1,121 @@
+{
+  "mode" : "hide",
+  "rowCount" : 10,
+  "samples" : [
+    {
+      "endTime" : 980582.25544870854,
+      "keyboard" : [
+        0,
+        590,
+        402,
+        226
+      ],
+      "keyboardExists" : true,
+      "phase" : "before",
+      "rows" : [
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            134.99999999999994,
+            250,
+            41.999999999999972
+          ],
+          "title" : "Native first"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            176.99999999999991,
+            250,
+            42
+          ],
+          "title" : "Native second"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            218.99999999999991,
+            250,
+            42.000000000000028
+          ],
+          "title" : "Native third"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            513,
+            250,
+            42
+          ],
+          "title" : "Native row 10"
+        }
+      ],
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "startTime" : 980581.45343570854
+    },
+    {
+      "endTime" : 980587.94919262524,
+      "keyboard" : null,
+      "keyboardExists" : false,
+      "phase" : "after",
+      "rows" : [
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            134.99999999999994,
+            250,
+            41.999999999999972
+          ],
+          "title" : "Native first"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            176.99999999999991,
+            250,
+            42
+          ],
+          "title" : "Native second"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            218.99999999999991,
+            250,
+            42.000000000000028
+          ],
+          "title" : "Native third"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            513,
+            250,
+            42
+          ],
+          "title" : "Native row 10"
+        }
+      ],
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "startTime" : 980587.49043575022
+    }
+  ]
+}
