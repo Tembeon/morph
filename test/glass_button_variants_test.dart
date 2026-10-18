@@ -21,8 +21,8 @@ Future<MorphGlassSurface> _surfaceOf(
 }) async {
   final painter = _Recording();
   await tester.pumpWidget(
-    MorphWidgetsThemeScope(
-      data: MorphWidgetsTheme(tint: tint),
+    MorphTheme(
+      data: MorphThemeData(tint: tint),
       child: MorphGlassScope(
         painter: painter,
         child: Directionality(

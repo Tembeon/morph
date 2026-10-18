@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
@@ -13,6 +14,7 @@ Widget _app({
   VoidCallback? onPageTap,
 }) {
   return MaterialApp(
+    builder: morphFromMaterial,
     theme: theme,
     home: Directionality(
       textDirection: direction,

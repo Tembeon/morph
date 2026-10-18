@@ -10,11 +10,10 @@ const _screen = Size(402, 874);
 Widget _app(
   Widget child, {
   TextDirection direction = TextDirection.ltr,
-  ThemeData? theme,
+  MorphThemeData? theme,
   double textScale = 1,
   EdgeInsets padding = const EdgeInsets.only(top: 62, bottom: 34),
 }) => MaterialApp(
-  theme: theme,
   debugShowCheckedModeBanner: false,
   home: MediaQuery(
     data: MediaQueryData(
@@ -22,7 +21,10 @@ Widget _app(
       padding: padding,
       textScaler: TextScaler.linear(textScale),
     ),
-    child: Directionality(textDirection: direction, child: child),
+    child: MorphTheme(
+      data: theme ?? const MorphThemeData(),
+      child: Directionality(textDirection: direction, child: child),
+    ),
   ),
 );
 
@@ -218,14 +220,12 @@ void main() {
     expect((chevron.painter! as MorphBackChevronPainter).mirrored, isTrue);
   });
 
-  testWidgets('the bar resolves its look from MorphWidgetsTheme', (
-    tester,
-  ) async {
+  testWidgets('the bar resolves its look from MorphTheme', (tester) async {
     await _setScreen(tester);
     const custom = MorphBarAppearance(titleColor: Color(0xFFFF0000));
     await tester.pumpWidget(
       _app(
-        theme: ThemeData(extensions: const [MorphWidgetsTheme(bar: custom)]),
+        theme: const MorphThemeData(appearances: [custom]),
         const Align(
           alignment: Alignment.topCenter,
           child: MorphNavigationBar(title: 'Red'),
@@ -241,7 +241,7 @@ void main() {
     expect(text.style?.color, const Color(0xFFFF0000));
     await tester.pumpWidget(
       _app(
-        theme: ThemeData(brightness: Brightness.dark),
+        theme: const MorphThemeData(brightness: Brightness.dark),
         const Align(
           alignment: Alignment.topCenter,
           child: MorphNavigationBar(title: 'Dark'),

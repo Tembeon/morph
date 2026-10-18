@@ -10,7 +10,7 @@ import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// A segmented control whose selection lens moves exactly like
 /// UISegmentedControl's on iOS 27.
@@ -116,7 +116,7 @@ class MorphSegment {
 
 /// The look of a [MorphSegmentedControl].
 @immutable
-class MorphSegmentedControlAppearance {
+class MorphSegmentedControlAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS 27 light appearance.
   const MorphSegmentedControlAppearance({
     this.height = 32,
@@ -229,7 +229,7 @@ class MorphSegmentedControlAppearance {
     ),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness and contrast.
   static MorphSegmentedControlAppearance resolve(
     BuildContext context,
@@ -237,7 +237,6 @@ class MorphSegmentedControlAppearance {
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.segmentedControl,
     light: light,
     dark: dark,
     lightHighContrast: lightHighContrast,

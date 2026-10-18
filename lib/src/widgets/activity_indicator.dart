@@ -2,11 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/clock.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The look of a [MorphActivityIndicator].
 @immutable
-class MorphActivityIndicatorAppearance {
+class MorphActivityIndicatorAppearance implements MorphAppearance {
   /// Creates an appearance; the default is the iOS light appearance.
   const MorphActivityIndicatorAppearance({
     this.color = const Color(0x993C3C43),
@@ -25,18 +25,12 @@ class MorphActivityIndicatorAppearance {
     color: Color(0x99EBEBF5),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness.
   static MorphActivityIndicatorAppearance resolve(
     BuildContext context,
     MorphActivityIndicatorAppearance? explicit,
-  ) => morphResolveAppearance(
-    context,
-    explicit,
-    themed: (theme) => theme.activityIndicator,
-    light: light,
-    dark: dark,
-  );
+  ) => morphResolveAppearance(context, explicit, light: light, dark: dark);
 
   /// Copies this appearance with the given fields replaced.
   MorphActivityIndicatorAppearance copyWith({Color? color}) =>

@@ -9,14 +9,20 @@ Future<void> _pump(
   Widget child, {
   Brightness brightness = Brightness.light,
   TextDirection direction = TextDirection.ltr,
-  MorphWidgetsTheme? theme,
+  MorphThemeData? theme,
 }) async {
   tester.view.physicalSize = const Size(1206, 2622);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     MaterialApp(
-      theme: ThemeData(brightness: brightness, extensions: [?theme]),
+      theme: ThemeData(brightness: brightness),
+      builder: (context, child) => MorphTheme(
+        data: (theme ?? const MorphThemeData()).copyWith(
+          brightness: brightness,
+        ),
+        child: child!,
+      ),
       home: Directionality(
         textDirection: direction,
         child: Align(alignment: Alignment.topCenter, child: child),
@@ -307,7 +313,7 @@ void main() {
     await _pump(
       tester,
       const MorphListSection(children: [MorphListRow(title: Text('A'))]),
-      theme: const MorphWidgetsTheme(list: custom),
+      theme: const MorphThemeData(appearances: [custom]),
     );
     await tester.pumpAndSettle();
     expect(

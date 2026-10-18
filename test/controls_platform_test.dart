@@ -942,13 +942,13 @@ void main() {
       );
     });
 
-    testWidgets('a Theme decides the brightness over the platform', (
+    testWidgets('a MorphTheme decides the brightness over the platform', (
       tester,
     ) async {
       final recorder = _Recorder();
       await tester.pumpWidget(
-        Theme(
-          data: ThemeData(brightness: Brightness.light),
+        MorphTheme(
+          data: const MorphThemeData(brightness: Brightness.light),
           child: MorphGlassScope(
             painter: recorder,
             child: _host(
@@ -977,10 +977,8 @@ void main() {
       Future<Color> track(MorphSegmentedControlAppearance? style) async {
         recorder.seen.clear();
         await tester.pumpWidget(
-          Theme(
-            data: ThemeData(
-              extensions: const [MorphWidgetsTheme(segmentedControl: themed)],
-            ),
+          MorphTheme(
+            data: const MorphThemeData(appearances: [themed]),
             child: MorphGlassScope(
               painter: recorder,
               child: _host(_segmented((_) {}, style: style)),

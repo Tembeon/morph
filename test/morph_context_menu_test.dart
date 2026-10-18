@@ -7,6 +7,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/menu.dart' show MorphMenuLayer;
 import 'package:morph/widgets.dart';
@@ -82,7 +83,7 @@ class _HostState extends State<_Host> {
     return MaterialApp(
       theme: ThemeData(brightness: .dark),
       builder: (BuildContext context, Widget? child) =>
-          MorphScope(child: child!),
+          morphFromMaterial(context, MorphScope(child: child!)),
       home: Scaffold(
         body: ListView(
           children: <Widget>[
@@ -1056,7 +1057,7 @@ class _LiveHostState extends State<_LiveHost> {
     return MaterialApp(
       theme: ThemeData(brightness: .dark),
       builder: (BuildContext context, Widget? child) =>
-          MorphScope(child: child!),
+          morphFromMaterial(context, MorphScope(child: child!)),
       home: Scaffold(
         body: ListView(
           children: <Widget>[
@@ -1709,7 +1710,7 @@ Future<({List<_DimFrame> open, List<_DimFrame> close})> _replayDim(
     MaterialApp(
       theme: ThemeData(brightness: brightness),
       builder: (BuildContext context, Widget? child) =>
-          MorphScope(child: child!),
+          morphFromMaterial(context, MorphScope(child: child!)),
       home: Stack(
         children: <Widget>[
           Positioned(

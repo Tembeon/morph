@@ -9,11 +9,11 @@ import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
 import 'package:morph/src/widgets/press.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The look of a [MorphPageControl].
 @immutable
-class MorphPageControlAppearance {
+class MorphPageControlAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are UIKit's page indicator colors,
   /// meant for content behind the control.
   const MorphPageControlAppearance({
@@ -64,7 +64,7 @@ class MorphPageControlAppearance {
     platterIndicatorColor: Color(0x73FFFFFF),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness and contrast.
   static MorphPageControlAppearance resolve(
     BuildContext context,
@@ -72,7 +72,6 @@ class MorphPageControlAppearance {
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.pageControl,
     light: light,
     dark: dark,
     lightHighContrast: lightHighContrast,

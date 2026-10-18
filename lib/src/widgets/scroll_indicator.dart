@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The measured look and timing of UIKit's vertical scroll indicator.
 ///

@@ -1,3 +1,4 @@
+import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
@@ -10,9 +11,12 @@ const _items = [
 Widget _app({Brightness brightness = Brightness.light, bool rtl = false}) =>
     MaterialApp(
       theme: ThemeData(brightness: brightness),
-      builder: (BuildContext context, Widget? child) => Directionality(
-        textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
-        child: child!,
+      builder: (BuildContext context, Widget? child) => morphFromMaterial(
+        context,
+        Directionality(
+          textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+          child: child!,
+        ),
       ),
       home: const Scaffold(
         body: Center(child: MorphMenuButton(menu: _items)),
@@ -74,20 +78,21 @@ void main() {
     );
   });
 
-  testWidgets('the theme extension styles every menu', (tester) async {
+  testWidgets('the theme styles every menu', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(
-          extensions: [
-            MorphWidgetsTheme(
-              menu: MorphMenuAppearance.light.copyWith(
+        builder: (context, child) => MorphTheme(
+          data: MorphThemeData(
+            appearances: [
+              MorphMenuAppearance.light.copyWith(
                 textStyle: const TextStyle(
                   fontSize: 15,
                   color: Color(0xFF123456),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: child!,
         ),
         home: const Scaffold(
           body: Center(child: MorphMenuButton(menu: _items)),

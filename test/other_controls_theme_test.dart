@@ -1,21 +1,19 @@
-import 'package:flutter/material.dart' as sdk;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart' as material;
+import 'package:morph/src/theme/theme.dart';
 import 'package:morph/src/widgets/stepper.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
 
 void main() {
-  testWidgets('SDK Theme resolves extension, brightness and changes', (
+  testWidgets('MorphTheme resolves appearance, brightness and changes', (
     tester,
   ) async {
     const custom = MorphStepperAppearance(foregroundColor: Color(0xFF123456));
     MorphStepperAppearance? resolved;
     Brightness? brightness;
-    Widget scene({required bool dark}) => sdk.Theme(
-      data: sdk.ThemeData(
+    Widget scene({required bool dark}) => MorphTheme(
+      data: MorphThemeData(
         brightness: dark ? Brightness.dark : Brightness.light,
-        extensions: const [MorphWidgetsTheme(stepper: custom)],
+        appearances: const [custom],
       ),
       child: Builder(
         builder: (context) {
@@ -32,7 +30,7 @@ void main() {
     expect(brightness, Brightness.light);
   });
 
-  testWidgets('nearest Material family wins and explicit style wins', (
+  testWidgets('the nearest theme wins and an explicit style wins', (
     tester,
   ) async {
     const outer = MorphStepperAppearance(foregroundColor: Color(0xFF123456));
@@ -40,13 +38,15 @@ void main() {
     MorphStepperAppearance? resolved;
     MorphStepperAppearance? explicit;
     await tester.pumpWidget(
-      sdk.Theme(
-        data: sdk.ThemeData.dark().copyWith(
-          extensions: const [MorphWidgetsTheme(stepper: outer)],
+      MorphTheme(
+        data: const MorphThemeData(
+          brightness: Brightness.dark,
+          appearances: [outer],
         ),
-        child: material.Theme(
-          data: material.ThemeData.light().copyWith(
-            extensions: const [MorphWidgetsTheme(stepper: inner)],
+        child: MorphTheme(
+          data: const MorphThemeData(
+            brightness: Brightness.light,
+            appearances: [inner],
           ),
           child: Builder(
             builder: (context) {
@@ -60,5 +60,25 @@ void main() {
     );
     expect(resolved, same(inner));
     expect(explicit, same(outer));
+  });
+
+  testWidgets('without a theme the platform brightness decides', (
+    tester,
+  ) async {
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+    Brightness? brightness;
+    await tester.pumpWidget(
+      MediaQuery.fromView(
+        view: tester.view,
+        child: Builder(
+          builder: (context) {
+            brightness = morphBrightnessOf(context);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    expect(brightness, Brightness.dark);
   });
 }

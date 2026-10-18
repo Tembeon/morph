@@ -23,11 +23,14 @@
 /// flat glass, and any other [MorphGlassPainter] can take its place. The
 /// package computes every shape once - fused silhouettes included - so
 /// each tier and each painter shades the same outlines. Their looks
-/// resolve from an `appearance` argument, then [MorphWidgetsTheme], then
-/// light and dark tables.
+/// resolve from an `appearance` argument, then [MorphTheme], then light
+/// and dark tables.
 library;
 
 export 'foundation.dart';
+export 'src/theme/localizations.dart'
+    show DefaultMorphLocalizations, MorphLocalizations;
+export 'src/theme/theme.dart' show MorphAppearance, MorphTheme, MorphThemeData;
 export 'src/widgets/activity_indicator.dart'
     show
         MorphActivityIndicator,
@@ -158,6 +161,4 @@ export 'src/widgets/tab_bar_chrome.dart'
 export 'src/widgets/tab_bar_minimize.dart' show MorphTabBarMinimizeBehavior;
 export 'src/widgets/toolbar.dart' show MorphToolbar, MorphToolbarMetrics;
 export 'src/widgets/typography.dart' show MorphTypography;
-export 'src/widgets/widgets_theme.dart'
-    show MorphWidgetsTheme, MorphWidgetsThemeScope;
 export 'src/widgets/zoom_motion.dart' show MorphZoomTuning;

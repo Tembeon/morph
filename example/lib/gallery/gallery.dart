@@ -72,20 +72,10 @@ class _GalleryAppState extends State<GalleryApp> {
         .ignore();
   }
 
-  static ThemeData _theme(
-    Brightness brightness, {
-    Color? accent,
-    bool haptics = true,
-  }) {
+  static ThemeData _theme(Brightness brightness) {
     final list = switch (brightness) {
       Brightness.light => MorphListAppearance.light,
       Brightness.dark => MorphListAppearance.dark,
-    };
-    final edge = switch (brightness) {
-      Brightness.light => MorphScrollEdgeEffectAppearance(
-        backgroundColor: list.backgroundColor,
-      ),
-      Brightness.dark => MorphScrollEdgeEffectAppearance.dark,
     };
     return ThemeData(
       brightness: brightness,
@@ -97,13 +87,25 @@ class _GalleryAppState extends State<GalleryApp> {
       splashFactory: NoSplash.splashFactory,
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
-      extensions: [
-        MorphWidgetsTheme(
-          scrollEdgeEffect: edge,
-          tint: accent,
-          haptics: haptics ? null : false,
-        ),
-      ],
+    );
+  }
+
+  static MorphThemeData _morphTheme(
+    Brightness brightness,
+    Color? accent,
+    bool haptics,
+  ) {
+    final edge = switch (brightness) {
+      Brightness.light => MorphScrollEdgeEffectAppearance(
+        backgroundColor: MorphListAppearance.light.backgroundColor,
+      ),
+      Brightness.dark => MorphScrollEdgeEffectAppearance.dark,
+    };
+    return MorphThemeData(
+      brightness: brightness,
+      tint: accent,
+      haptics: haptics,
+      appearances: [edge],
     );
   }
 
@@ -132,28 +134,22 @@ class _GalleryMaterialApp extends StatelessWidget {
 
   final Widget home;
 
-  /// Built once per look, so a ThemeData stays identical between builds
-  /// and the controls below do not rebuild for an unchanged theme.
-  static final _themes = <(Brightness, Color?, bool), ThemeData>{};
+  /// Built once per brightness, so a ThemeData stays identical between
+  /// builds and the page below does not rebuild for an unchanged theme.
+  static final _themes = <Brightness, ThemeData>{};
 
-  static ThemeData _theme(Brightness brightness, Color? accent, bool haptics) =>
-      _themes.putIfAbsent(
-        (brightness, accent, haptics),
-        () => _GalleryAppState._theme(
-          brightness,
-          accent: accent,
-          haptics: haptics,
-        ),
-      );
+  static ThemeData _theme(Brightness brightness) => _themes.putIfAbsent(
+    brightness,
+    () => _GalleryAppState._theme(brightness),
+  );
 
   @override
   Widget build(BuildContext context) {
-    final theming = GalleryGlassScope.of(context, .theming);
     return MaterialApp(
       title: 'Morph widgets',
       debugShowCheckedModeBanner: false,
-      theme: _theme(.light, theming.accent, theming.haptics),
-      darkTheme: _theme(.dark, theming.accent, theming.haptics),
+      theme: _theme(.light),
+      darkTheme: _theme(.dark),
       themeMode: GalleryGlassScope.of(context, .appearance).appearance,
       builder: (BuildContext context, Widget? child) =>
           _GalleryChrome(child: child!),
@@ -167,10 +163,25 @@ class _GalleryChrome extends StatelessWidget {
 
   final Widget child;
 
+  /// Built once per look, so the controls below do not rebuild for an
+  /// unchanged theme.
+  static final _themes = <(Brightness, Color?, bool), MorphThemeData>{};
+
+  static MorphThemeData _themeData(
+    Brightness brightness,
+    Color? accent,
+    bool haptics,
+  ) => _themes.putIfAbsent((
+    brightness,
+    accent,
+    haptics,
+  ), () => _GalleryAppState._morphTheme(brightness, accent, haptics));
+
   @override
   Widget build(BuildContext context) {
     final glass = GalleryGlassScope.of(context, .glass);
     final accessibility = GalleryGlassScope.of(context, .accessibility);
+    final theming = GalleryGlassScope.of(context, .theming);
     final media = MediaQuery.of(context);
     return MediaQuery(
       data: media.copyWith(
@@ -180,12 +191,19 @@ class _GalleryChrome extends StatelessWidget {
       ),
       child: Directionality(
         textDirection: GalleryGlassScope.of(context, .rtl).rtl ? .rtl : .ltr,
-        child: MorphGlassInspector(
-          enabled: GalleryGlassScope.of(context, .inspector).inspector,
-          child: MorphAdaptiveGlass(
-            renderer: glass.renderer,
-            tier: glass.tier,
-            child: BackdropGroup(child: MorphScope(child: child)),
+        child: MorphTheme(
+          data: _themeData(
+            Theme.of(context).brightness,
+            theming.accent,
+            theming.haptics,
+          ),
+          child: MorphGlassInspector(
+            enabled: GalleryGlassScope.of(context, .inspector).inspector,
+            child: MorphAdaptiveGlass(
+              renderer: glass.renderer,
+              tier: glass.tier,
+              child: BackdropGroup(child: MorphScope(child: child)),
+            ),
           ),
         ),
       ),

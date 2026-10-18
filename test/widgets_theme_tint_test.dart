@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart' as material;
 import 'package:morph/widgets.dart';
 
 const _tint = Color(0xFFFF2D55);
@@ -38,8 +37,8 @@ void main() {
   testWidgets('the theme tint replaces every built-in accent', (tester) async {
     late _Resolved r;
     await tester.pumpWidget(
-      MorphWidgetsThemeScope(
-        data: const MorphWidgetsTheme(tint: _tint),
+      MorphTheme(
+        data: const MorphThemeData(tint: _tint),
         child: _probe((context) => r = _resolve(context)),
       ),
     );
@@ -66,8 +65,8 @@ void main() {
   ) async {
     late _Resolved r;
     await tester.pumpWidget(
-      MorphWidgetsThemeScope(
-        data: const MorphWidgetsTheme(),
+      MorphTheme(
+        data: const MorphThemeData(),
         child: _probe((context) => r = _resolve(context)),
       ),
     );
@@ -78,9 +77,9 @@ void main() {
 
   testWidgets('a tinted table is shared while the tint holds', (tester) async {
     final seen = <MorphSliderAppearance>[];
-    Widget scene(int n) => MorphWidgetsThemeScope(
+    Widget scene(int n) => MorphTheme(
       key: ValueKey(n),
-      data: const MorphWidgetsTheme(tint: _tint),
+      data: const MorphThemeData(tint: _tint),
       child: _probe(
         (context) => seen.add(MorphSliderAppearance.resolve(context, null)),
       ),
@@ -98,8 +97,8 @@ void main() {
     late MorphSliderAppearance themed;
     late MorphSliderAppearance explicit;
     await tester.pumpWidget(
-      MorphWidgetsThemeScope(
-        data: const MorphWidgetsTheme(tint: _tint, slider: own),
+      MorphTheme(
+        data: const MorphThemeData(tint: _tint, appearances: [own]),
         child: _probe((context) {
           themed = MorphSliderAppearance.resolve(context, null);
           explicit = MorphSliderAppearance.resolve(
@@ -113,30 +112,25 @@ void main() {
     expect(explicit, same(MorphSliderAppearance.dark));
   });
 
-  testWidgets('the nearer of a scope and a Material theme wins', (
-    tester,
-  ) async {
+  testWidgets('the nearest theme wins', (tester) async {
     const scoped = Color(0xFF111111);
     const themed = Color(0xFF222222);
     late MorphSliderAppearance inner;
     late MorphSliderAppearance outer;
     late MorphSliderAppearance bare;
     await tester.pumpWidget(
-      MorphWidgetsThemeScope(
-        data: const MorphWidgetsTheme(tint: scoped),
+      MorphTheme(
+        data: const MorphThemeData(tint: scoped),
         child: Column(
           children: [
-            material.Theme(
-              data: material.ThemeData.light().copyWith(
-                extensions: const [MorphWidgetsTheme(tint: themed)],
-              ),
+            MorphTheme(
+              data: const MorphThemeData(tint: themed),
               child: _probe(
                 (context) =>
                     inner = MorphSliderAppearance.resolve(context, null),
               ),
             ),
-            material.Theme(
-              data: material.ThemeData.light(),
+            KeyedSubtree(
               child: _probe(
                 (context) =>
                     bare = MorphSliderAppearance.resolve(context, null),
@@ -158,8 +152,8 @@ void main() {
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
-        child: MorphWidgetsThemeScope(
-          data: const MorphWidgetsTheme(tint: _tint),
+        child: MorphTheme(
+          data: const MorphThemeData(tint: _tint),
           child: Center(
             child: SizedBox(
               width: 200,
@@ -170,12 +164,5 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
-  });
-
-  test('lerp blends the tint', () {
-    const a = MorphWidgetsTheme(tint: Color(0xFF000000));
-    const b = MorphWidgetsTheme(tint: Color(0xFFFFFFFF));
-    expect(a.lerp(b, 0.5).tint, Color.lerp(a.tint, b.tint, 0.5));
-    expect(a.lerp(b, 0).tint, a.tint);
   });
 }

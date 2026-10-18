@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
+import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/glass_painter.dart';
@@ -681,6 +682,7 @@ void main() {
         late BuildContext context;
         await tester.pumpWidget(
           MaterialApp(
+            builder: morphFromMaterial,
             theme: ThemeData(brightness: brightness),
             home: Builder(
               builder: (BuildContext c) {

@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
@@ -427,11 +428,14 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: theme,
-          builder: (BuildContext context, Widget? child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(textScaler: TextScaler.linear(textScale)),
-            child: Directionality(textDirection: direction, child: child!),
+          builder: (BuildContext context, Widget? child) => morphFromMaterial(
+            context,
+            MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: Directionality(textDirection: direction, child: child!),
+            ),
           ),
           home: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) => Align(

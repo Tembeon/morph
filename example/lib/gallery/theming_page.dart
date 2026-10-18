@@ -7,7 +7,7 @@ import 'package:morph_example/gallery/knobs.dart';
 /// The widgets theme: an accent over every accented control, per-control
 /// looks, high contrast, reduced motion and haptics.
 ///
-/// The page installs its own [MorphWidgetsThemeScope] over the gallery's
+/// The page installs its own [MorphTheme] over the gallery's
 /// theme, so its accent and haptics stay on this page. Increase Contrast
 /// and Reduce Motion are shown side by side with the standard controls by
 /// overriding [MediaQueryData.highContrast] and
@@ -57,12 +57,12 @@ class _ThemingPageState extends State<ThemingPage> {
   ];
 
   List<Widget> _options(BuildContext context) {
-    final ambient = MorphWidgetsTheme.maybeOf(context);
+    final ambient = MorphTheme.maybeOf(context);
     return [
       MorphListSection(
         header: const Text('Theme scope'),
         footer: const Text(
-          'A MorphWidgetsThemeScope over this page replaces the gallery '
+          'A MorphTheme over this page replaces the gallery '
           'theme here: its accent tints every accented control, and its '
           'haptics switch silences them.',
         ),
@@ -98,11 +98,8 @@ class _ThemingPageState extends State<ThemingPage> {
     ];
   }
 
-  MorphWidgetsTheme _theme(BuildContext context) {
-    final ambient =
-        MorphWidgetsTheme.maybeOf(context) ?? const MorphWidgetsTheme();
-    return ambient.copyWith(tint: _accent, haptics: _haptics);
-  }
+  MorphThemeData _theme(BuildContext context) =>
+      MorphTheme.of(context).copyWith(tint: _accent, haptics: _haptics);
 
   Widget _card(BuildContext context, Widget child) => DecoratedBox(
     decoration: BoxDecoration(
@@ -388,7 +385,7 @@ class _ThemingPageState extends State<ThemingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MorphWidgetsThemeScope(
+    return MorphTheme(
       data: _theme(context),
       child: Builder(
         builder: (BuildContext context) => GalleryPage(

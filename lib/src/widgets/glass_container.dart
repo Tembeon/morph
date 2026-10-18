@@ -11,7 +11,7 @@ import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/list.dart';
 import 'package:morph/src/widgets/search_field.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// Shades the resting glass of the controls below it in one glass layer:
 /// one geometry pass and one backdrop filter for all of them instead of

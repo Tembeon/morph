@@ -6,7 +6,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// Liquid Glass behind app content, in a shape: SwiftUI's
 /// `glassEffect(_:in:)` and UIKit's `UIVisualEffectView` with a

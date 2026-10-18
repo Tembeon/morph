@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
+import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/search_motion.dart';
@@ -631,6 +632,7 @@ void main() {
     }) async {
       await tester.pumpWidget(
         MaterialApp(
+          builder: morphFromMaterial,
           theme: theme,
           home: MediaQuery(
             data: MediaQueryData(textScaler: TextScaler.linear(textScale)),

@@ -15,10 +15,10 @@ dependencies:
   flutter_gpu_shaders: ^0.5.2
   flutter_shaders: ^0.1.3
   hooks: ^2.0.2
-  material_ui: ^1.1.0
   meta: ^1.16.0
 
 dev_dependencies:
+  material_ui: ^1.1.0
   # Keep semantic snapshots reproducible; updates require API baseline review.
   analyzer: 10.2.0
   benchmark_harness: ^2.2.2

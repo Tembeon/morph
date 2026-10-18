@@ -26,7 +26,7 @@ import 'package:morph/src/widgets/search_stacked.dart';
 import 'package:morph/src/widgets/scroll_indicator.dart';
 import 'package:morph/src/widgets/toolbar.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 import 'package:morph/src/widgets/zoom_source.dart';
 
 /// What one screen of a [MorphNavigationStack] shows in the shared bars.

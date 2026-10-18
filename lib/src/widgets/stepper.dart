@@ -6,7 +6,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/timeline.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The look of a [MorphStepper].
 ///
@@ -15,7 +15,7 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// divider a 1 x 24 point tertiaryLabel line, a half at its limit draws its
 /// glyph in tertiaryLabel.
 @immutable
-class MorphStepperAppearance {
+class MorphStepperAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphStepperAppearance({
     this.backgroundColor = const Color(0x163C3C43),
@@ -64,18 +64,12 @@ class MorphStepperAppearance {
     dividerColor: Color(0x4CEBEBF5),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness.
   static MorphStepperAppearance resolve(
     BuildContext context,
     MorphStepperAppearance? explicit,
-  ) => morphResolveAppearance(
-    context,
-    explicit,
-    themed: (theme) => theme.stepper,
-    light: light,
-    dark: dark,
-  );
+  ) => morphResolveAppearance(context, explicit, light: light, dark: dark);
 
   /// Copies this appearance with the given fields replaced.
   MorphStepperAppearance copyWith({

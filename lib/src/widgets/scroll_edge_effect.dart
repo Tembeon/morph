@@ -7,7 +7,7 @@ import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// Whether the edge effect blurs a copy of the backdrop around its band;
 /// off blurs the whole pass behind it, for an A/B.
@@ -57,7 +57,7 @@ enum MorphScrollEdgeEffectStyle {
 /// content over it); the soft fade starts to dissolve at [softFadeStart]
 /// of the band and is gone at its far end.
 @immutable
-class MorphScrollEdgeEffectAppearance {
+class MorphScrollEdgeEffectAppearance implements MorphAppearance {
   /// Creates a look; the defaults are the iOS light appearance.
   const MorphScrollEdgeEffectAppearance({
     this.backgroundColor = const Color(0xFFFFFFFF),
@@ -115,14 +115,16 @@ class MorphScrollEdgeEffectAppearance {
     separatorColor: Color(0x1AFFFFFF),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness.
   static MorphScrollEdgeEffectAppearance resolve(
     BuildContext context,
     MorphScrollEdgeEffectAppearance? explicit,
   ) =>
       explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.scrollEdgeEffect ??
+      MorphTheme.maybeOf(
+        context,
+      )?.appearance<MorphScrollEdgeEffectAppearance>() ??
       switch (morphBrightnessOf(context)) {
         Brightness.dark => dark,
         Brightness.light => light,

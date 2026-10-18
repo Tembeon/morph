@@ -140,9 +140,17 @@ void main() {
     tester,
   ) async {
     await _open(tester, 'Theming');
-    MorphWidgetsTheme scope() => tester
-        .widget<MorphWidgetsThemeScope>(
-          find.byType(MorphWidgetsThemeScope).first,
+    MorphThemeData scope() => tester
+        .widget<MorphTheme>(
+          find
+              .ancestor(
+                of: find.text(
+                  'Accent from the theme scope',
+                  skipOffstage: false,
+                ),
+                matching: find.byType(MorphTheme),
+              )
+              .first,
         )
         .data;
     expect(scope().tint, const Color(0xFFAF52DE));

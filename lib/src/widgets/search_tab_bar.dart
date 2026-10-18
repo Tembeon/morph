@@ -19,7 +19,7 @@ import 'package:morph/src/widgets/tab_bar_chrome.dart';
 import 'package:morph/src/widgets/tab_bar_minimize.dart';
 import 'package:morph/src/widgets/tab_collapse.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// A floating [MorphTabBar] with a search tab that turns into a search
 /// field, as iOS 27 shows a UITabBarController whose UISearchTab activates

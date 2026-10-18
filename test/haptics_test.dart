@@ -31,8 +31,8 @@ void main() {
   Future<BuildContext> pump(WidgetTester tester, {bool? haptics}) async {
     late BuildContext captured;
     await tester.pumpWidget(
-      MorphWidgetsThemeScope(
-        data: MorphWidgetsTheme(haptics: haptics),
+      MorphTheme(
+        data: MorphThemeData(haptics: haptics ?? true),
         child: Builder(
           builder: (context) {
             captured = context;

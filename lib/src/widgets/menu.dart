@@ -27,10 +27,10 @@ import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The look of a [MorphMenuButton] and its menu.
-class MorphMenuAppearance {
+class MorphMenuAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS 27 light appearance.
   const MorphMenuAppearance({
     this.glassColor = const Color(0xF2F9F9FF),
@@ -151,14 +151,14 @@ class MorphMenuAppearance {
     paletteSelectionColor: Color(0x18FFFFFF),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness.
   static MorphMenuAppearance resolve(
     BuildContext context,
     MorphMenuAppearance? explicit,
   ) =>
       explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.menu ??
+      MorphTheme.maybeOf(context)?.appearance<MorphMenuAppearance>() ??
       switch (morphBrightnessOf(context)) {
         Brightness.dark => dark,
         Brightness.light => light,

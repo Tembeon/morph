@@ -28,7 +28,7 @@ import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/badge.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// One button of a glass bar: a label or an icon.
 ///
@@ -430,7 +430,7 @@ class MorphBarMetrics {
 
 /// The look of a glass bar: its capsules, buttons and titles.
 @immutable
-class MorphBarAppearance {
+class MorphBarAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphBarAppearance({
     this.capsuleColor = const Color(0xD9FFFFFF),
@@ -565,8 +565,8 @@ class MorphBarAppearance {
         disabledProminentColor ?? this.disabledProminentColor,
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
+  /// table for the ambient brightness with [MorphThemeData.tint] as its
   /// [prominentColor].
   static MorphBarAppearance resolve(
     BuildContext context,
@@ -574,7 +574,6 @@ class MorphBarAppearance {
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.bar,
     light: light,
     dark: dark,
     tinted: (table, tint) => table.copyWith(prominentColor: tint),

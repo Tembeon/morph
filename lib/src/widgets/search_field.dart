@@ -15,11 +15,11 @@ import 'package:morph/src/widgets/navigation_stack.dart';
 import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The look of a [MorphSearchField] and a [MorphSearchToolbar].
 @immutable
-class MorphSearchFieldAppearance {
+class MorphSearchFieldAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphSearchFieldAppearance({
     this.capsuleColor = const Color(0xD9FFFFFF),
@@ -104,18 +104,12 @@ class MorphSearchFieldAppearance {
     stackedFillColor: Color(0x3D767680),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness.
   static MorphSearchFieldAppearance resolve(
     BuildContext context,
     MorphSearchFieldAppearance? explicit,
-  ) => morphResolveAppearance(
-    context,
-    explicit,
-    themed: (theme) => theme.searchField,
-    light: light,
-    dark: dark,
-  );
+  ) => morphResolveAppearance(context, explicit, light: light, dark: dark);
 
   /// Copies this appearance with the given fields replaced.
   MorphSearchFieldAppearance copyWith({

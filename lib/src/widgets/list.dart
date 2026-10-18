@@ -7,7 +7,7 @@ import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/highlight_motion.dart';
 import 'package:morph/src/widgets/sheet.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The geometry of an inset grouped list, read from the view tree of an
 /// iOS 27 `UITableView(style: .insetGrouped)` with
@@ -84,7 +84,7 @@ abstract final class MorphListMetrics {
 /// The colors are the iOS 27 system colors the table resolves (probe
 /// scene `list`, light and dark).
 @immutable
-class MorphListAppearance {
+class MorphListAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphListAppearance({
     this.backgroundColor = const Color(0xFFF2F2F7),
@@ -139,8 +139,8 @@ class MorphListAppearance {
     iconColor: Color(0xFF0091FF),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
+  /// table for the ambient brightness with [MorphThemeData.tint] as its
   /// [iconColor].
   static MorphListAppearance resolve(
     BuildContext context,
@@ -148,7 +148,6 @@ class MorphListAppearance {
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.list,
     light: light,
     dark: dark,
     tinted: (table, tint) => table.copyWith(iconColor: tint),

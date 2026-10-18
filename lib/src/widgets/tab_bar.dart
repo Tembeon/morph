@@ -20,7 +20,7 @@ import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/tab_bar_chrome.dart';
 import 'package:morph/src/widgets/tab_bar_minimize.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// What a [MorphTabItem] stands for beyond an ordinary tab (SwiftUI
 /// `TabRole`).
@@ -201,7 +201,7 @@ class MorphTabBar extends StatefulWidget {
 
 /// The look of a [MorphTabBar].
 @immutable
-class MorphTabBarAppearance {
+class MorphTabBarAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS 27 light appearance.
   ///
   /// The platter and the tab colors are what UIKit's color matrices make
@@ -278,8 +278,8 @@ class MorphTabBarAppearance {
     blurSigma: blurSigma ?? this.blurSigma,
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
+  /// table for the ambient brightness with [MorphThemeData.tint] as its
   /// [selectedColor].
   static MorphTabBarAppearance resolve(
     BuildContext context,
@@ -287,7 +287,6 @@ class MorphTabBarAppearance {
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.tabBar,
     light: light,
     dark: dark,
     tinted: (table, tint) => table.copyWith(selectedColor: tint),

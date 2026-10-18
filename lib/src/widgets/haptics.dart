@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// A haptic a UIKit control plays, mapped onto Flutter's [HapticFeedback]
 /// (read from UIKit, notes private; the mapping is declared on
-/// [MorphWidgetsTheme.haptics]).
+/// [MorphThemeData.haptics]).
 @internal
 enum MorphHaptic {
   /// UIKit's light impact generator: a switch toggled by touch, a page
@@ -38,7 +38,7 @@ enum MorphHaptic {
   final Future<void> Function() _play;
 }
 
-/// Plays [haptic] unless the [MorphWidgetsTheme] above [context] turns the
+/// Plays [haptic] unless the [MorphTheme] above [context] turns the
 /// controls' haptics off.
 @internal
 void morphPlayHaptic(BuildContext context, MorphHaptic haptic) {

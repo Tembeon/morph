@@ -19,7 +19,7 @@ import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// What a [MorphDatePicker] picks.
 enum MorphDatePickerMode {
@@ -111,7 +111,7 @@ class MorphDatePickerLocalizations {
 
 /// The look of a [MorphDatePicker] and its overlay.
 @immutable
-class MorphDatePickerAppearance {
+class MorphDatePickerAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphDatePickerAppearance({
     this.labelFillColor = const Color(0x1F767680),
@@ -296,9 +296,9 @@ class MorphDatePickerAppearance {
     unavailableDayOpacity: unavailableDayOpacity ?? this.unavailableDayOpacity,
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness and contrast with
-  /// [MorphWidgetsTheme.tint] as its [accentColor] and, at the table's own
+  /// [MorphThemeData.tint] as its [accentColor] and, at the table's own
   /// opacity, its [todayFillColor].
   static MorphDatePickerAppearance resolve(
     BuildContext context,
@@ -306,7 +306,6 @@ class MorphDatePickerAppearance {
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.datePicker,
     light: light,
     dark: dark,
     lightHighContrast: lightHighContrast,

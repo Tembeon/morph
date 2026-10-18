@@ -160,6 +160,10 @@ MorphFlight showMorph(
 })
 
 # package:morph/widgets.dart
+class DefaultMorphLocalizations extends MorphLocalizations
+  const DefaultMorphLocalizations()
+  static const LocalizationsDelegate<MorphLocalizations> delegate
+  overrides: dismissLabel
 class MorphActivityIndicator extends StatefulWidget
   const MorphActivityIndicator({
     bool animating = true,
@@ -180,7 +184,7 @@ class MorphActivityIndicator extends StatefulWidget
   final String? semanticLabel
   final MorphActivityIndicatorSize size
   overrides: createState
-class MorphActivityIndicatorAppearance
+class MorphActivityIndicatorAppearance implements MorphAppearance
   const MorphActivityIndicatorAppearance({
     Color color = const Color(0x993C3C43),
   })
@@ -234,7 +238,7 @@ enum MorphAlertActionStyle
   normal,
   cancel,
   destructive,
-class MorphAlertAppearance
+class MorphAlertAppearance implements MorphAppearance
   const MorphAlertAppearance({
     Color platterColor = const Color(0xA1FDFDFF),
     Color dimmingColor = const Color(0xFF000000),
@@ -329,6 +333,8 @@ class MorphAlertTextField
   final String? placeholder
   final String? semanticLabel
   final TextCapitalization textCapitalization
+abstract interface class MorphAppearance
+  MorphAppearance()
 enum MorphBackButtonDisplayMode
   standard,
   generic,
@@ -354,7 +360,7 @@ class MorphBadge
   final String? text
   bool get visible
   overrides: ==, hashCode
-class MorphBarAppearance
+class MorphBarAppearance implements MorphAppearance
   const MorphBarAppearance({
     Color capsuleColor = const Color(0xD9FFFFFF),
     Color rimColor = const Color(0x1F000000),
@@ -606,7 +612,7 @@ class MorphDatePicker extends StatefulWidget
   final bool? use24HourFormat
   final DateTime value
   overrides: createState
-class MorphDatePickerAppearance
+class MorphDatePickerAppearance implements MorphAppearance
   const MorphDatePickerAppearance({
     Color labelFillColor = const Color(0x1F767680),
     Color labelColor = const Color(0xFF000000),
@@ -751,7 +757,7 @@ class MorphGlassButton extends StatefulWidget
   final MorphGlassStyle style
   final Color? tint
   overrides: createState
-class MorphGlassButtonAppearance
+class MorphGlassButtonAppearance implements MorphAppearance
   const MorphGlassButtonAppearance({
     Color fillColor = const Color(0xD9FFFFFF),
     Color clearFillColor = const Color(0x40FFFFFF),
@@ -976,7 +982,7 @@ enum MorphListAccessory
   checkmark,
   detailButton,
   detailDisclosureButton,
-class MorphListAppearance
+class MorphListAppearance implements MorphAppearance
   const MorphListAppearance({
     Color backgroundColor = const Color(0xFFF2F2F7),
     Color cellColor = const Color(0xFFFFFFFF),
@@ -1081,7 +1087,11 @@ class MorphListSection extends StatelessWidget
   final Widget? footer
   final Widget? header
   overrides: build
-class MorphMenuAppearance
+abstract class MorphLocalizations
+  const MorphLocalizations()
+  String get dismissLabel
+  static MorphLocalizations of(BuildContext context)
+class MorphMenuAppearance implements MorphAppearance
   const MorphMenuAppearance({
     Color glassColor = const Color(0xF2F9F9FF),
     Color shadowColor = const Color(0x33000000),
@@ -1766,7 +1776,7 @@ class MorphPageControl extends StatefulWidget
   final String? semanticLabel
   final String Function(int, int)? semanticValueFormatter
   overrides: createState
-class MorphPageControlAppearance
+class MorphPageControlAppearance implements MorphAppearance
   const MorphPageControlAppearance({
     Color pageIndicatorColor = const Color(0x73FFFFFF),
     Color currentPageIndicatorColor = const Color(0xFFFFFFFF),
@@ -1818,7 +1828,7 @@ class MorphProgressView extends StatefulWidget
   final MorphProgressViewStyle style
   final double value
   overrides: createState
-class MorphProgressViewAppearance
+class MorphProgressViewAppearance implements MorphAppearance
   const MorphProgressViewAppearance({
     Color inactiveTrackColor = const Color(0x33787880),
     Color activeTrackColor = const Color(0xFF0088FF),
@@ -1927,7 +1937,7 @@ class MorphScrollEdgeEffect extends StatelessWidget
   final bool scrolledUnder
   final MorphScrollEdgeEffectStyle style
   overrides: build
-class MorphScrollEdgeEffectAppearance
+class MorphScrollEdgeEffectAppearance implements MorphAppearance
   const MorphScrollEdgeEffectAppearance({
     Color backgroundColor = const Color(0xFFFFFFFF),
     double fadeOpacity = 0.5,
@@ -2024,7 +2034,7 @@ class MorphSearchField extends StatefulWidget
   final String placeholder
   final String? semanticLabel
   overrides: createState
-class MorphSearchFieldAppearance
+class MorphSearchFieldAppearance implements MorphAppearance
   const MorphSearchFieldAppearance({
     Color capsuleColor = const Color(0xD9FFFFFF),
     Color rimColor = const Color(0x1F000000),
@@ -2165,7 +2175,7 @@ class MorphSegmentedControl extends StatefulWidget
   final List<MorphSegment> segments
   final int? selectedIndex
   overrides: createState
-class MorphSegmentedControlAppearance
+class MorphSegmentedControlAppearance implements MorphAppearance
   const MorphSegmentedControlAppearance({
     double height = 32,
     double inset = 2,
@@ -2220,7 +2230,7 @@ abstract class MorphSheet
   static MorphSheet? maybeOf(BuildContext context)
   static MorphSheet of(BuildContext context)
   static ScrollController scrollControllerOf(BuildContext context)
-class MorphSheetAppearance
+class MorphSheetAppearance implements MorphAppearance
   const MorphSheetAppearance({
     Color dockedColor = const Color(0xFFFFFFFF),
     Color floatingColor = const Color(0xF2F9F9F9),
@@ -2323,7 +2333,7 @@ class MorphSlider extends StatefulWidget
   final int ticks
   final double value
   overrides: createState
-class MorphSliderAppearance
+class MorphSliderAppearance implements MorphAppearance
   const MorphSliderAppearance({
     Color activeTrackColor = const Color(0xFF0088FF),
     Color inactiveTrackColor = const Color(0x1A000000),
@@ -2397,7 +2407,7 @@ class MorphStepper extends StatefulWidget
   final double step
   final double value
   overrides: createState
-class MorphStepperAppearance
+class MorphStepperAppearance implements MorphAppearance
   const MorphStepperAppearance({
     Color backgroundColor = const Color(0x163C3C43),
     Color foregroundColor = const Color(0xFF000000),
@@ -2469,7 +2479,7 @@ class MorphSwitch extends StatefulWidget
   final String? semanticLabel
   final bool value
   overrides: createState
-class MorphSwitchAppearance
+class MorphSwitchAppearance implements MorphAppearance
   const MorphSwitchAppearance({
     Color activeTrackColor = const Color(0xFF34C759),
     Color inactiveTrackColor = const Color(0x29787880),
@@ -2522,7 +2532,7 @@ class MorphTabBar extends StatefulWidget
   final void Function(int)? onReselected
   final int selected
   overrides: createState
-class MorphTabBarAppearance
+class MorphTabBarAppearance implements MorphAppearance
   const MorphTabBarAppearance({
     Color barColor = const Color(0xB8FFFFFF),
     Color shadowColor = const Color(0x24000000),
@@ -2584,6 +2594,35 @@ enum MorphTabRole
 class MorphTag (see package:morph/foundation.dart)
 class MorphTagState (see package:morph/foundation.dart)
 class MorphTargetSpec (see package:morph/foundation.dart)
+class MorphTheme extends InheritedTheme
+  const MorphTheme({
+    required MorphThemeData data,
+    required Widget child,
+    Key? key,
+  })
+  final MorphThemeData data
+  static MorphThemeData? maybeOf(BuildContext context)
+  static MorphThemeData of(BuildContext context)
+  overrides: updateShouldNotify, wrap
+class MorphThemeData
+  const MorphThemeData({
+    Brightness? brightness,
+    Color? tint,
+    bool haptics = true,
+    List<MorphAppearance> appearances = const <MorphAppearance>[],
+  })
+  T? appearance<T extends MorphAppearance>()
+  final List<MorphAppearance> appearances
+  final Brightness? brightness
+  MorphThemeData copyWith({
+    Brightness? brightness,
+    Color? tint,
+    bool? haptics,
+    List<MorphAppearance>? appearances,
+  })
+  final bool haptics
+  final Color? tint
+  overrides: ==, hashCode
 class MorphToolbar extends StatelessWidget
   const MorphToolbar({
     List<MorphBarButtonGroup> leading = const [],
@@ -2644,58 +2683,6 @@ abstract final class MorphTypography
   static double tracking(double size)
   static bool get usesAppleSystemFont
   static double? weightAxis(FontWeight weight)
-class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme> implements ThemeExtension<MorphWidgetsTheme>
-  const MorphWidgetsTheme({
-    Color? tint,
-    bool? haptics,
-    MorphSegmentedControlAppearance? segmentedControl,
-    MorphTabBarAppearance? tabBar,
-    MorphSwitchAppearance? switchAppearance,
-    MorphSliderAppearance? slider,
-    MorphStepperAppearance? stepper,
-    MorphGlassButtonAppearance? glassButton,
-    MorphMenuAppearance? menu,
-    MorphSheetAppearance? sheet,
-    MorphProgressViewAppearance? progressView,
-    MorphActivityIndicatorAppearance? activityIndicator,
-    MorphPageControlAppearance? pageControl,
-    MorphBarAppearance? bar,
-    MorphScrollEdgeEffectAppearance? scrollEdgeEffect,
-    MorphAlertAppearance? alert,
-    MorphSearchFieldAppearance? searchField,
-    MorphDatePickerAppearance? datePicker,
-    MorphListAppearance? list,
-  })
-  final MorphActivityIndicatorAppearance? activityIndicator
-  final MorphAlertAppearance? alert
-  final MorphBarAppearance? bar
-  final MorphDatePickerAppearance? datePicker
-  final MorphGlassButtonAppearance? glassButton
-  final bool? haptics
-  final MorphListAppearance? list
-  static MorphWidgetsTheme? maybeOf(BuildContext context)
-  final MorphMenuAppearance? menu
-  final MorphPageControlAppearance? pageControl
-  final MorphProgressViewAppearance? progressView
-  final MorphScrollEdgeEffectAppearance? scrollEdgeEffect
-  final MorphSearchFieldAppearance? searchField
-  final MorphSegmentedControlAppearance? segmentedControl
-  final MorphSheetAppearance? sheet
-  final MorphSliderAppearance? slider
-  final MorphStepperAppearance? stepper
-  final MorphSwitchAppearance? switchAppearance
-  final MorphTabBarAppearance? tabBar
-  final Color? tint
-  overrides: copyWith, lerp
-class MorphWidgetsThemeScope extends InheritedTheme
-  const MorphWidgetsThemeScope({
-    required MorphWidgetsTheme data,
-    required Widget child,
-    Key? key,
-  })
-  final MorphWidgetsTheme data
-  static MorphWidgetsTheme? maybeOf(BuildContext context)
-  overrides: updateShouldNotify, wrap
 class MorphZoomTuning
   const MorphZoomTuning({
     MorphSpring openCenterSpring = const MorphSpring(0.349, 0.833),

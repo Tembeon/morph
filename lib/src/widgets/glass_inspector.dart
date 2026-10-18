@@ -310,7 +310,7 @@ const Set<String> _plumbing = {
   'MorphGlassStageFade',
   'MorphGlassContainerScope',
   'MorphGlassContainerBarrier',
-  'MorphWidgetsTheme',
+  'MorphTheme',
   'MorphFocusRing',
   'MorphTouchListener',
   'MorphPress',

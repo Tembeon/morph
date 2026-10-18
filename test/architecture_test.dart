@@ -58,6 +58,11 @@ const _rules = ArchitectureRules(
       'lib/src/glass/',
       mayNotImport: {'api', 'engine', 'widgets'},
     ),
+    Module(
+      'theme',
+      'lib/src/theme/',
+      mayNotImport: {'api', 'engine', 'glass', 'widgets'},
+    ),
     Module('widgets', 'lib/src/widgets/', mayNotImport: {'api'}),
   ],
 );
@@ -67,14 +72,9 @@ const _rules = ArchitectureRules(
 /// fixed instead of listed.
 const _ratchet = <Rule, Set<String>>{
   Rule.forbidden: {
-    'lib/src/flight.dart imports package:material_ui/material_ui.dart',
-    'lib/src/widgets/morph_context_menu.dart imports package:material_ui/material_ui.dart',
-    'lib/src/widgets/widgets_theme.dart imports package:flutter/material.dart',
-    'lib/src/widgets/widgets_theme.dart imports package:material_ui/material_ui.dart',
   },
   Rule.dependency: {
     'flutter_shaders reaches package:flutter/material.dart',
-    'pubspec.yaml depends on material_ui',
   },
   Rule.direction: {
     'lib/src/glass/renderer/glass_shadow.dart imports lib/src/live.dart',

@@ -1,3 +1,4 @@
+import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
@@ -14,6 +15,7 @@ Widget _button(double left, String label) => Positioned(
 
 Widget _app(Widget scene, {bool inspector = false, bool enabled = true}) {
   final app = MaterialApp(
+    builder: morphFromMaterial,
     debugShowCheckedModeBanner: false,
     theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
     home: MorphAdaptiveGlass(
@@ -58,8 +60,8 @@ void main() {
 
   testWidgets('buttons of different brightness get no hint: a container '
       'would not join them', (WidgetTester tester) async {
-    Widget themed(Brightness brightness, Widget child) => Theme(
-      data: ThemeData(platform: TargetPlatform.iOS, brightness: brightness),
+    Widget themed(Brightness brightness, Widget child) => MorphTheme(
+      data: MorphThemeData(brightness: brightness),
       child: child,
     );
     await tester.pumpWidget(

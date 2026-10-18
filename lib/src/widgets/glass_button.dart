@@ -16,7 +16,7 @@ import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The motion of an iOS 27 glass button: the lift, the stretch and shift
 /// toward a finger that drags, and the touch glow.
@@ -209,7 +209,7 @@ class MorphGlassButtonMotion {
 
 /// The look of a [MorphGlassButton].
 @immutable
-class MorphGlassButtonAppearance {
+class MorphGlassButtonAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphGlassButtonAppearance({
     this.fillColor = const Color(0xD9FFFFFF),
@@ -305,8 +305,8 @@ class MorphGlassButtonAppearance {
     disabledTintColor: disabledTintColor ?? this.disabledTintColor,
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
-  /// table for the ambient brightness with [MorphWidgetsTheme.tint] as its
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
+  /// table for the ambient brightness with [MorphThemeData.tint] as its
   /// [prominentColor].
   static MorphGlassButtonAppearance resolve(
     BuildContext context,
@@ -314,7 +314,6 @@ class MorphGlassButtonAppearance {
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.glassButton,
     light: light,
     dark: dark,
     tinted: (table, tint) => table.copyWith(prominentColor: tint),

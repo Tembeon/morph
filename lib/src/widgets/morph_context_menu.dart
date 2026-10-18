@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/physics.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:morph/foundation.dart';
 import 'package:morph/src/live.dart';
@@ -20,7 +20,7 @@ import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// A block standing above a context menu's preview, as UIKit's
 /// accessory views do - a reactions capsule over a message bubble -
@@ -346,7 +346,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// called for [open] or a secondary click.
   ///
   /// The region itself plays UIKit's preview haptic at this moment
-  /// ([MorphWidgetsTheme.haptics]): UIKit's context menu plays its
+  /// ([MorphThemeData.haptics]): UIKit's context menu plays its
   /// full-strength preview pattern when the hold reaches its preview
   /// (read from UIKit, notes private).
   final VoidCallback? onHold;

@@ -2,11 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/clock.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The look of a [MorphProgressView].
 @immutable
-class MorphProgressViewAppearance {
+class MorphProgressViewAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphProgressViewAppearance({
     this.inactiveTrackColor = const Color(0x33787880),
@@ -54,16 +54,15 @@ class MorphProgressViewAppearance {
     activeTrackColor: activeTrackColor ?? this.activeTrackColor,
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness and contrast with
-  /// [MorphWidgetsTheme.tint] as its [activeTrackColor].
+  /// [MorphThemeData.tint] as its [activeTrackColor].
   static MorphProgressViewAppearance resolve(
     BuildContext context,
     MorphProgressViewAppearance? explicit,
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.progressView,
     light: light,
     dark: dark,
     lightHighContrast: lightHighContrast,

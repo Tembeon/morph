@@ -18,7 +18,7 @@ import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The role of a [MorphAlertAction], after UIAlertAction.Style.
 enum MorphAlertActionStyle {
@@ -137,7 +137,7 @@ class MorphAlertTextField {
 
 /// The look of an alert or an action sheet.
 @immutable
-class MorphAlertAppearance {
+class MorphAlertAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphAlertAppearance({
     this.platterColor = const Color(0xA1FDFDFF),
@@ -271,16 +271,15 @@ class MorphAlertAppearance {
     disabledLabelColor: disabledLabelColor ?? this.disabledLabelColor,
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness and contrast with
-  /// [MorphWidgetsTheme.tint] as its [preferredColor].
+  /// [MorphThemeData.tint] as its [preferredColor].
   static MorphAlertAppearance resolve(
     BuildContext context,
     MorphAlertAppearance? explicit,
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.alert,
     light: light,
     dark: dark,
     lightHighContrast: lightHighContrast,

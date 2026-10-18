@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:morph/src/theme/localizations.dart';
 import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -785,10 +786,7 @@ class _ShuttleScrim extends StatelessWidget {
     return BlockSemantics(
       child: Semantics(
         label: flight.barrierDismissible
-            ? Localizations.of<MaterialLocalizations>(
-                context,
-                MaterialLocalizations,
-              )?.modalBarrierDismissLabel
+            ? MorphLocalizations.of(context).dismissLabel
             : null,
         container: flight.barrierDismissible,
         onDismiss: flight.barrierDismissible ? flight.requestDismiss : null,

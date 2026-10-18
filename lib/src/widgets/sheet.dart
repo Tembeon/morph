@@ -18,13 +18,13 @@ import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/typography.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 import 'package:morph/src/widgets/zoom_motion.dart';
 import 'package:morph/src/widgets/zoom_source.dart';
 
 /// The look of a sheet presented with [showMorphSheet].
 @immutable
-class MorphSheetAppearance {
+class MorphSheetAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphSheetAppearance({
     this.dockedColor = const Color(0xFFFFFFFF),
@@ -64,14 +64,14 @@ class MorphSheetAppearance {
     textColor: Color(0xFFFFFFFF),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness.
   static MorphSheetAppearance resolve(
     BuildContext context,
     MorphSheetAppearance? explicit,
   ) =>
       explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.sheet ??
+      MorphTheme.maybeOf(context)?.appearance<MorphSheetAppearance>() ??
       switch (morphBrightnessOf(context)) {
         Brightness.dark => dark,
         Brightness.light => light,

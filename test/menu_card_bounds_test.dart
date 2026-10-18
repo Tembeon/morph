@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
+import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/menu.dart';
@@ -258,6 +259,7 @@ void main() {
       RepaintBoundary(
         key: key,
         child: MaterialApp(
+          builder: morphFromMaterial,
           theme: ThemeData(brightness: Brightness.dark),
           home: const Scaffold(
             backgroundColor: Color(0xFF000000),

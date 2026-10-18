@@ -270,9 +270,9 @@ void main() {
   ) async {
     await _pumpGallery(tester);
     BuildContext home() => tester.element(find.byType(GalleryHome));
-    var theme = Theme.of(home()).extension<MorphWidgetsTheme>()!;
+    var theme = MorphTheme.of(home());
     expect(theme.tint, isNull);
-    expect(theme.haptics, isNull);
+    expect(theme.haptics, isTrue);
     expect(MediaQuery.disableAnimationsOf(home()), isFalse);
     expect(MediaQuery.highContrastOf(home()), isFalse);
     final settings = GalleryGlassScope.read(home());
@@ -281,7 +281,7 @@ void main() {
     settings.haptics = false;
     settings.accent = const Color(0xFFFF9500);
     await _settle(tester);
-    theme = Theme.of(home()).extension<MorphWidgetsTheme>()!;
+    theme = MorphTheme.of(home());
     expect(theme.tint, const Color(0xFFFF9500));
     expect(theme.haptics, isFalse);
     expect(MediaQuery.disableAnimationsOf(home()), isTrue);

@@ -11,11 +11,11 @@ import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/slider_motion.dart';
 import 'package:morph/src/widgets/small_lens.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The look of a [MorphSlider].
 @immutable
-class MorphSliderAppearance {
+class MorphSliderAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphSliderAppearance({
     this.activeTrackColor = const Color(0xFF0088FF),
@@ -86,16 +86,15 @@ class MorphSliderAppearance {
     disabledOpacity: disabledOpacity ?? this.disabledOpacity,
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness and contrast with
-  /// [MorphWidgetsTheme.tint] as its [activeTrackColor].
+  /// [MorphThemeData.tint] as its [activeTrackColor].
   static MorphSliderAppearance resolve(
     BuildContext context,
     MorphSliderAppearance? explicit,
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.slider,
     light: light,
     dark: dark,
     lightHighContrast: lightHighContrast,

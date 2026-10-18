@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
+import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -31,6 +32,7 @@ Widget _page(
     ],
   );
   return MaterialApp(
+    builder: morphFromMaterial,
     debugShowCheckedModeBanner: false,
     themeAnimationDuration: Duration.zero,
     theme: ThemeData(platform: TargetPlatform.iOS, brightness: brightness),
@@ -146,6 +148,7 @@ void main() {
       'leaves it', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        builder: morphFromMaterial,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
         home: MorphAdaptiveGlass(
@@ -193,6 +196,7 @@ void main() {
       'one layer, a searching one in their own', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        builder: morphFromMaterial,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
         home: MorphAdaptiveGlass(
@@ -242,6 +246,7 @@ void main() {
       'in a backdrop group of its own', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        builder: morphFromMaterial,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
         home: MorphAdaptiveGlass(
@@ -366,6 +371,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
+        builder: morphFromMaterial,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
         home: MorphAdaptiveGlass(
           tier: MorphGlassTier.fake,
@@ -439,6 +445,7 @@ void main() {
         );
         await tester.pumpWidget(
           MaterialApp(
+            builder: morphFromMaterial,
             theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
             home: MorphAdaptiveGlass(
               tier: MorphGlassTier.fake,
@@ -481,6 +488,7 @@ void main() {
     const content = Key('content');
     await tester.pumpWidget(
       MaterialApp(
+        builder: morphFromMaterial,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
         home: MorphAdaptiveGlass(

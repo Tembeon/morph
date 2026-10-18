@@ -9,11 +9,11 @@ import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/small_lens.dart';
 import 'package:morph/src/widgets/switch_motion.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The look of a [MorphSwitch].
 @immutable
-class MorphSwitchAppearance {
+class MorphSwitchAppearance implements MorphAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphSwitchAppearance({
     this.activeTrackColor = const Color(0xFF34C759),
@@ -62,7 +62,7 @@ class MorphSwitchAppearance {
     inactiveTrackColor: Color(0xE5787880),
   );
 
-  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// Resolves [explicit], then the ambient [MorphTheme], then the
   /// table for the ambient brightness and contrast.
   static MorphSwitchAppearance resolve(
     BuildContext context,
@@ -70,7 +70,6 @@ class MorphSwitchAppearance {
   ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.switchAppearance,
     light: light,
     dark: dark,
     lightHighContrast: lightHighContrast,
@@ -118,7 +117,7 @@ class MorphSwitchAppearance {
 /// platform's reduced motion on, the knob travels without lifting,
 /// growing or rubber-banding, as UIKit's does (the knob's stretch staying
 /// off is an approximation). A toggle by touch plays UIKit's light impact
-/// ([MorphWidgetsTheme.haptics]).
+/// ([MorphThemeData.haptics]).
 class MorphSwitch extends StatefulWidget {
   /// Creates a switch.
   const MorphSwitch({
