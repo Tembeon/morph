@@ -1,0 +1,42 @@
+## hand-back anchor 8 ms early
+exit 1; 00:04 +4 -28: Some tests failed.
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: cover while a resting finger dozes the route: 120 Hz, 1.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: cover while a resting finger dozes the route: 120 Hz, 5.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: cover while a resting finger dozes the route: 60 Hz, 1.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: cover while a resting finger dozes the route: 60 Hz, 5.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape while a resting finger dozes the route: 120 Hz, 1.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape while a resting finger dozes the route: 120 Hz, 5.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape while a resting finger dozes the route: 60 Hz, 1.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape while a resting finger dozes the route: 60 Hz, 5.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+## commands without the model-time floor
+exit 1; 00:04 +28 -4: Some tests failed.
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: cover right after a between-frame move never precedes it: 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: cover right after a between-frame move never precedes it: 60 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape right after a between-frame move never precedes it: 120 Hz
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape right after a between-frame move never precedes it: 60 Hz
+## close on the last sampled time
+exit 1; 00:03 +28 -4: Some tests failed.
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape while a resting finger dozes the route: 120 Hz, 1.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape while a resting finger dozes the route: 120 Hz, 5.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape while a resting finger dozes the route: 60 Hz, 1.0x
+- /Volumes/Dev/projects/morph/example/test/proto/menu_route_doze_test.dart: escape while a resting finger dozes the route: 60 Hz, 5.0x

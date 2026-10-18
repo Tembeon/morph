@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/painting.dart';
 import 'package:flutter/gestures.dart';
 import 'package:morph/motion.dart';
@@ -48,6 +50,11 @@ class ProbeMenuTransfer {
   final MorphMenuMotion _motion;
   ProbeMenuLease _owner;
   double _offset;
+  double? _commandTime;
+
+  /// The model time at which the latest open, close or cancellation took
+  /// effect, or null before the first.
+  double? get commandTime => _commandTime;
 
   /// The only lease allowed to sample or command the model.
   ProbeMenuLease get owner => _owner;
@@ -55,11 +62,12 @@ class ProbeMenuTransfer {
   /// Cancels the held interaction without removing committed release work.
   ///
   /// [localTime] is the owner's clock at the cancellation, or null when no
-  /// clock samples the model any longer.
+  /// clock samples the model any longer. The cancellation never precedes
+  /// the model's own time.
   bool cancelPointer(ProbeMenuLease lease, double? localTime) {
     if (!identical(lease, _owner)) return false;
     _motion.pointerCancel(
-      localTime == null ? _motion.time : localTime + _offset,
+      _commandTime = localTime == null ? _motion.time : _at(localTime),
     );
     return true;
   }
@@ -129,6 +137,10 @@ class ProbeMenuTransfer {
     fusionRadius: _motion.fusionRadius,
   );
 
+  // Input between frames advances the model past the clock's last sample,
+  // and a later command never starts before it.
+  double _at(double localTime) => math.max(localTime + _offset, _motion.time);
+
   /// Samples the active owner; a callback from an old lease has no effect.
   bool advance(ProbeMenuLease lease, double localTime) {
     if (!identical(lease, _owner)) return false;
@@ -139,14 +151,14 @@ class ProbeMenuTransfer {
   /// Opens or reverses the current model on its owner's event time.
   bool open(ProbeMenuLease lease, double localTime) {
     if (!identical(lease, _owner)) return false;
-    _motion.open(localTime + _offset);
+    _motion.open(_commandTime = _at(localTime));
     return true;
   }
 
   /// Begins closing without replacing any model state.
   bool close(ProbeMenuLease lease, double localTime) {
     if (!identical(lease, _owner)) return false;
-    _motion.close(localTime + _offset);
+    _motion.close(_commandTime = _at(localTime));
     return true;
   }
 

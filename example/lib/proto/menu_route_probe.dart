@@ -920,7 +920,7 @@ class _MenuSession {
     final time = clock?.resumeAt(now());
     command(() => target.cancelPointer(target.owner, time));
     if (!identical(target, transfer)) return;
-    emit(.cancelInput);
+    emit(.cancelInput, time: target.commandTime);
   }
 
   ProbeMenuTransfer _newMotion() {
@@ -1702,7 +1702,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     if (!_session.transfer.isClosing) {
       final time = _clock.resumeAt(_session.now());
       _session.command(() => _session.transfer.close(_lease, time));
-      _session.emit(.close);
+      _session.emit(.close, time: _session.transfer.commandTime);
     }
     closedAt = _admittedCloseTime ?? frame.time;
     _projection.update(frame.progress, .reverse);

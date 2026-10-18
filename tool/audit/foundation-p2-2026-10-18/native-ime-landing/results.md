@@ -33,3 +33,4 @@ Nothing here changes the Flutter landing policy. Under a fixed source the native
 - `landing-20261018-0{2,3}/rest-analysis.json` holds rest times, final-frame comparisons and blank-frame detections.
 - `landing-20261018-02/film-show-1-board.png` shows an accepted clip. `film-hide-1-board.png` shows the blank anchor frame.
 - The raw whole-device movies, buffer metadata and both analysis scripts stay private under `~/morph-re/measurements/menu-keyboard/` and `~/morph-re/tools/`.
+- The scripts that produced the JSON are `analyze_ime_landing_film.py` (SHA-256 `4f2c9cbb99ed5383ed557eb4d1b5b90fc4a802385ba2bd9a76762b85f6ba72b3`) and `analyze_ime_landing_rest.py` (SHA-256 `cea74b6123b36bd909dd99b9e4a8af56ac7aaf7a448de8f87958830e635216c0`).

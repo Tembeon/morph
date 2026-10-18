@@ -186,13 +186,14 @@ void main() {
             );
             await finger.up();
 
+            var closeAt = commandAt;
             if (ending == 'cover') {
               await tester.pump(frame);
               harness.nav.currentState!.pop();
               await tester.pump(frame);
+              closeAt = harness.samples.length;
               await tester.sendKeyEvent(LogicalKeyboardKey.escape);
             }
-            final closing = harness.samples.length;
             for (var i = 0; i < 1200; i++) {
               await tester.pump(frame);
               if (harness.source.currentState!.motionSettled &&
@@ -202,16 +203,20 @@ void main() {
             }
             expect(route!.disposed, isTrue);
             expect(route.handBack, isNotNull);
-            final tail = harness.samples
-                .sublist(closing)
-                .where((s) => s.sample.kind == .frame)
-                .toList();
-            expect(tail.length, greaterThan(10));
-            for (var i = 1; i < tail.length; i++) {
+            final closing = harness.samples.sublist(closeAt);
+            final close = closing.firstWhere((s) => s.sample.kind == .close);
+            final chain = [
+              close,
+              ...closing
+                  .skip(closing.indexOf(close))
+                  .where((s) => s.sample.kind == .frame),
+            ];
+            expect(chain.length, greaterThan(10));
+            for (var i = 1; i < chain.length; i++) {
               _expectWallTime(
-                tail[i - 1],
-                tail[i],
-                'closing frame $i follows the frame clock',
+                chain[i - 1],
+                chain[i],
+                'closing step $i follows the frame clock from the close',
               );
             }
           } finally {
@@ -219,6 +224,70 @@ void main() {
           }
         });
       }
+    }
+  }
+  for (final step in [
+    const Duration(microseconds: 16667),
+    const Duration(microseconds: 8333),
+  ]) {
+    for (final ending in ['escape', 'cover']) {
+      final rate = (1e6 / step.inMicroseconds).round();
+      testWidgets('$ending right after a between-frame move never precedes '
+          'it: $rate Hz', (tester) async {
+        final harness = _Harness();
+        await tester.pumpWidget(harness.app(tester));
+        await tester.tapAt(_button.center);
+        ProbeMenuRoute? route;
+        for (var i = 0; i < 400; i++) {
+          await tester.pump(step);
+          route = harness.source.currentState!.activeRoute;
+          if (route != null && harness.models.last.isSettled) break;
+        }
+        final model = harness.models.last;
+        final copy = model.menuRect.topLeft + _row(model.layout, 'Copy').center;
+        final finger = await tester.startGesture(copy);
+        await tester.pump(step);
+        await tester.pump(step);
+        final moveAt = harness.samples.length;
+        await finger.moveBy(const Offset(0, 2));
+        final move = harness.samples
+            .sublist(moveAt)
+            .lastWhere((s) => s.sample.kind == .pointer);
+        expect(
+          move.sample.time,
+          greaterThan(harness.lastFrameBefore(move).sample.time),
+          reason: 'the move advances the model past the last frame',
+        );
+        final commandAt = harness.samples.length;
+        if (ending == 'escape') {
+          await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        } else {
+          harness.nav.currentState!.push(
+            PageRouteBuilder<void>(
+              opaque: false,
+              transitionDuration: Duration.zero,
+              pageBuilder: (_, _, _) => const SizedBox.expand(),
+            ),
+          );
+        }
+        final ProbeMenuSampleKind expected = ending == 'escape'
+            ? .close
+            : .cancelInput;
+        final command = harness.samples
+            .sublist(commandAt)
+            .firstWhere((s) => s.sample.kind == expected);
+        expect(command.sample.time, greaterThanOrEqualTo(move.sample.time));
+        await finger.up();
+        if (ending == 'cover') {
+          harness.nav.currentState!.pop();
+          await tester.pump(step);
+          await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        }
+        for (var i = 0; i < 1200 && !route!.disposed; i++) {
+          await tester.pump(step);
+        }
+        expect(route!.disposed, isTrue);
+      });
     }
   }
 }
