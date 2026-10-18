@@ -325,6 +325,9 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   }
 
   @override
+  bool get projectsMotion => true;
+
+  @override
   bool leaveMotionRoute() {
     final view = _view;
     if (view == null || !view.mounted) return false;
@@ -539,10 +542,16 @@ class _SheetViewState extends State<_SheetView>
       if (_leaving && zoom.isClosed) {
         _source.reveal();
         _route.finishMotionRoute();
+      } else if (!_leaving && zoom.isOpening && zoom.isSettled) {
+        _route.reportMotionOpened();
       }
       return;
     }
-    if (_leaving && motion.isDismissed) _route.finishMotionRoute();
+    if (_leaving && motion.isDismissed) {
+      _route.finishMotionRoute();
+    } else if (!_leaving && motion.isSettled) {
+      _route.reportMotionOpened();
+    }
   }
 
   @override

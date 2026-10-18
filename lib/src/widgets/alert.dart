@@ -512,6 +512,9 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
   void motionRouteDidPop(MorphAlertAction? result) => _chosen = result;
 
   @override
+  bool get projectsMotion => true;
+
+  @override
   bool leaveMotionRoute() {
     final view = _view;
     if (view == null || !view.mounted) return false;
@@ -648,7 +651,13 @@ class _AlertViewState extends State<_AlertView>
     _press.advance(t);
     _syncOverlay();
     final gone = _alert?.isDismissed ?? _popover?.isDismissed ?? false;
-    if (_leaving && gone) _route.finishMotionRoute();
+    if (_leaving && gone) {
+      _route.finishMotionRoute();
+    } else if (!_leaving &&
+        (_alert?.isSettled ?? true) &&
+        (_popover?.isSettled ?? true)) {
+      _route.reportMotionOpened();
+    }
   }
 
   @override

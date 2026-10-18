@@ -307,7 +307,7 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction> with MorphMotionRoute
   final Rect? source
   final List<MorphAlertTextField> textFields
   final String? title
-  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, leaveMotionRoute, motionRouteDidFinish, motionRouteDidPop, motionRouteResult, reverseTransitionDuration, transitionDuration
+  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, leaveMotionRoute, motionRouteDidFinish, motionRouteDidPop, motionRouteResult, projectsMotion, reverseTransitionDuration, transitionDuration
 class MorphAlertTextField
   const MorphAlertTextField({
     String? placeholder,
@@ -2305,7 +2305,7 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T>, Gl
   final bool scrollingExpandsSheet
   final String? semanticLabel
   final MorphZoomTuning zoom
-  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, leaveMotionRoute, reverseTransitionDuration, transitionDuration
+  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, leaveMotionRoute, projectsMotion, reverseTransitionDuration, transitionDuration
 class MorphSlider extends StatefulWidget
   const MorphSlider({
     required double value,

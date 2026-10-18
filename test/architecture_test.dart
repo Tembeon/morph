@@ -71,10 +71,8 @@ const _rules = ArchitectureRules(
 /// change that removes a violation deletes its entry, and a new violation is
 /// fixed instead of listed.
 const _ratchet = <Rule, Set<String>>{
-  Rule.forbidden: {
-  },
-  Rule.dependency: {
-  },
+  Rule.forbidden: {},
+  Rule.dependency: {},
   Rule.direction: {
     'lib/src/glass/renderer/glass_shadow.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/internal/content_snapshot.dart imports lib/src/live.dart',
