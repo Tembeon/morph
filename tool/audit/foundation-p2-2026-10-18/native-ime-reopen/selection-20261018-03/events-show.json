@@ -1,0 +1,579 @@
+[
+  {
+    "button" : [
+      0,
+      0,
+      0,
+      0
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : false,
+    "kind" : "loaded",
+    "mode" : "show",
+    "presentation" : 0,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      0,
+      0,
+      0
+    ],
+    "selectionCount" : 0,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985443.92730470852,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : false,
+    "kind" : "menuTriggered",
+    "mode" : "show",
+    "presentation" : 1,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 0,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985446.2639661252,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : false,
+    "kind" : "keyboardCommandBegin",
+    "mode" : "show",
+    "presentation" : 1,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 0,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985452.56289529183,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "accepted" : true,
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "keyboardCommand",
+    "mode" : "show",
+    "presentation" : 1,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 0,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985452.69945616683,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "keyboardEnd" : [
+      0,
+      573,
+      402,
+      301
+    ],
+    "kind" : "UIKeyboardWillShowNotification",
+    "mode" : "show",
+    "presentation" : 1,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 0,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985452.74848887522,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "keyboardEnd" : [
+      0,
+      573,
+      402,
+      301
+    ],
+    "kind" : "UIKeyboardDidShowNotification",
+    "mode" : "show",
+    "presentation" : 1,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 0,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985453.14332633361,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "selected",
+    "mode" : "show",
+    "presentation" : 1,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 1,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985455.87693808356,
+    "title" : "Native first",
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "menuTriggered",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 1,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985459.23198429192,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "selected",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 2,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985462.89113387524,
+    "title" : "Native second",
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "keyboardEnd" : [
+      0,
+      874,
+      402,
+      243
+    ],
+    "kind" : "UIKeyboardWillHideNotification",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 2,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985466.16530533356,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "keyboardEnd" : [
+      0,
+      874,
+      402,
+      243
+    ],
+    "kind" : "UIKeyboardDidHideNotification",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 2,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "time" : 985466.17606579186,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "editorChanged",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 2,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "text" : "n",
+    "time" : 985466.18408879184,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "editorChanged",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 2,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "text" : "na",
+    "time" : 985466.22945470852,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "editorChanged",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 2,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "text" : "nat",
+    "time" : 985466.2330400002,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "editorChanged",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 2,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "text" : "nati",
+    "time" : 985466.23507383349,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "editorChanged",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 2,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "text" : "nativ",
+    "time" : 985466.23818370851,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  },
+  {
+    "button" : [
+      161,
+      406,
+      80,
+      48
+    ],
+    "contentSizeCategory" : "UICTContentSizeCategoryL",
+    "displayScale" : 3,
+    "fieldFocused" : true,
+    "kind" : "editorChanged",
+    "mode" : "show",
+    "presentation" : 2,
+    "reduceMotion" : false,
+    "rowCount" : 10,
+    "safeArea" : [
+      0,
+      62,
+      0,
+      34
+    ],
+    "selectionCount" : 2,
+    "sourceToken" : "B7924C6C-090E-4575-A5CA-47C70D2B0C3B",
+    "systemVersion" : "27.0.1",
+    "text" : "native",
+    "time" : 985466.24030812527,
+    "viewBounds" : [
+      0,
+      0,
+      402,
+      874
+    ]
+  }
+]

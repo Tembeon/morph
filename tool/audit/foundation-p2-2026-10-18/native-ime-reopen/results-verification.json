@@ -1,0 +1,91 @@
+{
+  "base": "20e8724fbc996d891b7c893e6342de3e1ae621c7",
+  "runs": {
+    "selection-20261018-02": {
+      "receiptExits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "snapshots": 16,
+      "screenshots": 16,
+      "analyzerExit": 0,
+      "compiledSwiftHashesMatch": true,
+      "scenes": 3,
+      "presentations": 6,
+      "selectedCallbacks": 6
+    },
+    "selection-20261018-03": {
+      "receiptExits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "snapshots": 16,
+      "screenshots": 16,
+      "analyzerExit": 0,
+      "compiledSwiftHashesMatch": true,
+      "scenes": 3,
+      "presentations": 6,
+      "selectedCallbacks": 6
+    }
+  },
+  "total": {
+    "scenes": 6,
+    "presentations": 12,
+    "selectedCallbacks": 12,
+    "snapshots": 32,
+    "screenshots": 32,
+    "unchangedRowFramePairs": 24
+  },
+  "imeMargins": [
+    {
+      "run": "selection-20261018-02",
+      "mode": "show",
+      "preCommandSeconds": 3.441398625029251,
+      "postCompletionSeconds": 1.1215452083852142
+    },
+    {
+      "run": "selection-20261018-02",
+      "mode": "hide",
+      "preCommandSeconds": 2.95386395836249,
+      "postCompletionSeconds": 1.8369269166141748
+    },
+    {
+      "run": "selection-20261018-03",
+      "mode": "show",
+      "preCommandSeconds": 3.464384999941103,
+      "postCompletionSeconds": 1.199679124983959
+    },
+    {
+      "run": "selection-20261018-03",
+      "mode": "hide",
+      "preCommandSeconds": 2.969301625038497,
+      "postCompletionSeconds": 1.7768785000080243
+    }
+  ],
+  "minimumPreCommandSeconds": 2.95386395836249,
+  "minimumPostCompletionSeconds": 1.1215452083852142,
+  "negativeSelectionTimeRejected": true,
+  "rootAnalyze": {
+    "exitCode": 0,
+    "issues": 0
+  },
+  "hostFailureTimeoutRegression": {
+    "tests": 1,
+    "cases": 2,
+    "status": "pass"
+  },
+  "mainUnchanged": true,
+  "ownerBytesUnchanged": true,
+  "coreBytesUnchanged": true,
+  "deviceLockReleased": true,
+  "opticalLanding": "unmeasured",
+  "flutterPolicy": "unchanged"
+}

@@ -110,6 +110,12 @@ Three short-menu controls and two repetitions of three ten-row-menu modes execut
 
 Snapshots bracket the actual command/completed notification with positive timing margins. A corrupted interval is rejected by the analyzer. This establishes bounded endpoint placement, not transient trajectories, optical-body equality, dismissal/landing, context-menu behavior or Flutter parity. No tuning changes follow from these endpoint observations; active geometry/IME ownership integration remains open.
 
+## Selection and fresh reopen after IME [device, 2026-10-18]
+
+Two serial ten-row none/show/hide repetitions on the same public probe yield six scenes, twelve openings and twelve selected callbacks. Each Native first / Native second selection closes the observed menu, updates count1/2 and leaves the same source hittable for reuse. Source frame/token stay fixed within each scene. Four observed row frames stay unchanged after the keyboard transition, but fresh reopen uses current IME state: first-row y410→135 for show, y135→410 for hide, y410→410 for control. One control reopen changes x by⅓pt; full reopen-frame equality is not claimed.
+
+Both show scenes record first responder at both actions/reopen and receive native through XCTest without retapping the editor. During XCTest typing, WillHide/DidHide occur with first responder retained; the typed AX keyboard exists offscreen (y891 in an874pt window). This proves input delivery, not sustained keyboard visibility. Snapshot/event ordering and a corrupted selection-time negative control pass their respective acceptance/rejection gates. Evidence: `tool/audit/foundation-p2-2026-10-18/native-ime-reopen/results.md`. Functional closed reuse does not prove optical morph landing, transient continuity, moving-source or context-menu policy. No motion tuning changes.
+
 ## Bar item menu as primary action [device, 2026-10-05]
 
 `UIBarButtonItem(menu:)` WITHOUT a primary action (probe scene `menu`, the

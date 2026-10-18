@@ -1,0 +1,320 @@
+{
+  "flow" : "selectionReopen",
+  "mode" : "show",
+  "rowCount" : 10,
+  "samples" : [
+    {
+      "editorValue" : "",
+      "endTime" : 985449.09851029189,
+      "keyboard" : null,
+      "keyboardExists" : false,
+      "phase" : "before",
+      "rows" : [
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            410,
+            250,
+            42
+          ],
+          "title" : "Native first"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            452,
+            250,
+            42
+          ],
+          "title" : "Native second"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            494,
+            250,
+            42
+          ],
+          "title" : "Native third"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            788,
+            250,
+            42
+          ],
+          "title" : "Native row 10"
+        }
+      ],
+      "selectionCount" : "0",
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "sourceHittable" : false,
+      "startTime" : 985448.38023720856
+    },
+    {
+      "editorValue" : "",
+      "endTime" : 985455.5126175835,
+      "keyboard" : [
+        0,
+        590,
+        402,
+        226
+      ],
+      "keyboardExists" : true,
+      "phase" : "after",
+      "rows" : [
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            410,
+            250,
+            42
+          ],
+          "title" : "Native first"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            452,
+            250,
+            42
+          ],
+          "title" : "Native second"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            494,
+            250,
+            42
+          ],
+          "title" : "Native third"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            788,
+            250,
+            42
+          ],
+          "title" : "Native row 10"
+        }
+      ],
+      "selectionCount" : "0",
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "sourceHittable" : false,
+      "startTime" : 985454.34300545859
+    },
+    {
+      "editorValue" : "",
+      "endTime" : 985458.90798033355,
+      "keyboard" : [
+        0,
+        590,
+        402,
+        226
+      ],
+      "keyboardExists" : true,
+      "phase" : "closed",
+      "rows" : [
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native first"
+        },
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native second"
+        },
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native third"
+        },
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native row 10"
+        }
+      ],
+      "selectionCount" : "1",
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "sourceHittable" : true,
+      "startTime" : 985458.27626262524
+    },
+    {
+      "editorValue" : "",
+      "endTime" : 985462.54408508353,
+      "keyboard" : [
+        0,
+        590,
+        402,
+        226
+      ],
+      "keyboardExists" : true,
+      "phase" : "reopened",
+      "rows" : [
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            135.00000000000006,
+            250,
+            42.000000000000028
+          ],
+          "title" : "Native first"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            177.00000000000009,
+            250,
+            42
+          ],
+          "title" : "Native second"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            219.00000000000009,
+            250,
+            41.999999999999972
+          ],
+          "title" : "Native third"
+        },
+        {
+          "exists" : true,
+          "frame" : [
+            76,
+            513,
+            250,
+            42
+          ],
+          "title" : "Native row 10"
+        }
+      ],
+      "selectionCount" : "1",
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "sourceHittable" : false,
+      "startTime" : 985461.36355816689
+    },
+    {
+      "editorValue" : "",
+      "endTime" : 985465.94259991683,
+      "keyboard" : [
+        0,
+        590,
+        402,
+        226
+      ],
+      "keyboardExists" : true,
+      "phase" : "closedAgain",
+      "rows" : [
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native first"
+        },
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native second"
+        },
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native third"
+        },
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native row 10"
+        }
+      ],
+      "selectionCount" : "2",
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "sourceHittable" : true,
+      "startTime" : 985465.30987950019
+    },
+    {
+      "editorValue" : "native",
+      "endTime" : 985467.22089654184,
+      "keyboard" : [
+        0,
+        891,
+        402,
+        226
+      ],
+      "keyboardExists" : true,
+      "phase" : "typed",
+      "rows" : [
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native first"
+        },
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native second"
+        },
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native third"
+        },
+        {
+          "exists" : false,
+          "frame" : null,
+          "title" : "Native row 10"
+        }
+      ],
+      "selectionCount" : "2",
+      "source" : [
+        161,
+        406,
+        80,
+        48
+      ],
+      "sourceHittable" : true,
+      "startTime" : 985466.63802579185
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "reviewer": "reopen_results_comments",
+  "mode": "read-only Comment Sicko",
+  "findings": 0,
+  "commentDeletions": 0,
+  "restorations": 0,
+  "encodingOffers": 0,
+  "rejectedReruns": 0,
+  "architectCommentFixes": 0,
+  "openCommentWork": 0,
+  "scopeSha256": {
+    "docs/architecture/foundation-review.md": "471d3e1beb4e6e894c54482dc234dc6d4b6d0b1f9f86d2c888c749157fdb005f",
+    "docs/architecture/foundation-sketch.md": "679ac4d6763086512f3c9b973fc9b7d402f8a43878351c60f2f2a2654085ecaf",
+    "docs/architecture/menu-native-ime.md": "2b38b7db7abce8347c1a67e2941c278a72e10fd6f40cb7b30d906911d0e1b387",
+    "docs/standalone-library-plan.md": "8138235177e8ec4c58a7e590d0fead6a7a7f9bbd21dac495f94f84ab96977924",
+    "tool/ios_reference/spec/menu-button.md": "557c6ddec609d0ba668b91da70aafe00e3ea3aec7055d328a134a707ce9454f3",
+    "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/protocol.md": "7d9723c35d989eca21262ba39e47287298888a4b8638678a539ccbafd13775a8",
+    "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/results.md": "8547dff0fddcef35b176584dfb1aa1f70a5216a2ff05c2fecdcf9b97c9b1f11d"
+  },
+  "howReviewer": "reopen_evidence_how",
+  "howReview": "how-evidence.md"
+}

@@ -32,10 +32,24 @@
 
 Не требуется вводить active keyboard retargeting только из предположения, что native menu обязано следовать за IME. Есть основание отделить выбор placement при открытии от последующей проверки source endpoint. Текущий prototype консервативно отзывает endpoint при изменении effective available rect; его показанный popup уже сохраняет прежнюю модель и placement.
 
-Эти данные не определяют право landing. Перед изменением консервативного detach нужно проверить закрытие/возврат и выбор строки после IME, сохранение editor focus, затем спроектировать границу placement snapshot и source validity. Hidden hold/reservation, реальное перемещение source и geometry loss остаются самостоятельными случаями. Контракт [viewport admission](menu-viewport.md) пока сохраняется.
+Эти данные не определяют право landing. Selection/reopen и editor focus дополнительно проверены ниже; перед изменением консервативного detach нужны оптика возврата и проектирование границы placement snapshot и source validity. Hidden hold/reservation, реальное перемещение source и geometry loss остаются самостоятельными случаями. Контракт [viewport admission](menu-viewport.md) пока сохраняется.
 
 [Отчёт и воспроизводимые команды](../../tool/audit/foundation-p2-2026-10-18/native-ime/report.md), [первый длинный прогон](../../tool/audit/foundation-p2-2026-10-18/native-ime/device4/analysis.json), [повтор](../../tool/audit/foundation-p2-2026-10-18/native-ime/device5/analysis.json).
 
-## Продолжение: selection/reopen, пока без device evidence
+## Selection, закрытие и повторное открытие после IME
 
-Подготовлен отдельный XCTest: выбор после IME, закрытие, повторное открытие той же кнопки, второй выбор и ввод в editor без повторного тапа. Native build проходит, но запуск `selection-20261018-01` остановился до сценариев при включении UI automation. Новые callbacks/focus/placement этим запуском не доказаны. Сборщик теперь исключает копирование старых app Documents после неудачного теста; failure/timeout пути проверены отдельно. [Протокол и точная команда продолжения](../../tool/audit/foundation-p2-2026-10-18/native-ime-reopen/report.md). Предыдущие выводы и conservative detach сохраняются.
+После устранения блокировки XCTest выполнены два успешных прогона none/show/hide: ещё шесть сцен с десятью строками, двенадцать открытий и двенадцать selected callbacks. В каждой сцене Native first закрывает меню, та же кнопка открывает его снова, Native second тоже закрывает меню. Оба closed snapshots содержат отсутствующие наблюдаемые строки, hittable source и счётчики1/2. Один source token и frame `(161,406,80,48)` сохраняются.
+
+| Режим | Первая строка после смены IME | После повторного открытия |
+| --- | --- | --- |
+| none | y410 | y410 |
+| show | y410 | y≈135 |
+| hide | y≈135 | y410 |
+
+При повторном открытии placement учитывает текущее состояние клавиатуры; старое открытие сохраняет наблюдаемые координаты. Это поведенческое основание для разделения placement каждого открытия и source validity, а не доказательство внутренней архитектуры UIKit. В одном control reopen x меняется на⅓pt, поэтому полное равенство frames между открытиями не заявляется.
+
+В обоих show-сценариях поле остаётся first responder на callbacks и reopen, затем получает `native` через XCTest без повторного тапа editor. Во время typeText приходят keyboard WillHide/DidHide при сохранённом first responder. У typed snapshot keyboardExists=true, но AX frame начинается наy891 вне окна874pt; снимок показывает скрытую клавиатуру. Получение ввода и focus здесь не означают постоянную видимость программной клавиатуры.
+
+Analyzer проверяет интервалы перехода и двух выборов; подменённое время selected после closed.start отклонено с exit2. Независимый how-разбор пересчитал исходные JSON. [Результаты, receipts и снимки](../../tool/audit/foundation-p2-2026-10-18/native-ime-reopen/results.md). Первый неудачный запуск и подготовка стенда сохранены в отдельном историческом отчёте.
+
+Функциональное закрытие и повторный tap не доказывают оптическую посадку или непрерывность траектории. Source не перемещалась; hidden hold/reservation и geometry loss остаются отдельными случаями. Консервативный Flutter detach этим этапом не меняется; следующий шаг — architect по placement snapshot/source validity с явным открытым optical gate.
