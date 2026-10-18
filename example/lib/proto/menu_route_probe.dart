@@ -220,30 +220,9 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
     final map = _UniformMap.read(source.getTransformTo(overlay));
     final overlayMap = _UniformMap.read(overlay.getTransformTo(null));
     if (map == null || overlayMap == null) return null;
-    final available = _availableMenuRect(
-      session.affinity.presentationView,
-      overlay.size,
-      overlayMap,
-    );
-    final tuning = session._motion.tuning;
-    final minimum = Size(
-      tuning.menuWidth,
-      tuning.rowHeight + 2 * tuning.verticalPadding,
-    );
-    if (available == null ||
-        !minimum.isFinite ||
-        minimum.isEmpty ||
-        available.width < minimum.width ||
-        available.height < minimum.height) {
-      return null;
-    }
     final button = map.rect(widget.button);
     if (!button.isFinite ||
         button.isEmpty ||
-        button.left < available.left ||
-        button.top < available.top ||
-        button.right > available.right ||
-        button.bottom > available.bottom ||
         !widget.sourceHeight.isFinite ||
         widget.sourceHeight <= 0 ||
         !widget.sourceRadius.isFinite ||
@@ -252,6 +231,18 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
         !(widget.sourceRadius * map.scale).isFinite) {
       return null;
     }
+    final tuning = session._motion.tuning;
+    final available = _admitMenuPlacement(
+      session.affinity.presentationView,
+      overlay.size,
+      overlayMap,
+      button: button,
+      minimum: Size(
+        tuning.menuWidth,
+        tuning.rowHeight + 2 * tuning.verticalPadding,
+      ),
+    );
+    if (available == null) return null;
     return _MenuGeometry(
       source,
       overlay,
@@ -582,11 +573,13 @@ class _UniformMap {
       (offset - other.offset).distance <= _geometryEpsilon;
 }
 
-Rect? _availableMenuRect(
+Rect? _admitMenuPlacement(
   ui.FlutterView view,
   Size bounds,
-  _UniformMap overlayToView,
-) {
+  _UniformMap overlayToView, {
+  required Rect button,
+  required Size minimum,
+}) {
   final ratio = view.devicePixelRatio;
   if (!ratio.isFinite ||
       ratio <= 0 ||
@@ -639,6 +632,16 @@ Rect? _availableMenuRect(
   final right = bounds.width - available.right;
   final bottom = bounds.height - available.bottom;
   if (!right.isFinite || right < 0 || !bottom.isFinite || bottom < 0) {
+    return null;
+  }
+  if (!minimum.isFinite ||
+      minimum.isEmpty ||
+      available.width < minimum.width ||
+      available.height < minimum.height ||
+      button.left < available.left ||
+      button.top < available.top ||
+      button.right > available.right ||
+      button.bottom > available.bottom) {
     return null;
   }
   return available;
@@ -792,6 +795,15 @@ class _MenuSession {
     if (_canRelayout) return true;
     loseGeometry?.call();
     return false;
+  }
+
+  _MenuGeometry? readSourcePaintGeometry() {
+    final admitted = geometry;
+    if (!checkGeometry() || admitted == null) return null;
+    if (_canRelayout && !(readGeometry?.call()?.agrees(admitted) ?? false)) {
+      return null;
+    }
+    return admitted;
   }
 
   bool admitGeometry() {
@@ -1935,12 +1947,10 @@ class _MenuPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final geometry = session.geometry;
+    _MenuGeometry? geometry;
     if (session.measured && restingButton != null) {
-      if (!session.checkGeometry() ||
-          geometry == null ||
-          (session._canRelayout &&
-              !(session.readGeometry?.call()?.agrees(geometry) ?? false))) {
+      geometry = session.readSourcePaintGeometry();
+      if (geometry == null) {
         final paint = Paint();
         paint.color = const Color(0xFF8888AA);
         final outline = morphGlassContainerOutline(

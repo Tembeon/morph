@@ -52,4 +52,4 @@
 
 Analyzer проверяет интервалы перехода и двух выборов; подменённое время selected после closed.start отклонено с exit2. Независимый how-разбор пересчитал исходные JSON. [Результаты, receipts и снимки](../../tool/audit/foundation-p2-2026-10-18/native-ime-reopen/results.md). Первый неудачный запуск и подготовка стенда сохранены в отдельном историческом отчёте.
 
-Функциональное закрытие и повторный tap не доказывают оптическую посадку или непрерывность траектории. Source не перемещалась; hidden hold/reservation и geometry loss остаются отдельными случаями. Консервативный Flutter detach этим этапом не меняется; следующий шаг — architect по placement snapshot/source validity с явным открытым optical gate.
+Функциональное закрытие и повторный tap не доказывают оптическую посадку или непрерывность траектории. Source не перемещалась; hidden hold/reservation и geometry loss остаются отдельными случаями. Консервативный Flutter detach этим этапом не меняется. Последующий [architect-разбор](menu-placement-boundary.md) выделяет расчёт placement и source paint fence без изменения combined validity; optical gate перед изменением landing остаётся открытым.
