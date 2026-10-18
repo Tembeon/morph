@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/motion.dart';
@@ -152,6 +153,7 @@ void main() {
         final source = GlobalKey<ProbeMenuSourceState>();
         final observer = _Observer();
         var samples = 0;
+        final frames = <({double time, Duration stamp, bool settled})>[];
         var appliedPointers = 0;
         var ignoredPointers = 0;
         final ignoredStreams = <int>{};
@@ -204,6 +206,14 @@ void main() {
                     }
                   }
                   _apply(reference, sample);
+                  if (sample.kind == .frame) {
+                    frames.add((
+                      time: sample.time,
+                      stamp:
+                          SchedulerBinding.instance.currentSystemFrameTimeStamp,
+                      settled: reference.isSettled,
+                    ));
+                  }
                 },
                 menuBuilder: (_) => const SizedBox.expand(),
               ),
@@ -285,6 +295,16 @@ void main() {
         expect(source.currentState!.motionSettled, isTrue);
         expect(tester.binding.transientCallbackCount, 0);
         expect(samples, greaterThan(10));
+        for (var i = 1; i < frames.length; i++) {
+          final previous = frames[i - 1];
+          if (previous.settled) continue;
+          final elapsed = (frames[i].stamp - previous.stamp).inMicroseconds;
+          expect(
+            frames[i].time - previous.time,
+            closeTo(elapsed / 1e6, 1e-4),
+            reason: 'motion frame $i follows the frame clock across owners',
+          );
+        }
         debugPrint(
           'P2_REPLAY ${jsonEncode({'recording': name, 'rate': rate, 'pointerOffsetUs': pointerOffset.inMicroseconds, 'touches': next, 'samples': samples, 'routes': observer.routes.length, 'handBacks': observer.routes.where((route) => route.handBack != null).length, 'selected': selected})}',
         );

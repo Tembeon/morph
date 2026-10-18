@@ -729,7 +729,7 @@ class _MenuSession {
         frames.value++;
         return (
           settled: !identical(transfer.owner, source) || transfer.isSettled,
-          wakeTime: null,
+          wakeTime: transfer.wakeTime,
         );
       },
     );
@@ -915,16 +915,12 @@ class _MenuSession {
     final target = _cancelAfterCommand;
     _cancelAfterCommand = null;
     if (target == null || !identical(target, transfer)) return;
-    command(() => target.cancelPointer(target.owner));
+    final route = activeRoute;
+    final clock = route != null && !route.disposed ? route._clock : sourceClock;
+    final time = clock?.resumeAt(now());
+    command(() => target.cancelPointer(target.owner, time));
     if (!identical(target, transfer)) return;
     emit(.cancelInput);
-    if (!identical(target, transfer)) return;
-    final route = activeRoute;
-    if (route != null && !route.disposed) {
-      route._clock.resumeAt(now());
-    } else {
-      sourceClock?.resumeAt(now());
-    }
   }
 
   ProbeMenuTransfer _newMotion() {
@@ -1016,17 +1012,14 @@ class _MenuSession {
     final previous = activeRoute;
     final previousClock = previous?._clock ?? sourceClock!;
     final lease = transfer.owner;
+    final time = previousClock.resumeAt(now());
     if (!pointerInput) {
-      command(() => transfer.open(lease, previousClock.time));
+      command(() => transfer.open(lease, time));
       emit(.open);
     }
     command(
-      () => transfer.transfer(
-        lease,
-        fromTime: previousClock.time,
-        to: route._lease,
-        toTime: 0,
-      ),
+      () =>
+          transfer.transfer(lease, fromTime: time, to: route._lease, toTime: 0),
     );
     previousClock.pause();
     _routes.add(route);
@@ -1706,14 +1699,13 @@ class ProbeMenuRoute extends PopupRoute<void> {
         : _MenuStage.closingPreparation;
     deferredClose = approved;
     _pushSignal.stop(canceled: false);
-    final modelClosing = _session.transfer.isClosing;
-    if (!modelClosing) {
-      _session.command(() => _session.transfer.close(_lease, _clock.time));
+    if (!_session.transfer.isClosing) {
+      final time = _clock.resumeAt(_session.now());
+      _session.command(() => _session.transfer.close(_lease, time));
       _session.emit(.close);
     }
     closedAt = _admittedCloseTime ?? frame.time;
     _projection.update(frame.progress, .reverse);
-    if (!modelClosing) _clock.resumeAt(_session.now());
   }
 
   ProbeFrameOutcome _sample(double time) {
@@ -1734,7 +1726,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     if (!_stage.value.revealed && !closing) {
       _projection.update(0, .forward);
       _session.frames.value++;
-      return (settled: settled, wakeTime: null);
+      return (settled: settled, wakeTime: _session.transfer.wakeTime);
     }
     if (closing &&
         ((_session.transfer.readyToHandBack && _session.land(this, time)) ||
@@ -1752,7 +1744,7 @@ class ProbeMenuRoute extends PopupRoute<void> {
     );
     _session.frames.value++;
     if (settled) _pushSignal.stop(canceled: false);
-    return (settled: settled, wakeTime: null);
+    return (settled: settled, wakeTime: _session.transfer.wakeTime);
   }
 
   void _relinquish() {

@@ -53,9 +53,14 @@ class ProbeMenuTransfer {
   ProbeMenuLease get owner => _owner;
 
   /// Cancels the held interaction without removing committed release work.
-  bool cancelPointer(ProbeMenuLease lease) {
+  ///
+  /// [localTime] is the owner's clock at the cancellation, or null when no
+  /// clock samples the model any longer.
+  bool cancelPointer(ProbeMenuLease lease, double? localTime) {
     if (!identical(lease, _owner)) return false;
-    _motion.pointerCancel(_motion.time);
+    _motion.pointerCancel(
+      localTime == null ? _motion.time : localTime + _offset,
+    );
     return true;
   }
 
@@ -65,6 +70,14 @@ class ProbeMenuTransfer {
 
   /// Whether the complete measured model has no remaining work.
   bool get isSettled => _motion.isSettled;
+
+  /// The owner's local time of the next pending change while a finger rests
+  /// and nothing moves, or null when the next frame changes the picture.
+  // ignore: invalid_use_of_internal_member
+  double? get wakeTime => switch (_motion.wakeTime) {
+    final due? => due - _offset,
+    null => null,
+  };
 
   /// Whether the measured opening has started.
   bool get isOpen => _motion.isOpen;
