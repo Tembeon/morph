@@ -1,0 +1,33 @@
+{
+  "base": "117d4b57730a4fea535a5032fd29bc536f9c324a",
+  "mainUnchanged": true,
+  "ownerFilesUnchanged": true,
+  "coreFilesUnchanged": true,
+  "compiledSwiftHashesMatchReceipt": true,
+  "deviceLockFree": true,
+  "nativeBuildExitCode": 0,
+  "nativeTestExecuted": false,
+  "nativeTestExitCode": -15,
+  "failedCaptureRejected": {
+    "exitCode": 2,
+    "message": "INVALID EVIDENCE: native test was not successful"
+  },
+  "staleNewEventFilesAbsent": true,
+  "pythonSyntax": "pass",
+  "hostFailureTimeoutRegression": {
+    "tests": 1,
+    "cases": 2,
+    "status": "pass",
+    "phoneContact": false
+  },
+  "flutterAnalyze": {
+    "exitCode": 0,
+    "issues": 0,
+    "sdk": "3.47.7 stable"
+  },
+  "shaderOfflineGate": {
+    "exitCode": 0,
+    "devicePerformanceClaim": false
+  },
+  "nativeSelectionBehavior": "unverified"
+}

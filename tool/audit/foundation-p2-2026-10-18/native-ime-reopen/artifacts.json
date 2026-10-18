@@ -1,0 +1,16 @@
+{
+  "docs/architecture/menu-native-ime.md": "a6554160c3c4a75cd70a4c0866bec1c3c261c6a1f79c7e67c9dca52c194be37c",
+  "docs/standalone-library-plan.md": "1b02cc3ee579ad9505990accfa78acf91ff0a7f5c5845cc191fb3fc85c34e2b5",
+  "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/analyze.py": "e7ee21f5dd56c47777d80078be38fa4d24ea6316b3e7b8a230db8ba7b8d0cb35",
+  "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/baseline.json": "5326fe8c8762cfd10cc8f38cb651223a494d53108df5e0753cdfbf60cf9d02ba",
+  "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/comment-review.json": "e64b2f85d896d83e7881390da91c09f5ddac81db40c9cfab00ef35fb4a7960e8",
+  "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/protocol.md": "0e15baaa6b038724055c4fb2b2df7ed4ab2ec43ce1cb83e72c5ab4bca2973df8",
+  "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/report.md": "1898ffdc0067a69caf745774b0cd93aff51769f4c122fc5a8f2a6cea99b30eba",
+  "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/selection-20261018-01/commands.json": "959dee4ec3e069c2fad729a486d234ca13f3bea7f575fade110d2161ba954317",
+  "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/selection-20261018-01/stale-copies.json": "8e841040efcccd9733c20038766dde9d05a5d742bc288a9e27045f6a519111bf",
+  "tool/audit/foundation-p2-2026-10-18/native-ime-reopen/verification.json": "e16a77046223b8a39e6449521f2753017b90ae13e1d9d191852aa5c76d30f0b3",
+  "tool/ios_reference/Sources/MenuKeyboard.swift": "134712080d30d11a1c4404dbcacafa09a43bbd223c55dd0eacf1a74388fe98b3",
+  "tool/ios_reference/UITests/MenuKeyboardUITests.swift": "b692bd75030663a47166d551b40a516d2685f244d3d3cf79c22af02a2b67a0e3",
+  "tool/ios_reference/lab/capture_menu_keyboard.py": "b80dd7fec22ec2d9d15c80d01c151f562654947c57c7bad4ac3a8d7620eb1dd3",
+  "tool/ios_reference/lab/tests/test_capture_menu_keyboard.py": "bd7ddb4af0efac550a30a3b516512d52cfca9c0142ce4332ddad0525c5a17340"
+}

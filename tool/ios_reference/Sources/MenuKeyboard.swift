@@ -3,6 +3,10 @@ import UIKit
 final class MenuKeyboardScene: UIViewController {
     private let field = UITextField()
     private let button = UIButton(configuration: .glass())
+    private let countLabel = UILabel()
+    private let sourceToken = UUID().uuidString
+    private var presentations = 0
+    private var selections = 0
     private var events: [[String: Any]] = []
     private var observations: [NSObjectProtocol] = []
     private let tall = ProcessInfo.processInfo.environment["PROBE_KEYBOARD_ROWS"] == "10"
@@ -16,15 +20,23 @@ final class MenuKeyboardScene: UIViewController {
         field.autocorrectionType = .no
         field.spellCheckingType = .no
         field.accessibilityIdentifier = "keyboardEditor"
+        field.addTarget(self, action: #selector(editorChanged), for: .editingChanged)
+        countLabel.text = "0"
+        countLabel.accessibilityIdentifier = "keyboardSelectionCount"
         button.setTitle("Menu", for: .normal)
         button.accessibilityIdentifier = "nativeKeyboardMenu"
         let titles = ["Native first", "Native second", "Native third"] + (tall ? (4...10).map { "Native row \($0)" } : [])
         button.menu = UIMenu(children: titles.map { title in
-            UIAction(title: title) { [weak self] _ in self?.record("selected", extra: ["title": title]) }
+            UIAction(title: title) { [weak self] _ in
+                guard let self else { return }
+                selections += 1
+                countLabel.text = String(selections)
+                record("selected", extra: ["title": title])
+            }
         })
         button.showsMenuAsPrimaryAction = true
         button.addTarget(self, action: #selector(menuTriggered), for: .menuActionTriggered)
-        for child in [field, button] {
+        for child in [field, button, countLabel] {
             child.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(child)
         }
@@ -33,6 +45,8 @@ final class MenuKeyboardScene: UIViewController {
             field.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             field.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             field.heightAnchor.constraint(equalToConstant: 40),
+            countLabel.leadingAnchor.constraint(equalTo: field.leadingAnchor),
+            countLabel.topAnchor.constraint(equalTo: field.bottomAnchor, constant: 8),
             button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             button.centerYAnchor.constraint(equalTo: view.topAnchor, constant: 430),
             button.widthAnchor.constraint(equalToConstant: 80),
@@ -53,14 +67,19 @@ final class MenuKeyboardScene: UIViewController {
     }
 
     @objc private func menuTriggered() {
+        presentations += 1
         record("menuTriggered")
-        guard mode != "none" else { return }
+        guard presentations == 1, mode != "none" else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
             guard let self else { return }
             record("keyboardCommandBegin")
             let accepted = mode == "show" ? field.becomeFirstResponder() : field.resignFirstResponder()
             record("keyboardCommand", extra: ["accepted": accepted])
         }
+    }
+
+    @objc private func editorChanged() {
+        record("editorChanged", extra: ["text": field.text ?? ""])
     }
 
     private static func rect(_ value: CGRect) -> [Double] {
@@ -70,6 +89,7 @@ final class MenuKeyboardScene: UIViewController {
     private func record(_ kind: String, extra: [String: Any] = [:]) {
         var event: [String: Any] = ["kind": kind, "time": CACurrentMediaTime(), "mode": mode,
                                     "fieldFocused": field.isFirstResponder, "button": Self.rect(button.frame), "rowCount": tall ? 10 : 3,
+                                    "sourceToken": sourceToken, "presentation": presentations, "selectionCount": selections,
                                     "systemVersion": UIDevice.current.systemVersion,
                                     "viewBounds": Self.rect(view.bounds),
                                     "safeArea": [view.safeAreaInsets.left, view.safeAreaInsets.top, view.safeAreaInsets.right, view.safeAreaInsets.bottom].map(Double.init),

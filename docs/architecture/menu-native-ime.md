@@ -35,3 +35,7 @@
 Эти данные не определяют право landing. Перед изменением консервативного detach нужно проверить закрытие/возврат и выбор строки после IME, сохранение editor focus, затем спроектировать границу placement snapshot и source validity. Hidden hold/reservation, реальное перемещение source и geometry loss остаются самостоятельными случаями. Контракт [viewport admission](menu-viewport.md) пока сохраняется.
 
 [Отчёт и воспроизводимые команды](../../tool/audit/foundation-p2-2026-10-18/native-ime/report.md), [первый длинный прогон](../../tool/audit/foundation-p2-2026-10-18/native-ime/device4/analysis.json), [повтор](../../tool/audit/foundation-p2-2026-10-18/native-ime/device5/analysis.json).
+
+## Продолжение: selection/reopen, пока без device evidence
+
+Подготовлен отдельный XCTest: выбор после IME, закрытие, повторное открытие той же кнопки, второй выбор и ввод в editor без повторного тапа. Native build проходит, но запуск `selection-20261018-01` остановился до сценариев при включении UI automation. Новые callbacks/focus/placement этим запуском не доказаны. Сборщик теперь исключает копирование старых app Documents после неудачного теста; failure/timeout пути проверены отдельно. [Протокол и точная команда продолжения](../../tool/audit/foundation-p2-2026-10-18/native-ime-reopen/report.md). Предыдущие выводы и conservative detach сохраняются.
