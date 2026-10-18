@@ -31,11 +31,6 @@
 /// {@canonicalFor theme.MorphTheme}
 library;
 
-// The motion vocabulary a custom MorphMotion is built from: re-exported
-// so apps do not need a direct motor dependency for the common cases.
-export 'package:motor/motor.dart'
-    show CupertinoMotion, CurvedMotion, MaterialSpringMotion, Motion;
-
 export 'src/flight.dart'
     show MorphContentBuilder, MorphFlight, MorphFlightEvent;
 export 'src/liquid_field.dart' show MorphMass, MorphSkinStyle;

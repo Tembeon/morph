@@ -1,7 +1,7 @@
 import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:motor/motor.dart';
+import 'package:flutter/physics.dart';
 
 import 'package:morph/src/motion.dart';
 
@@ -38,10 +38,6 @@ class MorphController extends ChangeNotifier {
     MorphMotion motion = .liquid,
     this.onHandoff,
   }) : _userMotion = motion {
-    assert(
-      motion.debugContractViolation == null,
-      motion.debugContractViolation ?? '',
-    );
     _ticker = vsync.createTicker(_tick);
   }
 
@@ -118,10 +114,6 @@ class MorphController extends ChangeNotifier {
   /// Swaps the profile; a live simulation retargets onto it with the
   /// current velocity carried over.
   set motion(MorphMotion next) {
-    assert(
-      next.debugContractViolation == null,
-      next.debugContractViolation ?? '',
-    );
     if (_userMotion == next) {
       return;
     }
@@ -217,14 +209,10 @@ class MorphController extends ChangeNotifier {
     // Each direction has its own spring; interruption continuity does
     // not suffer: the new simulation starts from the current value and
     // velocity.
-    final Motion motion = target >= 1
-        ? effectiveMotion.openMotion
-        : effectiveMotion.closeMotion;
-    _sim = motion.createSimulation(
-      start: _value,
-      end: target,
-      velocity: velocity,
-    );
+    final spring = target >= 1
+        ? effectiveMotion.openSpring
+        : effectiveMotion.closeSpring;
+    _sim = SpringSimulation(spring.description, _value, target, velocity);
     _ticker.stop();
     if (_sim!.isDone(0)) {
       _settle();

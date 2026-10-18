@@ -15,7 +15,7 @@
 /// tuning and layout types. A custom glass painter finds the surface
 /// description it shades in `package:morph/glass_painter.dart`.
 ///
-/// Everything here is built on `package:morph/foundation.dart`, motor and
+/// Everything here is built on `package:morph/foundation.dart` and
 /// the package's glass renderer; the engine never depends on this layer.
 /// The controls draw flat fills by default; [MorphGlassRenderer]
 /// installed with [MorphGlassScope] (or [MorphAdaptiveGlass], which picks

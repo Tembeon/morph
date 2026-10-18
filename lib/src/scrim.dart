@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show clampDouble;
+import 'package:flutter/physics.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -134,12 +135,12 @@ class MorphScrimChannel extends ChangeNotifier {
     final double start = running?.x(at - _simStart) ?? _value;
     final double velocity = running?.dx(at - _simStart) ?? 0;
     final MorphMotion motion = reducedMotion() ? .instant : scrim.motion;
-    final Simulation next =
-        (target >= 1 ? motion.openMotion : motion.closeMotion).createSimulation(
-          start: start,
-          end: target,
-          velocity: velocity,
-        );
+    final Simulation next = SpringSimulation(
+      (target >= 1 ? motion.openSpring : motion.closeSpring).description,
+      start,
+      target,
+      velocity,
+    );
     _target = target;
     _value = start;
     if (next.isDone(0)) {

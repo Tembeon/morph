@@ -1,5 +1,4 @@
 import 'package:flutter/physics.dart';
-import 'package:motor/motor.dart';
 
 /// A spring in UIKit's vocabulary: a response time and a damping ratio.
 ///
@@ -29,16 +28,6 @@ class MorphSpring {
   /// The physical description of this spring for a unit mass.
   SpringDescription get description =>
       SpringDescription(mass: 1, stiffness: stiffness, damping: damping);
-
-  /// This spring as a motor [Motion] with exactly this stiffness and
-  /// damping.
-  ///
-  /// The result is a [SpringMotion] over [description] rather than a
-  /// `CupertinoMotion(duration: response, bounce: 1 - dampingRatio)`:
-  /// that mapping truncates the duration to whole milliseconds and turns
-  /// a damping ratio above 1 into `1 / (2 - dampingRatio)`, so it matches
-  /// only some springs.
-  Motion toMotion() => SpringMotion(description);
 
   /// Linearly interpolates response and damping ratio between [a] and [b].
   static MorphSpring lerp(MorphSpring a, MorphSpring b, double t) =>

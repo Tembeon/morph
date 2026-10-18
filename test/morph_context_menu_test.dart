@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
@@ -1928,8 +1929,8 @@ void deviceMorph() {
       // The generic flight springs miss the same frames by several
       // percent of the travel.
       for (final MorphSpring other in <MorphSpring>[
-        MorphMotion.liquid.openSpring!,
-        MorphMotion.liquid.closeSpring!,
+        MorphMotion.liquid.openSpring,
+        MorphMotion.liquid.closeSpring,
       ]) {
         expect(
           _springFit(
@@ -1978,8 +1979,12 @@ void deviceMorph() {
 
   test('the measured close dips below its rest, so the handoff latch '
       'fires on its zero crossing', () {
-    final Simulation close = MorphContextMenuRegion.measuredMotion.closeMotion
-        .createSimulation(start: 1, end: 0);
+    final Simulation close = SpringSimulation(
+      MorphContextMenuRegion.measuredMotion.closeSpring.description,
+      1,
+      0,
+      0,
+    );
     var lowest = 1.0;
     double? crossing;
     for (int i = 1; i <= 1000; i++) {
@@ -2140,8 +2145,8 @@ void deviceMorph() {
       expect(
         _springFit(
           open,
-          response: dim.openSpring!.response,
-          damping: dim.openSpring!.dampingRatio,
+          response: dim.openSpring.response,
+          damping: dim.openSpring.dampingRatio,
         ).$1,
         lessThan(0.004),
         reason: '$name open',
@@ -2149,8 +2154,8 @@ void deviceMorph() {
       expect(
         _springFit(
           close,
-          response: dim.closeSpring!.response,
-          damping: dim.closeSpring!.dampingRatio,
+          response: dim.closeSpring.response,
+          damping: dim.closeSpring.dampingRatio,
         ).$1,
         lessThan(0.002),
         reason: '$name close',

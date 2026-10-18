@@ -1,7 +1,4 @@
 # package:morph/foundation.dart
-[package:motor] class CupertinoMotion extends SpringMotion
-[package:motor] class CurvedMotion extends Motion
-[package:motor] class MaterialSpringMotion extends SpringMotion
 typedef MorphContentBuilder = Widget Function(BuildContext, MorphFlight)
 class MorphFlight
   void abort()
@@ -54,23 +51,15 @@ sealed class MorphMass
 class MorphMotion
   const MorphMotion({
     required String name,
-    required Motion openMotion,
-    required Motion closeMotion,
+    required MorphSpring openSpring,
+    required MorphSpring closeSpring,
   })
-  const MorphMotion.springs({
-    required String name,
-    required MorphSpring open,
-    required MorphSpring close,
-  })
-  Motion get closeMotion
-  final MorphSpring? closeSpring
-  String? get debugContractViolation
+  final MorphSpring closeSpring
   static const MorphMotion glacial
   static const MorphMotion instant
   static const MorphMotion liquid
   final String name
-  Motion get openMotion
-  final MorphSpring? openSpring
+  final MorphSpring openSpring
   overrides: ==, hashCode, toString
 class MorphPresentationBoundary extends InheritedWidget
   const MorphPresentationBoundary({required Widget child, Key? key})
@@ -121,7 +110,6 @@ class MorphSpring
   double get omega
   final double response
   double get stiffness
-  Motion toMotion()
   overrides: ==, hashCode, toString
 class MorphSurfaceSpec
   const MorphSurfaceSpec({
@@ -199,7 +187,6 @@ class MorphTheme extends ThemeExtension<MorphTheme>
   final Color? shadowColor
   final MorphSkinStyle? skinStyle
   overrides: ==, copyWith, hashCode, lerp
-[package:motor] abstract class Motion
 Rect? maybeMorphAnchorRect(BuildContext context, {OverlayState? overlay})
 Rect morphAnchorRect(BuildContext context, {OverlayState? overlay})
 NavigatorState? morphPresentationNavigatorOf(BuildContext context)
@@ -222,9 +209,6 @@ MorphFlight showMorph(
 })
 
 # package:morph/widgets.dart
-class CupertinoMotion (see package:morph/foundation.dart)
-class CurvedMotion (see package:morph/foundation.dart)
-class MaterialSpringMotion (see package:morph/foundation.dart)
 class MorphActivityIndicator extends StatefulWidget
   const MorphActivityIndicator({
     bool animating = true,
@@ -2802,7 +2786,6 @@ class MorphZoomTuning
   static const MorphZoomTuning standard
   static const MorphSpring zoomInSpring
   static const MorphSpring zoomOutSpring
-class Motion (see package:morph/foundation.dart)
 function maybeMorphAnchorRect (see package:morph/foundation.dart)
 function morphAnchorRect (see package:morph/foundation.dart)
 function morphPresentationNavigatorOf (see package:morph/foundation.dart)

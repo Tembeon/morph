@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/physics.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:motor/motor.dart';
 
 import 'package:morph/foundation.dart';
 import 'package:morph/src/live.dart';
@@ -289,10 +289,10 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// overshoots and the close dips below its rest by 1.3 percent, so the
   /// handoff latch fires on the close's zero crossing and the held view
   /// lands with UIKit's own undershoot.
-  static const MorphMotion measuredMotion = MorphMotion.springs(
+  static const MorphMotion measuredMotion = MorphMotion(
     name: 'contextMenu',
-    open: measuredSpring,
-    close: measuredSpring,
+    openSpring: measuredSpring,
+    closeSpring: measuredSpring,
   );
 
   /// The spring of [measuredMotion].
@@ -315,10 +315,10 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// starting 14.5 ms after the preview on the way in and 12.5 ms on
   /// the way out, the same in both appearances.
   static const MorphScrimMotion measuredDim = MorphScrimMotion(
-    motion: MorphMotion.springs(
+    motion: MorphMotion(
       name: 'contextMenuDim',
-      open: MorphSpring(0.32, 0.80),
-      close: MorphSpring(0.35, 0.85),
+      openSpring: MorphSpring(0.32, 0.80),
+      closeSpring: MorphSpring(0.35, 0.85),
     ),
     openDelay: Duration(microseconds: 14500),
     closeDelay: Duration(microseconds: 12500),
@@ -390,10 +390,8 @@ class MorphContextMenuRegion extends StatefulWidget {
 
 class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     with TickerProviderStateMixin {
-  late final SingleMotionController _press = SingleMotionController(
-    motion: MorphFlexSpec.ultraSmall.scaleSpring.toMotion(),
+  late final AnimationController _press = AnimationController.unbounded(
     vsync: this,
-    initialValue: 0,
   );
   MorphFlexSpec _flex = MorphFlexSpec.ultraSmall;
   // The held view's scale below its natural size while its flight lands:
@@ -604,8 +602,14 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   }
 
   void _settlePress() {
-    _press.motion = _flex.scaleSpring.toMotion();
-    _press.animateTo(0);
+    _press.animateWith(
+      SpringSimulation(
+        _flex.scaleSpring.description,
+        _press.value,
+        0,
+        _press.velocity,
+      ),
+    );
   }
 
   void _drop() {

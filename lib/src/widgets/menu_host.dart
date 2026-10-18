@@ -316,10 +316,10 @@ class MorphMenuController implements MorphMenuHost {
             ),
             builder: (BuildContext context, MorphFlight flight) =>
                 MorphMenuLayer(host: this, flight: flight),
-            motion: MorphMotion.springs(
+            motion: MorphMotion(
               name: 'menu',
-              open: tuning.openSpring,
-              close: tuning.closeSpring,
+              openSpring: tuning.openSpring,
+              closeSpring: tuning.closeSpring,
             ),
             maxScrimOpacity: 0,
             onDismissRequested: close,

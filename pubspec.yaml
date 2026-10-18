@@ -17,7 +17,6 @@ dependencies:
   hooks: ^2.0.2
   material_ui: ^1.1.0
   meta: ^1.16.0
-  motor: ^1.1.0
 
 dev_dependencies:
   # Keep semantic snapshots reproducible; updates require API baseline review.
