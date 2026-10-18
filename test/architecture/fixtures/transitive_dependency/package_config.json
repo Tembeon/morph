@@ -1,0 +1,15 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "fake_shaders",
+      "rootUri": "deps/fake_shaders",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "fake_vectors",
+      "rootUri": "deps/fake_vectors",
+      "packageUri": "lib/"
+    }
+  ]
+}

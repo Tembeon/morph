@@ -1,0 +1,2 @@
+export 'src/stub.dart'
+    if (dart.library.io) 'package:material_ui/material_ui.dart';

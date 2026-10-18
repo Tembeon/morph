@@ -1,0 +1,4650 @@
+# package:morph/foundation.dart
+[package:motor] class CupertinoMotion extends SpringMotion
+[package:motor] class CurvedMotion extends Motion
+[package:motor] class MaterialSpringMotion extends SpringMotion
+class MorphAnchor extends StatefulWidget
+  const MorphAnchor({
+    Key? key,
+    required bool isOpen,
+    required void Function() onDismiss,
+    required MorphTargetSpec target,
+    required Widget Function(BuildContext) closedBuilder,
+    required Widget Function(BuildContext, MorphFlight) openBuilder,
+    Object? tagId,
+    MorphSurfaceSpec? spec,
+    ShapeBorder shape = const RoundedRectangleBorder(),
+    Color? surfaceColor,
+    double elevation = 0,
+    Widget? replica,
+    bool snapshotGhost = false,
+    MorphMotion? motion,
+    bool modal = true,
+    bool barrierDismissible = true,
+    double? maxScrimOpacity,
+    Color? scrimColor,
+    MorphScrimMotion? scrimMotion,
+    Color? shadowColor,
+    String? semanticLabel,
+    OverlayState? overlay,
+  })
+  final bool barrierDismissible
+  final Widget Function(BuildContext) closedBuilder
+  final double elevation
+  final bool isOpen
+  final double? maxScrimOpacity
+  final bool modal
+  final MorphMotion? motion
+  final void Function() onDismiss
+  final Widget Function(BuildContext, MorphFlight) openBuilder
+  final OverlayState? overlay
+  final Widget? replica
+  final Color? scrimColor
+  final MorphScrimMotion? scrimMotion
+  final String? semanticLabel
+  final Color? shadowColor
+  final ShapeBorder shape
+  final bool snapshotGhost
+  final MorphSurfaceSpec? spec
+  final Color? surfaceColor
+  final Object? tagId
+  final MorphTargetSpec target
+  overrides: createState
+typedef MorphContentBuilder = Widget Function(BuildContext, MorphFlight)
+class MorphController extends ChangeNotifier
+  MorphController({
+    required TickerProvider vsync,
+    MorphMotion motion = .liquid,
+    void Function()? onHandoff,
+  })
+  late final Animation<double> animation
+  void beginScrub()
+  void close({double? velocity})
+  bool get disableAnimations
+  set disableAnimations(bool disabled)
+  MorphMotion get effectiveMotion
+  bool get hasHandedOff
+  bool get isAnimating
+  bool get isClosing
+  bool get isScrubbing
+  bool get isShowing
+  MorphMotion get motion
+  set motion(MorphMotion next)
+  void Function()? onHandoff
+  void open({double? velocity})
+  MorphPhase get phase
+  double get progress
+  void stop()
+  double get target
+  void updateScrub(double value, {double velocity = 0})
+  double get value
+  double get velocity
+  overrides: dispose
+class MorphFlight
+  void abort()
+  Offset get appliedDragOffset
+  final bool barrierDismissible
+  void beginDrag()
+  final Widget Function(BuildContext, MorphFlight) builder
+  void close({double? velocity, Object? result})
+  Future<Object?> get closed
+  Size? get contentSize
+  late final MorphController controller
+  double get dissolveOpacity
+  void dragBy(Offset delta)
+  Offset get dragOffset
+  void endDrag(Offset velocityPerSecond, {bool? commit})
+  Stream<MorphFlightEvent> get events
+  late final Listenable frameTicks
+  late final Listenable geometryTicks
+  bool get isAirborne
+  bool get isDragArmed
+  bool get isDragging
+  bool get isFinished
+  bool get isLanding
+  bool get isOpenOrOpening
+  bool get isSourceLost
+  Rect get lastTargetRect
+  void markNeedsBuild()
+  final double maxScrimOpacity
+  Size? get measuredContentSize
+  final bool modal
+  void Function()? onDismissRequested
+  void open({double? velocity})
+  void requestDismiss()
+  final MorphScopeState scope
+  final Color scrimColor
+  final MorphScrimMotion? scrimMotion
+  double get scrimOpacity
+  double? get scrimValue
+  String? semanticLabel
+  final Color shadowColor
+  Rect get sourceRect
+  Image? get sourceSnapshot
+  final MorphTagState tag
+  Object get tagId
+  final MorphTargetSpec target
+  void toggle()
+enum MorphFlightEvent
+  launched,
+  settled,
+  closing,
+  latched,
+  landed,
+  aborted,
+class MorphFlightScope extends InheritedWidget
+  const MorphFlightScope({
+    Key? key,
+    required MorphFlight flight,
+    required Widget child,
+  })
+  final MorphFlight flight
+  static MorphFlight of(BuildContext context)
+  overrides: updateShouldNotify
+class MorphFrame
+  const MorphFrame({
+    required Rect rect,
+    required ShapeBorder shape,
+    required double? cornerRadius,
+    required double sourceOpacity,
+    required double targetOpacity,
+    required double targetScale,
+    required double scrimOpacity,
+    required double elevation,
+    required Color surfaceColor,
+  })
+  final double? cornerRadius
+  final double elevation
+  final Rect rect
+  final double scrimOpacity
+  final ShapeBorder shape
+  final double sourceOpacity
+  final Color surfaceColor
+  final double targetOpacity
+  final double targetScale
+class MorphLink
+  const MorphLink({required Object from, required Object to, double? width})
+  final Object from
+  final Object to
+  final double? width
+sealed class MorphMass
+  const MorphMass()
+  const factory MorphMass.box(Rect rect, {double radius})
+  const factory MorphMass.bridge(Offset a, Offset b, {required double radius})
+  abstract double distance(Offset p)
+  Rect get outerRect
+class MorphMotion
+  const MorphMotion({
+    required String name,
+    required Motion openMotion,
+    required Motion closeMotion,
+  })
+  const MorphMotion.springs({
+    required String name,
+    required MorphSpring open,
+    required MorphSpring close,
+  })
+  Motion get closeMotion
+  final MorphSpring? closeSpring
+  String? get debugContractViolation
+  static const MorphMotion glacial
+  static const MorphMotion instant
+  static const MorphMotion liquid
+  final String name
+  Motion get openMotion
+  final MorphSpring? openSpring
+  overrides: ==, hashCode, toString
+class MorphPageRoute<T> extends PopupRoute<T>
+  MorphPageRoute({
+    required Object from,
+    required Widget Function(BuildContext, MorphFlight) builder,
+    required MorphTargetSpec target,
+    MorphMotion? motion,
+    bool modal = true,
+    BuildContext? sourceContext,
+    bool barrierDismissible = true,
+    String? barrierLabel,
+    double maxScrimOpacity = MorphTheme.defaultMaxScrimOpacity,
+    Color scrimColor = MorphTheme.defaultScrimColor,
+    MorphScrimMotion? scrimMotion,
+    OverlayState? overlay,
+    Color shadowColor = MorphTheme.defaultShadowColor,
+    String? semanticLabel,
+    RouteSettings? settings,
+  })
+  final Widget Function(BuildContext, MorphFlight) builder
+  MorphFlight? get flight
+  final Object from
+  final double maxScrimOpacity
+  final bool modal
+  final MorphMotion? motion
+  final OverlayState? overlay
+  final Color scrimColor
+  final MorphScrimMotion? scrimMotion
+  final String? semanticLabel
+  final Color shadowColor
+  final BuildContext? sourceContext
+  final MorphTargetSpec target
+  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, didChangeNext, didPop, didPopNext, didPush, dispose, handleCancelBackGesture, handleCommitBackGesture, handleStartBackGesture, handleUpdateBackGestureProgress, transitionDuration
+enum MorphPhase
+  idle,
+  detaching,
+  travelling,
+  arriving,
+  settled,
+class MorphPiece
+  const MorphPiece({
+    required Object id,
+    required Rect rect,
+    double radius = 20,
+    bool solid = true,
+    MorphPieceChannel? channel,
+    Color? tint,
+    Widget? child,
+  })
+  const MorphPiece.morphable({
+    required Object id,
+    required Rect rect,
+    double radius = 20,
+    bool solid = true,
+    MorphPieceChannel? channel,
+    Color? tint,
+    required Widget child,
+  })
+  final MorphPieceChannel? channel
+  final Widget? child
+  final Object id
+  final bool morphable
+  final double radius
+  final Rect rect
+  final bool solid
+  final Color? tint
+class MorphPieceChannel extends ChangeNotifier
+  MorphPieceChannel()
+  Rect apply(Rect base)
+  static const double birthScale
+  static const MorphSpring birthSpring
+  bool get isIdentity
+  Offset get offset
+  void reset()
+  double get scaleX
+  double get scaleY
+  void update({Offset? offset, double? scaleX, double? scaleY})
+class MorphPresentationBoundary extends InheritedWidget
+  const MorphPresentationBoundary({required Widget child, Key? key})
+  overrides: updateShouldNotify
+class MorphScope extends StatefulWidget
+  const MorphScope({Key? key, required Widget child})
+  final Widget child
+  static MorphScopeState? maybeOf(BuildContext context)
+  static MorphScopeState of(BuildContext context)
+  overrides: createState
+class MorphScopeState extends State<MorphScope> with TickerProviderStateMixin<MorphScope>
+  MorphScopeState()
+  void closeAll({bool animate = true})
+  MorphFlight? flightOf(Object id)
+  final ValueNotifier<MorphFlight?> lastFlight
+  Iterable<MorphFlight> get liveFlights
+  overrides: build, dispose
+class MorphScrimMotion
+  const MorphScrimMotion({
+    required MorphMotion motion,
+    Duration openDelay = Duration.zero,
+    Duration closeDelay = Duration.zero,
+  })
+  final Duration closeDelay
+  final MorphMotion motion
+  final Duration openDelay
+  overrides: ==, hashCode, toString
+class MorphSharedElement extends StatefulWidget
+  const MorphSharedElement({
+    Key? key,
+    required Object id,
+    MorphSharedFade fade = .through,
+    required Widget child,
+  })
+  final Widget child
+  final MorphSharedFade fade
+  final Object id
+  overrides: createState
+enum MorphSharedFade
+  through,
+  none,
+class MorphSkin extends StatelessWidget
+  const MorphSkin({
+    Key? key,
+    required List<MorphPiece> pieces,
+    List<MorphLink> links = const <MorphLink>[],
+    List<MorphMass> extraMasses = const <MorphMass>[],
+    MorphSkinStyle? style,
+    double? blend,
+    double? cell,
+    int? smoothPasses,
+    int? evalBudget = defaultEvalBudget,
+    required Color color,
+    Gradient? gradient,
+    MorphStroke? stroke,
+    double elevation = 0,
+    Color? shadowColor,
+    Clip clipBehavior = .none,
+    FilterQuality? contentFilterQuality,
+  })
+  final double? blend
+  final double? cell
+  final Clip clipBehavior
+  final Color color
+  final FilterQuality? contentFilterQuality
+  static const int defaultEvalBudget
+  final double elevation
+  final int? evalBudget
+  final List<MorphMass> extraMasses
+  final Gradient? gradient
+  final List<MorphLink> links
+  final List<MorphPiece> pieces
+  final Color? shadowColor
+  final int? smoothPasses
+  final MorphStroke? stroke
+  final MorphSkinStyle? style
+  overrides: build
+class MorphSkinStyle
+  const MorphSkinStyle({
+    required String name,
+    required double blend,
+    double cell = 6,
+    int smoothPasses = 2,
+  })
+  final double blend
+  final double cell
+  final String name
+  final int smoothPasses
+  static const MorphSkinStyle subtle
+  static const List<MorphSkinStyle> values
+  overrides: ==, hashCode, toString
+class MorphSpring
+  const MorphSpring(double response, double dampingRatio)
+  double get damping
+  final double dampingRatio
+  SpringDescription get description
+  static MorphSpring lerp(MorphSpring a, MorphSpring b, double t)
+  double get omega
+  final double response
+  double get stiffness
+  Motion toMotion()
+  overrides: ==, hashCode, toString
+class MorphStroke
+  const MorphStroke({required Color color, double width = 1})
+  final Color color
+  final double width
+  overrides: ==, hashCode, toString
+class MorphSurfaceSpec
+  const MorphSurfaceSpec({
+    ShapeBorder shape = const RoundedRectangleBorder(),
+    Color? color,
+    double elevation = 0,
+  })
+  final Color? color
+  MorphSurfaceSpec copyWith({
+    ShapeBorder? shape,
+    Color? color,
+    double? elevation,
+  })
+  final double elevation
+  final ShapeBorder shape
+  overrides: ==, hashCode, toString
+class MorphTag extends StatefulWidget
+  const MorphTag({
+    Key? key,
+    required Object id,
+    required Widget child,
+    MorphSurfaceSpec? spec,
+    ShapeBorder shape = const RoundedRectangleBorder(),
+    Color? surfaceColor,
+    double elevation = 0,
+    Widget? replica,
+    bool snapshotGhost = false,
+  })
+  final Widget child
+  final double elevation
+  final Object id
+  static Object idOf(BuildContext context)
+  static Object? maybeIdOf(BuildContext context)
+  static MorphSurfaceSpec? maybeSpecOf(BuildContext context)
+  final Widget? replica
+  final ShapeBorder shape
+  final bool snapshotGhost
+  final MorphSurfaceSpec? spec
+  static MorphSurfaceSpec specOf(BuildContext context)
+  final Color? surfaceColor
+  overrides: createState
+class MorphTagState extends State<MorphTag>
+  MorphTagState()
+  double get elevation
+  Object get id
+  ShapeBorder get shape
+  Color? get surfaceColor
+  MorphSurfaceSpec get surfaceSpec
+  overrides: activate, build, deactivate, didChangeDependencies, didUpdateWidget, dispose
+class MorphTargetSpec
+  MorphTargetSpec({
+    required Rect Function(Size, EdgeInsets) rectFor,
+    MorphSurfaceSpec? surface,
+    ShapeBorder shape = const RoundedRectangleBorder(),
+    Color? surfaceColor,
+    double elevation = MorphTheme.defaultTargetElevation,
+    Alignment contentAlignment = Alignment.topCenter,
+    Clip clipBehavior = Clip.antiAlias,
+    Listenable? repaint,
+  })
+  factory MorphTargetSpec.dialog({
+    double width = 440,
+    double height = 360,
+    double margin = 24,
+    bool fitContent = false,
+    MorphSurfaceSpec? surface,
+    ShapeBorder? shape,
+    Color? surfaceColor,
+  })
+  factory MorphTargetSpec.fullscreen({
+    MorphSurfaceSpec? surface,
+    ShapeBorder? shape,
+    Color? surfaceColor,
+  })
+  MorphTargetSpec.measured({
+    required BoxConstraints Function(Size, EdgeInsets) constraintsFor,
+    required Rect Function(Size, EdgeInsets, Size) placeFor,
+    MorphSurfaceSpec? surface,
+    ShapeBorder shape = const RoundedRectangleBorder(),
+    Color? surfaceColor,
+    double elevation = MorphTheme.defaultTargetElevation,
+    Alignment contentAlignment = Alignment.topCenter,
+    Clip clipBehavior = Clip.antiAlias,
+    Listenable? repaint,
+  })
+  factory MorphTargetSpec.popover({
+    required Rect anchor,
+    Size size = const Size(260, 300),
+    double gap = 10,
+    double margin = 12,
+    bool fitContent = false,
+    MorphSurfaceSpec? surface,
+    ShapeBorder? shape,
+    Color? surfaceColor,
+  })
+  factory MorphTargetSpec.sheet({
+    double? height,
+    double heightFactor = 0.5,
+    double maxWidth = 560,
+    double margin = 14,
+    bool fitContent = false,
+    MorphSurfaceSpec? surface,
+    ShapeBorder? shape,
+    Color? surfaceColor,
+  })
+  MorphTargetSpec.vessel({
+    required Rect Function(Size, EdgeInsets) rectFor,
+    Listenable? repaint,
+  })
+  final Clip clipBehavior
+  final BoxConstraints Function(Size, EdgeInsets)? constraintsFor
+  Alignment get contentAlignment
+  final double elevation
+  bool get isMeasured
+  final bool isVessel
+  final Rect Function(Size, EdgeInsets, Size)? placeFor
+  final Rect Function(Size, EdgeInsets) rectFor
+  final Listenable? repaint
+  Rect resolveRect(Size overlaySize, EdgeInsets padding, Size? content)
+  final ShapeBorder shape
+  MorphSurfaceSpec get surface
+  final Color? surfaceColor
+class MorphTheme extends ThemeExtension<MorphTheme>
+  const MorphTheme({
+    MorphMotion? motion,
+    double? maxScrimOpacity,
+    Color? scrimColor,
+    Color? shadowColor,
+    MorphSkinStyle? skinStyle,
+    MorphScrimMotion? scrimMotion,
+  })
+  static const double defaultMaxScrimOpacity
+  static const Color defaultScrimColor
+  static const Color defaultShadowColor
+  static const double defaultTargetElevation
+  final double? maxScrimOpacity
+  static MorphTheme? maybeOf(BuildContext context)
+  final MorphMotion? motion
+  final Color? scrimColor
+  final MorphScrimMotion? scrimMotion
+  final Color? shadowColor
+  final MorphSkinStyle? skinStyle
+  overrides: ==, copyWith, hashCode, lerp
+[package:motor] abstract class Motion
+MorphFrame computeMorphFrame({
+  required double value,
+  required Rect sourceRect,
+  required Rect targetRect,
+  required ShapeBorder sourceShape,
+  required ShapeBorder targetShape,
+  required Color sourceColor,
+  required Color targetColor,
+  required double maxScrimOpacity,
+  double sourceElevation = 0,
+  double targetElevation = MorphTheme.defaultTargetElevation,
+})
+Rect? maybeMorphAnchorRect(BuildContext context, {OverlayState? overlay})
+Rect morphAnchorRect(BuildContext context, {OverlayState? overlay})
+double morphDragArm(double distance)
+const double morphDragCommitDistance
+const double morphDragCommitVelocity
+double morphDragRecede(double distance, {double dimension = 400})
+double morphDragScale(double recede, double arm)
+double morphDragScrimFactor(double recede, double arm)
+NavigatorState? morphPresentationNavigatorOf(BuildContext context)
+OverlayState? morphPresentationOverlayOf(BuildContext context)
+double morphProjectValue(
+  double value,
+  double velocityPerSecond, {
+  double decelerationRate = 0.998,
+})
+double morphRubberband(
+  double x, {
+  required double dimension,
+  double coefficient = 0.55,
+})
+MorphFlight showMorph(
+  BuildContext context, {
+  Object? from,
+  required MorphTargetSpec target,
+  required Widget Function(BuildContext, MorphFlight) builder,
+  MorphMotion? motion,
+  bool modal = true,
+  bool barrierDismissible = true,
+  double? maxScrimOpacity,
+  Color? scrimColor,
+  MorphScrimMotion? scrimMotion,
+  Color? shadowColor,
+  void Function()? onDismissRequested,
+  String? semanticLabel,
+  OverlayState? overlay,
+})
+MorphFlight showMorphDialogFlight(
+  BuildContext context, {
+  Object? from,
+  required Widget Function(BuildContext, MorphFlight) builder,
+  double width = 440,
+  double height = 360,
+  bool fitContent = false,
+  MorphSurfaceSpec? surface,
+  ShapeBorder? shape,
+  Color? surfaceColor,
+  MorphMotion? motion,
+  bool modal = true,
+  bool barrierDismissible = true,
+  double? maxScrimOpacity,
+  Color? scrimColor,
+  MorphScrimMotion? scrimMotion,
+  Color? shadowColor,
+  void Function()? onDismissRequested,
+  String? semanticLabel,
+  OverlayState? overlay,
+})
+Future<T?> showMorphRoute<T>(
+  BuildContext context, {
+  Object? from,
+  required Widget Function(BuildContext, MorphFlight) builder,
+  MorphTargetSpec? target,
+  MorphMotion? motion,
+  bool barrierDismissible = true,
+  bool modal = true,
+  bool useRootNavigator = false,
+  double? maxScrimOpacity,
+  Color? scrimColor,
+  MorphScrimMotion? scrimMotion,
+  OverlayState? overlay,
+  Color? shadowColor,
+  String? semanticLabel,
+})
+MorphFlight showMorphSheetFlight(
+  BuildContext context, {
+  Object? from,
+  required Widget Function(BuildContext, MorphFlight) builder,
+  double? height,
+  double heightFactor = 0.5,
+  double maxWidth = 560,
+  bool fitContent = false,
+  MorphSurfaceSpec? surface,
+  ShapeBorder? shape,
+  Color? surfaceColor,
+  MorphMotion? motion,
+  bool modal = true,
+  bool barrierDismissible = true,
+  double? maxScrimOpacity,
+  Color? scrimColor,
+  MorphScrimMotion? scrimMotion,
+  Color? shadowColor,
+  void Function()? onDismissRequested,
+  String? semanticLabel,
+  OverlayState? overlay,
+})
+double? uniformMorphRadius(ShapeBorder shape, Size size)
+
+# package:morph/widgets.dart
+class CupertinoMotion (see package:morph/foundation.dart)
+class CurvedMotion (see package:morph/foundation.dart)
+class MaterialSpringMotion (see package:morph/foundation.dart)
+class MorphActivityIndicator extends StatefulWidget
+  const MorphActivityIndicator({
+    bool animating = true,
+    bool hidesWhenStopped = true,
+    MorphActivityIndicatorSize size = MorphActivityIndicatorSize.medium,
+    Color? color,
+    MorphActivityIndicatorAppearance? appearance,
+    String? semanticLabel,
+    Key? key,
+  })
+  final bool animating
+  final MorphActivityIndicatorAppearance? appearance
+  final Color? color
+  final bool hidesWhenStopped
+  static ({double box, double inner, double outer, double width}) metrics(
+    MorphActivityIndicatorSize size,
+  )
+  final String? semanticLabel
+  final MorphActivityIndicatorSize size
+  overrides: createState
+class MorphActivityIndicatorAppearance
+  const MorphActivityIndicatorAppearance({
+    Color color = const Color(0x993C3C43),
+  })
+  final Color color
+  MorphActivityIndicatorAppearance copyWith({Color? color})
+  static const MorphActivityIndicatorAppearance dark
+  static const MorphActivityIndicatorAppearance light
+  static MorphActivityIndicatorAppearance resolve(
+    BuildContext context,
+    MorphActivityIndicatorAppearance? explicit,
+  )
+  overrides: ==, hashCode
+enum MorphActivityIndicatorSize
+  medium,
+  large,
+class MorphAdaptiveGlass extends StatefulWidget
+  const MorphAdaptiveGlass({
+    required Widget child,
+    MorphGlassRenderer renderer = const MorphGlassRenderer(),
+    MorphGlassTier? tier,
+    Key? key,
+  })
+  static const MorphGlassTier cheapTier
+  final Widget child
+  static MorphGlassDeviceClass get deviceClass
+  final MorphGlassRenderer renderer
+  final MorphGlassTier? tier
+  static MorphGlassTier tierFor(
+    MorphGlassDeviceClass deviceClass,
+    MorphGlassTier best,
+  )
+  static MorphGlassTier? tierOf(BuildContext context)
+  overrides: createState
+class MorphAlertAction
+  const MorphAlertAction({
+    required String title,
+    MorphAlertActionStyle style = MorphAlertActionStyle.normal,
+    void Function()? onPressed,
+    bool isPreferred = false,
+    bool enabled = true,
+    ValueListenable<bool>? enabledListenable,
+  })
+  final bool enabled
+  final ValueListenable<bool>? enabledListenable
+  bool get isEnabled
+  final bool isPreferred
+  final void Function()? onPressed
+  final MorphAlertActionStyle style
+  final String title
+enum MorphAlertActionStyle
+  normal,
+  cancel,
+  destructive,
+class MorphAlertAppearance
+  const MorphAlertAppearance({
+    Color platterColor = const Color(0xA1FDFDFF),
+    Color dimmingColor = const Color(0xFF000000),
+    Color shadowColor = const Color(0x24000000),
+    Color titleColor = const Color(0xFF000000),
+    Color messageColor = const Color(0x993C3C43),
+    Color buttonColor = const Color(0x1F767680),
+    Color labelColor = const Color(0xFF000000),
+    Color destructiveColor = const Color(0xFFFF383C),
+    Color preferredColor = const Color(0xFF0088FF),
+    Color preferredLabelColor = const Color(0xFFFFFFFF),
+    Color placeholderColor = const Color(0x4C3C3C43),
+    Color disabledLabelColor = const Color(0x4C3C3C43),
+  })
+  final Color buttonColor
+  MorphAlertAppearance copyWith({
+    Color? platterColor,
+    Color? dimmingColor,
+    Color? shadowColor,
+    Color? titleColor,
+    Color? messageColor,
+    Color? buttonColor,
+    Color? labelColor,
+    Color? destructiveColor,
+    Color? preferredColor,
+    Color? preferredLabelColor,
+    Color? placeholderColor,
+    Color? disabledLabelColor,
+  })
+  static const MorphAlertAppearance dark
+  static const MorphAlertAppearance darkHighContrast
+  final Color destructiveColor
+  final Color dimmingColor
+  final Color disabledLabelColor
+  final Color labelColor
+  static const MorphAlertAppearance light
+  static const MorphAlertAppearance lightHighContrast
+  final Color messageColor
+  final Color placeholderColor
+  final Color platterColor
+  final Color preferredColor
+  final Color preferredLabelColor
+  static MorphAlertAppearance resolve(
+    BuildContext context,
+    MorphAlertAppearance? explicit,
+  )
+  final Color shadowColor
+  final Color titleColor
+  overrides: ==, hashCode
+class MorphAlertRoute extends PopupRoute<MorphAlertAction> with MorphMotionRouteMixin<MorphAlertAction>, GlassBackdropCacheRoute<MorphAlertAction>
+  MorphAlertRoute({
+    String? title,
+    String? message,
+    List<MorphAlertAction> actions = const [],
+    List<MorphAlertTextField> textFields = const [],
+    MorphAlertAppearance? appearance,
+    bool actionSheet = false,
+    Rect? source,
+    RouteSettings? settings,
+  })
+  final bool actionSheet
+  final List<MorphAlertAction> actions
+  final MorphAlertAppearance? appearance
+  bool get isPopover
+  final String? message
+  final Rect? source
+  final List<MorphAlertTextField> textFields
+  final String? title
+  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, leaveMotionRoute, motionRouteDidFinish, motionRouteDidPop, motionRouteResult, reverseTransitionDuration, transitionDuration
+class MorphAlertTextField
+  const MorphAlertTextField({
+    String? placeholder,
+    TextEditingController? controller,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    void Function(String)? onChanged,
+    bool? autofocus,
+    bool autocorrect = true,
+    bool enableSuggestions = true,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    List<TextInputFormatter>? inputFormatters,
+    String? semanticLabel,
+  })
+  final bool autocorrect
+  final bool? autofocus
+  final TextEditingController? controller
+  final bool enableSuggestions
+  final List<TextInputFormatter>? inputFormatters
+  final TextInputType? keyboardType
+  final bool obscureText
+  final void Function(String)? onChanged
+  final String? placeholder
+  final String? semanticLabel
+  final TextCapitalization textCapitalization
+class MorphAnchor (see package:morph/foundation.dart)
+enum MorphBackButtonDisplayMode
+  standard,
+  generic,
+  minimal,
+class MorphBadge
+  const MorphBadge.count(
+    int count, {
+    Color? foregroundColor,
+    Color? backgroundColor,
+  })
+  const MorphBadge.indicator({Color? backgroundColor})
+  const MorphBadge.string(
+    String text, {
+    Color? foregroundColor,
+    Color? backgroundColor,
+  })
+  final Color? backgroundColor
+  final int? count
+  static const Color defaultBackgroundColor
+  static const Color defaultForegroundColor
+  final Color? foregroundColor
+  String? get label
+  final String? text
+  bool get visible
+  overrides: ==, hashCode
+class MorphBarAppearance
+  const MorphBarAppearance({
+    Color capsuleColor = const Color(0xD9FFFFFF),
+    Color rimColor = const Color(0x1F000000),
+    Color shadowColor = const Color(0x1A000000),
+    Color foregroundColor = const Color(0xFF000000),
+    Color prominentColor = const Color(0xFF007AFF),
+    Color prominentForegroundColor = const Color(0xFFFFFFFF),
+    Color titleColor = const Color(0xFF000000),
+    Color subtitleColor = const Color(0x993C3C43),
+    Color disabledIconColor = const Color(0x55000000),
+    Color disabledLabelColor = const Color(0x19000000),
+    Color disabledProminentColor = const Color(0xFFD1D1D6),
+  })
+  final Color capsuleColor
+  MorphBarAppearance copyWith({
+    Color? capsuleColor,
+    Color? rimColor,
+    Color? shadowColor,
+    Color? foregroundColor,
+    Color? prominentColor,
+    Color? prominentForegroundColor,
+    Color? titleColor,
+    Color? subtitleColor,
+    Color? disabledIconColor,
+    Color? disabledLabelColor,
+    Color? disabledProminentColor,
+  })
+  static const MorphBarAppearance dark
+  final Color disabledIconColor
+  final Color disabledLabelColor
+  final Color disabledProminentColor
+  final Color foregroundColor
+  static const MorphBarAppearance light
+  final Color prominentColor
+  final Color prominentForegroundColor
+  static MorphBarAppearance resolve(
+    BuildContext context,
+    MorphBarAppearance? explicit,
+  )
+  final Color rimColor
+  final Color shadowColor
+  final Color subtitleColor
+  final Color titleColor
+  overrides: ==, hashCode
+class MorphBarButton
+  const MorphBarButton({
+    required Object id,
+    String? label,
+    Widget? icon,
+    void Function()? onPressed,
+    String? semanticLabel,
+    List<MorphMenuEntry>? menu,
+    bool enabled = true,
+    MorphBadge? badge,
+  })
+  const MorphBarButton.back({
+    String? label,
+    void Function()? onPressed,
+    String? semanticLabel,
+    List<MorphMenuEntry>? menu,
+    bool enabled = true,
+    Object id = 'morph.back',
+  })
+  final bool back
+  final MorphBadge? badge
+  final bool enabled
+  final Widget? icon
+  final Object id
+  bool get interactive
+  final String? label
+  final List<MorphMenuEntry>? menu
+  final void Function()? onPressed
+  bool get opensMenuOnTap
+  final String? semanticLabel
+  overrides: ==, hashCode
+class MorphBarButtonGroup
+  const MorphBarButtonGroup(
+    List<MorphBarButton> buttons, {
+    Object? id,
+    MorphBarButtonStyle style = MorphBarButtonStyle.plain,
+  })
+  final List<MorphBarButton> buttons
+  final Object? id
+  final MorphBarButtonStyle style
+  overrides: ==, hashCode
+enum MorphBarButtonStyle
+  plain,
+  prominent,
+class MorphBarMenuTuning
+  const MorphBarMenuTuning({
+    double recognition = 0.4,
+    double open = 0.595,
+    MorphMenuTuning menu = measuredMenu,
+  })
+  static const MorphMenuTuning measuredMenu
+  final MorphMenuTuning menu
+  final double open
+  final double recognition
+  static const MorphBarMenuTuning standard
+  overrides: ==, hashCode
+class MorphBarMetrics
+  const MorphBarMetrics({
+    required double capsuleHeight,
+    required double buttonHeight,
+    required double capsulePadding,
+    required double buttonGap,
+    required double labelPadding,
+    required double iconPadding,
+    required double minButtonWidth,
+    double groupGap = 12,
+    double containerSpacing = 12,
+    double iconSize = 24,
+    double fontSize = 17,
+    double backChevronInset = 12,
+    double backChevronWidth = 16.33,
+    double backChevronGap = 6,
+    double backTrailingPadding = 17,
+    double backChevronHeight = 23,
+  })
+  final double backChevronGap
+  final double backChevronHeight
+  final double backChevronInset
+  final double backChevronWidth
+  final double backTrailingPadding
+  final double buttonGap
+  final double buttonHeight
+  final double capsuleHeight
+  final double capsulePadding
+  final double containerSpacing
+  final double fontSize
+  final double groupGap
+  final double iconPadding
+  final double iconSize
+  final double labelPadding
+  static const double lineHeight
+  static const double maxTextScale
+  final double minButtonWidth
+  static const MorphBarMetrics navigation
+  static const MorphBarMetrics toolbar
+  overrides: ==, hashCode
+typedef MorphContentBuilder (see package:morph/foundation.dart)
+class MorphContentScroll
+  MorphContentScroll()
+  bool handle(ScrollNotification notification)
+class MorphContentScrollScope extends StatefulWidget
+  const MorphContentScrollScope({
+    required Widget child,
+    MorphContentScroll? scroll,
+    Key? key,
+  })
+  final Widget child
+  static MorphContentScroll? maybeOf(BuildContext context)
+  final MorphContentScroll? scroll
+  overrides: createState
+class MorphContextMenuRegion extends StatefulWidget
+  const MorphContextMenuRegion({
+    Key? key,
+    required Widget child,
+    List<MorphMenuEntry> menu = const <MorphMenuEntry>[],
+    MorphSatellite? accessory,
+    MorphMenuOrder order = MorphMenuOrder.automatic,
+    bool? dismissOnSelect,
+    MorphMenuAppearance? appearance,
+    Widget? replica,
+    Widget Function(BuildContext)? preview,
+    Size? previewSize,
+    void Function()? onPreviewTap,
+    Duration holdDuration = measuredHoldDuration,
+    bool lifts = true,
+    bool enabled = true,
+    bool opensOnSecondaryTap = true,
+    Object? tagId,
+    double? maxScrimOpacity,
+    Color? scrimColor,
+    MorphScrimMotion? scrimMotion,
+    OverlayState? overlay,
+    String? semanticLabel,
+    void Function()? onHold,
+    void Function(MorphFlight)? onOpen,
+    void Function()? onClose,
+  })
+  final MorphSatellite? accessory
+  final MorphMenuAppearance? appearance
+  final Widget child
+  static void close(BuildContext context)
+  final bool? dismissOnSelect
+  final bool enabled
+  final Duration holdDuration
+  final bool lifts
+  final double? maxScrimOpacity
+  static const Duration measuredCommitDuration
+  static const MorphScrimMotion measuredDim
+  static double measuredDimOpacity(Brightness brightness)
+  static const Duration measuredHoldDuration
+  static double measuredHoldGrowth(Duration held)
+  static const double measuredHoldGrowthPoints
+  static const double measuredLiftPoints
+  static const double measuredLiftScale
+  static const double measuredMenuGap
+  static const MorphMotion measuredMotion
+  static double measuredPreviewScale(Size size)
+  static const double measuredRetractScale
+  static const MorphSpring measuredSpring
+  final List<MorphMenuEntry> menu
+  final void Function()? onClose
+  final void Function()? onHold
+  final void Function(MorphFlight)? onOpen
+  final void Function()? onPreviewTap
+  static MorphFlight open(BuildContext context)
+  final bool opensOnSecondaryTap
+  final MorphMenuOrder order
+  final OverlayState? overlay
+  final Widget Function(BuildContext)? preview
+  final Size? previewSize
+  final Widget? replica
+  final Color? scrimColor
+  final MorphScrimMotion? scrimMotion
+  final String? semanticLabel
+  final Object? tagId
+  overrides: createState
+class MorphController (see package:morph/foundation.dart)
+class MorphDatePicker extends StatefulWidget
+  const MorphDatePicker({
+    required DateTime value,
+    required void Function(DateTime)? onChanged,
+    MorphDatePickerMode mode = MorphDatePickerMode.date,
+    MorphDatePickerStyle style = MorphDatePickerStyle.compact,
+    int minuteInterval = 1,
+    DateTime? minimumDate,
+    DateTime? maximumDate,
+    bool? use24HourFormat,
+    int firstDayOfWeek = DateTime.sunday,
+    DateTime? today,
+    MorphDatePickerAppearance? appearance,
+    String? semanticLabel,
+    MorphDatePickerLocalizations localizations = const MorphDatePickerLocalizations(),
+    Key? key,
+  })
+  final MorphDatePickerAppearance? appearance
+  final int firstDayOfWeek
+  final MorphDatePickerLocalizations localizations
+  final DateTime? maximumDate
+  final DateTime? minimumDate
+  final int minuteInterval
+  final MorphDatePickerMode mode
+  final void Function(DateTime)? onChanged
+  final String? semanticLabel
+  final MorphDatePickerStyle style
+  final DateTime? today
+  final bool? use24HourFormat
+  final DateTime value
+  overrides: createState
+class MorphDatePickerAppearance
+  const MorphDatePickerAppearance({
+    Color labelFillColor = const Color(0x1F767680),
+    Color labelColor = const Color(0xFF000000),
+    Color accentColor = const Color(0xFF0088FF),
+    Color platterColor = const Color(0xF2F9F9FF),
+    Color shadowColor = const Color(0x24000000),
+    Color titleColor = const Color(0xFF000000),
+    Color weekdayColor = const Color(0x993C3C43),
+    Color dayColor = const Color(0xFF000000),
+    Color todayFillColor = const Color(0x1F0088FF),
+    Color selectedDayColor = const Color(0xFFFFFFFF),
+    Color selectedDayFillColor = const Color(0xFF000000),
+    Color selectedDayTextColor = const Color(0xFFFFFFFF),
+    Color chevronColor = const Color(0xFF000000),
+    Color wheelBandColor = const Color(0x1F767680),
+    Color wheelColor = const Color(0xFF000000),
+    double wheelFadedOpacity = 0.4,
+    double unavailableDayOpacity = 0.35,
+  })
+  final Color accentColor
+  final Color chevronColor
+  MorphDatePickerAppearance copyWith({
+    Color? labelFillColor,
+    Color? labelColor,
+    Color? accentColor,
+    Color? platterColor,
+    Color? shadowColor,
+    Color? titleColor,
+    Color? weekdayColor,
+    Color? dayColor,
+    Color? todayFillColor,
+    Color? selectedDayColor,
+    Color? selectedDayFillColor,
+    Color? selectedDayTextColor,
+    Color? chevronColor,
+    Color? wheelBandColor,
+    Color? wheelColor,
+    double? wheelFadedOpacity,
+    double? unavailableDayOpacity,
+  })
+  static const MorphDatePickerAppearance dark
+  static const MorphDatePickerAppearance darkHighContrast
+  final Color dayColor
+  final Color labelColor
+  final Color labelFillColor
+  static const MorphDatePickerAppearance light
+  static const MorphDatePickerAppearance lightHighContrast
+  final Color platterColor
+  static MorphDatePickerAppearance resolve(
+    BuildContext context,
+    MorphDatePickerAppearance? explicit,
+  )
+  final Color selectedDayColor
+  final Color selectedDayFillColor
+  final Color selectedDayTextColor
+  final Color shadowColor
+  final Color titleColor
+  final Color todayFillColor
+  final double unavailableDayOpacity
+  final Color weekdayColor
+  final Color wheelBandColor
+  final Color wheelColor
+  final double wheelFadedOpacity
+  overrides: ==, hashCode
+class MorphDatePickerLocalizations
+  const MorphDatePickerLocalizations({
+    String Function(DateTime)? dateFormatter,
+    String Function(DateTime)? timeFormatter,
+    String Function(String)? localize,
+    String Function(DateTime)? calendarTitleFormatter,
+    String Function(DateTime)? daySemanticFormatter,
+    String Function(int)? numberFormatter,
+  })
+  final String Function(DateTime)? calendarTitleFormatter
+  final String Function(DateTime)? dateFormatter
+  final String Function(DateTime)? daySemanticFormatter
+  final String Function(String)? localize
+  final String Function(int)? numberFormatter
+  final String Function(DateTime)? timeFormatter
+  overrides: ==, hashCode
+enum MorphDatePickerMode
+  date,
+  time,
+  dateAndTime,
+enum MorphDatePickerStyle
+  compact,
+  inline,
+  wheels,
+class MorphFlight (see package:morph/foundation.dart)
+enum MorphFlightEvent (see package:morph/foundation.dart)
+class MorphFlightScope (see package:morph/foundation.dart)
+class MorphFrame (see package:morph/foundation.dart)
+class MorphGlassButton extends StatefulWidget
+  const MorphGlassButton({
+    required Widget child,
+    required void Function()? onPressed,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+    Size minSize = const Size(44, 44),
+    MorphGlassButtonAppearance? appearance,
+    List<MorphMenuEntry>? menu,
+    bool enabled = true,
+    Key? key,
+  })
+  const MorphGlassButton.clear({
+    required Widget child,
+    required void Function()? onPressed,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+    Size minSize = const Size(44, 44),
+    MorphGlassButtonAppearance? appearance,
+    List<MorphMenuEntry>? menu,
+    bool enabled = true,
+    Key? key,
+  })
+  const MorphGlassButton.prominent({
+    required Widget child,
+    required void Function()? onPressed,
+    Color? tint,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+    Size minSize = const Size(44, 44),
+    MorphGlassButtonAppearance? appearance,
+    List<MorphMenuEntry>? menu,
+    bool enabled = true,
+    Key? key,
+  })
+  const MorphGlassButton.prominentClear({
+    required Widget child,
+    required void Function()? onPressed,
+    Color? tint,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+    Size minSize = const Size(44, 44),
+    MorphGlassButtonAppearance? appearance,
+    List<MorphMenuEntry>? menu,
+    bool enabled = true,
+    Key? key,
+  })
+  final MorphGlassButtonAppearance? appearance
+  final Widget child
+  final bool enabled
+  final List<MorphMenuEntry>? menu
+  final Size minSize
+  final void Function()? onPressed
+  final EdgeInsetsGeometry padding
+  final bool prominent
+  final MorphGlassStyle style
+  final Color? tint
+  overrides: createState
+class MorphGlassButtonAppearance
+  const MorphGlassButtonAppearance({
+    Color fillColor = const Color(0xD9FFFFFF),
+    Color clearFillColor = const Color(0x40FFFFFF),
+    Color rimColor = const Color(0x1F000000),
+    Color prominentColor = const Color(0xFF0088FF),
+    Color prominentRimColor = const Color(0x33FFFFFF),
+    Color foregroundColor = const Color(0xFF000000),
+    Color prominentForegroundColor = const Color(0xFFFFFFFF),
+    Color shadowColor = const Color(0x1A000000),
+    Color disabledForegroundColor = const Color(0x4C3C3C43),
+    Color disabledTintColor = const Color(0xFFD1D1D6),
+  })
+  final Color clearFillColor
+  MorphGlassButtonAppearance copyWith({
+    Color? fillColor,
+    Color? clearFillColor,
+    Color? rimColor,
+    Color? prominentColor,
+    Color? prominentRimColor,
+    Color? foregroundColor,
+    Color? prominentForegroundColor,
+    Color? shadowColor,
+    Color? disabledForegroundColor,
+    Color? disabledTintColor,
+  })
+  static const MorphGlassButtonAppearance dark
+  final Color disabledForegroundColor
+  final Color disabledTintColor
+  final Color fillColor
+  final Color foregroundColor
+  static const MorphGlassButtonAppearance light
+  final Color prominentColor
+  final Color prominentForegroundColor
+  final Color prominentRimColor
+  static MorphGlassButtonAppearance resolve(
+    BuildContext context,
+    MorphGlassButtonAppearance? explicit,
+  )
+  final Color rimColor
+  final Color shadowColor
+  overrides: ==, hashCode
+class MorphGlassCensus
+  const MorphGlassCensus({
+    required int filters,
+    required int captures,
+    required Map<String, int> owners,
+    required List<MorphGlassHint> hints,
+  })
+  final int captures
+  static const MorphGlassCensus empty
+  final int filters
+  final List<MorphGlassHint> hints
+  final Map<String, int> owners
+class MorphGlassContainer extends StatefulWidget
+  const MorphGlassContainer({
+    required Widget child,
+    Color? solidBackdrop,
+    Key? key,
+  })
+  final Widget child
+  final Color? solidBackdrop
+  overrides: createState
+enum MorphGlassDeviceClass
+  capable,
+  gles,
+  appleBeforeA13,
+  skia,
+  unknown,
+class MorphGlassEffect extends StatefulWidget
+  const MorphGlassEffect({
+    required Widget child,
+    ShapeBorder shape = const StadiumBorder(),
+    MorphGlassStyle style = MorphGlassStyle.regular,
+    Color? tint,
+    bool interactive = false,
+    MorphGlassButtonAppearance? appearance,
+    Key? key,
+  })
+  final MorphGlassButtonAppearance? appearance
+  final Widget child
+  final bool interactive
+  final ShapeBorder shape
+  final MorphGlassStyle style
+  final Color? tint
+  overrides: createState
+class MorphGlassHint
+  const MorphGlassHint({
+    required int layers,
+    required String where,
+    String? keptOutBy,
+  })
+  final String? keptOutBy
+  final int layers
+  String get message
+  int get saves
+  final String where
+  overrides: toString
+class MorphGlassInspector extends StatefulWidget
+  const MorphGlassInspector({
+    required Widget child,
+    bool enabled = true,
+    AlignmentGeometry alignment = AlignmentDirectional.bottomStart,
+    Key? key,
+  })
+  final AlignmentGeometry alignment
+  static MorphGlassCensus census()
+  final Widget child
+  final bool enabled
+  overrides: createState
+enum MorphGlassMaterial
+  regular,
+  toolbar,
+  clear,
+abstract class MorphGlassPainter
+  const MorphGlassPainter()
+  Widget buildBody(
+    BuildContext context,
+    MorphGlassOutline outline,
+    List<MorphGlassSurface> surfaces,
+  )
+  Widget buildFill(BuildContext context, MorphGlassSurface surface)
+  Widget buildGlow(BuildContext context, MorphGlassSurface surface)
+  Widget buildLayer(
+    BuildContext context,
+    List<MorphGlassSurface> surfaces, {
+    Widget? content,
+    List<Rect> contentSlots = const [],
+    double spacing = 0,
+    MorphGlassOutline? outline,
+  })
+  abstract Widget buildSurface(BuildContext context, MorphGlassSurface surface)
+class MorphGlassRenderer extends MorphGlassPainter
+  const MorphGlassRenderer({
+    MorphGlassTier tier = MorphGlassTier.liquid,
+    MorphGlassMaterial material = MorphGlassMaterial.regular,
+    double blur = 1,
+    double refraction = 1,
+    double light = 1,
+    double tint = 0,
+    bool frostControls = false,
+  })
+  static MorphGlassTier get bestTier
+  final double blur
+  MorphGlassRenderer copyWith({
+    MorphGlassTier? tier,
+    MorphGlassMaterial? material,
+    double? blur,
+    double? refraction,
+    double? light,
+    double? tint,
+    bool? frostControls,
+  })
+  MorphGlassTier get effectiveTier
+  static bool floats(MorphGlassKind kind)
+  final bool frostControls
+  static double glassness(MorphGlassSurface surface)
+  static const double lensDispersion
+  static const double lensRefraction
+  static const double lensShrinkRim
+  static ({double magnification, double rim, double shrink}) liftedOptics(
+    MorphGlassKind kind, {
+    required bool overBar,
+  })
+  final double light
+  static bool get liquidAvailable
+  static String? get liquidUnavailableReason
+  final MorphGlassMaterial material
+  static Future<void> precache()
+  final double refraction
+  static const double restingLift
+  static const double segmentedMagnification
+  static const double segmentedShrink
+  static const double switchKnobShrink
+  static const double tabBarMagnification
+  static const double tabBarShrink
+  static const double tabBarShrinkRim
+  final MorphGlassTier tier
+  final double tint
+  overrides: ==, buildBody, buildLayer, buildSurface, hashCode
+class MorphGlassScope extends InheritedTheme
+  const MorphGlassScope({
+    required MorphGlassPainter painter,
+    required Widget child,
+    Key? key,
+  })
+  static MorphGlassPainter? maybeOf(BuildContext context)
+  final MorphGlassPainter painter
+  overrides: updateShouldNotify, wrap
+enum MorphGlassStyle
+  regular,
+  clear,
+enum MorphGlassTier
+  flat,
+  fake,
+  liquid,
+class MorphLargeTitle extends StatelessWidget
+  const MorphLargeTitle(
+    String title, {
+    String? subtitle,
+    MorphBarAppearance? appearance,
+    Key? key,
+  })
+  final MorphBarAppearance? appearance
+  static double extentFor({required bool subtitle})
+  final String? subtitle
+  final String title
+  overrides: build
+enum MorphLargeTitleDisplayMode
+  automatic,
+  always,
+  never,
+class MorphLargeTitleScrollPhysics extends ScrollPhysics
+  const MorphLargeTitleScrollPhysics({
+    double collapseExtent = MorphNavigationBarMetrics.largeTitleHeight,
+    ScrollPhysics? parent,
+  })
+  final double collapseExtent
+  static const MorphSpring snapSpring
+  overrides: applyTo, createBallisticSimulation
+class MorphLink (see package:morph/foundation.dart)
+enum MorphListAccessory
+  disclosureIndicator,
+  checkmark,
+  detailButton,
+  detailDisclosureButton,
+class MorphListAppearance
+  const MorphListAppearance({
+    Color backgroundColor = const Color(0xFFF2F2F7),
+    Color cellColor = const Color(0xFFFFFFFF),
+    Color highlightColor = const Color(0xFFD1D1D6),
+    Color separatorColor = const Color(0x1F3C3C43),
+    Color titleColor = const Color(0xFF000000),
+    Color secondaryColor = const Color(0x993C3C43),
+    Color chevronColor = const Color(0x4C3C3C43),
+    Color iconColor = const Color(0xFF0088FF),
+  })
+  final Color backgroundColor
+  final Color cellColor
+  final Color chevronColor
+  MorphListAppearance copyWith({
+    Color? backgroundColor,
+    Color? cellColor,
+    Color? highlightColor,
+    Color? separatorColor,
+    Color? titleColor,
+    Color? secondaryColor,
+    Color? chevronColor,
+    Color? iconColor,
+  })
+  static const MorphListAppearance dark
+  final Color highlightColor
+  final Color iconColor
+  static const MorphListAppearance light
+  static MorphListAppearance resolve(
+    BuildContext context,
+    MorphListAppearance? explicit,
+  )
+  final Color secondaryColor
+  final Color separatorColor
+  final Color titleColor
+  overrides: ==, hashCode
+class MorphListBackground extends StatelessWidget
+  const MorphListBackground({
+    MorphListAppearance? appearance,
+    Widget? child,
+    Key? key,
+  })
+  final MorphListAppearance? appearance
+  final Widget? child
+  overrides: build
+abstract final class MorphListMetrics
+  MorphListMetrics()
+  static const double accessoryInset
+  static const Size chevronSize
+  static const double contentInset
+  static const double cornerRadius
+  static const double footerBottom
+  static const double footerTop
+  static const double gap
+  static const double headerBottom
+  static const double headerTop
+  static const double leadingGap
+  static const double leadingIconSize
+  static const double leadingWidth
+  static const double minRowHeight
+  static const double noFooterBottom
+  static const double noHeaderTop
+  static const double rowPadding
+  static const double sectionInset
+  static const double separatorThickness
+class MorphListRow extends StatefulWidget
+  const MorphListRow({
+    Widget? title,
+    Widget? subtitle,
+    Widget? detail,
+    Widget? leading,
+    Widget? trailing,
+    MorphListAccessory? accessory,
+    void Function()? onAccessoryTap,
+    Widget? child,
+    void Function()? onTap,
+    bool enabled = true,
+    MorphListAppearance? appearance,
+    Key? key,
+  })
+  final MorphListAccessory? accessory
+  final MorphListAppearance? appearance
+  final Widget? child
+  final Widget? detail
+  final bool enabled
+  final Widget? leading
+  final void Function()? onAccessoryTap
+  final void Function()? onTap
+  final Widget? subtitle
+  final Widget? title
+  final Widget? trailing
+  overrides: createState
+class MorphListSection extends StatelessWidget
+  const MorphListSection({
+    required List<Widget> children,
+    Widget? header,
+    Widget? footer,
+    MorphListAppearance? appearance,
+    Key? key,
+  })
+  final MorphListAppearance? appearance
+  final List<Widget> children
+  final Widget? footer
+  final Widget? header
+  overrides: build
+class MorphMass (see package:morph/foundation.dart)
+class MorphMenuAppearance
+  const MorphMenuAppearance({
+    Color glassColor = const Color(0xF2F9F9FF),
+    Color shadowColor = const Color(0x33000000),
+    double shadowElevation = 12,
+    TextStyle textStyle = const TextStyle(fontSize: 17, color: Color(0xF5000000)),
+    Color iconColor = const Color(0xF5000000),
+    Color disabledIconColor = const Color(0x4C3C3C43),
+    double iconSize = MorphMenuTuning.rowIconSize,
+    Color destructiveColor = const Color(0xFFFF383C),
+    Color highlightColor = const Color(0x1F000000),
+    Color glowColor = const Color(0xFFFFFFFF),
+    Color secondaryColor = const Color(0x993C3C43),
+    Color disabledColor = const Color(0x4C3C3C43),
+    Color separatorColor = const Color(0x14000000),
+    Color submenuColor = const Color(0x66FFFFFF),
+    Color glassTint = const Color(0x00000000),
+    Color submenuRimColor = const Color(0xFFFFFFFF),
+    Color submenuShadowColor = const Color(0x1E000000),
+    Color paletteSelectionColor = const Color(0x10000000),
+  })
+  MorphMenuAppearance copyWith({
+    Color? glassColor,
+    Color? shadowColor,
+    double? shadowElevation,
+    TextStyle? textStyle,
+    Color? iconColor,
+    Color? disabledIconColor,
+    double? iconSize,
+    Color? destructiveColor,
+    Color? highlightColor,
+    Color? glowColor,
+    Color? secondaryColor,
+    Color? disabledColor,
+    Color? separatorColor,
+    Color? submenuColor,
+    Color? glassTint,
+    Color? submenuRimColor,
+    Color? submenuShadowColor,
+    Color? paletteSelectionColor,
+  })
+  static const MorphMenuAppearance dark
+  final Color destructiveColor
+  final Color disabledColor
+  final Color disabledIconColor
+  final Color glassColor
+  final Color glassTint
+  final Color glowColor
+  final Color highlightColor
+  final Color iconColor
+  final double iconSize
+  static const MorphMenuAppearance light
+  final Color paletteSelectionColor
+  static MorphMenuAppearance resolve(
+    BuildContext context,
+    MorphMenuAppearance? explicit,
+  )
+  final Color secondaryColor
+  final Color separatorColor
+  final Color shadowColor
+  final double shadowElevation
+  final Color submenuColor
+  final Color submenuRimColor
+  final Color submenuShadowColor
+  final TextStyle textStyle
+  overrides: ==, hashCode
+class MorphMenuButton extends _MorphMenuSourceWidget
+  const MorphMenuButton({
+    required List<MorphMenuEntry> menu,
+    Widget? child,
+    double size = MorphMenuTuning.buttonDiameter,
+    MorphMenuAppearance? appearance,
+    MorphMenuTuning tuning = MorphMenuTuning.standard,
+    OverlayState? overlay,
+    String? semanticLabel,
+    void Function(MorphFlight)? onOpen,
+    bool enabled = true,
+    MorphMenuOrder order = MorphMenuOrder.automatic,
+    bool? dismissOnSelect,
+    Key? key,
+  })
+  final Widget? child
+  final double size
+class MorphMenuDeferred extends MorphMenuEntry
+  const MorphMenuDeferred(
+    Future<List<MorphMenuEntry>> Function() load, {
+    bool cache = true,
+    Object? id,
+    String loadingTitle = 'Loading...',
+  })
+  final bool cache
+  Object get cacheKey
+  final Object? id
+  final Future<List<MorphMenuEntry>> Function() load
+  final String loadingTitle
+class MorphMenuDivider extends MorphMenuEntry
+  const MorphMenuDivider()
+enum MorphMenuElementSize
+  small,
+  medium,
+  large,
+  automatic,
+sealed class MorphMenuEntry
+  const MorphMenuEntry()
+enum MorphMenuIconVisibility
+  automatic,
+  visible,
+  hidden,
+class MorphMenuItem extends MorphMenuEntry
+  const MorphMenuItem({
+    required String title,
+    String? subtitle,
+    Widget? icon,
+    Widget? selectedIcon,
+    Color? iconColor,
+    MorphMenuIconVisibility iconVisibility = MorphMenuIconVisibility.automatic,
+    bool enabled = true,
+    bool destructive = false,
+    bool hidden = false,
+    bool keepsMenuOpen = false,
+    MorphMenuState state = MorphMenuState.off,
+    void Function()? onSelected,
+    void Function(bool)? onHighlightChanged,
+  })
+  final bool destructive
+  final bool enabled
+  final bool hidden
+  final Widget? icon
+  final Color? iconColor
+  final MorphMenuIconVisibility iconVisibility
+  final bool keepsMenuOpen
+  final void Function(bool)? onHighlightChanged
+  final void Function()? onSelected
+  final Widget? selectedIcon
+  final MorphMenuState state
+  final String? subtitle
+  final String title
+enum MorphMenuOrder
+  automatic,
+  priority,
+  fixed,
+class MorphMenuSection extends MorphMenuEntry
+  const MorphMenuSection({
+    required List<MorphMenuEntry> children,
+    String? title,
+    bool singleSelection = false,
+    MorphMenuElementSize elementSize = MorphMenuElementSize.large,
+    bool palette = false,
+    int? maxTitleLines,
+  })
+  final List<MorphMenuEntry> children
+  final MorphMenuElementSize elementSize
+  final int? maxTitleLines
+  final bool palette
+  final bool singleSelection
+  final String? title
+class MorphMenuSource extends _MorphMenuSourceWidget
+  const MorphMenuSource({
+    required List<MorphMenuEntry> menu,
+    required Widget child,
+    Widget? look,
+    ShapeBorder shape = const StadiumBorder(),
+    MorphMenuTrigger trigger = MorphMenuTrigger.tap,
+    void Function()? onTap,
+    Color? color,
+    Color? rimColor,
+    bool focusable = true,
+    MorphMenuAppearance? appearance,
+    MorphMenuTuning tuning = MorphMenuTuning.standard,
+    OverlayState? overlay,
+    String? semanticLabel,
+    void Function(MorphFlight)? onOpen,
+    bool enabled = true,
+    MorphMenuOrder order = MorphMenuOrder.automatic,
+    bool? dismissOnSelect,
+    Key? key,
+  })
+  final Widget child
+  final Color? color
+  final bool focusable
+  final Widget? look
+  final void Function()? onTap
+  static void open(BuildContext context)
+  final Color? rimColor
+  final ShapeBorder shape
+  final MorphMenuTrigger trigger
+enum MorphMenuState
+  off,
+  on,
+  mixed,
+enum MorphMenuTrigger
+  tap,
+  hold,
+class MorphMenuTuning
+  const MorphMenuTuning({
+    MorphMenuMorphSpec morph = MorphMenuMorphSpec.standard,
+    double menuWidth = defaultMenuWidth,
+    double rowHeight = 42,
+    double verticalPadding = 10,
+    double cornerRadius = 32,
+    double openingRadius = 195.4,
+    double radiusDelay = 0.098,
+    double sourceEndScale = 0.25,
+    double sourceTravel = 0.25,
+    double crossfadeBlur = 4,
+    double fadeLead = 0.015,
+    double lookFadeStart = 0.07,
+    double lookFadeEnd = 0.42,
+    double lookStretch = 2.5,
+    double contentFadeStart = 0,
+    double contentFadeEnd = 1,
+    double contentCloseFadeEnd = 0.53,
+    double contentKickScale = 1.45,
+    double contentBlur = 8,
+    double contentKickBlur = 6,
+    double tapOpenDelay = 0.089,
+    double holdDuration = 0.22,
+    double tapSlop = 70,
+    double dismissDelay = 0.059,
+    double earlyCloseDelay = 0.016,
+    double actionDelay = 0.016,
+    double pressDelay = 0.015,
+    double sourceRelax = 0.05,
+    MorphSpring openKickSpring = const MorphSpring(0.2048, 0.651),
+    double openKickGain = 4.229,
+    MorphSpring closeKickSpring = const MorphSpring(0.3396, 0.8425),
+    double closeKickImpulse = 1450,
+    double closeKickDelay = 0.012,
+    double closeKickReach = 31.7,
+    MorphSpring sourceKickSpring = const MorphSpring(0.3102, 0.6335),
+    double sourceKickGain = 2.02,
+    double edgeMargin = defaultEdgeMargin,
+    double glowDiameter = 160,
+    double glowOpacity = 0.5,
+    double glowFade = 0.07,
+    double highlightInset = 10,
+    MorphFlexSpec flex = MorphFlexSpec.menu,
+    double flexInBoundsPoints = 40,
+    MorphSpring flexPulseSpring = const MorphSpring(0.574, 0.548),
+    double flexPulseRate = 30,
+    double flexPulseRetargetStep = 1 / 60,
+    double flexDelay = 0.023,
+    double fusionRadius = 20,
+    double fusionCloseAmplitude = 20.95,
+    double fusionOpenRise = 0.0161,
+    double fusionCloseRise = 0.0213,
+    double fusionOpenHold = 0.199,
+    double fusionCloseHold = 0.057,
+    MorphSpring fusionSpring = const MorphSpring(0.4286, 1),
+    double fusionCutoff = 0.2,
+    MorphMenuMetrics metrics = MorphMenuMetrics.standard,
+    MorphSpring submenuSpring = const MorphSpring(0.395, 0.86),
+    double submenuDelay = 0.076,
+    MorphSpring deeperSubmenuSpring = const MorphSpring(0.405, 0.84),
+    double deeperSubmenuDelay = 0.04,
+    MorphSpring backSpring = const MorphSpring(0.4, 1),
+    double backDelay = 0.022,
+    double hoverOpenDelay = 0.525,
+    double submenuActionDelay = 0.019,
+    double submenuCloseDelay = 0.031,
+    double keptActionDelay = 0.02,
+    double parentScale = 0.97,
+    double parentRowOpacity = 0.5,
+    double cardStartWidth = 230,
+    double cardLead = 36,
+    double cardRowsFadeIn = 0.25,
+    double cardRowsFadeOut = 0.55,
+    double cardPlatterFade = 0.3,
+    double cardHeaderBoldStart = 0.15,
+    double cardHeaderBoldEnd = 0.35,
+    double cardChevronTurn = 0.4,
+    double cardChevronBack = 0.2,
+    double cardCloseFadeEnd = 0.2,
+    double cardCloseCenter = 0.5,
+    MorphSpring cardContainerSpring = const MorphSpring(0.35, 0.85),
+    double cardContainerDelay = 0,
+    double cardContainerEndWidth = 50,
+    double cardBlur = 10,
+    double cardDisplacement = 0,
+    double cardTransmissionGamma = 1.14,
+    double cardGone = 0.007,
+    MorphSpring growSpring = const MorphSpring(0.565, 0.84),
+    double growDelay = 0.045,
+    MorphSpring shrinkSpring = const MorphSpring(0.4, 1),
+    double shrinkDelay = 0.03,
+  })
+  final double actionDelay
+  final double backDelay
+  final MorphSpring backSpring
+  static const double blurThreshold
+  static const double buttonDiameter
+  final double cardBlur
+  final double cardChevronBack
+  final double cardChevronTurn
+  final double cardCloseCenter
+  final double cardCloseFadeEnd
+  final double cardContainerDelay
+  final double cardContainerEndWidth
+  final MorphSpring cardContainerSpring
+  final double cardDisplacement
+  final double cardGone
+  final double cardHeaderBoldEnd
+  final double cardHeaderBoldStart
+  final double cardLead
+  final double cardPlatterFade
+  static const double cardRimWidth
+  final double cardRowsFadeIn
+  final double cardRowsFadeOut
+  static const double cardShadowOffset
+  static const double cardShadowRadius
+  final double cardStartWidth
+  final double cardTransmissionGamma
+  static const double cellHighlightRadius
+  static const Size checkSize
+  static const Size chevronSize
+  final double closeKickDelay
+  final double closeKickImpulse
+  final double closeKickReach
+  final MorphSpring closeKickSpring
+  MorphSpring get closeSpring
+  final double contentBlur
+  final double contentCloseFadeEnd
+  final double contentFadeEnd
+  final double contentFadeStart
+  final double contentKickBlur
+  final double contentKickScale
+  static const MorphMenuTuning context
+  static const double contextMargin
+  final double cornerRadius
+  final double crossfadeBlur
+  final double deeperSubmenuDelay
+  final MorphSpring deeperSubmenuSpring
+  static const double defaultEdgeMargin
+  static const double defaultMenuWidth
+  final double dismissDelay
+  final double earlyCloseDelay
+  final double edgeMargin
+  static const double ellipsisPitch
+  static const double ellipsisRadius
+  static const double ellipsisSize
+  final double fadeLead
+  final MorphFlexSpec flex
+  final double flexDelay
+  final double flexInBoundsPoints
+  final double flexPulseRate
+  static const double flexPulseRest
+  final double flexPulseRetargetStep
+  final MorphSpring flexPulseSpring
+  static const double flexReturnRest
+  ({double driftX, double driftY, double scaleX, double scaleY}) flexTargets({
+    required Offset translation,
+    required Offset inBounds,
+    required Size size,
+    required double velocity,
+    required double side,
+  })
+  final double fusionCloseAmplitude
+  final double fusionCloseHold
+  final double fusionCloseRise
+  final double fusionCutoff
+  bool fusionEnded(double t, {required bool opening})
+  double fusionEnvelope(double t, {required bool opening})
+  final double fusionOpenHold
+  final double fusionOpenRise
+  final double fusionRadius
+  final MorphSpring fusionSpring
+  final double glowDiameter
+  final double glowFade
+  final double glowOpacity
+  final double growDelay
+  final MorphSpring growSpring
+  final double highlightInset
+  final double holdDuration
+  final double hoverOpenDelay
+  static const double imageSlot
+  final double keptActionDelay
+  static const double kickIntegrationStep
+  static const double kickRestValue
+  static const double kickRestVelocity
+  static const double kickSkipSpan
+  final double lookFadeEnd
+  final double lookFadeStart
+  final double lookStretch
+  static const double markSlot
+  double menuHeight(int rows)
+  final double menuWidth
+  final MorphMenuMetrics metrics
+  static const Size mixedSize
+  final MorphMenuMorphSpec morph
+  final double openKickGain
+  final MorphSpring openKickSpring
+  MorphSpring get openSpring
+  final double openingRadius
+  final double parentRowOpacity
+  final double parentScale
+  final double pressDelay
+  final double radiusDelay
+  final double rowHeight
+  static const double rowIconSize
+  static const double scrollInset
+  static const double scrollThickness
+  static const double shadowBlur
+  static const double shadowReach
+  final double shrinkDelay
+  final MorphSpring shrinkSpring
+  final double sourceEndScale
+  final double sourceKickGain
+  final MorphSpring sourceKickSpring
+  final double sourceRelax
+  final double sourceTravel
+  static const MorphMenuTuning standard
+  final double submenuActionDelay
+  final double submenuCloseDelay
+  final double submenuDelay
+  final MorphSpring submenuSpring
+  static const double subtitleGap
+  final double tapOpenDelay
+  final double tapSlop
+  final double verticalPadding
+class MorphMenuWidget extends MorphMenuEntry
+  const MorphMenuWidget({
+    required Widget Function(BuildContext) builder,
+    double? height,
+    Object? id,
+  })
+  final Widget Function(BuildContext) builder
+  final double? height
+  final Object? id
+class MorphMotion (see package:morph/foundation.dart)
+class MorphNavigationBar extends StatefulWidget
+  const MorphNavigationBar({
+    String? title,
+    String? subtitle,
+    List<MorphBarButtonGroup> leading = const [],
+    List<MorphBarButtonGroup> trailing = const [],
+    bool titleVisible = true,
+    bool scrolledUnder = false,
+    bool animate = true,
+    MorphScrollEdgeEffectStyle? edgeEffect = MorphScrollEdgeEffectStyle.hard,
+    MorphScrollEdgeEffectAppearance? edgeEffectAppearance,
+    double titleExitShift = -MorphNavigationTuning.parallax,
+    MorphNavigationBarDrift? drift,
+    MorphBarAppearance? appearance,
+    MorphMenuAppearance? menuAppearance,
+    MorphBarMenuTuning menuTuning = MorphBarMenuTuning.standard,
+    OverlayState? menuOverlay,
+    double sideInset = MorphNavigationBarMetrics.sideInset,
+    Animation<double>? hiding,
+    ValueListenable<bool>? hidden,
+    Key? key,
+  })
+  final bool animate
+  final MorphBarAppearance? appearance
+  final MorphScrollEdgeEffectStyle? edgeEffect
+  final MorphScrollEdgeEffectAppearance? edgeEffectAppearance
+  static double heightFor(double topInset)
+  final List<MorphBarButtonGroup> leading
+  final MorphMenuAppearance? menuAppearance
+  final OverlayState? menuOverlay
+  final MorphBarMenuTuning menuTuning
+  final bool scrolledUnder
+  final double sideInset
+  final String? subtitle
+  final String? title
+  final bool titleVisible
+  final List<MorphBarButtonGroup> trailing
+  overrides: createState
+class MorphNavigationBarHiding
+  final ValueListenable<bool> hidden
+  static const double largeTitleFade
+  final Animation<double> progress
+  static const MorphSpring spring
+abstract final class MorphNavigationBarMetrics
+  MorphNavigationBarMetrics()
+  static const double barHeight
+  static const double largeBaselineInset
+  static const double largeSubtitleHeight
+  static const double largeSubtitleSize
+  static const double largeTitleHeight
+  static const double largeTitleInset
+  static const double largeTitleSize
+  static const double largeTitleSubtitleGap
+  static const double largeTitleTop
+  static const double largeTitleWithSubtitleSize
+  static const double sideInset
+  static const double subtitleSize
+  static const double titlePadding
+  static const double titleSize
+  static const double titleWithSubtitleSize
+class MorphNavigationConfig
+  const MorphNavigationConfig({
+    String? title,
+    List<MorphBarButtonGroup> leading = const [],
+    List<MorphBarButtonGroup> trailing = const [],
+    List<MorphBarButtonGroup> toolbarLeading = const [],
+    List<MorphBarButtonGroup> toolbarTrailing = const [],
+    bool titleVisible = true,
+    bool scrolledUnder = false,
+    bool animate = true,
+    MorphScrollEdgeEffectStyle? edgeEffect = MorphScrollEdgeEffectStyle.hard,
+    String? backButtonTitle,
+    String? subtitle,
+    MorphBackButtonDisplayMode backButtonDisplayMode = MorphBackButtonDisplayMode.standard,
+    bool hidesBackButton = false,
+    MorphLargeTitleDisplayMode largeTitleDisplayMode = MorphLargeTitleDisplayMode.never,
+    bool navigationBarHidden = false,
+    MorphNavigationBarHiding? barHiding,
+  })
+  final bool animate
+  final MorphBackButtonDisplayMode backButtonDisplayMode
+  final String? backButtonTitle
+  final MorphNavigationBarHiding? barHiding
+  final MorphScrollEdgeEffectStyle? edgeEffect
+  bool get hasToolbar
+  final bool hidesBackButton
+  final MorphLargeTitleDisplayMode largeTitleDisplayMode
+  final List<MorphBarButtonGroup> leading
+  final bool navigationBarHidden
+  final bool scrolledUnder
+  final String? subtitle
+  final String? title
+  final bool titleVisible
+  final List<MorphBarButtonGroup> toolbarLeading
+  final List<MorphBarButtonGroup> toolbarTrailing
+  final List<MorphBarButtonGroup> trailing
+  overrides: ==, hashCode
+class MorphNavigationPage<T> extends Page<T>
+  const MorphNavigationPage({
+    required Widget child,
+    Object? from,
+    MorphPushZoomTuning zoom = MorphPushZoomTuning.standard,
+    LocalKey? key,
+    String? name,
+    Object? arguments,
+    String? restorationId,
+  })
+  final Widget child
+  final Object? from
+  final MorphPushZoomTuning zoom
+  overrides: createRoute
+class MorphNavigationRoute<T> extends PageRoute<T> with MorphMotionRouteMixin<T>
+  MorphNavigationRoute({
+    required Widget Function(BuildContext) builder,
+    Object? from,
+    MorphPushZoomTuning zoom = MorphPushZoomTuning.standard,
+    RouteSettings? settings,
+  })
+  final Widget Function(BuildContext) builder
+  final Object? from
+  final MorphPushZoomTuning zoom
+  overrides: barrierColor, barrierLabel, buildPage, buildTransitions, canTransitionTo, didPop, didPush, leaveMotionRoute, maintainState, opaque, popGestureEnabled, reverseTransitionDuration, transitionDuration, usesMotionRoute
+class MorphNavigationScaffold extends StatefulWidget
+  const MorphNavigationScaffold({
+    required String title,
+    required List<Widget> slivers,
+    MorphLargeTitleDisplayMode largeTitleDisplayMode = MorphLargeTitleDisplayMode.automatic,
+    String? subtitle,
+    String? largeSubtitle,
+    List<MorphBarButtonGroup> leading = const [],
+    List<MorphBarButtonGroup> trailing = const [],
+    List<MorphBarButtonGroup> toolbarLeading = const [],
+    List<MorphBarButtonGroup> toolbarTrailing = const [],
+    MorphScrollEdgeEffectStyle? edgeEffect = MorphScrollEdgeEffectStyle.hard,
+    Color? backgroundColor,
+    String? backButtonTitle,
+    MorphBackButtonDisplayMode backButtonDisplayMode = MorphBackButtonDisplayMode.standard,
+    bool hidesBackButton = false,
+    String backButtonSemanticLabel = 'Back',
+    ScrollController? controller,
+    MorphBarAppearance? appearance,
+    MorphNavigationSearch? search,
+    bool navigationBarHidden = false,
+    bool showsVerticalScrollIndicator = true,
+    Key? key,
+  })
+  final MorphBarAppearance? appearance
+  final MorphBackButtonDisplayMode backButtonDisplayMode
+  final String backButtonSemanticLabel
+  final String? backButtonTitle
+  final Color? backgroundColor
+  final ScrollController? controller
+  final MorphScrollEdgeEffectStyle? edgeEffect
+  final bool hidesBackButton
+  final String? largeSubtitle
+  final MorphLargeTitleDisplayMode largeTitleDisplayMode
+  final List<MorphBarButtonGroup> leading
+  final bool navigationBarHidden
+  final MorphNavigationSearch? search
+  static void setNavigationBarHidden(
+    BuildContext context, {
+    required bool hidden,
+  })
+  final bool showsVerticalScrollIndicator
+  final List<Widget> slivers
+  final String? subtitle
+  final String title
+  final List<MorphBarButtonGroup> toolbarLeading
+  final List<MorphBarButtonGroup> toolbarTrailing
+  final List<MorphBarButtonGroup> trailing
+  overrides: createState
+class MorphNavigationSearch
+  const MorphNavigationSearch({
+    TextEditingController? controller,
+    FocusNode? focusNode,
+    String placeholder = 'Search',
+    void Function(String)? onChanged,
+    void Function(String)? onSubmitted,
+    bool? active,
+    void Function(bool)? onActiveChanged,
+    bool hidesNavigationBarDuringPresentation = true,
+    MorphSearchFieldAppearance? appearance,
+    String closeLabel = 'Close',
+  })
+  final bool? active
+  final MorphSearchFieldAppearance? appearance
+  final String closeLabel
+  final TextEditingController? controller
+  final FocusNode? focusNode
+  final bool hidesNavigationBarDuringPresentation
+  final void Function(bool)? onActiveChanged
+  final void Function(String)? onChanged
+  final void Function(String)? onSubmitted
+  final String placeholder
+class MorphNavigationStack extends StatefulWidget
+  const MorphNavigationStack({
+    required Widget home,
+    MorphBarAppearance? appearance,
+    MorphMenuAppearance? menuAppearance,
+    MorphBarMenuTuning menuTuning = MorphBarMenuTuning.standard,
+    OverlayState? menuOverlay,
+    String backButtonSemanticLabel = 'Back',
+    GlobalKey<NavigatorState>? navigatorKey,
+    List<NavigatorObserver> observers = const [],
+    bool prefersLargeTitles = false,
+    bool contentPopGestureEnabled = true,
+    Key? key,
+  })
+  const MorphNavigationStack.pages({
+    required List<Page<Object?>> pages,
+    required void Function(Page<Object?>) onDidRemovePage,
+    MorphBarAppearance? appearance,
+    MorphMenuAppearance? menuAppearance,
+    MorphBarMenuTuning menuTuning = MorphBarMenuTuning.standard,
+    OverlayState? menuOverlay,
+    String backButtonSemanticLabel = 'Back',
+    GlobalKey<NavigatorState>? navigatorKey,
+    List<NavigatorObserver> observers = const [],
+    bool prefersLargeTitles = false,
+    bool contentPopGestureEnabled = true,
+    Key? key,
+  })
+  final MorphBarAppearance? appearance
+  final String backButtonSemanticLabel
+  final bool contentPopGestureEnabled
+  final Widget? home
+  final MorphMenuAppearance? menuAppearance
+  final OverlayState? menuOverlay
+  final MorphBarMenuTuning menuTuning
+  final GlobalKey<NavigatorState>? navigatorKey
+  final List<NavigatorObserver> observers
+  final void Function(Page<Object?>)? onDidRemovePage
+  final List<Page<Object?>>? pages
+  final bool prefersLargeTitles
+  overrides: createState
+class MorphPageControl extends StatefulWidget
+  const MorphPageControl({
+    required int count,
+    required int page,
+    required void Function(int)? onChanged,
+    double? progress,
+    MorphPageControlBackgroundStyle backgroundStyle = MorphPageControlBackgroundStyle.automatic,
+    MorphPageControlAppearance? appearance,
+    String? semanticLabel,
+    String Function(int, int)? semanticValueFormatter,
+    Key? key,
+  })
+  final MorphPageControlAppearance? appearance
+  final MorphPageControlBackgroundStyle backgroundStyle
+  final int count
+  final void Function(int)? onChanged
+  final int page
+  final double? progress
+  final String? semanticLabel
+  final String Function(int, int)? semanticValueFormatter
+  overrides: createState
+class MorphPageControlAppearance
+  const MorphPageControlAppearance({
+    Color pageIndicatorColor = const Color(0x73FFFFFF),
+    Color currentPageIndicatorColor = const Color(0xFFFFFFFF),
+    Color platterColor = const Color(0xFFF0F0F2),
+    Color platterIndicatorColor = const Color(0x40000000),
+  })
+  MorphPageControlAppearance copyWith({
+    Color? pageIndicatorColor,
+    Color? currentPageIndicatorColor,
+    Color? platterColor,
+    Color? platterIndicatorColor,
+  })
+  final Color currentPageIndicatorColor
+  static const MorphPageControlAppearance dark
+  static const MorphPageControlAppearance darkHighContrast
+  static const MorphPageControlAppearance light
+  static const MorphPageControlAppearance lightHighContrast
+  final Color pageIndicatorColor
+  final Color platterColor
+  final Color platterIndicatorColor
+  static MorphPageControlAppearance resolve(
+    BuildContext context,
+    MorphPageControlAppearance? explicit,
+  )
+  overrides: ==, hashCode
+enum MorphPageControlBackgroundStyle
+  automatic,
+  prominent,
+  minimal,
+class MorphPageRoute (see package:morph/foundation.dart)
+enum MorphPhase (see package:morph/foundation.dart)
+class MorphPiece (see package:morph/foundation.dart)
+class MorphPieceChannel (see package:morph/foundation.dart)
+class MorphPresentationBoundary (see package:morph/foundation.dart)
+class MorphProgressView extends StatefulWidget
+  const MorphProgressView({
+    required double value,
+    bool animated = true,
+    MorphProgressViewStyle style = MorphProgressViewStyle.standard,
+    Color? activeTrackColor,
+    Color? inactiveTrackColor,
+    MorphProgressViewAppearance? appearance,
+    String? semanticLabel,
+    Key? key,
+  })
+  final Color? activeTrackColor
+  final bool animated
+  final MorphProgressViewAppearance? appearance
+  static const double barHeight
+  final Color? inactiveTrackColor
+  final String? semanticLabel
+  static const double standardHeight
+  final MorphProgressViewStyle style
+  final double value
+  overrides: createState
+class MorphProgressViewAppearance
+  const MorphProgressViewAppearance({
+    Color inactiveTrackColor = const Color(0x33787880),
+    Color activeTrackColor = const Color(0xFF0088FF),
+  })
+  final Color activeTrackColor
+  MorphProgressViewAppearance copyWith({
+    Color? inactiveTrackColor,
+    Color? activeTrackColor,
+  })
+  static const MorphProgressViewAppearance dark
+  static const MorphProgressViewAppearance darkHighContrast
+  final Color inactiveTrackColor
+  static const MorphProgressViewAppearance light
+  static const MorphProgressViewAppearance lightHighContrast
+  static MorphProgressViewAppearance resolve(
+    BuildContext context,
+    MorphProgressViewAppearance? explicit,
+  )
+  overrides: ==, hashCode
+enum MorphProgressViewStyle
+  standard,
+  bar,
+class MorphPushZoomTuning
+  const MorphPushZoomTuning({
+    MorphSpring openSpring = const MorphSpring(0.317, 1),
+    MorphSpring openHeightSpring = const MorphSpring(0.406, 0.925),
+    MorphSpring closeSpring = MorphZoomTuning.zoomOutSpring,
+    MorphSpring dismissSpring = const MorphSpring(0.45, 0.81),
+    MorphSpring dismissHeightSpring = const MorphSpring(0.33, 0.98),
+    MorphSpring returnSpring = const MorphSpring(0.278, 0.927),
+    MorphSpring openFadeSpring = const MorphSpring(0.156, 1),
+    double openFadeDelay = 0.01,
+    MorphSpring closeFadeSpring = const MorphSpring(0.191, 1),
+    MorphSpring openDimmingSpring = MorphZoomTuning.zoomInSpring,
+    MorphSpring closeDimmingSpring = MorphZoomTuning.zoomOutSpring,
+    double dimmingOpacity = 0.15,
+    double shadowOpacity = 0.36,
+    double shadowSigma = 30,
+    double shadowOffset = 4,
+    double dragSlop = 13.5,
+    double dragAngle = math.pi / 6,
+    double downWidthRate = 0.00078,
+    double downHeightRate = 0.00154,
+    double downGain = 0.61,
+    double sidewaysWidthRate = 0.00156,
+    double sidewaysHeightRate = 0.00168,
+    double sidewaysGain = 0.95,
+    double dismissDistance = 132.5,
+    double dismissVelocity = MorphZoomTuning.dismissVelocityThreshold,
+  })
+  final MorphSpring closeDimmingSpring
+  final MorphSpring closeFadeSpring
+  final MorphSpring closeSpring
+  final double dimmingOpacity
+  final double dismissDistance
+  final MorphSpring dismissHeightSpring
+  final MorphSpring dismissSpring
+  final double dismissVelocity
+  final double downGain
+  final double downHeightRate
+  final double downWidthRate
+  final double dragAngle
+  final double dragSlop
+  final MorphSpring openDimmingSpring
+  final double openFadeDelay
+  final MorphSpring openFadeSpring
+  final MorphSpring openHeightSpring
+  final MorphSpring openSpring
+  final MorphSpring returnSpring
+  final double shadowOffset
+  final double shadowOpacity
+  final double shadowSigma
+  final double sidewaysGain
+  final double sidewaysHeightRate
+  final double sidewaysWidthRate
+  static const MorphPushZoomTuning standard
+class MorphSatellite
+  const MorphSatellite({
+    double? height,
+    required Widget Function(BuildContext, MorphFlight) builder,
+  })
+  final Widget Function(BuildContext, MorphFlight) builder
+  final double? height
+class MorphScope (see package:morph/foundation.dart)
+class MorphScopeState (see package:morph/foundation.dart)
+class MorphScrimMotion (see package:morph/foundation.dart)
+class MorphScrollEdgeEffect extends StatelessWidget
+  const MorphScrollEdgeEffect({
+    required double extent,
+    AxisDirection edge = AxisDirection.up,
+    MorphScrollEdgeEffectStyle style = MorphScrollEdgeEffectStyle.soft,
+    bool scrolledUnder = true,
+    MorphScrollEdgeEffectAppearance? appearance,
+    double opacity = 1,
+    Key? key,
+  })
+  final MorphScrollEdgeEffectAppearance? appearance
+  static double bandExtent(
+    MorphScrollEdgeEffectStyle style,
+    double extent,
+    MorphScrollEdgeEffectAppearance appearance,
+  )
+  final AxisDirection edge
+  final double extent
+  double get opacity
+  final bool scrolledUnder
+  final MorphScrollEdgeEffectStyle style
+  overrides: build
+class MorphScrollEdgeEffectAppearance
+  const MorphScrollEdgeEffectAppearance({
+    Color backgroundColor = const Color(0xFFFFFFFF),
+    double fadeOpacity = 0.5,
+    Color separatorColor = const Color(0x1A000000),
+    double softBlurRadius = 1.5,
+    double hardBlurRadius = 2,
+    double softOverhang = 40,
+    double softFadeStart = 0.3407,
+    double hardSaturation = 1.25,
+    double hardBrightness = 0.03,
+  })
+  final Color backgroundColor
+  MorphScrollEdgeEffectAppearance copyWith({
+    Color? backgroundColor,
+    double? fadeOpacity,
+    Color? separatorColor,
+    double? softBlurRadius,
+    double? hardBlurRadius,
+    double? softOverhang,
+    double? softFadeStart,
+    double? hardSaturation,
+    double? hardBrightness,
+  })
+  static const MorphScrollEdgeEffectAppearance dark
+  final double fadeOpacity
+  final double hardBlurRadius
+  final double hardBrightness
+  List<double> get hardColorMatrix
+  final double hardSaturation
+  static const MorphScrollEdgeEffectAppearance light
+  static MorphScrollEdgeEffectAppearance resolve(
+    BuildContext context,
+    MorphScrollEdgeEffectAppearance? explicit,
+  )
+  final Color separatorColor
+  final double softBlurRadius
+  final double softFadeStart
+  final double softOverhang
+  overrides: ==, hashCode
+enum MorphScrollEdgeEffectStyle
+  soft,
+  hard,
+class MorphScrollIndicator extends StatefulWidget
+  const MorphScrollIndicator({
+    required ScrollController controller,
+    EdgeInsets padding = EdgeInsets.zero,
+    EdgeInsets contentPadding = EdgeInsets.zero,
+    Color? color,
+    Key? key,
+  })
+  final Color? color
+  final EdgeInsets contentPadding
+  final ScrollController controller
+  final EdgeInsets padding
+  overrides: createState
+abstract final class MorphScrollIndicatorTuning
+  MorphScrollIndicatorTuning()
+  static const Color darkColor
+  static const double edgeInset
+  static const double endInset
+  static const double fadeDuration
+  static const double hideDelay
+  static const Color lightColor
+  static const double minLength
+  static const double minOverscrollLength
+  static const double thickness
+class MorphSearchField extends StatefulWidget
+  const MorphSearchField({
+    TextEditingController? controller,
+    FocusNode? focusNode,
+    String placeholder = 'Search',
+    void Function(String)? onChanged,
+    void Function(String)? onSubmitted,
+    bool enabled = true,
+    bool autofocus = false,
+    MorphSearchFieldAppearance? appearance,
+    String? semanticLabel,
+    String clearLabel = 'Clear text',
+    double height = MorphSearchTuning.height,
+    bool glass = true,
+    Key? key,
+  })
+  final MorphSearchFieldAppearance? appearance
+  final bool autofocus
+  final String clearLabel
+  final TextEditingController? controller
+  final bool enabled
+  final FocusNode? focusNode
+  final bool glass
+  final double height
+  static const double maxTextScale
+  final void Function(String)? onChanged
+  final void Function(String)? onSubmitted
+  final String placeholder
+  final String? semanticLabel
+  overrides: createState
+class MorphSearchFieldAppearance
+  const MorphSearchFieldAppearance({
+    Color capsuleColor = const Color(0xD9FFFFFF),
+    Color rimColor = const Color(0x1F000000),
+    Color shadowColor = const Color(0x1A000000),
+    Color textColor = const Color(0xFF000000),
+    Color placeholderColor = const Color(0x993C3C43),
+    Color restingPlaceholderColor = const Color(0x69000000),
+    Color glyphColor = const Color(0xFF000000),
+    Color clearColor = const Color(0xFF000000),
+    Color clearGlyphColor = const Color(0xFFFFFFFF),
+    Color cursorColor = const Color(0xFF426AF3),
+    Color disabledFillColor = const Color(0x0F767680),
+    Color stackedFillColor = const Color(0x1F767680),
+  })
+  final Color capsuleColor
+  final Color clearColor
+  final Color clearGlyphColor
+  MorphSearchFieldAppearance copyWith({
+    Color? capsuleColor,
+    Color? rimColor,
+    Color? shadowColor,
+    Color? textColor,
+    Color? placeholderColor,
+    Color? restingPlaceholderColor,
+    Color? glyphColor,
+    Color? clearColor,
+    Color? clearGlyphColor,
+    Color? cursorColor,
+    Color? disabledFillColor,
+    Color? stackedFillColor,
+  })
+  final Color cursorColor
+  static const MorphSearchFieldAppearance dark
+  final Color disabledFillColor
+  final Color glyphColor
+  static const MorphSearchFieldAppearance light
+  final Color placeholderColor
+  static MorphSearchFieldAppearance resolve(
+    BuildContext context,
+    MorphSearchFieldAppearance? explicit,
+  )
+  final Color restingPlaceholderColor
+  final Color rimColor
+  final Color shadowColor
+  final Color stackedFillColor
+  final Color textColor
+  overrides: ==, hashCode
+class MorphSearchTabBar extends StatefulWidget
+  const MorphSearchTabBar({
+    required List<MorphTabItem> items,
+    required int selected,
+    required void Function(int)? onChanged,
+    required bool active,
+    required void Function(bool) onActiveChanged,
+    TextEditingController? controller,
+    FocusNode? focusNode,
+    String placeholder = 'Search',
+    void Function(String)? onQueryChanged,
+    void Function(String)? onSubmitted,
+    String searchLabel = 'Search',
+    String closeLabel = 'Close',
+    MorphTabBarAppearance? appearance,
+    MorphSearchFieldAppearance? searchAppearance,
+    MorphTabBarMinimizeBehavior minimizeBehavior = MorphTabBarMinimizeBehavior.automatic,
+    Widget? bottomAccessory,
+    MorphContentScroll? contentScroll,
+    Key? key,
+  })
+  final bool active
+  final MorphTabBarAppearance? appearance
+  final Widget? bottomAccessory
+  final String closeLabel
+  final MorphContentScroll? contentScroll
+  final TextEditingController? controller
+  final FocusNode? focusNode
+  final List<MorphTabItem> items
+  final MorphTabBarMinimizeBehavior minimizeBehavior
+  final void Function(bool) onActiveChanged
+  final void Function(int)? onChanged
+  final void Function(String)? onQueryChanged
+  final void Function(String)? onSubmitted
+  final String placeholder
+  final MorphSearchFieldAppearance? searchAppearance
+  final String searchLabel
+  final int selected
+  overrides: createState
+class MorphSearchToolbar extends StatefulWidget
+  const MorphSearchToolbar({
+    TextEditingController? controller,
+    FocusNode? focusNode,
+    String placeholder = 'Search',
+    List<MorphBarButtonGroup> leading = const [],
+    List<MorphBarButtonGroup> trailing = const [],
+    void Function(String)? onChanged,
+    void Function(String)? onSubmitted,
+    void Function(bool)? onActiveChanged,
+    bool? active,
+    MorphSearchFieldAppearance? appearance,
+    MorphGlassButtonAppearance? buttonAppearance,
+    String closeLabel = 'Close',
+    bool hidesNavigationBarDuringPresentation = true,
+    Key? key,
+  })
+  final bool? active
+  final MorphSearchFieldAppearance? appearance
+  final MorphGlassButtonAppearance? buttonAppearance
+  final String closeLabel
+  final TextEditingController? controller
+  final FocusNode? focusNode
+  final bool hidesNavigationBarDuringPresentation
+  final List<MorphBarButtonGroup> leading
+  final void Function(bool)? onActiveChanged
+  final void Function(String)? onChanged
+  final void Function(String)? onSubmitted
+  final String placeholder
+  final List<MorphBarButtonGroup> trailing
+  overrides: createState
+class MorphSegment
+  const MorphSegment(String title, {bool enabled = true, double? width})
+  final bool enabled
+  final String title
+  final double? width
+  overrides: ==, hashCode
+class MorphSegmentedControl extends StatefulWidget
+  const MorphSegmentedControl({
+    required List<MorphSegment> segments,
+    required int? selectedIndex,
+    required void Function(int)? onChanged,
+    bool proportionalWidth = false,
+    MorphSegmentedControlAppearance? appearance,
+    Key? key,
+  })
+  final MorphSegmentedControlAppearance? appearance
+  static const double maxTextScale
+  final void Function(int)? onChanged
+  final bool proportionalWidth
+  static const double releaseSlop
+  final List<MorphSegment> segments
+  final int? selectedIndex
+  overrides: createState
+class MorphSegmentedControlAppearance
+  const MorphSegmentedControlAppearance({
+    double height = 32,
+    double inset = 2,
+    Color trackColor = const Color(0x1F767680),
+    Color lensColor = const Color(0xFFFFFFFF),
+    Color liftedLensColor = const Color(0x40FFFFFF),
+    Color lensBorderColor = const Color(0x33000000),
+    Color shadowColor = const Color(0x1F000000),
+    TextStyle textStyle = const TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: Color(0xFF000000)),
+    TextStyle selectedTextStyle = const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF000000)),
+    double contentPadding = 16,
+    double disabledOpacity = 0.5,
+  })
+  final double contentPadding
+  MorphSegmentedControlAppearance copyWith({
+    double? height,
+    double? inset,
+    Color? trackColor,
+    Color? lensColor,
+    Color? liftedLensColor,
+    Color? lensBorderColor,
+    Color? shadowColor,
+    TextStyle? textStyle,
+    TextStyle? selectedTextStyle,
+    double? contentPadding,
+    double? disabledOpacity,
+  })
+  static const MorphSegmentedControlAppearance dark
+  static const MorphSegmentedControlAppearance darkHighContrast
+  final double disabledOpacity
+  final double height
+  final double inset
+  final Color lensBorderColor
+  final Color lensColor
+  final Color liftedLensColor
+  static const MorphSegmentedControlAppearance light
+  static const MorphSegmentedControlAppearance lightHighContrast
+  static MorphSegmentedControlAppearance resolve(
+    BuildContext context,
+    MorphSegmentedControlAppearance? explicit,
+  )
+  final TextStyle selectedTextStyle
+  final Color shadowColor
+  final TextStyle textStyle
+  final Color trackColor
+  overrides: ==, hashCode
+class MorphSharedElement (see package:morph/foundation.dart)
+enum MorphSharedFade (see package:morph/foundation.dart)
+abstract class MorphSheet
+  MorphSheet()
+  abstract void animateTo(MorphSheetDetent detent)
+  MorphSheetDetent get detent
+  List<MorphSheetDetent> get detents
+  static MorphSheet? maybeOf(BuildContext context)
+  static MorphSheet of(BuildContext context)
+  static ScrollController scrollControllerOf(BuildContext context)
+class MorphSheetAppearance
+  const MorphSheetAppearance({
+    Color dockedColor = const Color(0xFFFFFFFF),
+    Color floatingColor = const Color(0xF2F9F9F9),
+    Color grabberColor = const Color(0x4D3C3C43),
+    Color dimmingColor = const Color(0xFF000000),
+    Color textColor = const Color(0xFF000000),
+  })
+  MorphSheetAppearance copyWith({
+    Color? dockedColor,
+    Color? floatingColor,
+    Color? grabberColor,
+    Color? dimmingColor,
+    Color? textColor,
+  })
+  static const MorphSheetAppearance dark
+  final Color dimmingColor
+  final Color dockedColor
+  final Color floatingColor
+  final Color grabberColor
+  static const MorphSheetAppearance light
+  static MorphSheetAppearance resolve(
+    BuildContext context,
+    MorphSheetAppearance? explicit,
+  )
+  final Color textColor
+  overrides: ==, hashCode
+class MorphSheetDetent
+  const MorphSheetDetent.custom(
+    double Function(double) resolver, {
+    Object? identifier,
+  })
+  const MorphSheetDetent.fraction(double fraction)
+  const MorphSheetDetent.height(double value)
+  static const MorphSheetDetent fitted
+  bool get isFitted
+  bool get isLarge
+  static const MorphSheetDetent large
+  static const MorphSheetDetent medium
+  double resolve(double maximum, {double? fittedHeight})
+  overrides: ==, hashCode, toString
+class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T>, GlassBackdropCacheRoute<T>
+  MorphSheetRoute({
+    required Widget Function(BuildContext) builder,
+    required List<MorphSheetDetent> detents,
+    Object? from,
+    MorphZoomTuning zoom = MorphZoomTuning.standard,
+    MorphSheetDetent? initialDetent,
+    MorphSheetDetent? largestUndimmedDetent,
+    bool grabberVisible = false,
+    bool dismissible = true,
+    bool scrollingExpandsSheet = true,
+    MorphSheetAppearance? appearance,
+    String? semanticLabel,
+    void Function(MorphSheetDetent)? onDetentChanged,
+    void Function()? onDismissAttempt,
+    RouteSettings? settings,
+  })
+  final MorphSheetAppearance? appearance
+  final Widget Function(BuildContext) builder
+  final List<MorphSheetDetent> detents
+  final bool dismissible
+  final Object? from
+  final bool grabberVisible
+  final MorphSheetDetent? initialDetent
+  final MorphSheetDetent? largestUndimmedDetent
+  final void Function(MorphSheetDetent)? onDetentChanged
+  final void Function()? onDismissAttempt
+  final bool scrollingExpandsSheet
+  final String? semanticLabel
+  final MorphZoomTuning zoom
+  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, leaveMotionRoute, reverseTransitionDuration, transitionDuration
+class MorphSkin (see package:morph/foundation.dart)
+class MorphSkinStyle (see package:morph/foundation.dart)
+class MorphSlider extends StatefulWidget
+  const MorphSlider({
+    required double value,
+    required void Function(double)? onChanged,
+    void Function(double)? onChangeStart,
+    void Function(double)? onChangeEnd,
+    double min = 0,
+    double max = 1,
+    Color? activeTrackColor,
+    Color? inactiveTrackColor,
+    MorphSliderAppearance? appearance,
+    String? semanticLabel,
+    int ticks = 0,
+    bool animated = false,
+    Key? key,
+  })
+  final Color? activeTrackColor
+  final bool animated
+  final MorphSliderAppearance? appearance
+  static const double height
+  final Color? inactiveTrackColor
+  static const double keyboardStep
+  final double max
+  final double min
+  final void Function(double)? onChangeEnd
+  final void Function(double)? onChangeStart
+  final void Function(double)? onChanged
+  final String? semanticLabel
+  final int ticks
+  final double value
+  overrides: createState
+class MorphSliderAppearance
+  const MorphSliderAppearance({
+    Color activeTrackColor = const Color(0xFF0088FF),
+    Color inactiveTrackColor = const Color(0x1A000000),
+    Color thumbColor = const Color(0xFFFFFFFF),
+    Color tickColor = const Color(0xFFC6C6C8),
+    double disabledOpacity = 0.5,
+  })
+  final Color activeTrackColor
+  MorphSliderAppearance copyWith({
+    Color? activeTrackColor,
+    Color? inactiveTrackColor,
+    Color? thumbColor,
+    Color? tickColor,
+    double? disabledOpacity,
+  })
+  static const MorphSliderAppearance dark
+  static const MorphSliderAppearance darkHighContrast
+  final double disabledOpacity
+  final Color inactiveTrackColor
+  static const MorphSliderAppearance light
+  static const MorphSliderAppearance lightHighContrast
+  static MorphSliderAppearance resolve(
+    BuildContext context,
+    MorphSliderAppearance? explicit,
+  )
+  final Color thumbColor
+  final Color tickColor
+  overrides: ==, hashCode
+class MorphSliverListSection extends StatelessWidget
+  const MorphSliverListSection({
+    required Widget Function(BuildContext, int) itemBuilder,
+    required int itemCount,
+    Widget? header,
+    Widget? footer,
+    MorphListAppearance? appearance,
+    Key? key,
+  })
+  final MorphListAppearance? appearance
+  final Widget? footer
+  final Widget? header
+  final Widget Function(BuildContext, int) itemBuilder
+  final int itemCount
+  overrides: build
+class MorphSpring (see package:morph/foundation.dart)
+class MorphStepper extends StatefulWidget
+  const MorphStepper({
+    required double value,
+    required void Function(double)? onChanged,
+    double min = 0,
+    double max = 100,
+    double step = 1,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    MorphStepperAppearance? appearance,
+    String decrementLabel = 'Decrement',
+    String incrementLabel = 'Increment',
+    String Function(double)? semanticFormatterCallback,
+    Key? key,
+  })
+  final MorphStepperAppearance? appearance
+  final Color? backgroundColor
+  final String decrementLabel
+  final Color? foregroundColor
+  final String incrementLabel
+  final double max
+  final double min
+  final void Function(double)? onChanged
+  static const Duration repeatInterval
+  final String Function(double)? semanticFormatterCallback
+  static const Size size
+  final double step
+  final double value
+  overrides: createState
+class MorphStepperAppearance
+  const MorphStepperAppearance({
+    Color backgroundColor = const Color(0x163C3C43),
+    Color foregroundColor = const Color(0xFF000000),
+    Color limitForegroundColor = const Color(0x4C3C3C43),
+    Color pressedOverlay = const Color(0x14000000),
+    bool pressedReplacesFill = false,
+    Color dividerColor = const Color(0x4C3C3C43),
+    double dividerHeight = 24,
+  })
+  final Color backgroundColor
+  MorphStepperAppearance copyWith({
+    Color? backgroundColor,
+    Color? foregroundColor,
+    Color? limitForegroundColor,
+    Color? pressedOverlay,
+    bool? pressedReplacesFill,
+    Color? dividerColor,
+    double? dividerHeight,
+  })
+  static const MorphStepperAppearance dark
+  final Color dividerColor
+  final double dividerHeight
+  final Color foregroundColor
+  static const MorphStepperAppearance light
+  final Color limitForegroundColor
+  final Color pressedOverlay
+  final bool pressedReplacesFill
+  static MorphStepperAppearance resolve(
+    BuildContext context,
+    MorphStepperAppearance? explicit,
+  )
+  overrides: ==, hashCode
+class MorphStroke (see package:morph/foundation.dart)
+class MorphSubmenu extends MorphMenuEntry
+  const MorphSubmenu({
+    required String title,
+    required List<MorphMenuEntry> children,
+    String? subtitle,
+    Widget? icon,
+    bool destructive = false,
+    bool enabled = true,
+    bool hidden = false,
+    bool singleSelection = false,
+    MorphMenuElementSize elementSize = MorphMenuElementSize.large,
+  })
+  final List<MorphMenuEntry> children
+  final bool destructive
+  final MorphMenuElementSize elementSize
+  final bool enabled
+  final bool hidden
+  final Widget? icon
+  final bool singleSelection
+  final String? subtitle
+  final String title
+class MorphSurfaceSpec (see package:morph/foundation.dart)
+class MorphSwitch extends StatefulWidget
+  const MorphSwitch({
+    required bool value,
+    required void Function(bool)? onChanged,
+    Color? activeTrackColor,
+    Color? inactiveTrackColor,
+    MorphSwitchAppearance? appearance,
+    String? semanticLabel,
+    Key? key,
+  })
+  final Color? activeTrackColor
+  final MorphSwitchAppearance? appearance
+  final Color? inactiveTrackColor
+  final void Function(bool)? onChanged
+  final String? semanticLabel
+  final bool value
+  overrides: createState
+class MorphSwitchAppearance
+  const MorphSwitchAppearance({
+    Color activeTrackColor = const Color(0xFF34C759),
+    Color inactiveTrackColor = const Color(0x29787880),
+    Color thumbColor = const Color(0xFFFFFFFF),
+    double disabledOpacity = 0.5,
+  })
+  final Color activeTrackColor
+  MorphSwitchAppearance copyWith({
+    Color? activeTrackColor,
+    Color? inactiveTrackColor,
+    Color? thumbColor,
+    double? disabledOpacity,
+  })
+  static const MorphSwitchAppearance dark
+  static const MorphSwitchAppearance darkHighContrast
+  final double disabledOpacity
+  final Color inactiveTrackColor
+  static const MorphSwitchAppearance light
+  static const MorphSwitchAppearance lightHighContrast
+  static MorphSwitchAppearance resolve(
+    BuildContext context,
+    MorphSwitchAppearance? explicit,
+  )
+  final Color thumbColor
+  overrides: ==, hashCode
+enum MorphTabAccessoryEnvironment
+  none,
+  regular,
+  inline,
+  static MorphTabAccessoryEnvironment of(BuildContext context)
+class MorphTabBar extends StatefulWidget
+  const MorphTabBar({
+    required List<MorphTabItem> items,
+    required int selected,
+    required void Function(int)? onChanged,
+    void Function(int)? onReselected,
+    MorphTabBarAppearance? appearance,
+    MorphTabBarMinimizeBehavior minimizeBehavior = MorphTabBarMinimizeBehavior.automatic,
+    Widget? bottomAccessory,
+    MorphContentScroll? contentScroll,
+    Key? key,
+  })
+  final MorphTabBarAppearance? appearance
+  final Widget? bottomAccessory
+  final MorphContentScroll? contentScroll
+  final List<MorphTabItem> items
+  static const double maxTextScale
+  final MorphTabBarMinimizeBehavior minimizeBehavior
+  final void Function(int)? onChanged
+  final void Function(int)? onReselected
+  final int selected
+  overrides: createState
+class MorphTabBarAppearance
+  const MorphTabBarAppearance({
+    Color barColor = const Color(0xB8FFFFFF),
+    Color shadowColor = const Color(0x24000000),
+    Color platterColor = const Color(0x13000000),
+    Color liftedLensColor = const Color(0x33FFFFFF),
+    Color lensBorderColor = const Color(0x40000000),
+    Color selectedColor = const Color(0xFF0082FC),
+    Color color = const Color(0xFF0D0D0D),
+    double blurSigma = 12,
+  })
+  final Color barColor
+  final double blurSigma
+  final Color color
+  MorphTabBarAppearance copyWith({
+    Color? barColor,
+    Color? shadowColor,
+    Color? platterColor,
+    Color? liftedLensColor,
+    Color? lensBorderColor,
+    Color? selectedColor,
+    Color? color,
+    double? blurSigma,
+  })
+  static const MorphTabBarAppearance dark
+  final Color lensBorderColor
+  final Color liftedLensColor
+  static const MorphTabBarAppearance light
+  final Color platterColor
+  static MorphTabBarAppearance resolve(
+    BuildContext context,
+    MorphTabBarAppearance? explicit,
+  )
+  final Color selectedColor
+  final Color shadowColor
+  overrides: ==, hashCode
+enum MorphTabBarMinimizeBehavior
+  automatic,
+  never,
+  onScrollDown,
+  onScrollUp,
+  bool get minimizes
+class MorphTabItem
+  const MorphTabItem({
+    required IconData icon,
+    required String label,
+    IconData? selectedIcon,
+    MorphBadge? badge,
+    bool enabled = true,
+    MorphTabRole? role,
+  })
+  final MorphBadge? badge
+  final bool enabled
+  final IconData icon
+  final String label
+  final MorphTabRole? role
+  final IconData? selectedIcon
+enum MorphTabRole
+  search,
+class MorphTag (see package:morph/foundation.dart)
+class MorphTagState (see package:morph/foundation.dart)
+class MorphTargetSpec (see package:morph/foundation.dart)
+class MorphTheme (see package:morph/foundation.dart)
+class MorphToolbar extends StatelessWidget
+  const MorphToolbar({
+    List<MorphBarButtonGroup> leading = const [],
+    List<MorphBarButtonGroup> trailing = const [],
+    MorphBarAppearance? appearance,
+    MorphMenuAppearance? menuAppearance,
+    MorphBarMenuTuning menuTuning = MorphBarMenuTuning.standard,
+    OverlayState? menuOverlay,
+    double sideInset = MorphToolbarMetrics.sideInset,
+    double bottomInset = MorphToolbarMetrics.bottomInset,
+    double keyboardInset = MorphToolbarMetrics.keyboardInset,
+    Key? key,
+  })
+  final MorphBarAppearance? appearance
+  final double bottomInset
+  static double get capsuleHeight
+  double get extent
+  double extentFor(double keyboard)
+  final double keyboardInset
+  final List<MorphBarButtonGroup> leading
+  final MorphMenuAppearance? menuAppearance
+  final OverlayState? menuOverlay
+  final MorphBarMenuTuning menuTuning
+  final double sideInset
+  final List<MorphBarButtonGroup> trailing
+  overrides: build
+abstract final class MorphToolbarMetrics
+  MorphToolbarMetrics()
+  static const double bottomInset
+  static const double keyboardInset
+  static const double sideInset
+abstract final class MorphTypography
+  MorphTypography()
+  static const TextStyle alertAction
+  static const TextStyle alertMessage
+  static const TextStyle alertTitle
+  static const TextStyle barButton
+  static const TextStyle barButtonProminent
+  static const TextStyle body
+  static const TextStyle button
+  static const TextStyle datePickerCompact
+  static const TextStyle datePickerDay
+  static const TextStyle datePickerDaySelected
+  static const TextStyle datePickerTitle
+  static const TextStyle datePickerWeekday
+  static const TextStyle largeTitle
+  static const TextStyle listFooter
+  static const TextStyle listHeader
+  static const TextStyle listSubtitle
+  static const TextStyle menuItem
+  static TextStyle resolve(TextStyle style, {bool? apple})
+  static const TextStyle searchField
+  static const TextStyle segment
+  static const TextStyle segmentSelected
+  static const TextStyle tabLabel
+  static const TextStyle tabLabelSelected
+  static const TextStyle title
+  static double tracking(double size)
+  static bool get usesAppleSystemFont
+  static double? weightAxis(FontWeight weight)
+class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme> implements ThemeExtension<MorphWidgetsTheme>
+  const MorphWidgetsTheme({
+    Color? tint,
+    bool? haptics,
+    MorphSegmentedControlAppearance? segmentedControl,
+    MorphTabBarAppearance? tabBar,
+    MorphSwitchAppearance? switchAppearance,
+    MorphSliderAppearance? slider,
+    MorphStepperAppearance? stepper,
+    MorphGlassButtonAppearance? glassButton,
+    MorphMenuAppearance? menu,
+    MorphSheetAppearance? sheet,
+    MorphProgressViewAppearance? progressView,
+    MorphActivityIndicatorAppearance? activityIndicator,
+    MorphPageControlAppearance? pageControl,
+    MorphBarAppearance? bar,
+    MorphScrollEdgeEffectAppearance? scrollEdgeEffect,
+    MorphAlertAppearance? alert,
+    MorphSearchFieldAppearance? searchField,
+    MorphDatePickerAppearance? datePicker,
+    MorphListAppearance? list,
+  })
+  final MorphActivityIndicatorAppearance? activityIndicator
+  final MorphAlertAppearance? alert
+  final MorphBarAppearance? bar
+  final MorphDatePickerAppearance? datePicker
+  final MorphGlassButtonAppearance? glassButton
+  final bool? haptics
+  final MorphListAppearance? list
+  static MorphWidgetsTheme? maybeOf(BuildContext context)
+  final MorphMenuAppearance? menu
+  final MorphPageControlAppearance? pageControl
+  final MorphProgressViewAppearance? progressView
+  final MorphScrollEdgeEffectAppearance? scrollEdgeEffect
+  final MorphSearchFieldAppearance? searchField
+  final MorphSegmentedControlAppearance? segmentedControl
+  final MorphSheetAppearance? sheet
+  final MorphSliderAppearance? slider
+  final MorphStepperAppearance? stepper
+  final MorphSwitchAppearance? switchAppearance
+  final MorphTabBarAppearance? tabBar
+  final Color? tint
+  overrides: copyWith, lerp
+class MorphWidgetsThemeScope extends InheritedTheme
+  const MorphWidgetsThemeScope({
+    required MorphWidgetsTheme data,
+    required Widget child,
+    Key? key,
+  })
+  final MorphWidgetsTheme data
+  static MorphWidgetsTheme? maybeOf(BuildContext context)
+  overrides: updateShouldNotify, wrap
+class MorphZoomTuning
+  const MorphZoomTuning({
+    MorphSpring openCenterSpring = const MorphSpring(0.349, 0.833),
+    MorphSpring openSizeSpring = const MorphSpring(0.472, 0.748),
+    MorphSpring closeCenterSpring = const MorphSpring(0.442, 0.762),
+    MorphSpring closeSizeSpring = const MorphSpring(0.203, 1),
+    MorphSpring fadeSpring = const MorphSpring(0.154, 1),
+    double openFadeDelay = 0.045,
+    MorphSpring openDimmingSpring = zoomInSpring,
+    MorphSpring closeDimmingSpring = zoomOutSpring,
+    double scrubSideRate = 0.275,
+    double scrubTopRate = 1.115,
+    double scrubBottomRate = 0.04,
+    double scrubStretch = 17,
+    MorphSpring scrubReturnSpring = const MorphSpring(0.196, 1),
+    double scrubDismissTravel = 100,
+    double scrubDismissVelocity = dismissVelocityThreshold,
+  })
+  final MorphSpring closeCenterSpring
+  final MorphSpring closeDimmingSpring
+  final MorphSpring closeSizeSpring
+  static const double dismissVelocityThreshold
+  final MorphSpring fadeSpring
+  final MorphSpring openCenterSpring
+  final MorphSpring openDimmingSpring
+  final double openFadeDelay
+  final MorphSpring openSizeSpring
+  final double scrubBottomRate
+  final double scrubDismissTravel
+  final double scrubDismissVelocity
+  Rect scrubFrame(Rect sheet, double travel)
+  final MorphSpring scrubReturnSpring
+  final double scrubSideRate
+  final double scrubStretch
+  final double scrubTopRate
+  static const MorphZoomTuning standard
+  static const MorphSpring zoomInSpring
+  static const MorphSpring zoomOutSpring
+class Motion (see package:morph/foundation.dart)
+function computeMorphFrame (see package:morph/foundation.dart)
+function maybeMorphAnchorRect (see package:morph/foundation.dart)
+function morphAnchorRect (see package:morph/foundation.dart)
+function morphDragArm (see package:morph/foundation.dart)
+variable morphDragCommitDistance (see package:morph/foundation.dart)
+variable morphDragCommitVelocity (see package:morph/foundation.dart)
+function morphDragRecede (see package:morph/foundation.dart)
+function morphDragScale (see package:morph/foundation.dart)
+function morphDragScrimFactor (see package:morph/foundation.dart)
+function morphPresentationNavigatorOf (see package:morph/foundation.dart)
+function morphPresentationOverlayOf (see package:morph/foundation.dart)
+function morphProjectValue (see package:morph/foundation.dart)
+function morphRubberband (see package:morph/foundation.dart)
+Future<T?> pushMorphZoom<T>(
+  BuildContext context, {
+  required Widget Function(BuildContext) builder,
+  required Object from,
+  MorphPushZoomTuning zoom = MorphPushZoomTuning.standard,
+  RouteSettings? settings,
+})
+function showMorph (see package:morph/foundation.dart)
+Future<MorphAlertAction?> showMorphActionSheet(
+  BuildContext context, {
+  String? title,
+  String? message,
+  List<MorphAlertAction> actions = const [],
+  BuildContext? anchor,
+  Rect? anchorRect,
+  MorphAlertAppearance? appearance,
+  bool? useRootNavigator,
+})
+Future<MorphAlertAction?> showMorphAlert(
+  BuildContext context, {
+  String? title,
+  String? message,
+  List<MorphAlertAction> actions = const [],
+  List<MorphAlertTextField> textFields = const [],
+  MorphAlertAppearance? appearance,
+  bool? useRootNavigator,
+})
+function showMorphDialogFlight (see package:morph/foundation.dart)
+function showMorphRoute (see package:morph/foundation.dart)
+Future<T?> showMorphSheet<T>(
+  BuildContext context, {
+  required Widget Function(BuildContext) builder,
+  Object? from,
+  MorphZoomTuning zoom = MorphZoomTuning.standard,
+  List<MorphSheetDetent> detents = const [MorphSheetDetent.large],
+  MorphSheetDetent? initialDetent,
+  MorphSheetDetent? largestUndimmedDetent,
+  bool grabberVisible = false,
+  bool dismissible = true,
+  bool scrollingExpandsSheet = true,
+  MorphSheetAppearance? appearance,
+  String? semanticLabel,
+  bool? useRootNavigator,
+  void Function(MorphSheetDetent)? onDetentChanged,
+  void Function()? onDismissAttempt,
+})
+function showMorphSheetFlight (see package:morph/foundation.dart)
+function uniformMorphRadius (see package:morph/foundation.dart)
+
+# package:morph/motion.dart
+abstract final class MorphActivityIndicatorFrames
+  MorphActivityIndicatorFrames()
+  static int frameAt(double t)
+  static const int frameCount
+  static const double headStrength
+  static const double loopDuration
+  static const double restStrength
+  static const int spokes
+  static double strength(int spoke, int frame)
+  static const int tailSpokes
+class MorphAlertMotion
+  MorphAlertMotion({
+    MorphSpring spring = MorphAlertTuning.spring,
+    double presentScale = MorphAlertTuning.presentScale,
+  })
+  void advance(double t)
+  double dimming(double t)
+  void dismiss(double t)
+  bool get isDismissed
+  bool get isDismissing
+  bool get isSettled
+  double opacity(double t)
+  void present(double t)
+  final double presentScale
+  double progress(double t)
+  bool reducedMotion
+  double scale(double t)
+  void settle()
+  final MorphSpring spring
+  double get time
+abstract final class MorphAlertTuning
+  MorphAlertTuning()
+  static const double buttonGap
+  static const double buttonHeight
+  static const double buttonInset
+  static const double buttonTextInset
+  static const double cornerRadius
+  static const double dimmingOpacity
+  static const double fieldBottom
+  static const double fieldInset
+  static const double fieldTop
+  static const double flatShadowOffset
+  static const double flatShadowSigma
+  static const double headerBottom
+  static const double headerTop
+  static const double maxTextScale
+  static const double messageHeight
+  static const double popoverWidth
+  static const FontWeight preferredWeight
+  static const double presentScale
+  static const double pressedFillOpacity
+  static const double screenMargin
+  static const double singleHeaderBottom
+  static const FontWeight singleHeaderWeight
+  static const MorphSpring spring
+  static const double textFontSize
+  static const double textHeight
+  static const double textInset
+  static const double textLineHeight
+  static const double titleGap
+  static const double width
+class MorphBarCapsuleFrame
+  const MorphBarCapsuleFrame(
+    Object id,
+    Rect rect, {
+    required bool leaving,
+    Object? segment,
+    double opacity = 1,
+    bool apart = false,
+  })
+  final bool apart
+  final Object id
+  final bool leaving
+  final double opacity
+  final Rect rect
+  final Object? segment
+class MorphBarCapsuleLayout
+  const MorphBarCapsuleLayout(
+    Object id,
+    Rect rect,
+    List<MorphBarItemLayout> items, {
+    Object? segment,
+    bool anonymous = false,
+  })
+  final bool anonymous
+  final Object id
+  final List<MorphBarItemLayout> items
+  final Rect rect
+  final Object? segment
+class MorphBarItemFrame
+  const MorphBarItemFrame(
+    Object id, {
+    required Offset center,
+    required Size size,
+    required double scale,
+    required double presence,
+    required double blur,
+    required bool leaving,
+  })
+  final double blur
+  final Offset center
+  final Object id
+  final bool leaving
+  final double presence
+  final double scale
+  final Size size
+class MorphBarItemLayout
+  const MorphBarItemLayout(Object id, Rect rect)
+  final Object id
+  final Rect rect
+class MorphBarMotion
+  MorphBarMotion({
+    MorphBarTransitionSpec spec = MorphBarTransitionSpec.standard,
+  })
+  void advance(double t)
+  MorphBarCapsuleFrame? capsuleFrame(Object id)
+  List<MorphBarCapsuleFrame> get capsules
+  void endDrift(double t)
+  bool get isDrifting
+  bool get isSettled
+  MorphBarItemFrame? itemFrame(Object id)
+  List<MorphBarItemFrame> get items
+  bool reducedMotion
+  void setDrift(List<MorphBarCapsuleLayout>? toward, double amount)
+  void setLayout(
+    double t,
+    List<MorphBarCapsuleLayout> layout, {
+    bool animated = true,
+  })
+  void settle()
+  final MorphBarTransitionSpec spec
+  double get time
+class MorphBarTransitionSpec
+  const MorphBarTransitionSpec({
+    MorphSpring frameSpring = const MorphSpring(0.416, 0.75),
+    double frameDelay = 0.05,
+    double birthStaggerDelay = 0.1,
+    MorphSpring contentSpring = const MorphSpring(0.416, 0.75),
+    double contentDelay = 0.05,
+    double appearScale = 0.2,
+    double appearBlur = 10,
+    double pulseDelay = 0.065,
+    MorphSpring pulseUpSpring = const MorphSpring(0.292, 0.5),
+    double pulseMaxScale = 1.2,
+    double pulseMaxPoints = 16,
+    double pulseHeightDownDelay = 0.113,
+    MorphSpring pulseHeightDownSpring = const MorphSpring(0.416, 0.584),
+    double pulseWidthDownDelay = 0.142,
+    MorphSpring pulseWidthDownSpring = const MorphSpring(0.416, 0.5),
+    double segmentDelay = 0.030,
+    bool oversizedInPlace = true,
+  })
+  final double appearBlur
+  final double appearScale
+  final double birthStaggerDelay
+  final double contentDelay
+  final MorphSpring contentSpring
+  final double frameDelay
+  final MorphSpring frameSpring
+  static const MorphBarTransitionSpec navigation
+  final bool oversizedInPlace
+  final double pulseDelay
+  final double pulseHeightDownDelay
+  final MorphSpring pulseHeightDownSpring
+  final double pulseMaxPoints
+  final double pulseMaxScale
+  double pulseScaleFor(double length)
+  final MorphSpring pulseUpSpring
+  final double pulseWidthDownDelay
+  final MorphSpring pulseWidthDownSpring
+  final double segmentDelay
+  static const MorphBarTransitionSpec standard
+class MorphDatePickerMotion
+  MorphDatePickerMotion()
+  void advance(double t)
+  void close(double t, {double? delay})
+  double height(double t, double full)
+  double highlight(double t)
+  bool get isClosed
+  bool get isOpen
+  bool get isSettled
+  double opacity(double t)
+  void open(double t, {double delay = MorphDatePickerTuning.openDelay})
+  double page(double t)
+  int get pageDirection
+  void press(double t)
+  double progress(double t)
+  bool reducedMotion
+  void release(double t)
+  double scale(double t)
+  void showYearPicker(double t, {required bool show})
+  bool get showsYearPicker
+  double get time
+  void turnPage(double t, int direction)
+  double yearPicker(double t)
+  bool yearPickerSettled(double t)
+  double yearPickerTurn(double t)
+class MorphDatePickerPlacement
+  const MorphDatePickerPlacement({required Rect rect, required Offset anchor})
+  final Offset anchor
+  bool get below
+  final Rect rect
+  overrides: ==, hashCode
+abstract final class MorphDatePickerTuning
+  MorphDatePickerTuning()
+  static const double anchorOffset
+  static const Size calendarSize
+  static const double closeDelay
+  static const double closeDelayWhileOpening
+  static const MorphSpring closeSpring
+  static const double compactMargin
+  static const double cornerRadius
+  static const double dateLabelHeight
+  static const double hiddenHeight
+  static const double hiddenScale
+  static const Cubic highlightCurve
+  static const double highlightDuration
+  static const double highlightOpacity
+  static const double labelGap
+  static const double labelPadding
+  static const double margin
+  static double marginFor(double width)
+  static const double openDelay
+  static const MorphSpring openSpring
+  static const double pageDuration
+  static const Curve reducedMotionCurve
+  static const double reducedMotionDuration
+  static const double reopenDelay
+  static const double sixWeekRowHeight
+  static const double switchDelay
+  static const MorphSpring switchSpring
+  static const double timeLabelHeight
+  static const Size timeSize
+  static const double wideScreenWidth
+  static const Cubic yearPickerCurve
+  static const double yearPickerDuration
+  static const double yearPickerHideDelay
+  static const double yearPickerHideDelayWhileShowing
+  static const double yearPickerShowDelay
+class MorphFlexSpec
+  const MorphFlexSpec({
+    required double liftScalePoints,
+    required double scaleDistanceThreshold,
+    required double movementNormalizationFactor,
+    required double movementScalePoints,
+    required double movementMinScale,
+    required double movementMaxScale,
+    required MorphSpring scaleSpring,
+    required MorphSpring trackingSpring,
+    double interactionPulseNormalizationFactor = 1,
+    double interactionPulseScaleX = 0,
+    double interactionPulseScaleY = 0,
+    double interactionPulseDriftRatio = 0,
+    double littleGlowOpacity = 0,
+    double bigGlowOpacity = 0,
+    double retargetImpulse = 0,
+  })
+  final double bigGlowOpacity
+  static const double compactLongSideLimit
+  static MorphFlexSpec forSize(Size size)
+  final double interactionPulseDriftRatio
+  final double interactionPulseNormalizationFactor
+  final double interactionPulseScaleX
+  final double interactionPulseScaleY
+  static const MorphFlexSpec large
+  static const double largeDimension
+  double liftScaleFor(Size size)
+  final double liftScalePoints
+  final double littleGlowOpacity
+  static const MorphFlexSpec loupe
+  static const double loupeDimension
+  static MorphFlexSpec loupeForSize(Size size)
+  static const MorphFlexSpec menu
+  final double movementMaxScale
+  final double movementMinScale
+  final double movementNormalizationFactor
+  final double movementScalePoints
+  final double retargetImpulse
+  final double scaleDistanceThreshold
+  final MorphSpring scaleSpring
+  static const MorphFlexSpec small
+  static const double smallDimension
+  static const MorphFlexSpec smallLoupe
+  static const double smallLoupeDimension
+  final MorphSpring trackingSpring
+  static const MorphFlexSpec ultraSmall
+class MorphGlassButtonMotion
+  MorphGlassButtonMotion({required Size size})
+  void advance(double t)
+  double get bigGlowOpacity
+  double get glow
+  MorphGlassGlow? glowAt(
+    Brightness brightness, {
+    Color? tint,
+    bool clear = false,
+  })
+  static const MorphSpring glowSpring
+  static const double glowTime
+  static const double highlightSlop
+  bool get isAtRest
+  bool get isHighlighted
+  bool get isPressed
+  bool get isSettled
+  Offset get lean
+  double get liftedScale
+  Offset get littleGlowCenter
+  static const double littleGlowGrowth
+  double get littleGlowOpacity
+  double get littleGlowScale
+  static const double littleGlowSize
+  void pointerCancel(double t)
+  void pointerDown(double t, Offset position)
+  void pointerMove(double t, Offset position)
+  bool pointerUp(double t, Offset position)
+  bool get reducedMotion
+  set reducedMotion(bool value)
+  double get scale
+  double get scaleX
+  double get scaleY
+  void settle()
+  Size get size
+  set size(Size value)
+  MorphFlexSpec get spec
+  double get time
+class MorphLensMotion
+  MorphLensMotion({
+    required MorphLensTuning tuning,
+    required List<({double center, double width})> slots,
+    required int selected,
+    required double height,
+    double frameRate = 120,
+    bool reducedMotion = false,
+    double? startDelay,
+  })
+  void advance(double t)
+  double get center
+  double get chromeGrowth
+  final double frameRate
+  final double height
+  bool get isDragging
+  bool Function(int)? isSelectable
+  bool get isSettled
+  double get lift
+  void Function(int)? onSelect
+  void place(double t, int index)
+  void pointerCancel(double t)
+  void pointerDown(double t, double x)
+  void pointerMove(double t, double x)
+  void pointerUp(double t, double x)
+  bool reducedMotion
+  double get scaleX
+  double get scaleY
+  void select(double t, int index, {bool notify = true})
+  int get selected
+  void settle()
+  ({double height, double width}) get size
+  int slotAt(double x)
+  List<({double center, double width})> get slots
+  set slots(List<({double center, double width})> value)
+  final double startDelay
+  double get time
+  double get travelCenter
+  final MorphLensTuning tuning
+typedef MorphLensSlot = ({double center, double width})
+class MorphLensTuning
+  const MorphLensTuning({
+    required bool selectsOnPointerDown,
+    required double liftWidth,
+    required double liftHeight,
+    required double hangTime,
+    required double hangTimePerPixel,
+    required bool hangFromTouch,
+    required MorphSpring presentationSpring,
+    required MorphSpring followSpring,
+    required (double, double) rubberBand,
+    required double pressDelay,
+    double dragGain = 1,
+    double pressHang = 0.25,
+    double releaseDelay = 0.03,
+    MorphSpring travelSpring = const MorphSpring(0.401, 0.856),
+    MorphSpring liftSpring = const MorphSpring(0.25, 1),
+    double startDelay = 0.02,
+    double flagLead = 0.025,
+    double hangReferenceDistance = 70,
+    double chromeGrowth = 0,
+    MorphSpring chromeSpring = const MorphSpring(0.356, 0.593),
+    double chromeLag = 0.02,
+    MorphSpring? reducedMotionTravelSpring,
+  })
+  final double chromeGrowth
+  final double chromeLag
+  final MorphSpring chromeSpring
+  final double dragGain
+  final double flagLead
+  final MorphSpring followSpring
+  final bool hangFromTouch
+  final double hangReferenceDistance
+  final double hangTime
+  final double hangTimePerPixel
+  final double liftHeight
+  final MorphSpring liftSpring
+  final double liftWidth
+  final MorphSpring presentationSpring
+  final double pressDelay
+  final double pressHang
+  final MorphSpring? reducedMotionTravelSpring
+  final double releaseDelay
+  final (double, double) rubberBand
+  static const MorphLensTuning segmented
+  final bool selectsOnPointerDown
+  final double startDelay
+  static const MorphLensTuning tabBar
+  final MorphSpring travelSpring
+class MorphListRowHighlightMotion
+  MorphListRowHighlightMotion()
+  void cancel()
+  static const Curve fadeCurve
+  static const double fadeDuration
+  bool isSettled(double t)
+  double opacity(double t)
+  void press(double downTime, double now, {double delay = touchDelay})
+  void release(double t)
+  void touch(double t)
+  static const double touchDelay
+  double? wakeTime(double t)
+class MorphMenuAttachment
+  const MorphMenuAttachment({
+    required Rect held,
+    required Rect preview,
+    double accessory = 0,
+    double gap = measuredGap,
+    double margin = MorphMenuTuning.contextMargin,
+  })
+  final double accessory
+  static Size blobSize(Size held, double menuHeight)
+  final double gap
+  final Rect held
+  final double margin
+  static const double measuredBlobScale
+  static const double measuredGap
+  final Rect preview
+  overrides: ==, hashCode
+class MorphMenuBlob
+  const MorphMenuBlob({
+    required Rect rect,
+    required double radius,
+    required double scale,
+    required Size localSize,
+  })
+  final Size localSize
+  final double radius
+  final Rect rect
+  RRect get rrect
+  final double scale
+class MorphMenuCard
+  const MorphMenuCard({
+    required MorphMenuLayout layout,
+    required Rect rect,
+    required double scale,
+    required double rowOpacity,
+    required double progress,
+    double contentTop = 0,
+    double rowsOpacity = 1,
+    double platterOpacity = 1,
+    double headerBold = 1,
+    double chevronTurn = 1,
+    double closeOpacity = 1,
+    bool backing = false,
+    int? source,
+  })
+  final bool backing
+  final double chevronTurn
+  final double closeOpacity
+  final double contentTop
+  final double headerBold
+  final MorphMenuLayout layout
+  final double platterOpacity
+  final double progress
+  final Rect rect
+  final double rowOpacity
+  final double rowsOpacity
+  final double scale
+  final int? source
+class MorphMenuMorphSpec
+  const MorphMenuMorphSpec({
+    MorphSpring position = const MorphSpring(0.3, 0.8),
+    MorphSpring size = const MorphSpring(0.3, 0.8),
+    MorphSpring transform = const MorphSpring(0.3, 0.8),
+    MorphSpring content = const MorphSpring(0.3, 0.8),
+    MorphSpring kick = const MorphSpring(0.35, 0.8),
+    MorphSpring settle = const MorphSpring(0.5, 0.8),
+    MorphSpring eject = const MorphSpring(0.5, 0.75),
+    MorphSpring absorb = const MorphSpring(0.7, 0.8),
+    MorphSpring blurIn = const MorphSpring(0.3, 1),
+    MorphSpring blurOut = const MorphSpring(0.45, 0.8),
+    double blurOutMinScale = 1.2,
+    double blurOutMaxScale = 1.65,
+    double secondStepDelay = 0.03,
+    double growingIntermediateShapeRatio = 0.25,
+    double shrinkingIntermediateShapeRatio = 0.9,
+    double genieScale = 0.4,
+    double speed = 0.7,
+    bool kicks = true,
+    bool fuses = true,
+  })
+  final MorphSpring absorb
+  MorphSpring atSpeed(MorphSpring spring)
+  final MorphSpring blurIn
+  final MorphSpring blurOut
+  final double blurOutMaxScale
+  final double blurOutMinScale
+  final MorphSpring content
+  static const MorphMenuMorphSpec context
+  final MorphSpring eject
+  final bool fuses
+  final double genieScale
+  final double growingIntermediateShapeRatio
+  final MorphSpring kick
+  final bool kicks
+  final MorphSpring position
+  final double secondStepDelay
+  final MorphSpring settle
+  final double shrinkingIntermediateShapeRatio
+  final MorphSpring size
+  final double speed
+  static const MorphMenuMorphSpec standard
+  final MorphSpring transform
+class MorphMenuMotion
+  MorphMenuMotion({
+    required Rect button,
+    int itemCount = 0,
+    required Size bounds,
+    MorphMenuLayout Function({required bool reversed})? layout,
+    EdgeInsets padding = EdgeInsets.zero,
+    double? sourceHeight,
+    double? sourceRadius,
+    MorphMenuTuning tuning = MorphMenuTuning.standard,
+    MorphMenuProgress? progress,
+    MorphMenuAttachment? attachment,
+  })
+  void advance(double t)
+  MorphMenuAttachment? get attachment
+  bool back(double t)
+  Size get bounds
+  Rect get button
+  MorphMenuBlob get buttonBlob
+  double get buttonKick
+  double get buttonLookBlur
+  double get buttonLookOpacity
+  double get buttonLookStretch
+  bool get cardGlassTransferred
+  double get cardMaterialOpacity
+  List<MorphMenuCard> get cards
+  void close(double t)
+  double get contentBlur
+  double get contentHeight
+  double get contentOpacity
+  Rect get contentRect
+  double get contentScale
+  Offset get contentStretch
+  bool? dismissOnSelect
+  bool get drawsSource
+  Rect get finalMenuRect
+  @visibleForTesting ({double value, double velocity}) get flexPulse
+  @visibleForTesting Rect get flexedMenuRect
+  double? framePeriod
+  double frameTime
+  double get fusionRadius
+  Offset? get glowCenter
+  double get glowOpacity
+  bool get hasSubmenu
+  void highlight(double t, int? index)
+  int? get highlighted
+  int get highlightedCard
+  void holdOpen(double t, Offset position)
+  bool get isArming
+  bool get isClosing
+  bool get isOpen
+  bool get isOpenPending
+  bool get isPresented
+  bool get isSettled
+  bool get isSliding
+  int get itemCount
+  static double kickAmplitude(double height)
+  MorphMenuLayout get layout
+  MorphMenuBlob get menuBlob
+  double get menuKick
+  Rect get menuRect
+  void Function(MorphMenuTarget)? onActivate
+  void Function(MorphMenuTarget?, MorphMenuTarget?)? onHighlight
+  void Function(int)? onSelected
+  void Function()? onTap
+  void Function()? onTrackedHighlight
+  void open(double t, {double? sourceScale})
+  bool get opensDown
+  bool opensOnTap
+  static ({bool down, Rect rect}) place({
+    required Rect button,
+    required Size size,
+    required Size bounds,
+    EdgeInsets padding = EdgeInsets.zero,
+    double edgeMargin = MorphMenuTuning.defaultEdgeMargin,
+  })
+  static ({bool down, Rect rect, Offset shift}) placeAttached({
+    required MorphMenuAttachment attachment,
+    required Size size,
+    required Size bounds,
+    EdgeInsets padding = EdgeInsets.zero,
+    double edgeMargin = MorphMenuTuning.defaultEdgeMargin,
+  })
+  void pointerCancel(double t)
+  void pointerDown(double t, Offset position)
+  void pointerMove(double t, Offset position)
+  void pointerScrolled(double t)
+  void pointerUp(double t, Offset position)
+  double get pressScale
+  Rect get pressedButtonRect
+  Offset get previewShift
+  double get progress
+  void relayout({
+    required Rect button,
+    required Size bounds,
+    EdgeInsets padding = EdgeInsets.zero,
+    int? itemCount,
+    double? sourceHeight,
+    double? sourceRadius,
+    MorphMenuAttachment? attachment,
+  })
+  bool get reversed
+  MorphMenuBlob get rootBlob
+  int? rowAt(Offset position)
+  double scrollOffset
+  void select(double t, int index)
+  MorphGlassOutline? get silhouette
+  MorphGlassOutline? silhouetteFor({required bool withField})
+  int slotOf(int index)
+  MorphMenuLayout? Function(MorphMenuTarget)? submenuLayout
+  double get time
+  final MorphMenuTuning tuning
+  void updateLayout(double t, {bool animate = true})
+  double get visibleRootHeight
+abstract class MorphMenuProgress
+  MorphMenuProgress()
+  factory MorphMenuProgress.spring(MorphMenuTuning tuning)
+  abstract void close(double t)
+  abstract bool isAtRestAt(double t)
+  abstract void open(double t)
+  abstract double valueAt(double t)
+class MorphMenuTuning (see package:morph/widgets.dart)
+class MorphNavigationPopMotion
+  MorphNavigationPopMotion(double width)
+  void addPosition(double t, double x)
+  double get averageAcceleration
+  double get averageVelocity
+  void begin(double t, {double progress = 0})
+  static const double flickBoost
+  static const double flickThreshold
+  static const double predictionDistance
+  static const double predictionFraction
+  static const double predictionTime
+  int get sampleCount
+  double get settleVelocity
+  bool shouldPop(double progress)
+  void update(double t, double progress, {bool ending = false})
+  double get velocity
+  final double width
+class MorphNavigationTitleMotion
+  MorphNavigationTitleMotion({
+    bool titleVisible = true,
+    bool scrolledUnder = false,
+  })
+  void advance(double t)
+  double get edgeOpacity
+  static const MorphSpring edgeSpring
+  static const double hiddenBlur
+  static const double hiddenOffset
+  static const MorphSpring hideSpring
+  bool get isSettled
+  bool reducedMotion
+  bool get scrolledUnder
+  void setScrolledUnder(
+    double t, {
+    required bool scrolledUnder,
+    bool animated = true,
+  })
+  void setTitleVisible(double t, {required bool visible, bool animated = true})
+  void settle()
+  static const MorphSpring showSpring
+  double get titleBlur
+  double get titleOffset
+  double get titleOpacity
+  double get titleProgress
+  bool get titleVisible
+abstract final class MorphNavigationTuning
+  MorphNavigationTuning()
+  static const double barDrift
+  static const double cancelVelocityScale
+  static const double contentPopMaxAngle
+  static const double contentPopTouchSlop
+  static const Curve crossFadeCurve
+  static const double crossFadeDuration
+  static const double edgeWidth
+  static const double fallbackCardRadius
+  static const MorphSpring interactiveSpring
+  static const double parallax
+  static const double popDistance
+  static const double popVelocity
+  static const MorphSpring pushSpring
+  static const double pushVelocity
+  static const double underDimOpacity
+class MorphPageControlMotion
+  MorphPageControlMotion({
+    required int count,
+    required int page,
+    bool showsProgress = false,
+  })
+  void advance(double t)
+  double center(int index, double t)
+  double contentWidth(double t)
+  int get count
+  double fillOpacity(int index, double t)
+  bool get isScrubbing
+  bool get isSettled
+  void Function(int)? onChanged
+  void Function()? onScrubbed
+  int get page
+  double platter(double t)
+  void pointerCancel(double t)
+  void pointerDown(double t, double x)
+  void pointerMove(double t, double x)
+  void pointerUp(double t, double x, {required double width})
+  void setPage(double t, int page)
+  bool showsProgress
+  double get time
+  double? get wakeTime
+  double width(int index, double t)
+abstract final class MorphPageControlTuning
+  MorphPageControlTuning()
+  static const double dotSize
+  static const MorphSpring fadeSpring
+  static const double height
+  static const double indicatorSize
+  static const double padding
+  static const double pitch
+  static const double platterDelay
+  static const MorphSpring platterInSpring
+  static const double platterOutDelay
+  static const MorphSpring platterOutSpring
+  static const double progressIndicatorWidth
+  static const double scrubHysteresis
+  static const double scrubSlop
+  static const double spacing
+  static const MorphSpring widthSpring
+enum MorphPopoverArrowDirection
+  down,
+  up,
+  left,
+  right,
+class MorphPopoverMotion
+  MorphPopoverMotion({
+    MorphSpring presentSpring = MorphPopoverTuning.presentSpring,
+    MorphSpring dismissSpring = MorphPopoverTuning.dismissSpring,
+    double hiddenScale = MorphPopoverTuning.hiddenScale,
+  })
+  void advance(double t)
+  void dismiss(double t)
+  final MorphSpring dismissSpring
+  final double hiddenScale
+  bool get isDismissed
+  bool get isDismissing
+  bool get isSettled
+  double opacity(double t)
+  void present(double t)
+  final MorphSpring presentSpring
+  double progress(double t)
+  bool reducedMotion
+  double scale(double t)
+  double get time
+class MorphPopoverPlacement
+  const MorphPopoverPlacement({
+    required Rect content,
+    required MorphPopoverArrowDirection arrowDirection,
+    required double arrowCenter,
+  })
+  Offset get anchor
+  final double arrowCenter
+  final MorphPopoverArrowDirection arrowDirection
+  Rect get bounds
+  final Rect content
+  overrides: ==, hashCode, toString
+abstract final class MorphPopoverTuning
+  MorphPopoverTuning()
+  static const double arrowCornerClearance
+  static const double arrowLength
+  static const double arrowWidth
+  static const double cornerRadius
+  static const MorphSpring dismissSpring
+  static const double hiddenScale
+  static const double margin
+  static const MorphSpring presentSpring
+class MorphProgressMotion
+  MorphProgressMotion({required double value})
+  void advance(double t)
+  static const double fadeDuration
+  double fillOpacity(double t)
+  double fillWidth(double t, double trackWidth)
+  bool get isSettled
+  static const double minFillWidth
+  static const double secondsPerProgress
+  void setValue(double t, double value, {bool animated = true})
+  double shownValue(double t)
+  double get time
+  double get value
+class MorphPushZoomMotion
+  MorphPushZoomMotion({
+    MorphPushZoomTuning tuning = MorphPushZoomTuning.standard,
+  })
+  void advance(double t)
+  bool allowsDrag(Offset delta, {bool rtl = false})
+  void close(double t, Rect source)
+  double contentScale(double t)
+  double dimming(double t)
+  bool dragEnd(double t, Offset velocity)
+  Rect dragFrame(Rect page, Offset from, Offset delta)
+  void dragStart(double t, Offset position)
+  void dragUpdate(double t, Offset position)
+  double fade(double t)
+  bool get isClosed
+  bool get isDragging
+  bool get isOpen
+  bool get isOpening
+  bool get isScrubbing
+  bool get isSettled
+  void open(double t, Rect source, Rect page)
+  Rect get page
+  double radius(double t, double sourceRadius, double pageRadius)
+  double reach(double t)
+  Rect rect(double t)
+  void retargetEnds(double t, {Rect? source, Rect? page})
+  void showInPlace(double t, Rect source, Rect page)
+  Rect get source
+  double get time
+  final MorphPushZoomTuning tuning
+class MorphPushZoomTuning (see package:morph/widgets.dart)
+class MorphScrollAway
+  MorphScrollAway({bool minimizesOnScrollUp = false})
+  void beginDrag()
+  void endDeceleration()
+  void endDrag({required bool decelerates})
+  bool minimizesOnScrollUp
+  void Function(double, {required bool tracking})? onProgress
+  double get progress
+  void record(double offset)
+  void reset(double value)
+  void scroll(
+    double offset, {
+    required double min,
+    required double max,
+    required bool tracking,
+  })
+  void scrollToTop()
+class MorphSearchMotion
+  MorphSearchMotion({
+    Size size = const Size(346, 48),
+    MorphSpring spring = MorphSearchTuning.transitionSpring,
+  })
+  void advance(double t)
+  static double appearBlurFor(double presence)
+  static double appearScaleFor(double presence)
+  void focus(double t, {double delay = MorphSearchTuning.transitionDelay})
+  bool get isFocused
+  bool get isPressed
+  bool get isSettled
+  void land(double t)
+  double get liftedScale
+  void pointerCancel(double t)
+  void pointerDown(double t)
+  void pointerUp(double t)
+  double pressScale(double t)
+  double progress(double t)
+  bool get reducedMotion
+  set reducedMotion(bool value)
+  Size get size
+  set size(Size value)
+  void snap(double t, {required bool focused})
+  double get time
+  void unfocus(double t, {double delay = MorphSearchTuning.transitionDelay})
+abstract final class MorphSearchTuning
+  MorphSearchTuning()
+  static const double appearBlur
+  static const double appearScale
+  static const double clearInk
+  static const double clearInset
+  static const double clearSize
+  static const Size closeGlyphSize
+  static const double closeInk
+  static const double closeStroke
+  static const double focusedSideInset
+  static const double gap
+  static const double glyphInset
+  static const Size glyphSize
+  static const double height
+  static const double keyboardGap
+  static const double keyboardLag
+  static const double keyboardWaitLimit
+  static const double pressDelay
+  static const double restInset
+  static const double searchTabSize
+  static const double stackedBottomGap
+  static const double stackedCloseGap
+  static const double stackedCloseTravel
+  static const double stackedHeight
+  static const double stackedSideInset
+  static const MorphSpring stackedSpring
+  static const double tabActivationDelay
+  static const double tabBarInset
+  static const double tabCloseGap
+  static const MorphSpring tabFocusSpring
+  static const double tabKeyboardGap
+  static const double tabKeyboardLag
+  static const MorphSpring tabSpring
+  static const double tabUnfocusDelay
+  static const double textHeight
+  static const double textInset
+  static const double transitionDelay
+  static const MorphSpring transitionSpring
+class MorphSegmentHighlightMotion
+  MorphSegmentHighlightMotion()
+  void advance(double t)
+  static const Curve curve
+  static const double dimDuration
+  static const double dimmedOpacity
+  int? get index
+  bool isSettled(double t)
+  double opacity(double t, int index)
+  void press(double t, int index)
+  void release(double t)
+  static const double restoreDuration
+class MorphSheetDetent (see package:morph/widgets.dart)
+class MorphSheetMotion
+  MorphSheetMotion({
+    required List<double> heights,
+    required double width,
+    required int initial,
+    double? fullHeight,
+    int? dockedIndex,
+    int? undimmedIndex,
+    bool dismissible = true,
+    double inset = MorphSheetTuning.floatingInset,
+  })
+  void advance(double t)
+  void animateTo(double t, int index)
+  double cornerBlend(double t)
+  double dimming(double t)
+  void dismiss(double t)
+  bool dismissible
+  double dock(double t)
+  final int? dockedIndex
+  void dragCancel(double t)
+  void dragEnd(double t, double velocity)
+  void dragStart(double t, double y)
+  void dragUpdate(double t, double y)
+  double fill(double t)
+  double height(double t)
+  List<double> get heights
+  double get hiddenOffset
+  int get index
+  final double inset
+  bool get isDismissed
+  bool get isDismissing
+  bool get isDragging
+  bool get isSettled
+  double offset(double t)
+  void Function(int)? onDetentChanged
+  void Function()? onDismiss
+  void Function()? onDismissAttempt
+  void present(double t)
+  void presentInPlace(double t)
+  void press(double t)
+  double pressScale(double t)
+  void relayout(
+    double t,
+    List<double> heights,
+    double width, {
+    double? fullHeight,
+    int? index,
+  })
+  double scale(double t)
+  double shift(double t)
+  double stretch(double t)
+  void tapGrabber(double t)
+  double get time
+  final int? undimmedIndex
+  void unpress(double t)
+  Rect visibleRect(double t, double containerHeight)
+  double width
+abstract final class MorphSheetTuning
+  MorphSheetTuning()
+  static const double backgroundSwitch
+  static const double dimmingOpacity
+  static const double dismissAttemptShare
+  static const double dismissVelocity
+  static const double dragDockShortfall
+  static const double fallbackDisplayRadius
+  static const MorphSpring flickDismissSpring
+  static const double flickDismissVelocityGain
+  static const double floatingInset
+  static const double grabberHitHeight
+  static const double grabberOffset
+  static const Size grabberSize
+  static const double grabberTapDelay
+  static const double mediumFraction
+  static const double pressDelay
+  static const double pressScale
+  static const MorphSpring pressSpring
+  static const double projection
+  static const double refusedPullExtent
+  static const double releaseDelay
+  static const double releaseVelocityGain
+  static const MorphSpring spring
+  static const double stretchLagGain
+  static const MorphSpring stretchLagSpring
+  static const double stretchLimit
+  static const double stretchPerPoint
+  static const MorphSpring stretchSpring
+  static const double topRadius
+class MorphSliderMotion
+  MorphSliderMotion({
+    required double width,
+    required double value,
+    double frameRate = 120,
+    int ticks = 0,
+  })
+  void advance(double t)
+  double get currentTrackHeight
+  static const double farEdgeRatio
+  double get fillEnd
+  static const double fillRamp
+  final double frameRate
+  static const double glideCoast
+  static const double glideDecay
+  bool hitsThumb(double x)
+  bool get isAnimatingValueChange
+  bool get isDragging
+  bool get isGliding
+  bool get isSettled
+  final MorphSmallLens lens
+  static const Size liftedThumbSize
+  void Function(double)? onChangeEnd
+  void Function(double)? onChanged
+  void Function(bool)? onFeel
+  static const double panSlop
+  void pointerCancel(double t, {bool revert = false})
+  void pointerDown(double t, double x)
+  void pointerMove(double t, double x, {bool begin = false})
+  void pointerUp(double t, double x, {double? velocity})
+  double get position
+  static const MorphSpring programmaticSpring
+  static const double releaseDelay
+  static const MorphSpring releaseSpring
+  double get reportedValue
+  static const (double, double) rubberBand
+  void setValue(double t, double value, {bool animated = false})
+  void settle()
+  static const double squish
+  double get stretch
+  double get thumbCenter
+  static const Size thumbSize
+  static const double thumbSlop
+  List<double> get tickCenters
+  static const double tickExponent
+  static const double tickInset
+  static const double tickOffset
+  static const double tickProjection
+  static const double tickProjectionThreshold
+  static const MorphSpring tickReleaseSpring
+  static const double tickSize
+  int get ticks
+  set ticks(int value)
+  double get time
+  ({double left, double right}) get trackEnds
+  static const double trackHeight
+  double get travel
+  double get value
+  static const double velocityWindow
+  double get width
+  set width(double value)
+class MorphSmallLens
+  MorphSmallLens({
+    required Size restSize,
+    required Size liftedSize,
+    double frameRate = 120,
+  })
+  void advance(double t, [double Function(double)? position])
+  final double frameRate
+  static const double hangTime
+  bool hasSampled(double t, double position)
+  bool get isLifted
+  bool isSettled(double t)
+  void lift(double t)
+  static const MorphSpring liftSpring
+  static const double liftVelocity
+  final Size liftedSize
+  double progress(double t)
+  bool reducedMotion
+  void resetFlex(double t, double position)
+  final Size restSize
+  double scaleX(double t)
+  double scaleY(double t)
+  void settle(double t, double position)
+  double shift(double t)
+  Size size(double t)
+  double get sizeLag
+  static const MorphSpring sizeUnliftSpring
+  static const MorphSpring stretchSpring
+  void unlift(double t)
+  static const MorphSpring unliftSpring
+class MorphSwitchMotion
+  MorphSwitchMotion({required bool value, double frameRate = 120})
+  void advance(double t)
+  double get color
+  static const double colorDelay
+  static const double deadZone
+  static const double deadZoneWindow
+  final double frameRate
+  static const double inset
+  bool get isSettled
+  double get knob
+  static const Size knobSize
+  static const MorphSpring knobSpring
+  final MorphSmallLens lens
+  static const Size liftedKnobSize
+  static const MorphSpring offColorSpring
+  void Function(bool)? onChanged
+  static const MorphSpring onColorSpring
+  void Function(bool)? onDisplayedChanged
+  void pointerCancel(double t)
+  void pointerDown(double t, double x)
+  void pointerMove(double t, double x)
+  void pointerUp(double t, double x)
+  bool get reducedMotion
+  set reducedMotion(bool value)
+  static const (double, double) rubberBand
+  void setValue(double t, {required bool value})
+  void settle()
+  double get time
+  static const Size trackSize
+  static const double travel
+  bool get value
+class MorphTabBarMinimizeMotion
+  MorphTabBarMinimizeMotion({
+    MorphTabBarMinimizeBehavior behavior = MorphTabBarMinimizeBehavior.onScrollDown,
+  })
+  void advance(double t)
+  MorphTabBarMinimizeBehavior get behavior
+  double content(double t)
+  bool get held
+  double hint(double t)
+  bool isSettled(double t, {double extent = 400})
+  bool get minimized
+  void Function({required bool minimized})? onMinimizedChanged
+  void pressCancel(double t)
+  void pressDown(double t, double x)
+  bool pressMove(double t, double x)
+  void pressUp(double t)
+  bool get pressed
+  bool restsExpanded(double t)
+  final MorphScrollAway scrollAway
+  bool get scrubs
+  void setBehavior(double t, MorphTabBarMinimizeBehavior value)
+  void setMinimized(double t, {required bool minimized})
+  void settle(double t)
+  double shape(double t)
+  double get time
+  double? wakeTime(double t, {double extent = 400})
+abstract final class MorphTabBarMinimizeTuning
+  MorphTabBarMinimizeTuning()
+  static const double accessoryHeight
+  static const double activationDistance
+  static const double activeDistance
+  static const double collapseContentDelay
+  static const MorphSpring collapseContentSpring
+  static const MorphSpring collapseShapeSpring
+  static const double collapsedInset
+  static const double collapsedSize
+  static const MorphSpring collapsedSpring
+  static const double expandContentDelay
+  static const MorphSpring expandContentSpring
+  static const MorphSpring expandShapeSpring
+  static const MorphSpring expansionSpring
+  static const MorphSpring hintResetSpring
+  static const double hintScale
+  static const MorphSpring hintSpring
+  static const MorphSpring hintTrackingSpring
+  static const double holdDuration
+  static const double holdHysteresis
+  static const double minimumProgress
+  static const double minimumRangeFactor
+  static const double sideInset
+  static const double spacing
+class MorphTouchGlowMotion
+  MorphTouchGlowMotion({required double washPeak, required double spotPeak})
+  void advance(double t)
+  Offset get center
+  static const double clearGlassWhite
+  static const double diameter
+  static const double dragDistance
+  static const double dragGrowth
+  static const double dragStrength
+  static const MorphSpring fallSpring
+  MorphGlassGlow? glowAt(
+    double t,
+    Brightness brightness, {
+    Offset Function(Offset)? transform,
+  })
+  static const double hideBelow
+  bool isSettled(double t)
+  void pointerDown(double t, Offset position)
+  void pointerMove(double t, Offset position)
+  void pointerUp(double t)
+  static const double releaseGrowth
+  static const double releaseLag
+  static const double riseLag
+  static const MorphSpring riseSpring
+  static const double spotCore
+  static double spotGain(Brightness brightness)
+  static double spotGainFor(
+    Brightness brightness, {
+    Color? tint,
+    bool clear = false,
+  })
+  static double spotGainOfWhite(double white)
+  double spotOpacity(double t)
+  final double spotPeak
+  double spotScale(double t)
+  static const double spotSpread
+  static const double tintLuminanceExponent
+  static const double tintWhiteFrom
+  static const double tintWhiteTo
+  static const double washOffset
+  double washOpacity(double t)
+  final double washPeak
+class MorphZoomMotion
+  MorphZoomMotion({MorphZoomTuning tuning = MorphZoomTuning.standard})
+  void advance(double t)
+  double centerProgress(double t)
+  void close(double t)
+  static double contentScale(Rect container, Size destination)
+  double dimming(double t)
+  double fade(double t)
+  bool get isClosed
+  bool get isOpening
+  bool get isSettled
+  void open(double t)
+  Rect rect(double t, Rect source, Rect destination)
+  double sizeProgress(double t)
+  double get time
+  final MorphZoomTuning tuning
+class MorphZoomTuning (see package:morph/widgets.dart)
+MorphDatePickerPlacement morphPlaceDatePicker({
+  required Size size,
+  required Rect label,
+  required Size screen,
+  EdgeInsets padding = EdgeInsets.zero,
+  TextDirection textDirection = TextDirection.ltr,
+})
+MorphPopoverPlacement morphPlacePopover({
+  required Size size,
+  required Rect source,
+  required Size screen,
+  EdgeInsets padding = EdgeInsets.zero,
+  TextDirection textDirection = TextDirection.ltr,
+})
+
+# package:morph/glass_painter.dart
+class MorphGlassGlow
+  const MorphGlassGlow({
+    required double wash,
+    required Offset center,
+    required double radius,
+    required double gain,
+  })
+  final Offset center
+  double factorAt(double distance)
+  final double gain
+  bool get isVisible
+  final double radius
+  final double wash
+  overrides: ==, hashCode
+enum MorphGlassKind
+  track,
+  lens,
+  knob,
+  thumb,
+  button,
+  bar,
+  menu,
+class MorphGlassOptics
+  const MorphGlassOptics({
+    double liftedDisplacement = 9,
+    double unliftedDisplacement = 0,
+    double unliftedBlurRadius = 0,
+    double contentWrapperDisplacement = -17.5,
+    double innerShadowRadius = 3,
+    double innerShadowOpacity = 0.06,
+    double innerShadowOffsetY = 7,
+  })
+  double blurRadiusAt(double lift)
+  final double contentWrapperDisplacement
+  double displacementAt(double lift)
+  final double innerShadowOffsetY
+  final double innerShadowOpacity
+  final double innerShadowRadius
+  static const MorphGlassOptics large
+  final double liftedDisplacement
+  static const MorphGlassOptics small
+  final double unliftedBlurRadius
+  final double unliftedDisplacement
+class MorphGlassOutline
+  const MorphGlassOutline(Path path)
+  Rect get bounds
+  Path get path
+  MorphGlassOutline shift(Offset offset)
+class MorphGlassPainter (see package:morph/widgets.dart)
+class MorphGlassSurface
+  const MorphGlassSurface({
+    required MorphGlassKind kind,
+    required RRect shape,
+    required Color color,
+    required Brightness brightness,
+    double lift = 0,
+    double scaleX = 1,
+    double scaleY = 1,
+    MorphGlassOptics? optics,
+    double? blurRadius,
+    Color? tint,
+    double transmissionGamma = 1,
+    bool enabled = true,
+    bool glass = true,
+    double opacity = 1,
+    MorphGlassGlow? glow,
+    List<BoxShadow>? shadows,
+    MorphGlassStyle? style,
+  })
+  final double? blurRadius
+  Rect get bounds
+  final Brightness brightness
+  final Color color
+  final bool enabled
+  final bool glass
+  final MorphGlassGlow? glow
+  final MorphGlassKind kind
+  final double lift
+  RRect get localShape
+  final double opacity
+  final MorphGlassOptics? optics
+  final double scaleX
+  final double scaleY
+  final List<BoxShadow>? shadows
+  final RRect shape
+  final MorphGlassStyle? style
+  final Color? tint
+  final double transmissionGamma
