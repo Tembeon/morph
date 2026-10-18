@@ -132,16 +132,16 @@ morph даёт приложению полный набор Liquid Glass-ком�
 - **Зависит от.** 1.
 - **Файлы.** `widgets_theme.dart`, `lib/src/theme.dart`, `show.dart`, `flight.dart`, `glass_tier.dart`, `glass_renderer.dart`, `glass.dart` (`MorphGlassScope`), 17 классов appearance, `typography.dart`, `example/lib/main.dart`, `pubspec.yaml`. Цель `lib/src/theme/`.
 - **Сделать.**
-  - [ ] `MorphTheme` как `InheritedTheme`, `MorphThemeData.appearances` по типу, `morphAppearanceOf`, `static const tables`, `lerp` у каждого appearance.
-  - [ ] Sealed `MorphGlassRenderer` в `lib/src/theme/`: `adaptive`, `tier`, `painted`. До единицы 6 `painted` принимает текущий painter. В том же commit старый `class MorphGlassRenderer extends MorphGlassPainter` (glass_renderer.dart:113) становится внутренним `GlassBuiltInPainter`.
-  - [ ] В flight.dart и show.dart заменить `Theme.of(context).colorScheme` (flight.dart:1699) и чтения `MorphTheme.default*` (flight.dart:579-582) на `MorphThemeData`, затем удалить все импорты Material.
-  - [ ] `MorphLocalizations` с английскими строками по умолчанию.
-  - [ ] Перенести `setFloatUniforms` из `flutter_shaders` в `scene/shaders.dart`.
-  - [ ] Перевести галерею на `WidgetsApp` и собственную тему.
+  - [x] `MorphTheme` как `InheritedTheme`, `MorphThemeData.appearances` по типу, `morphAppearanceOf`, `static const tables`, `lerp` у каждого appearance. Сделано в `b474652e`: `MorphThemeData.appearances` по типу, `MorphAppearance`, `morphResolveAppearance`. `lerp` у appearance не делается: в `WidgetsApp` нет анимированной темы.
+  - [ ] Sealed `MorphGlassRenderer` в `lib/src/theme/`: `adaptive`, `tier`, `painted`. До единицы 6 `painted` принимает текущий painter. В том же commit старый `class MorphGlassRenderer extends MorphGlassPainter` (glass_renderer.dart:113) становится внутренним `GlassBuiltInPainter`. Перенесено в единицу 6 вместе с painter-швом, чтобы не переделывать тесты дважды.
+  - [x] В flight.dart и show.dart заменить `Theme.of(context).colorScheme` (flight.dart:1699) и чтения `MorphTheme.default*` (flight.dart:579-582) на `MorphThemeData`, затем удалить все импорты Material. Сделано в `725b5f4b` и `b474652e`; в `lib/` нет импортов Material.
+  - [x] `MorphLocalizations` с английскими строками по умолчанию. `b474652e`, `f1a1b2bc`.
+  - [x] Перенести `setFloatUniforms` из `flutter_shaders` в `scene/shaders.dart`. `46218a27`, `3d8c575c`: `lib/src/glass/renderer/internal/shader_uniforms.dart`, квантование как у `flutter_shaders`.
+  - [ ] Перевести галерею на `WidgetsApp` и собственную тему. Отложено: затрагивает только example; галерея пока на `MaterialApp` с `MorphTheme` в chrome.
 - **Видно.** Галерея работает без Material-предков. Цвета light, dark, high contrast и tint не меняются.
 - **Проверка, unit.**
-  - [ ] Список Material в `architecture_test` пуст.
-  - [ ] `flutter pub deps` без `material_ui`, `cupertino_ui`, `flutter_shaders`.
+  - [x] Список Material в `architecture_test` пуст.
+  - [x] `flutter pub deps` без `material_ui`, `cupertino_ui`, `flutter_shaders`. `material_ui` остался только в dev_dependencies для тестов.
   - [ ] Тесты appearance на контрол.
   - [ ] Тест `lerp`, вложенная тема, смена темы при открытом sheet, RTL.
 - [ ] **Проверка, устройство.** iPhone, снимки страниц галереи в light и dark совпадают с текущими.
