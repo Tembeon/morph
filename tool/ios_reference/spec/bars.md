@@ -41,6 +41,10 @@ soft / hard, `hidden`); `UIScrollEdgeElementContainerInteraction`.
   bar; 16 side inset on 402 pt (20 on 440). Inline title kept 12 from
   the buttons (placement: "Spec - inline title room").
 - Press lifts the whole capsule on the glass-button model (1 + 16/w).
+  Its corner radius follows half the current shorter side through the
+  lift, drag and recoil: a round item stays round under a still finger,
+  and a wide group's ends stay fully rounded. The row hands that same
+  outline to every renderer (test/bar_press_shape_test.dart).
 - Text: bar buttons 17 medium (prominent semibold), title 17 semibold,
   large title 34 bold.
 

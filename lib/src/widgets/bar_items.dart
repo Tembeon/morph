@@ -855,7 +855,7 @@ Rect _mirror(Rect r, double width) =>
 /// with [MorphBarMotion].
 ///
 /// A touch on a button lifts its whole capsule like a
-/// [MorphGlassButton].
+/// [MorphGlassButton], including its fully rounded ends.
 @internal
 class MorphBarItems extends StatefulWidget {
   /// Creates the row.
@@ -1560,15 +1560,16 @@ class _MorphBarItemsState extends State<MorphBarItems>
     }
     final capsules = _motion.capsules;
     final items = _motion.items;
-    Rect lifted(Object id, Rect rect) {
+    RRect liftedShape(Object id, Rect rect) {
       final press = _presses[id];
-      if (press == null) return rect;
-      final lean = press.lean;
-      return Rect.fromCenter(
-        center: rect.center + lean,
-        width: rect.width * press.scaleX,
-        height: rect.height * press.scaleY,
-      );
+      final shown = press == null
+          ? rect
+          : Rect.fromCenter(
+              center: rect.center + press.lean,
+              width: rect.width * press.scaleX,
+              height: rect.height * press.scaleY,
+            );
+      return morphCapsuleShape(shown.size).shift(shown.topLeft);
     }
 
     final apart = [
@@ -1605,10 +1606,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
         ] else if (!_carried(c.id))
           MorphGlassSurface(
             kind: MorphGlassKind.button,
-            shape: RRect.fromRectAndRadius(
-              lifted(c.id, c.rect),
-              Radius.circular(math.min(c.rect.width, c.rect.height) / 2),
-            ),
+            shape: liftedShape(c.id, c.rect),
             color: _capsuleColor(c.id, style),
             brightness: brightness,
           ),
