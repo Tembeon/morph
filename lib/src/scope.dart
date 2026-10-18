@@ -1,17 +1,10 @@
-import 'dart:ui' as ui;
-
-import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:morph/src/flight.dart';
 
 /// The registry of tags and flights. Installed once near the top of the
-/// tree. Overlay flights only need the scope above the launching
-/// context and the tags; morph routes ([showMorphRoute]) launch from
-/// the navigator's own context, so an app that uses them places the
-/// scope ABOVE the Navigator (MaterialApp.builder is the usual home).
-/// A flight's shuttle renders in the NEAREST enclosing [Overlay], so a
+/// tree, above the launching context and the tags. A flight's shuttle renders in the NEAREST enclosing [Overlay], so a
 /// nested navigator keeps its flights inside itself; in a
 /// single-navigator app that is the root overlay anyway. Also serves as
 /// the TickerProvider for all flights.
@@ -39,8 +32,8 @@ class MorphScope extends StatefulWidget {
     return state;
   }
 
-  /// null outside a scope - for consumers that can live without the
-  /// morph engine (e.g. MorphSkin as pure fusion). Takes no dependency:
+  /// null outside a scope, for consumers that can live without the
+  /// morph engine. Takes no dependency:
   /// safe from callbacks and initState.
   static MorphScopeState? maybeOf(BuildContext context) {
     return context.getInheritedWidgetOfExactType<_MorphScopeMarker>()?.state;
@@ -372,7 +365,6 @@ class MorphTag extends StatefulWidget {
     this.surfaceColor,
     this.elevation = 0,
     this.replica,
-    this.snapshotGhost = false,
   }) : assert(elevation >= 0, 'elevation cannot be negative.');
 
   /// Unique identity within the enclosing [MorphScope].
@@ -473,12 +465,6 @@ class MorphTag extends StatefulWidget {
     return context.dependOnInheritedWidgetOfExactType<_MorphTagIdScope>()?.id;
   }
 
-  /// The ghost in the shuttle as a pixel snapshot instead of a second
-  /// build. Opt-in for heavy content: the snapshot freezes ephemeral
-  /// state (e.g. a mid-ripple), which on ordinary buttons looks worse
-  /// than a live widget replica.
-  final bool snapshotGhost;
-
   @override
   State<MorphTag> createState() => MorphTagState();
 }
@@ -487,7 +473,6 @@ class MorphTag extends StatefulWidget {
 class MorphTagState extends State<MorphTag> {
   MorphScopeState? _scope;
   bool _hidden = false;
-  GlobalKey? _boundaryKey;
   ValueNotifier<int>? _revisions;
 
   /// mounted is not enough: in the dismantling frame the element is
@@ -632,24 +617,6 @@ class MorphTagState extends State<MorphTag> {
     }
   }
 
-  /// A pixel snapshot of the live button (including current ephemeral
-  /// state such as a ripple) for the shuttle's ghost. null if the
-  /// boundary has not painted yet - the caller falls back to the widget
-  /// replica.
-  @internal
-  Future<ui.Image?> captureSnapshot(double pixelRatio) async {
-    final RenderObject? boundary = _boundaryKey?.currentContext
-        ?.findRenderObject();
-    if (boundary is! RenderRepaintBoundary || !boundary.hasSize) {
-      return null;
-    }
-    try {
-      return await boundary.toImage(pixelRatio: pixelRatio);
-    } on Object {
-      return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     assert(
@@ -659,14 +626,7 @@ class MorphTagState extends State<MorphTag> {
       'twice. Remove the key or move it deeper, outside the replicated '
       'part.',
     );
-    // The boundary exists only for the snapshot ghost: a plain tag
-    // adds no layer and no GlobalKey to the tree.
-    final Widget child = widget.snapshotGhost
-        ? RepaintBoundary(
-            key: _boundaryKey ??= GlobalKey(),
-            child: widget.child,
-          )
-        : widget.child;
+    final Widget child = widget.child;
     return IgnorePointer(
       ignoring: _hidden,
       child: Opacity(

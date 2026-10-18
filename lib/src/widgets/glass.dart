@@ -297,7 +297,7 @@ abstract class MorphGlassPainter {
   /// `GlassEffectContainer` do: two surfaces closer than [spacing] lean
   /// toward each other and share a body when their gap is less than
   /// `spacing - 0.5`, by the
-  /// merge law of the skin (`MorphSkin`, whose blend width the spacing
+  /// merge law of the skin (whose blend width the spacing
   /// is, 1:1); surfaces [spacing] or more apart do not touch. Zero keeps
   /// every surface separate. The bars pass 12, the spacing UIKit gives the
   /// glass container of a navigation bar and of a toolbar, which is also

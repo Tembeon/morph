@@ -46,7 +46,7 @@ Element? _outermostBoundary(BuildContext context) {
 /// the outermost [MorphPresentationBoundary] above [context], else the
 /// nearest overlay; null when there is none.
 ///
-/// Every morph presenter (`showMorph*`, `MorphAnchor`, the menu button,
+/// Every morph presenter (`showMorph`, the menu button,
 /// the context menu) uses it when no explicit overlay is passed, and
 /// [morphAnchorRect] measures in it by default, so a flight and its
 /// anchors share one coordinate space.

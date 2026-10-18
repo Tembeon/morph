@@ -48,9 +48,8 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   /// sets [scrimColor].
   static const Color defaultScrimColor = Color(0xFF000000);
 
-  /// The built-in shadow color (60 percent black), used by flights and
-  /// [MorphSkin] when neither the call nor the theme sets
-  /// [shadowColor].
+  /// The built-in shadow color (60 percent black), used by flights when
+  /// neither the call nor the theme sets [shadowColor].
   static const Color defaultShadowColor = Color(0x99000000);
 
   /// The built-in elevation of a flight's destination surface.
@@ -73,13 +72,10 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   /// Default shadow color, applied verbatim - its opacity is part of
   /// the value.
   ///
-  /// Both flights and [MorphSkin] resolve this slot (one builtin, 60%
-  /// black, when unset), so the shadow tint holds when a piece launches
-  /// a flight.
+  /// Flights resolve this slot (one builtin, 60% black, when unset).
   final Color? shadowColor;
 
-  /// Default knob bundle for [MorphSkin]s without a style or explicit
-  /// knobs.
+  /// Default knob bundle for skins without a style or explicit knobs.
   final MorphSkinStyle? skinStyle;
 
   /// Default scrim springs for flights launched without an explicit

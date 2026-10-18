@@ -187,12 +187,6 @@ class LiquidGlassLayer extends StatefulWidget {
   /// glass. Fake glass ignores it.
   final Color? solidBackdrop;
 
-  /// Whether there is a [LiquidGlassLayer] in the widget tree above the given
-  /// [context].
-  static bool existsIn(BuildContext context, {bool watch = true}) {
-    return LiquidGlassRenderScope.maybeOf(context, watch: watch) != null;
-  }
-
   @override
   State<LiquidGlassLayer> createState() => _LiquidGlassLayerState();
 }

@@ -184,7 +184,7 @@ double liquidRectGap(Rect a, Rect b) {
 }
 
 /// A raw SDF mass poured into a skin - contentless geometry fused into
-/// the contour alongside the pieces ([MorphSkin.extraMasses]). A mass
+/// the contour alongside the pieces. A mass
 /// has no morph identity: it cannot fly, it only adds to the shape.
 /// Sealed: [MorphMass.box] and [MorphMass.bridge] are the whole
 /// vocabulary.
@@ -787,7 +787,7 @@ const int liquidMaxClusterCells = 400000;
 /// screen-wide blob of dozens of fused pieces) coarsen their grid just
 /// enough to fit, so the worst frame cost is bounded. A deterministic
 /// function of geometry - no time, no hysteresis; the same scene always
-/// traces identically. Surfaced publicly as `MorphSkin.defaultEvalBudget`.
+/// traces identically.
 @internal
 const int liquidDefaultEvalBudget = 200000;
 
@@ -858,7 +858,7 @@ List<List<Offset>> _tracedAndSmoothed(
 /// the current scene.
 ///
 /// The pure [liquidPath]/[liquidContours] remain for one-shot use;
-/// MorphSkin holds one tracer per State.
+/// Each owner holds one tracer per State.
 class LiquidTracer {
   Map<int, List<_ClusterCacheEntry>> _cache = <int, List<_ClusterCacheEntry>>{};
 

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
 // The bench measures package INTERNALS by design - it is an instrument
@@ -91,7 +90,6 @@ Future<void> runReleaseBench(BuildContext context) async {
 
   try {
     _tracingOps();
-    await _frameTimings(context);
   } on Object catch (error) {
     // A passport that half-prints and hangs is worse than one that
     // says why: never let a launch failure skip the exit below (the
@@ -158,54 +156,4 @@ void _tracingOps() {
     '${'oneMoving/cached'.padRight(24)} '
     '${_measureUs(() => tracer.trace(benchOneMovingFrame(frame++))).toStringAsFixed(1)} us/op',
   );
-}
-
-/// Real engine frame costs during one glacial open + close of a morph
-/// dialog flown from the bench card: build (UI thread) and raster (GPU
-/// thread) per frame, average / p95 / worst.
-Future<void> _frameTimings(BuildContext context) async {
-  final List<FrameTiming> timings = <FrameTiming>[];
-  void collect(List<FrameTiming> batch) => timings.addAll(batch);
-  SchedulerBinding.instance.addTimingsCallback(collect);
-
-  final MorphFlight flight = showMorphDialogFlight(
-    context,
-    from: _benchSourceId,
-    width: 520,
-    height: 420,
-    motion: .glacial,
-    builder: (BuildContext context, MorphFlight flight) =>
-        const Center(child: Text('bench')),
-  );
-  await Future<void>.delayed(const Duration(milliseconds: 3200));
-  flight.close();
-  await flight.closed;
-  await Future<void>.delayed(const Duration(milliseconds: 300));
-  SchedulerBinding.instance.removeTimingsCallback(collect);
-
-  if (timings.isEmpty) {
-    _report('frames n=0');
-    return;
-  }
-  List<double> ms(Duration Function(FrameTiming) pick) {
-    final List<double> values = <double>[
-      for (final FrameTiming t in timings) pick(t).inMicroseconds / 1000.0,
-    ]..sort();
-    return values;
-  }
-
-  String stats(List<double> values) {
-    final double avg =
-        values.reduce((double a, double b) => a + b) / values.length;
-    final double p95 =
-        values[(values.length * 0.95).floor().clamp(0, values.length - 1)];
-    return 'avg=${avg.toStringAsFixed(2)} p95=${p95.toStringAsFixed(2)} '
-        'worst=${values.last.toStringAsFixed(2)}';
-  }
-
-  final List<double> build = ms((FrameTiming t) => t.buildDuration);
-  final List<double> raster = ms((FrameTiming t) => t.rasterDuration);
-  _report('frames n=${timings.length} (glacial flight open+close)');
-  _report('build  ms: ${stats(build)}');
-  _report('raster ms: ${stats(raster)}');
 }

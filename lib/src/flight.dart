@@ -1,27 +1,24 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart' show clampDouble;
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:motor/motor.dart';
 import 'package:meta/meta.dart';
 
 import 'package:morph/src/controller.dart';
-import 'package:morph/src/frame.dart';
-import 'package:morph/src/gesture.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/measure.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/scrim.dart';
-import 'package:morph/src/shared.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/theme.dart';
 import 'package:morph/src/themes.dart';
+
+// Without a scrim motion the scrim fades in over the first 70 percent of
+// the flight's progress.
+const Interval _scrimFade = Interval(0, 0.7);
 
 /// Builds the target content of a flight; called once per flight and
 /// reused between spring ticks.
@@ -143,7 +140,8 @@ class MorphFlight {
   /// (`morphScrimOpacity`).
   double get scrimOpacity =>
       _scrim?.opacity(maxScrimOpacity) ??
-      morphScrimOpacity(maxScrimOpacity, controller.progress);
+      maxScrimOpacity *
+          _scrimFade.transform(clampDouble(controller.progress, 0, 1));
 
   /// The scrim channel's value (0 clear, 1 full), or null without a
   /// [scrimMotion].
@@ -251,28 +249,13 @@ class MorphFlight {
   bool _sourceLost = false;
   double? _dissolveStart;
 
-  /// Marked shared elements on both sides of this flight (see
-  /// [MorphSharedElement]).
-  @internal
-  final SharedElementRegistry sharedElements = SharedElementRegistry();
-
-  /// A pixel ghost of the button (captured from the tag's live
-  /// RepaintBoundary at launch): an exact copy including a ripple, with
-  /// no double build and no GlobalKey restrictions. Until it is ready
-  /// the shuttle draws the widget replica.
-  ui.Image? _sourceSnapshot;
-
-  /// The captured pixel ghost, when [MorphTag.snapshotGhost] is set.
-  ui.Image? get sourceSnapshot => _sourceSnapshot;
-
   /// The source tag's id.
   Object get tagId => tag.id;
 
   /// Completes when the flight finalizes (landed or aborted), with the
   /// result of the [close] that landed it - the overlay counterpart of
   /// awaiting showDialog. A dismissal (scrim tap, Esc, back) closes
-  /// with null; in route mode the value passed to Navigator.pop rides
-  /// here too.
+  /// with null.
   Future<Object?> get closed => _closedCompleter.future;
 
   /// The flight's discrete moments, in order: launched, settled,
@@ -322,35 +305,6 @@ class MorphFlight {
   /// the flight finalizes.
   bool get isLanding => !_finished && controller.hasHandedOff;
 
-  // Route mode: the SECOND latch. A MorphPageRoute pushes immediately
-  // and this flight plays as its visual transition; once the open
-  // spring settles, ownership of the target content transfers from the
-  // shuttle to the route page, and transfers back the moment a close
-  // starts. Both sides listen to [routeOwnsContent] and rebuild in the
-  // same frame, so the [routeContentKey]-ed subtree reparents with its
-  // live state instead of rebuilding - the one sanctioned GlobalKey
-  // move in the system (the tag-side ban on GlobalKeys is about double
-  // mounting a replica, which route mode never does).
-  @internal
-  /// Route mode: true while the route page (not the shuttle) owns the
-  /// target content. Both owners listen and rebuild in the same frame,
-  /// so the [routeContentKey] subtree reparents with live state.
-  final ValueNotifier<bool> routeOwnsContent = ValueNotifier<bool>(false);
-  GlobalKey? _routeContentKey;
-
-  /// Non-null only in route mode: the shared identity of the target
-  /// content subtree, mounted by exactly one side at a time.
-  @internal
-  GlobalKey? get routeContentKey => _routeContentKey;
-
-  /// Switches this flight into route mode (see [routeOwnsContent]).
-  /// Called by the route before the flight opens; irreversible for the
-  /// flight's lifetime.
-  @internal
-  void enableRouteMode() {
-    _routeContentKey ??= GlobalKey(debugLabel: 'morph route content');
-  }
-
   // Pop layering: an OVERLAY flight opened above a ModalRoute registers
   // a LocalHistoryEntry on it, so Esc (DismissIntent -> maybePop), the
   // Android back and a plain Navigator.pop all close the TOPMOST
@@ -363,7 +317,7 @@ class MorphFlight {
   bool _removingHistory = false;
 
   void _addHistoryEntry(BuildContext context) {
-    if (_routeContentKey != null || _historyEntry != null) {
+    if (_historyEntry != null) {
       return;
     }
     final ModalRoute<Object?>? route = ModalRoute.of(context);
@@ -398,10 +352,7 @@ class MorphFlight {
   /// the next system pop reaches the page UNDER the visible overlay.
   void _restoreHistoryEntry() {
     final ModalRoute<Object?>? route = _historyRoute;
-    if (_routeContentKey != null ||
-        _historyEntry != null ||
-        route == null ||
-        !route.isActive) {
+    if (_historyEntry != null || route == null || !route.isActive) {
       return;
     }
     _pushHistoryEntry(route);
@@ -423,14 +374,6 @@ class MorphFlight {
     }
   }
 
-  /// The displacement channel (see [_DragChannel]): finger-owned
-  /// container offset, orthogonal to the morph value.
-  late final _DragChannel _drag = _DragChannel(this);
-
-  /// The measured content size of a measured target and its spring
-  /// (see [_ContentSizeChannel]).
-  late final _ContentSizeChannel _contentSize = _ContentSizeChannel(this);
-
   /// Geometry changes from the value spring, displacement, content size
   /// and the target's repaint signal; excludes independent scrim ticks.
   ///
@@ -438,8 +381,6 @@ class MorphFlight {
   /// when only its scrim changes.
   late final Listenable geometryTicks = .merge(<Listenable>[
     controller,
-    _drag,
-    _contentSize,
     ?target.repaint,
   ]);
 
@@ -449,120 +390,6 @@ class MorphFlight {
     geometryTicks,
     ?_scrim,
   ]);
-
-  /// The content size the target is placed for this frame, for a
-  /// target measured by its content ([MorphTargetSpec.measured]): the
-  /// measured size, spring-smoothed on the flight's open motion when
-  /// it changes while the flight is up. Null for a fixed target, and
-  /// until the first measurement lands - the shuttle stays invisible
-  /// and the source visible for that frame.
-  Size? get contentSize => _contentSize.value;
-
-  /// The latest measured content size of a measured target, before
-  /// smoothing; null for a fixed target or before the first
-  /// measurement.
-  Size? get measuredContentSize => _contentSize.measured;
-
-  /// Feeds a measurement from a renderer of the target content.
-  @internal
-  void reportContentSize(Size size) {
-    if (_finished) {
-      return;
-    }
-    _contentSize.report(size);
-  }
-
-  /// The raw finger displacement of the container, in overlay px.
-  Offset get dragOffset => _drag.offset;
-
-  /// true between [beginDrag] and [endDrag].
-  bool get isDragging => _drag.isActive;
-
-  /// Distance-based preview of the release heuristic: true when letting
-  /// go RIGHT NOW would commit the close (a fast fling can still commit
-  /// from closer). Watch it during dragBy for haptics or custom cues -
-  /// the built-in visual cue ([morphDragArm]) rides the same threshold.
-  bool get isDragArmed => _drag.offset.distance > morphDragCommitDistance;
-
-  /// The displacement to apply to the container this frame: the raw
-  /// offset plus the armed "lean toward home" cue, all faded by
-  /// progress so it vanishes exactly at the handoff latch - the swap
-  /// back to the home widget happens at zero offset.
-  Offset get appliedDragOffset {
-    final Offset offset = _drag.offset;
-    if (offset == .zero) {
-      return Offset.zero;
-    }
-    Offset total = offset;
-    final double arm = morphDragArm(offset.distance);
-    if (arm > 0) {
-      // Armed, the card starts drifting toward its source: the
-      // destination of a release becomes legible before the release.
-      final Offset toHome =
-          sourceRect.center - (lastTargetRect.center + offset);
-      final double distance = toHome.distance;
-      if (distance >= 1) {
-        total += toHome / distance * (12 * arm);
-      }
-    }
-    return total * controller.progress;
-  }
-
-  /// Starts finger ownership of the container displacement. The morph
-  /// value is untouched: grabbing a still-opening overlay lets it keep
-  /// materializing while it follows the hand.
-  void beginDrag() {
-    if (_finished) {
-      return;
-    }
-    _drag.begin();
-  }
-
-  /// Feeds a pointer delta 1:1: the whole container - surface, shadow,
-  /// content, shared elements - moves as one rigid body.
-  void dragBy(Offset delta) {
-    if (_finished) {
-      return;
-    }
-    _drag.moveBy(delta);
-  }
-
-  /// Releases the finger. The displacement always springs back to zero
-  /// with the carried velocity; whether the close flight plays too is
-  /// decided by momentum projection ([morphProjectValue] per axis)
-  /// against [morphDragCommitDistance] / [morphDragCommitVelocity] -
-  /// or forced either way with [commit].
-  void endDrag(Offset velocityPerSecond, {bool? commit}) {
-    if (_finished || !_drag.isActive) {
-      return;
-    }
-    final Offset offset = _drag.offset;
-    final Offset projected = Offset(
-      morphProjectValue(offset.dx, velocityPerSecond.dx),
-      morphProjectValue(offset.dy, velocityPerSecond.dy),
-    );
-    final bool shouldClose =
-        commit ??
-        (projected.distance > morphDragCommitDistance ||
-            velocityPerSecond.distance > morphDragCommitVelocity);
-    _drag.release(velocityPerSecond);
-    if (shouldClose && isOpenOrOpening) {
-      close();
-    }
-  }
-
-  /// Rejects adoption of an overlay flight by a Navigator route.
-  @internal
-  static void checkRouteLaunch(MorphFlight? existing) {
-    if (existing != null && existing.routeContentKey == null) {
-      throw FlutterError(
-        'showMorphRoute(from: ${existing.tag.id}): an overlay flight is '
-        'already live for this tag. A route cannot adopt an overlay flight '
-        'mid-air - the content ownership chains differ. Close the overlay '
-        'first, or retarget it with showMorph.',
-      );
-    }
-  }
 
   /// Launches (or retargets) the flight for [from]. Prefer the
   /// showMorph* entry points: they also resolve [MorphTheme] defaults,
@@ -582,7 +409,6 @@ class MorphFlight {
     Color shadowColor = MorphTheme.defaultShadowColor,
     VoidCallback? onDismissRequested,
     String? semanticLabel,
-    bool routeMode = false,
     // The shuttle's home. Defaults to morphPresentationOverlayOf; a
     // route passes its navigator's own overlay explicitly (the
     // navigator's context sits ABOVE that overlay), and an app passes
@@ -594,9 +420,6 @@ class MorphFlight {
     // was disposed would drive show/hide on a defunct State.
     final MorphFlight? existing = scope.liveFlightOf(from);
     if (existing != null) {
-      if (routeMode) {
-        checkRouteLaunch(existing);
-      }
       if (motion != null) {
         existing.controller.motion = motion;
       }
@@ -605,9 +428,6 @@ class MorphFlight {
       }
       if (semanticLabel != null) {
         existing.semanticLabel = semanticLabel;
-      }
-      if (routeMode) {
-        existing.enableRouteMode();
       }
       // RETARGET CONTRACT: the existing flight keeps its target,
       // builder, barrier and scrim - the content lives in the shuttle
@@ -639,9 +459,6 @@ class MorphFlight {
     );
     flight.onDismissRequested = onDismissRequested;
     flight.semanticLabel = semanticLabel;
-    if (routeMode) {
-      flight.enableRouteMode();
-    }
     scope.adoptFlight(flight);
     flight.open();
     flight._addHistoryEntry(context);
@@ -731,8 +548,6 @@ class MorphFlight {
   /// closure. Overlay content does not follow its owner's build on its
   /// own (an OverlayEntry is an island): a state owner whose open
   /// content derives from that state calls this after setState.
-  /// [MorphAnchor] refreshes its content on every rebuild through a
-  /// narrower seam that leaves the shuttle's frame chain alone.
   void markNeedsBuild() => _entry?.markNeedsBuild();
 
   /// Bumped to rebuild only the target content (the builder closure),
@@ -829,26 +644,7 @@ class MorphFlight {
       builder: (BuildContext context) => _MorphShuttle(flight: this),
     );
     _overlay.insert(_entry!);
-    if (tag.widget.snapshotGhost) {
-      // A flight usually launches from the button's own tap, mid-ripple:
-      // the boundary is dirty at that moment and toImage asserts on it -
-      // and once the tag hides (opacity 0) its subtree never paints
-      // again, so a dirty boundary would stay dirty forever. The capture
-      // therefore waits for this frame's paint, and the tag hides only
-      // AFTER the shot. The shuttle already covers the source exactly
-      // (drawing the live replica meanwhile), so the extra visible
-      // frames are occluded.
-      _awaitingSnapshot = true;
-      WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-        _captureSourceSnapshot().whenComplete(() {
-          _awaitingSnapshot = false;
-          _hideTagWhenStaged();
-        });
-      });
-    }
   }
-
-  bool _awaitingSnapshot = false;
 
   /// Hides the source once the shuttle can stand in for it: after the
   /// snapshot shot when one is pending, and, for a measured target,
@@ -860,39 +656,10 @@ class MorphFlight {
     if (_finished ||
         _entry == null ||
         !tag.mounted ||
-        controller.hasHandedOff ||
-        _awaitingSnapshot ||
-        (target.isMeasured && !_contentSize.isSeeded)) {
+        controller.hasHandedOff) {
       return;
     }
     tag.hideForFlight();
-  }
-
-  /// Whether the shuttle is laid out but not yet shown: a measured
-  /// target before its first measurement.
-  bool get _staged => target.isMeasured && !_contentSize.isSeeded;
-
-  Future<void> _captureSourceSnapshot() async {
-    if (!tag.mounted || !tag.widget.snapshotGhost) {
-      return;
-    }
-    final double dpr = MediaQuery.maybeDevicePixelRatioOf(tag.context) ?? 1;
-    final ui.Image? image = await tag.captureSnapshot(dpr);
-    if (image == null) {
-      return;
-    }
-    if (_finished || _entry == null) {
-      image.dispose();
-      return;
-    }
-    _sourceSnapshot?.dispose();
-    _sourceSnapshot = image;
-    _entry?.markNeedsBuild();
-  }
-
-  void _disposeSnapshot() {
-    _sourceSnapshot?.dispose();
-    _sourceSnapshot = null;
   }
 
   void _removeEntry() {
@@ -1002,8 +769,6 @@ class MorphFlight {
     _dissolveStart = progress < 0.001 ? 0.001 : progress;
   }
 
-  void _disposeDrag() => _drag.reset();
-
   /// Any teardown that skips the handoff latch must return the source
   /// widget itself: the only other un-hide lives on the latch, and a
   /// hidden tag with no flight would stay invisible forever.
@@ -1020,9 +785,6 @@ class MorphFlight {
     _removeHistoryEntry();
     _historyRoute = null;
     _removeEntry();
-    _disposeSnapshot();
-    _disposeDrag();
-    _contentSize.reset();
     _scrim?.reset();
     scope.retireFlight(this);
     _emit(MorphFlightEvent.landed);
@@ -1039,9 +801,6 @@ class MorphFlight {
       _removeHistoryEntry();
       _historyRoute = null;
       _removeEntry();
-      _disposeSnapshot();
-      _disposeDrag();
-      _contentSize.reset();
       _scrim?.reset();
       controller.stop();
       scope.retireFlight(this);
@@ -1064,10 +823,7 @@ class MorphFlight {
     if (!_controllerDisposed) {
       _controllerDisposed = true;
       controller.dispose();
-      _drag.dispose();
-      _contentSize.dispose();
       _scrim?.dispose();
-      routeOwnsContent.dispose();
       _contentRevision.dispose();
       sourceThemes.dispose();
     }
@@ -1120,339 +876,9 @@ class _ShuttleScrim extends StatelessWidget {
   }
 }
 
-/// [shape] with any border side taken off - the outline belongs to the
-/// flying container, not to a copy riding inside it.
-ShapeBorder _unstroked(ShapeBorder shape) {
-  if (shape is OutlinedBorder && shape.side != BorderSide.none) {
-    return shape.copyWith(side: BorderSide.none);
-  }
-  return shape;
-}
-
-/// The source ghost inside the shuttle: the button as it looked at
-/// takeoff (a pixel snapshot when opted in, the live replica
-/// otherwise). Stays MOUNTED for the whole flight, not only while
-/// visible - shared-element markers inside it must keep reporting
-/// endpoint rects. Its opacity, its scale and its box follow [live].
-class _SourceGhost extends StatelessWidget {
-  const _SourceGhost({
-    required this.flight,
-    required this.live,
-    required this.opacityOf,
-    required this.scaleOf,
-    required this.sizeOf,
-    required this.anchorKey,
-  });
-
-  final MorphFlight flight;
-  final Listenable live;
-  final double Function() opacityOf;
-
-  /// The container's growth since launch (width ratio). The replica
-  /// RIDES the geometry: a button-sized copy floating at natural size
-  /// inside a grown container reads as a second surface layered on the
-  /// card, at any opacity. Scaled, the replica and the container are
-  /// one body; at the home end the scale is exactly 1, so the latch
-  /// swap is pixel-identical.
-  final double Function() scaleOf;
-
-  /// The source's size, the box the replica lays out in.
-  final Size Function() sizeOf;
-  final GlobalKey anchorKey;
-
-  @override
-  Widget build(BuildContext context) {
-    final ui.Image? snapshot = flight.sourceSnapshot;
-    return Center(
-      child: MorphLiveTemplate(
-        live: live,
-        template: () => Transform.scale(scale: scaleOf()),
-        child: MorphLiveTemplate(
-          live: live,
-          template: () {
-            final Size size = sizeOf();
-            return OverflowBox(
-              minWidth: size.width,
-              maxWidth: size.width,
-              minHeight: size.height,
-              maxHeight: size.height,
-            );
-          },
-          child: KeyedSubtree(
-            key: anchorKey,
-            // The ghost is a pixels-only copy: pointer is ignored and
-            // focus is excluded SYMMETRICALLY. The live replica shares
-            // the source widget config, and it stays mounted inside
-            // the overlay's own Tab trap for the whole flight -
-            // without the exclusion Tab reaches the invisible copy and
-            // Enter fires its onTap (and an explicit source FocusNode,
-            // attached to the replica for the duration, would let
-            // requestFocus pull focus into the shuttle).
-            child: IgnorePointer(
-              child: ExcludeFocus(
-                child: MorphLiveOpacity(
-                  live: live,
-                  opacityOf: opacityOf,
-                  // The box above is tight at the source's size, so the
-                  // snapshot fills exactly that box.
-                  child: snapshot != null
-                      ? RawImage(image: snapshot, fit: .fill)
-                      : MorphSurfaceSpecScope(
-                          // One mass - one outline, one shadow: the
-                          // container draws both, so the spec the replica
-                          // renders from carries neither. A spec-driven
-                          // button would otherwise cast a second shadow
-                          // and trace a second contour inside the
-                          // shuttle, at its own scale.
-                          spec: flight.tag.surfaceSpec.copyWith(
-                            elevation: 0,
-                            shape: _unstroked(flight.tag.surfaceSpec.shape),
-                          ),
-                          child: SharedSideScope(
-                            flight: flight,
-                            isTarget: false,
-                            anchorKey: anchorKey,
-                            // The shuttle's Material sets the theme's
-                            // body style; the copy keeps the source's.
-                            child: flight.sourceThemes.wrapText(
-                              flight.tag.replica,
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The gesture displacement channel: a SECOND degree of freedom,
-/// orthogonal to the morph value. While the finger is down it owns a
-/// whole-container offset 1:1 (direct manipulation: the value does not
-/// move, so no morph midstates can show); releasing always springs the
-/// offset home on its own simulations, and past the commit threshold
-/// the ordinary close flight plays simultaneously - the superposition
-/// reads as "the card flies home out of the hand". The offset cannot
-/// be a function of the spring value (at value 1 it must equal both
-/// the release offset and zero at settle), so it is honest extra state
-/// with its own always-to-zero spring; each DOF stays a pure function
-/// of its own spring and interruption continuity survives.
-///
-/// A ChangeNotifier: its ticks join [MorphFlight.frameTicks], the one
-/// stream every frame consumer subscribes to.
-class _DragChannel extends ChangeNotifier {
-  _DragChannel(this._flight);
-
-  final MorphFlight _flight;
-
-  Offset _offset = .zero;
-  bool _active = false;
-  Ticker? _ticker;
-  Simulation? _simX;
-  Simulation? _simY;
-
-  Offset get offset => _offset;
-  bool get isActive => _active;
-
-  void begin() {
-    _simX = null;
-    _simY = null;
-    _ticker?.stop();
-    _active = true;
-  }
-
-  void moveBy(Offset delta) {
-    if (!_active) {
-      return;
-    }
-    _offset += delta;
-    notifyListeners();
-  }
-
-  /// Springs the offset home with the carried velocity on per-axis
-  /// simulations of the flight's closeMotion.
-  void release(Offset velocityPerSecond) {
-    _active = false;
-    if (_offset == .zero && velocityPerSecond == .zero) {
-      return;
-    }
-    final Motion motion = _flight.controller.effectiveMotion.closeMotion;
-    _simX = motion.createSimulation(
-      start: _offset.dx,
-      end: 0,
-      velocity: velocityPerSecond.dx,
-    );
-    _simY = motion.createSimulation(
-      start: _offset.dy,
-      end: 0,
-      velocity: velocityPerSecond.dy,
-    );
-    // The ticker restarts, so its clock restarts too - the simulations
-    // above are created at the same moment and stay consistent.
-    _ticker ??= _flight.scope.createTicker(_tick);
-    _ticker!.stop();
-    _ticker!.start();
-  }
-
-  void _tick(Duration elapsed) {
-    final Simulation? simX = _simX;
-    final Simulation? simY = _simY;
-    if (simX == null || simY == null) {
-      _ticker?.stop();
-      return;
-    }
-    final double t = elapsed.inMicroseconds / Duration.microsecondsPerSecond;
-    _offset = Offset(simX.x(t), simY.x(t));
-    if (simX.isDone(t) && simY.isDone(t)) {
-      _offset = .zero;
-      _simX = null;
-      _simY = null;
-      _ticker!.stop();
-    }
-    notifyListeners();
-  }
-
-  /// Emergency teardown at finalize/abort: the channel survives for a
-  /// possible reuse only through [MorphFlight.launch] retargets, never
-  /// across a finished flight.
-  void reset() {
-    _active = false;
-    _simX = null;
-    _simY = null;
-    _ticker?.dispose();
-    _ticker = null;
-    _offset = .zero;
-  }
-
-  @override
-  void dispose() {
-    _ticker?.dispose();
-    _ticker = null;
-    super.dispose();
-  }
-}
-
-/// The content-size channel of a measured target: the endpoint filter
-/// on the target rect's one live input that is not a per-frame read.
-/// The first measurement seeds it without motion (a launch flies to
-/// the content's real size from its first visible frame); every later
-/// change retargets per-axis simulations of the flight's open motion
-/// from the current (value, velocity) - the surface answers a size
-/// change the way it answered the opening (on the default profile,
-/// with UIKit's slight overshoot), and instantly under reduced motion. The value is an INPUT to the frame, not a second clock on
-/// any property: the container rect stays a pure function of the
-/// flight value and this frame's endpoints.
-///
-/// A ChangeNotifier: its ticks join [MorphFlight.frameTicks].
-class _ContentSizeChannel extends ChangeNotifier {
-  _ContentSizeChannel(this._flight);
-
-  final MorphFlight _flight;
-
-  Size? _measured;
-  Size? _value;
-  double _velocityW = 0;
-  double _velocityH = 0;
-  Simulation? _simW;
-  Simulation? _simH;
-  Ticker? _ticker;
-
-  /// The latest measurement, unsmoothed.
-  Size? get measured => _measured;
-
-  /// The smoothed size this frame; null until seeded.
-  Size? get value => _value;
-
-  /// Whether a first measurement has landed.
-  bool get isSeeded => _value != null;
-
-  void report(Size size) {
-    if (size == _measured) {
-      return;
-    }
-    _measured = size;
-    if (_value == null) {
-      _value = size;
-      _flight._hideTagWhenStaged();
-      notifyListeners();
-      return;
-    }
-    final Motion motion = _flight.controller.effectiveMotion.openMotion;
-    _simW = motion.createSimulation(
-      start: _value!.width,
-      end: size.width,
-      velocity: _velocityW,
-    );
-    _simH = motion.createSimulation(
-      start: _value!.height,
-      end: size.height,
-      velocity: _velocityH,
-    );
-    if (_simW!.isDone(0) && _simH!.isDone(0)) {
-      _settle();
-      notifyListeners();
-      return;
-    }
-    // The ticker restarts, so its clock restarts too - the simulations
-    // above are created at the same moment and stay consistent.
-    _ticker ??= _flight.scope.createTicker(_tick);
-    _ticker!.stop();
-    _ticker!.start();
-  }
-
-  void _tick(Duration elapsed) {
-    final Simulation? simW = _simW;
-    final Simulation? simH = _simH;
-    if (simW == null || simH == null) {
-      _ticker?.stop();
-      return;
-    }
-    final double t = elapsed.inMicroseconds / Duration.microsecondsPerSecond;
-    _value = Size(simW.x(t), simH.x(t));
-    _velocityW = simW.dx(t);
-    _velocityH = simH.dx(t);
-    if (simW.isDone(t) && simH.isDone(t)) {
-      _settle();
-      _ticker!.stop();
-    }
-    notifyListeners();
-  }
-
-  void _settle() {
-    _value = _measured;
-    _velocityW = 0;
-    _velocityH = 0;
-    _simW = null;
-    _simH = null;
-  }
-
-  /// Teardown at finalize/abort.
-  void reset() {
-    _simW = null;
-    _simH = null;
-    _ticker?.dispose();
-    _ticker = null;
-    _measured = null;
-    _value = null;
-    _velocityW = 0;
-    _velocityH = 0;
-  }
-
-  @override
-  void dispose() {
-    _ticker?.dispose();
-    _ticker = null;
-    super.dispose();
-  }
-}
-
 /// Resolves the target's surface model against the ambient color
 /// scheme: a null target color adopts surfaceContainerHigh, so every
-/// renderer of the target - the shuttle, the route page, the flying
-/// shared layers - agrees on one value.
+/// renderer of the target agrees on one value.
 @internal
 MorphSurfaceSpec resolveMorphTargetSurface(
   MorphFlight flight,
@@ -1463,42 +889,24 @@ MorphSurfaceSpec resolveMorphTargetSurface(
       : flight.target.surface;
 }
 
-/// The target-content subtree with its wrapper chain (flight scope,
-/// surface spec, shared-element side, builder) - and, in route mode,
-/// the shared [MorphFlight.routeContentKey] identity. The shuttle and
-/// the route page both mount exactly this: the route-mode reparent
-/// preserves live state only while the chains match, so the chain
-/// lives in one place and cannot drift.
+/// The target-content subtree with its wrapper chain: flight scope,
+/// surface spec and builder.
 @internal
 Widget buildMorphTargetContent({
   required MorphFlight flight,
   required MorphSurfaceSpec spec,
-  required GlobalKey anchorKey,
 }) {
-  // The target's surface model is published the same way the tag
-  // publishes its own, so custom dialog content renders its accents
-  // from MorphTag.specOf instead of repeating the model.
-  final Widget content = MorphFlightScope(
+  return MorphFlightScope(
     flight: flight,
     child: MorphSurfaceSpecScope(
       spec: spec,
-      child: SharedSideScope(
-        flight: flight,
-        isTarget: true,
-        anchorKey: anchorKey,
-        child: ListenableBuilder(
-          listenable: flight.contentRevision,
-          builder: (BuildContext context, Widget? _) =>
-              flight.builder(context, flight),
-        ),
+      child: ListenableBuilder(
+        listenable: flight.contentRevision,
+        builder: (BuildContext context, Widget? _) =>
+            flight.builder(context, flight),
       ),
     ),
   );
-  final GlobalKey? routeKey = flight.routeContentKey;
-  if (routeKey == null) {
-    return content;
-  }
-  return KeyedSubtree(key: routeKey, child: content);
 }
 
 /// Gives overlay content access to its flight (to close it, or to read
@@ -1548,12 +956,8 @@ class _MorphShuttleState extends State<_MorphShuttle> {
   final FocusScopeNode _focusScope = FocusScopeNode(
     debugLabel: 'morph overlay',
   );
-  final GlobalKey _sourceAnchorKey = GlobalKey();
   final GlobalKey _targetAnchorKey = GlobalKey();
-  late final Listenable _frameTicks = Listenable.merge(<Listenable>[
-    flight.frameTicks,
-    flight.routeOwnsContent,
-  ]);
+  late final Listenable _frameTicks = flight.frameTicks;
 
   @override
   void initState() {
@@ -1707,7 +1111,6 @@ class _MorphShuttleState extends State<_MorphShuttle> {
     final Widget content = buildMorphTargetContent(
       flight: flight,
       spec: targetSpec,
-      anchorKey: _targetAnchorKey,
     );
     // A FocusScope traps Tab traversal inside the overlay while it is
     // up; Esc handling rides the same node. The Actions map exists
@@ -1740,33 +1143,13 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                 overlaySize,
                 overlayBox: flight.overlayBox,
               );
-              final EdgeInsets overlayViewInsets = morphOverlayViewInsetsOf(
-                context,
-                overlaySize,
-                overlayBox: flight.overlayBox,
-              );
-              final MorphTargetSpec target = flight.target;
-              if (target.isVessel) {
-                return _VesselFrame(
-                  flight: flight,
-                  ticks: _frameTicks,
-                  overlaySize: overlaySize,
-                  padding: padding,
-                  lingeringScrim: _lingeringScrim,
-                  buildVessel: _buildVessel,
-                  content: content,
-                );
-              }
-              return _ShuttleFrame(
+              return _VesselFrame(
                 flight: flight,
+                ticks: _frameTicks,
                 overlaySize: overlaySize,
                 padding: padding,
-                overlayViewInsets: overlayViewInsets,
-                targetColor:
-                    flight.target.surfaceColor ?? scheme.surfaceContainerHigh,
-                targetSpec: targetSpec,
-                sourceAnchorKey: _sourceAnchorKey,
-                targetAnchorKey: _targetAnchorKey,
+                lingeringScrim: _lingeringScrim,
+                buildVessel: _buildVessel,
                 content: content,
               );
             },
@@ -1774,574 +1157,6 @@ class _MorphShuttleState extends State<_MorphShuttle> {
         ),
       ),
     );
-  }
-}
-
-/// The form a shuttle frame takes.
-enum _ShuttleMode {
-  /// The route page owns the content, or the flight is over: the
-  /// shuttle steps aside.
-  away,
-
-  /// Past the handoff latch, finishing a scrim on its own springs.
-  scrim,
-
-  /// The surface is in the air.
-  flying,
-}
-
-/// What a shuttle frame shows, apart from the values that move with the
-/// springs: a frame whose shape equals the built one only advances the
-/// live render objects.
-@immutable
-class _ShuttleShape {
-  const _ShuttleShape(
-    this.mode, {
-    this.staged = false,
-    this.interactive = false,
-    this.label,
-    this.viewInsets = EdgeInsets.zero,
-    this.source,
-    this.snapshot,
-    this.layers = const <(Object, bool, Widget, Widget)>[],
-  });
-
-  static const _ShuttleShape away = _ShuttleShape(_ShuttleMode.away);
-  static const _ShuttleShape scrim = _ShuttleShape(_ShuttleMode.scrim);
-
-  final _ShuttleMode mode;
-  final bool staged;
-  final bool interactive;
-  final String? label;
-  final EdgeInsets viewInsets;
-
-  /// The source tag's widget, which the replica and its surface come
-  /// from: a tag that rebuilds hands the ghost its new widget on the
-  /// flight's next frame.
-  final Widget? source;
-  final ui.Image? snapshot;
-
-  /// Per shared pair: its id, whether the source side shows, and both
-  /// markers.
-  final List<(Object, bool, Widget, Widget)> layers;
-
-  @override
-  bool operator ==(Object other) {
-    if (other is! _ShuttleShape ||
-        other.mode != mode ||
-        other.staged != staged ||
-        other.interactive != interactive ||
-        other.label != label ||
-        other.viewInsets != viewInsets ||
-        !identical(other.source, source) ||
-        !identical(other.snapshot, snapshot) ||
-        other.layers.length != layers.length) {
-      return false;
-    }
-    for (int i = 0; i < layers.length; i++) {
-      final (Object id, bool showsSource, Widget from, Widget to) = layers[i];
-      final (
-        Object otherId,
-        bool otherShows,
-        Widget otherFrom,
-        Widget otherTo,
-      ) = other.layers[i];
-      if (id != otherId ||
-          showsSource != otherShows ||
-          !identical(from, otherFrom) ||
-          !identical(to, otherTo)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    mode,
-    staged,
-    interactive,
-    label,
-    viewInsets,
-    source,
-    snapshot,
-    layers.length,
-  );
-}
-
-/// The frame chain of a flight whose container the engine draws: the
-/// scrim, the morphing surface, the target content, the source ghost and
-/// the shared layers.
-///
-/// Every frame, after every ticker ran, it advances the flight's rects
-/// and reads the frame; the springs' values reach the render objects
-/// live, and the chain builds only when what it shows changes: content
-/// ownership, the lingering scrim, the staging, the pointer gate, the
-/// semantic label, the keyboard the content sees, the source widget or
-/// snapshot, and the shared pairs in the air.
-class _ShuttleFrame extends StatefulWidget {
-  const _ShuttleFrame({
-    required this.flight,
-    required this.overlaySize,
-    required this.padding,
-    required this.overlayViewInsets,
-    required this.targetColor,
-    required this.targetSpec,
-    required this.sourceAnchorKey,
-    required this.targetAnchorKey,
-    required this.content,
-  });
-
-  final MorphFlight flight;
-  final Size overlaySize;
-  final EdgeInsets padding;
-  final EdgeInsets overlayViewInsets;
-  final Color targetColor;
-  final MorphSurfaceSpec targetSpec;
-  final GlobalKey sourceAnchorKey;
-  final GlobalKey targetAnchorKey;
-  final Widget content;
-
-  @override
-  State<_ShuttleFrame> createState() => _ShuttleFrameState();
-}
-
-class _ShuttleFrameState extends State<_ShuttleFrame> {
-  late final MorphFrameSync<_ShuttleShape> _sync =
-      MorphFrameSync<_ShuttleShape>(
-        structure: _advance,
-        rebuild: (_ShuttleShape _) {
-          if (mounted) setState(() {});
-        },
-      );
-
-  late MorphFrame _frame;
-  Rect _container = .zero;
-  BoxConstraints _contentConstraints = const BoxConstraints();
-  Alignment _contentAlignment = .topCenter;
-  double _scrim = 0;
-  double _dissolve = 1;
-  double _dragScale = 1;
-  double _ghostScale = 1;
-  Size _sourceSize = .zero;
-  Map<Object, SharedFlightLayer> _layers = const <Object, SharedFlightLayer>{};
-  ThemeData? _theme;
-  TextDirection? _textDirection;
-
-  @override
-  void initState() {
-    super.initState();
-    _sync.follow(widget.flight.frameTicks);
-    // The route-mode reparent needs both owners to build in the same
-    // frame, whenever ownership flips - also from a build.
-    widget.flight.routeOwnsContent.addListener(_onOwnership);
-  }
-
-  @override
-  void didUpdateWidget(_ShuttleFrame oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.flight, widget.flight)) {
-      oldWidget.flight.routeOwnsContent.removeListener(_onOwnership);
-      widget.flight.routeOwnsContent.addListener(_onOwnership);
-      _sync.follow(widget.flight.frameTicks);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.flight.routeOwnsContent.removeListener(_onOwnership);
-    _sync.dispose();
-    super.dispose();
-  }
-
-  void _onOwnership() {
-    if (mounted) setState(() {});
-  }
-
-  /// Advances the flight's rects, reads this frame's values and returns
-  /// the shape the chain is built from.
-  _ShuttleShape _advance() {
-    final MorphFlight flight = widget.flight;
-    if (!mounted || flight.isFinished || flight.routeOwnsContent.value) {
-      return _ShuttleShape.away;
-    }
-    if (flight._scrimOnly) {
-      _scrim = flight.scrimOpacity;
-      return _ShuttleShape.scrim;
-    }
-    final MorphTargetSpec target = flight.target;
-    flight.refreshSourceRect();
-    final Rect targetRect = target.resolveRect(
-      widget.overlaySize,
-      widget.padding,
-      flight.contentSize,
-    );
-    flight.updateTargetRect(targetRect);
-    // A measured target lays its content out under the content
-    // constraints and measures it; a fixed one lays it out tight at the
-    // rect. Either way the box aligns inside the growing container.
-    _contentConstraints =
-        target.constraintsFor?.call(widget.overlaySize, widget.padding) ??
-        BoxConstraints.tight(targetRect.size);
-    _contentAlignment = target.contentAlignment;
-    final Color targetColor = widget.targetColor;
-    final MorphFrame frame = computeMorphFrame(
-      value: flight.controller.value,
-      sourceRect: flight.sourceRect,
-      targetRect: targetRect,
-      sourceShape: flight.tag.shape,
-      targetShape: target.shape,
-      sourceColor: flight.tag.surfaceColor ?? targetColor,
-      targetColor: targetColor,
-      maxScrimOpacity: flight.maxScrimOpacity,
-      sourceElevation: flight.tag.elevation,
-      targetElevation: target.elevation,
-    );
-    _frame = frame;
-    // The displacement channel moves the whole container as one rigid
-    // body; the scrim dims and the card recedes slightly with distance,
-    // and past the commit threshold the arm cue deepens both - all pure
-    // functions of the displacement.
-    final Offset drag = flight.appliedDragOffset;
-    final double recede = morphDragRecede(drag.distance);
-    final double arm = morphDragArm(flight.dragOffset.distance);
-    _container = frame.rect.shift(drag);
-    _scrim = flight.scrimOpacity * morphDragScrimFactor(recede, arm);
-    _dissolve = flight.dissolveOpacity;
-    _dragScale = morphDragScale(recede, arm);
-    _sourceSize = flight.sourceRect.size;
-    _ghostScale = flight.sourceRect.width <= 0
-        ? 1
-        : frame.rect.width / flight.sourceRect.width;
-    final List<SharedFlightLayer> layers = measureSharedFlightLayers(
-      flight: flight,
-      frame: frame,
-      sourceAnchorKey: widget.sourceAnchorKey,
-      targetAnchorKey: widget.targetAnchorKey,
-      sourceRect: flight.sourceRect,
-      targetRect: targetRect,
-    );
-    _layers = <Object, SharedFlightLayer>{
-      for (final SharedFlightLayer layer in layers) layer.id: layer,
-    };
-    return _ShuttleShape(
-      .flying,
-      // A measured target before its first measurement is laid out but
-      // not shown, and the source stays visible: a launch never shows a
-      // guessed box.
-      staged: flight._staged,
-      // Content comes alive on approach without waiting for the spring
-      // to fully settle: waiting for settle would serve dead clicks on a
-      // visually ready overlay.
-      interactive:
-          flight.controller.target >= 1 && flight.controller.value >= 0.85,
-      label: flight.semanticLabel,
-      viewInsets: morphContentViewInsets(
-        widget.overlayViewInsets,
-        targetRect,
-        widget.overlaySize,
-      ),
-      source: flight.tag.widget,
-      snapshot: flight.sourceSnapshot,
-      layers: <(Object, bool, Widget, Widget)>[
-        for (final SharedFlightLayer layer in layers)
-          (
-            layer.id,
-            !layer.solo && frame.sourceOpacity > 0,
-            layer.source,
-            layer.target,
-          ),
-      ],
-    );
-  }
-
-  /// The surface color the container paints, the way [Material] tints
-  /// its color for its elevation.
-  Color _surfaceColor() {
-    final ThemeData theme = _theme!;
-    final Color color = _frame.surfaceColor;
-    final double elevation = _frame.elevation;
-    if (!theme.useMaterial3 &&
-        elevation > 0 &&
-        theme.applyElevationOverlayColor &&
-        theme.brightness == Brightness.dark &&
-        color.withValues(alpha: 1) ==
-            theme.colorScheme.surface.withValues(alpha: 1)) {
-      return ElevationOverlay.colorWithOverlay(
-        color,
-        theme.colorScheme.onSurface,
-        elevation,
-      );
-    }
-    return color;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _theme = Theme.of(context);
-    _textDirection = Directionality.maybeOf(context);
-    final _ShuttleShape shape = _sync.read();
-    final MorphFlight flight = widget.flight;
-    switch (shape.mode) {
-      case .away:
-        // The route page owns the content (and draws the settled scrim
-        // and surface itself): the shuttle steps aside entirely,
-        // unmounting the keyed subtree so the route can adopt it this
-        // same frame.
-        return const SizedBox.shrink();
-      case .scrim:
-        if (!flight.modal) {
-          return const SizedBox.shrink();
-        }
-        // The scrim alone, past the handoff latch: the content is home,
-        // the page takes touches again, and the dimming finishes on its
-        // own springs.
-        return IgnorePointer(
-          child: ExcludeSemantics(
-            child: SizedBox.expand(
-              child: MorphLiveColoredBox(
-                live: _sync,
-                colorOf: () => flight.scrimColor.withValues(
-                  alpha: flight.scrimColor.a * _scrim,
-                ),
-              ),
-            ),
-          ),
-        );
-      case .flying:
-        break;
-    }
-    final MorphTargetSpec target = flight.target;
-    final Clip clip = target.clipBehavior;
-    // The wrapper chain is the same on every frame (a staged frame
-    // differs only in values): a changed tree shape would remount the
-    // content.
-    return _ShuttleStage(
-      staged: shape.staged,
-      child: Stack(
-        children: <Widget>[
-          // A non-modal flight mounts no scrim at all: the Stack's empty
-          // area does not hit-test, so the page underneath stays live
-          // while the surface hovers.
-          if (flight.modal)
-            Positioned.fill(
-              child: _ShuttleScrim(
-                flight: flight,
-                live: _sync,
-                opacityOf: () => _scrim,
-              ),
-            ),
-          MorphLivePositionedTemplate(
-            live: _sync,
-            template: () =>
-                Positioned.fromRect(rect: _container, child: morphLiveSlot),
-            child: IgnorePointer(
-              ignoring: !shape.interactive,
-              // The dissolve of a flight whose source is gone; 1 on every
-              // ordinary frame, and an Opacity at 1 paints straight
-              // through.
-              child: MorphLiveOpacity(
-                live: _sync,
-                opacityOf: () => _dissolve,
-                child: MorphLiveTemplate(
-                  live: _sync,
-                  template: () => Transform.scale(scale: _dragScale),
-                  child: Semantics(
-                    // The overlay is a semantic route: focus and reading
-                    // scope in, and a label announces the opening.
-                    scopesRoute: true,
-                    namesRoute: shape.label != null,
-                    label: shape.label,
-                    explicitChildNodes: true,
-                    // The surface Material draws, on live render objects:
-                    // the shape, color, elevation and outline move every
-                    // frame without a build. Material itself only hosts
-                    // the ink and the default text style, painting
-                    // nothing of its own.
-                    child: MorphLiveTemplate(
-                      live: _sync,
-                      template: () => PhysicalShape(
-                        clipper: ShapeBorderClipper(
-                          shape: _frame.shape,
-                          textDirection: _textDirection,
-                        ),
-                        clipBehavior: clip,
-                        elevation: _frame.elevation,
-                        color: _surfaceColor(),
-                        shadowColor: flight.shadowColor,
-                      ),
-                      child: MorphLiveTemplate(
-                        live: _sync,
-                        template: () => CustomPaint(
-                          foregroundPainter: _OutlinePainter(
-                            _frame.shape,
-                            _textDirection,
-                          ),
-                        ),
-                        child: Material(
-                          color: const Color(0x00000000),
-                          animationDuration: .zero,
-                          child: Stack(
-                            fit: .expand,
-                            // The surface already clips to its shape,
-                            // inside this rect for every built-in border.
-                            // The rect clip only bites for a custom shape
-                            // reaching past the rect, and on hard-edge
-                            // edge pixels of overflowing shared layers on
-                            // a renderer that honours Clip.hardEdge. A
-                            // target that asked for no clip gets none at
-                            // either level.
-                            clipBehavior: clip == Clip.none
-                                ? Clip.none
-                                : Clip.hardEdge,
-                            children: <Widget>[
-                              // No conditional mounting: the target
-                              // content lives in the shuttle for the
-                              // whole flight, otherwise a close -> open
-                              // interruption would lose its state.
-                              MorphLiveTemplate(
-                                live: _sync,
-                                template: () =>
-                                    Align(alignment: _contentAlignment),
-                                child: MorphLiveTemplate(
-                                  live: _sync,
-                                  template: () => MorphContentMeasure(
-                                    childConstraints: _contentConstraints,
-                                    alignment: _contentAlignment,
-                                    onSize: target.isMeasured
-                                        ? flight.reportContentSize
-                                        : null,
-                                  ),
-                                  child: MorphLiveOpacity(
-                                    live: _sync,
-                                    opacityOf: () => _frame.targetOpacity,
-                                    child: MorphLiveTemplate(
-                                      live: _sync,
-                                      template: () => Transform.scale(
-                                        scale: _frame.targetScale,
-                                      ),
-                                      // The anchor sits below the reveal
-                                      // scale: shared elements measure
-                                      // their target rect in layout
-                                      // space, the endpoint they fly to.
-                                      child: KeyedSubtree(
-                                        key: widget.targetAnchorKey,
-                                        child: _MorphContentMediaQuery(
-                                          viewInsets: shape.viewInsets,
-                                          child: widget.content,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              _SourceGhost(
-                                flight: flight,
-                                live: _sync,
-                                opacityOf: () => _frame.sourceOpacity,
-                                scaleOf: () => _ghostScale,
-                                sizeOf: () => _sourceSize,
-                                anchorKey: widget.sourceAnchorKey,
-                              ),
-                              for (final (
-                                    Object id,
-                                    bool showsSource,
-                                    Widget _,
-                                    Widget _,
-                                  )
-                                  in shape.layers)
-                                buildSharedFlightLayer(
-                                  flight: flight,
-                                  layer: _layers[id]!,
-                                  showsSource: showsSource,
-                                  live: _sync,
-                                  now: () => _layers[id]!,
-                                  sourceOpacity: () => _frame.sourceOpacity,
-                                  targetOpacity: () => _frame.targetOpacity,
-                                  targetSpec: widget.targetSpec,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The surface's outline, painted over its content the way [Material]
-/// paints its shape's border.
-class _OutlinePainter extends CustomPainter {
-  _OutlinePainter(this.shape, this.textDirection);
-
-  final ShapeBorder shape;
-  final TextDirection? textDirection;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    shape.paint(canvas, Offset.zero & size, textDirection: textDirection);
-  }
-
-  @override
-  bool shouldRepaint(_OutlinePainter oldDelegate) =>
-      oldDelegate.shape != shape || oldDelegate.textDirection != textDirection;
-}
-
-/// A shuttle laid out but not shown: while [staged] it neither paints,
-/// nor takes pointers, nor reports semantics.
-class _ShuttleStage extends SingleChildRenderObjectWidget {
-  const _ShuttleStage({required this.staged, super.child});
-
-  final bool staged;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderShuttleStage(staged: staged);
-
-  @override
-  void updateRenderObject(BuildContext context, RenderObject renderObject) {
-    (renderObject as _RenderShuttleStage).staged = staged;
-  }
-}
-
-class _RenderShuttleStage extends RenderProxyBox {
-  _RenderShuttleStage({required this._staged});
-
-  bool _staged;
-
-  bool get staged => _staged;
-
-  set staged(bool value) {
-    if (value == _staged) return;
-    _staged = value;
-    markNeedsPaint();
-    markNeedsSemanticsUpdate();
-  }
-
-  @override
-  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
-      !_staged && super.hitTest(result, position: position);
-
-  // A frame of the flight repaints the shuttle, not the overlay and the
-  // app it floats over.
-  @override
-  bool get isRepaintBoundary => true;
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    if (!_staged) super.paint(context, offset);
-  }
-
-  @override
-  void visitChildrenForSemantics(RenderObjectVisitor visitor) {
-    if (!_staged) super.visitChildrenForSemantics(visitor);
   }
 }
 
@@ -2402,19 +1217,12 @@ class _VesselFrameState extends State<_VesselFrame> {
   /// depends on.
   Object? _advance() {
     final MorphFlight flight = widget.flight;
-    if (flight.routeOwnsContent.value) {
-      return null;
-    }
     if (flight._scrimOnly) {
       return (flight.scrimOpacity,);
     }
     flight.refreshSourceRect();
     flight.updateTargetRect(
-      flight.target.resolveRect(
-        widget.overlaySize,
-        widget.padding,
-        flight.contentSize,
-      ),
+      flight.target.resolveRect(widget.overlaySize, widget.padding),
     );
     return (
       flight.controller.target < 1,
@@ -2439,25 +1247,5 @@ class _VesselFrameState extends State<_VesselFrame> {
       (double _,) => widget.lingeringScrim(),
       _ => widget.buildVessel(widget.content),
     };
-  }
-}
-
-/// Publishes to the target content the part of the keyboard its
-/// surface still overlaps.
-class _MorphContentMediaQuery extends StatelessWidget {
-  const _MorphContentMediaQuery({
-    required this.viewInsets,
-    required this.child,
-  });
-
-  final EdgeInsets viewInsets;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return MediaQuery(
-      data: MediaQuery.of(context).copyWith(viewInsets: viewInsets),
-      child: child,
-    );
   }
 }

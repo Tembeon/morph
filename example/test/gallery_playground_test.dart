@@ -178,51 +178,6 @@ void main() {
     expect(_unstyledTexts(tester), isEmpty);
   });
 
-  testWidgets('morph engine: every flight opens and closes', (tester) async {
-    await _open(tester, 'Morph engine');
-    Future<void> roundTrip(Finder opener, String shown) async {
-      await _tapVisible(tester, opener);
-      expect(find.text(shown), findsOneWidget, reason: shown);
-      expect(_unstyledTexts(tester), isEmpty, reason: shown);
-      await tester.tap(find.text('Close'));
-      await _settle(tester);
-      expect(find.text(shown), findsNothing, reason: shown);
-    }
-
-    await roundTrip(
-      find.text('Tap: the card becomes a dialog'),
-      'The cover is a MorphSharedElement: it travels from the card '
-      'instead of fading through.',
-    );
-    expect(find.text('Album: landed'), findsOneWidget);
-    await roundTrip(find.text('Share with MorphAnchor'), 'MorphAnchor');
-    await roundTrip(find.text('showMorphRoute'), 'A whole page');
-    await roundTrip(find.text('MorphPageRoute'), 'A Navigator route');
-    await roundTrip(find.text('Dialog flight'), 'showMorphDialogFlight');
-    await roundTrip(find.text('Sheet flight'), 'showMorphSheetFlight');
-    await roundTrip(find.text('Open'), 'Out of the skin');
-
-    final piece = find.byIcon(Icons.open_with).first;
-    await _center(tester, piece);
-    final before = tester.getCenter(piece);
-    await tester.drag(piece, const Offset(60, 30));
-    await _settle(tester);
-    expect(tester.getCenter(piece) - before, const Offset(60, 30));
-
-    await _openOptions(tester);
-    await tester.tap(find.text('Instant'));
-    await _settle(tester);
-    await _toggle(tester, 'Link the pieces');
-    final theme = Theme.of(
-      tester.element(find.text('Tap: the card becomes a dialog')),
-    ).extension<MorphTheme>();
-    expect(theme?.motion, MorphMotion.instant);
-    expect(
-      tester.widget<MorphSkin>(find.byType(MorphSkin)).links,
-      hasLength(1),
-    );
-  });
-
   testWidgets('alerts: text field options and a sheet from a rect', (
     tester,
   ) async {

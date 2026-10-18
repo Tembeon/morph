@@ -7,7 +7,6 @@ import 'package:morph_example/gallery/alert_page.dart';
 import 'package:morph_example/gallery/context_menu_page.dart';
 import 'package:morph_example/gallery/control_pages.dart';
 import 'package:morph_example/gallery/date_picker_page.dart';
-import 'package:morph_example/gallery/engine_page.dart';
 import 'package:morph_example/gallery/glass_buttons_page.dart';
 import 'package:morph_example/gallery/glass_effects_page.dart';
 import 'package:morph_example/gallery/glass_page.dart';
@@ -502,10 +501,7 @@ enum GalleryFamily {
   glass('Glass'),
 
   /// The theme and the accessibility settings.
-  theming('Theming and accessibility'),
-
-  /// The morph engine under the widgets.
-  engine('Engine');
+  theming('Theming and accessibility');
 
   const GalleryFamily(this.header);
 
@@ -664,12 +660,6 @@ final List<GalleryEntry> galleryEntries = [
     'Accent, per-control looks, high contrast and reduced motion',
     (_) => const ThemingPage(),
     family: .theming,
-  ),
-  GalleryEntry(
-    'Morph engine',
-    'A widget becoming a dialog, a page or a sheet; shared elements, skins',
-    (_) => const EnginePage(),
-    family: .engine,
   ),
 ];
 

@@ -708,58 +708,6 @@ class MorphLiveClipper<T> extends CustomClipper<T> {
       !identical(oldClipper, this);
 }
 
-/// A [BackdropFilter] whose filter follows a live source.
-@internal
-class MorphLiveBackdropFilter extends BackdropFilter {
-  /// Filters the backdrop by [filterOf], read again on every notification
-  /// of [live].
-  MorphLiveBackdropFilter({
-    required this.live,
-    required this.filterOf,
-    super.backdropGroupKey,
-    super.child,
-    super.key,
-  }) : super(filter: filterOf());
-
-  /// The source of the filter.
-  final Listenable? live;
-
-  /// The filter now.
-  final ui.ImageFilter Function() filterOf;
-
-  @override
-  ui.ImageFilter get filter => filterOf();
-
-  @override
-  RenderBackdropFilter createRenderObject(BuildContext context) {
-    final filter = _RenderLiveBackdropFilter(
-      filterConfig: ImageFilterConfig(filterOf()),
-      backdropKey: backdropGroupKey,
-    );
-    filter.bindLive(live, () => filter.filter = filterOf());
-    return filter;
-  }
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    RenderBackdropFilter renderObject,
-  ) {
-    renderObject.enabled = enabled;
-    renderObject.blendMode = blendMode;
-    renderObject.backdropKey = backdropGroupKey;
-    (renderObject as _RenderLiveBackdropFilter).bindLive(
-      live,
-      () => renderObject.filter = filterOf(),
-    );
-  }
-}
-
-class _RenderLiveBackdropFilter extends RenderBackdropFilter
-    with MorphLiveBinding {
-  _RenderLiveBackdropFilter({required super.filterConfig, super.backdropKey});
-}
-
 /// A [ClipRRect] whose border radius follows a live source.
 @internal
 class MorphLiveClipRRect extends SingleChildRenderObjectWidget {
