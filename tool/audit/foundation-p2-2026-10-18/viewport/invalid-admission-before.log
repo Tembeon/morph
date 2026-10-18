@@ -1,0 +1,40 @@
+00:00 +0: loading /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart
+00:00 +0: invalid viewport admission retires active endpoint before metrics restore
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: ({({RRect button, double buttonKick, double buttonOpacity, double contentOpacity, double
+fusionRadius, RRect menu, double menuKick, double progress, double time}) after, ({RRect button,
+double buttonKick, double buttonOpacity, double contentOpacity, double fusionRadius, RRect menu,
+double menuKick, double progress, double time}) before}):<(after: (button: RRect.fromLTRBR(104.0,
+117.0, 148.0, 161.0, 22.0), buttonKick: -3.040633268562363, buttonOpacity: 1.0, contentOpacity: 0.0,
+fusionRadius: 2.031079258346104, menu: RRect.fromLTRBR(110.0, 126.1, 142.0, 158.0, 16.0), menuKick:
+0.05761204970632827, progress: -0.0001342523122233899, time: 1.116622), before: (button:
+RRect.fromLTRBR(104.0, 117.0, 148.0, 161.0, 22.0), buttonKick: -3.040633268562363, buttonOpacity:
+1.0, contentOpacity: 0.0, fusionRadius: 2.031079258346104, menu: RRect.fromLTRBR(110.0, 126.1,
+142.0, 158.0, 16.0), menuKick: 0.05761204970632827, progress: -0.0001342523122233899, time:
+1.116622))>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart:664:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart line 664
+The test description was:
+  invalid viewport admission retires active endpoint before metrics restore
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -1: invalid viewport admission retires active endpoint before metrics restore [E]
+  Test failed. See exception logs above.
+  The test description was: invalid viewport admission retires active endpoint before metrics restore
+
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: invalid viewport admission retires active endpoint before metrics restore

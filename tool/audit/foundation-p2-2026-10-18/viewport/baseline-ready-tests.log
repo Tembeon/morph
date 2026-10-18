@@ -1,0 +1,386 @@
+00:00 +0: loading /Volumes/Dev/projects/morph/example/test/proto/menu_route_lifecycle_test.dart
+00:00 +0: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +1: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +2: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +3: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 1.0x keeps input and model
+00:00 +4: /Volumes/Dev/projects/morph/example/test/proto/menu_route_lifecycle_test.dart: new down during abandoned preparation cannot rearm its model
+00:00 +5: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 1.0x keeps input and model
+00:00 +6: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 1.0x keeps input and model
+00:00 +7: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 1.0x keeps input and model
+00:00 +8: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 1.0x keeps input and model
+00:00 +9: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 1.0x keeps input and model
+00:00 +10: /Volumes/Dev/projects/morph/example/test/proto/menu_route_lifecycle_test.dart: first-mount waiting is canceled by replace
+00:00 +11: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:00 +12: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:00 +13: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:00 +14: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:00 +15: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:00 +16: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:00 +17: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 60 Hz, 5.0x keeps input and model
+00:01 +18: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 60 Hz, 5.0x keeps input and model
+00:01 +19: /Volumes/Dev/projects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+P2_SCENE {"rate":60,"gap":0.0,"frames":51,"routeFrames":19,"sourceFrames":32,"scale":3.0,"changedPixels":0}
+00:02 +20: /Volumes/Dev/projects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=0.0
+00:02 +21: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 1.0x keeps input and model
+00:02 +22: /Volumes/Dev/projects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=8.0
+P2_SCENE {"rate":60,"gap":8.0,"frames":51,"routeFrames":19,"sourceFrames":32,"scale":3.0,"changedPixels":0}
+00:02 +23: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+00:02 +23: /Volumes/Dev/projects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 60 Hz, gap=12.0
+P2_SCENE {"rate":60,"gap":12.0,"frames":51,"routeFrames":19,"sourceFrames":32,"scale":3.0,"changedPixels":0}
+00:02 +24: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 40ms at 120 Hz, 5.0x keeps input and model
+00:03 +25: /Volumes/Dev/projects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=0.0
+P2_SCENE {"rate":120,"gap":0.0,"frames":102,"routeFrames":38,"sourceFrames":64,"scale":3.0,"changedPixels":0}
+00:03 +26: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 5.0x keeps input and model
+00:03 +26: /Volumes/Dev/projects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=8.0
+P2_SCENE {"rate":120,"gap":8.0,"frames":102,"routeFrames":38,"sourceFrames":64,"scale":3.0,"changedPixels":0}
+00:03 +27: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: held reopen 300ms at 120 Hz, 5.0x keeps input and model
+00:03 +28: /Volumes/Dev/projects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=12.0
+00:03 +29: /Volumes/Dev/projects/morph/example/test/proto/menu_route_scene_test.dart: actual flat scene keeps its landing contour: 120 Hz, gap=12.0
+P2_SCENE {"rate":120,"gap":12.0,"frames":102,"routeFrames":38,"sourceFrames":64,"scale":3.0,"changedPixels":0}
+00:03 +30: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on cancel
+00:04 +31: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on outside release
+00:04 +32: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on Back
+00:04 +33: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on Back pending
+00:04 +34: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on remove successor
+00:04 +35: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: reserved reopen terminates on finalize predecessor
+00:04 +36: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: pointer consumes local history before closing the menu
+00:04 +37: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: pointer consumes local history before closing the menu
+00:04 +38: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: pointer consumes local history before closing the menu
+00:04 +39: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: pointer consumes local history before closing the menu
+00:04 +40: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: pointer consumes local history before closing the menu
+00:04 +41: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: fresh successor policy applies before its first dismissal
+00:04 +42: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: back consumes local history before closing the menu
+00:05 +43: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: nested cover revokes a hold without another gesture update
+00:05 +44: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: remove route releases admission on a retained model
+00:05 +45: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: cover from semantic cancellation aborts reservation activation
+00:05 +46: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: unmount releases admission on a retained model
+00:05 +47: /Volumes/Dev/projects/morph/example/test/proto/menu_held_reopen_test.dart: removal at hold opening cannot promote the removed reservation
+00:05 +48: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: holding the source during its landing tail preserves move and up
+00:05 +49: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: holding the source during its landing tail preserves move and up
+00:05 +50: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: negative control: a late Navigator push cancels the held pointer stream
+00:05 +51: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: pending route defers menu content and focus until measured opening
+00:05 +52: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: real cancellation before hold removes the hidden route without showing content
+00:05 +53: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: secondary button does not prepare a menu route
+00:05 +54: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: PopScope rejects outside dismissal before closing, then allows retry
+00:05 +55: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: PopScope rejects row dismissal before closing, then allows retry
+00:05 +56: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: PopScope rejects early outside dismissal before closing, then allows retry
+00:05 +57: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: PopScope rejects back dismissal before closing, then allows retry
+00:05 +58: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: PopScope rejects escape dismissal before closing, then allows retry
+00:05 +58: /Volumes/Dev/projects/morph/example/test/proto/menu_async_time_test.dart: negative control: backdating approval cannot replay integrated kicks
+P2_BACKDATE {"requestedAt":1,"approvedAfter":2,"sampledAt":2.01,"continuousKick":0.0,"backdatedKick":12.16319224812841,"continuousProgress":0.00004468510866684524,"backdatedProgress":0.00004468510866684524}
+00:05 +59: /Volumes/Dev/projects/morph/example/test/proto/menu_route_input_test.dart: PopScope rejects escape dismissal before closing, then allows retry
+00:06 +60: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +61: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +62: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +63: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +64: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +65: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +66: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +67: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +68: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +69: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +70: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +71: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +72: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +73: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +74: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +75: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +76: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +77: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +78: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +79: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +80: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +81: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +82: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +83: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +84: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +85: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +86: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic activation opens the raw pointer source without a gesture
+00:06 +87: /Volumes/Dev/projects/morph/example/test/proto/menu_transfer_probe_test.dart: frame anchor, dozing=false, dilation=1.0 at first source frame
+00:06 +88: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: hidden preparation keeps page semantics until actual reveal
+00:06 +89: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: hidden preparation keeps page semantics until actual reveal
+00:06 +90: /Volumes/Dev/projects/morph/example/test/proto/menu_transfer_probe_test.dart: frame anchor, dozing=true, dilation=1.0 at first source frame
+00:06 +91: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=false
+00:06 +92: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=false
+00:06 +93: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=false
+00:06 +94: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=false
+00:06 +95: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=false
+00:07 +96: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic dismiss honors PopScope then closes once: pointer=false
+00:07 +97: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: revealed popup owns scoped semantics and hides page: pointer=true
+00:07 +98: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic dismiss honors PopScope then closes once: pointer=true
+00:07 +99: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: logical pop removes obsolete menu semantics before landing tail
+00:07 +100: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic bounds follow painted menu during opening frames
+00:07 +101: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:07 +102: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:07 +103: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:07 +104: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:07 +105: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:07 +106: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:07 +107: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: input after ten idle seconds does not reuse an old frame timestamp
+00:08 +108: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: concurrent semantic dismiss shares async permission and pops once
+00:08 +109: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: source inside a nested Navigator opens a root PopupRoute
+00:08 +110: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: semantic dismiss consumes local history before closing menu
+00:08 +111: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: route hands the same frame to the source and disposes before tail rest
+00:08 +112: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: route hands the same frame to the source and disposes before tail rest
+00:08 +113: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: route hands the same frame to the source and disposes before tail rest
+00:08 +114: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: route hands the same frame to the source and disposes before tail rest
+00:08 +115: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: removal from semantic open observation stops stale publication
+00:08 +116: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 50ms, frame 16667us keeps one owner
+00:08 +117: /Volumes/Dev/projects/morph/example/test/proto/menu_accessibility_test.dart: covered hidden cancellation retains the entire press relaxation
+00:08 +118: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 300ms, frame 16667us keeps one owner
+00:08 +119: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 550ms, frame 16667us keeps one owner
+00:08 +120: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 50ms, frame 8333us keeps one owner
+00:08 +121: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: reopen at 300ms, frame 8333us keeps one owner
+00:08 +122: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:08 +123: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:09 +124: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:09 +125: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:09 +126: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:09 +127: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: source themes reach root menu, nested=false
+00:09 +128: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:09 +129: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:09 +130: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:09 +131: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:09 +132: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:09 +133: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:10 +134: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: twenty cycles including early pop leave no active ticker or overlay
+00:10 +135: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: theme refresh during hidden preparation, cancel=false
+00:10 +136: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: editor State survives motion and a covering route; Escape dismisses
+00:10 +137: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: editor State survives motion and a covering route; Escape dismisses
+00:10 +138: /Volumes/Dev/projects/morph/example/test/proto/menu_route_probe_test.dart: editor State survives motion and a covering route; Escape dismisses
+00:10 +139: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: theme refresh stays safe during route removal and reopening
+00:10 +140: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: motion frames do not rebuild theme content
+00:10 +141: /Volumes/Dev/projects/morph/example/test/proto/menu_context_test.dart: open route keeps theme kinds; next route adopts new topology
+00:10 +142: /Volumes/Dev/projects/morph/example/test/proto/controller_clock_probe_test.dart: SDK ticker muting dozes without completing pushReplacement
+00:11 +143: /Volumes/Dev/projects/morph/example/test/proto/controller_clock_probe_test.dart: negative control: stop cancels the push future before visual rest
+00:11 +144: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: new root gets an independent session while old popup stays alive
+00:11 +145: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: new root gets an independent session while old popup stays alive
+00:11 +146: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: new root gets an independent session while old popup stays alive
+00:11 +147: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: new root gets an independent session while old popup stays alive
+00:11 +148: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: new root gets an independent session while old popup stays alive
+00:11 +149: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: new root gets an independent session while old popup stays alive
+00:11 +150: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: old root does not hand its model to a source moved elsewhere
+00:11 +151: /Volumes/Dev/projects/morph/example/test/proto/clock_disposal_test.dart: clock disposal from sample with settled=false stops publication
+00:12 +152: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: old popup keeps its view when its source moves to another view
+00:12 +153: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: old popup keeps its view when its source moves to another view
+00:12 +154: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: old popup keeps its view when its source moves to another view
+00:12 +155: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: old popup keeps its view when its source moves to another view
+00:12 +156: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: returning to the old root never resurrects its session
+00:12 +157: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: nested relocation in the same root keeps its model and popup
+00:12 +158: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: route-owned closing completes without landing after a move
+00:12 +159: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:12 +160: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:12 +161: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:12 +162: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:12 +163: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:13 +164: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:13 +165: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:13 +166: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+00:13 +167: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-tap","rate":60,"pointerOffsetUs":0,"touches":2,"samples":125,"routes":1,"handBacks":1,"selected":[]}
+00:13 +168: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: old popup keeps editor, focus and dismissal policy after source move
+00:13 +168: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":60,"pointerOffsetUs":0,"touches":4,"samples":133,"routes":1,"handBacks":1,"selected":[]}
+00:13 +169: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: old popup keeps editor, focus and dismissal policy after source move
+00:13 +170: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":60,"pointerOffsetUs":0,"touches":2,"samples":160,"routes":1,"handBacks":1,"selected":[]}
+00:13 +171: /Volumes/Dev/projects/morph/example/test/proto/menu_source_affinity_test.dart: deferred cancellation may open the new root without locked-tree publication
+00:13 +172: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 60 Hz
+00:13 +173: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-select","rate":60,"pointerOffsetUs":0,"touches":4,"samples":134,"routes":1,"handBacks":1,"selected":[1]}
+00:13 +174: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":60,"pointerOffsetUs":0,"touches":14,"samples":146,"routes":1,"handBacks":1,"selected":[2]}
+00:13 +175: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":60,"pointerOffsetUs":0,"touches":4,"samples":74,"routes":1,"handBacks":1,"selected":[]}
+00:13 +176: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":60,"pointerOffsetUs":0,"touches":16,"samples":452,"routes":4,"handBacks":4,"selected":[]}
+00:14 +177: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":60,"pointerOffsetUs":0,"touches":16,"samples":489,"routes":4,"handBacks":4,"selected":[]}
+00:14 +178: /Volumes/Dev/projects/morph/example/test/proto/motion_clock_probe_test.dart: 60.0 Hz: jitter and dropped frames preserve measured samples
+00:14 +179: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +180: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +181: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +182: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +183: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +184: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +185: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +186: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +187: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +188: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +189: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +190: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +191: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +192: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +193: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +194: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +195: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +196: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+00:14 +197: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":60,"pointerOffsetUs":0,"touches":778,"samples":1921,"routes":4,"handBacks":4,"selected":[]}
+00:14 +198: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 60 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":60,"pointerOffsetUs":0,"touches":333,"samples":938,"routes":2,"handBacks":2,"selected":[]}
+00:14 +199: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-tap: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-tap","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":246,"routes":1,"handBacks":1,"selected":[]}
+00:14 +200: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-dismiss: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dismiss","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":261,"routes":1,"handBacks":1,"selected":[]}
+00:15 +201: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-hold700: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-hold700","rate":120,"pointerOffsetUs":37000000,"touches":2,"samples":317,"routes":1,"handBacks":1,"selected":[]}
+00:15 +202: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-select: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-select","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":262,"routes":1,"handBacks":1,"selected":[1]}
+00:15 +203: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-dragselect: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-dragselect","rate":120,"pointerOffsetUs":37000000,"touches":14,"samples":277,"routes":1,"handBacks":1,"selected":[2]}
+00:15 +204: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: real source hit opens after offset, scaled root: false
+00:15 +204: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-closemidopen: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-closemidopen","rate":120,"pointerOffsetUs":37000000,"touches":4,"samples":143,"routes":1,"handBacks":1,"selected":[]}
+00:15 +205: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: real source hit opens after offset, scaled root: false
+00:15 +205: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-50: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-50","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":883,"routes":4,"handBacks":4,"selected":[]}
+00:15 +206: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: real source hit opens after offset, scaled root: false
+00:15 +207: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+00:15 +208: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+00:15 +209: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: center3-reopen2-350: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"center3-reopen2-350","rate":120,"pointerOffsetUs":37000000,"touches":16,"samples":957,"routes":4,"handBacks":4,"selected":[]}
+00:16 +210: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: actual smaller overlay and global root transform select the right row at DPR1.0
+00:16 +211: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+00:16 +212: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+00:16 +213: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-flex","rate":120,"pointerOffsetUs":37000000,"touches":778,"samples":3044,"routes":4,"handBacks":4,"selected":[]}
+00:16 +214: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: held source pointer survives root mapping through row selection
+00:16 +215: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+00:16 +216: /Volumes/Dev/projects/morph/example/test/proto/menu_route_replay_test.dart: drag-out-upward-flex: raw recorded input through root route at 120 Hz
+P2_REPLAY {"recording":"drag-out-upward-flex","rate":120,"pointerOffsetUs":37000000,"touches":333,"samples":1533,"routes":2,"handBacks":2,"selected":[]}
+00:16 +217: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: closed rest recaptures idle movement on the same model
+00:16 +218: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: scroll before acquisition uses current paint coordinates
+00:16 +219: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: root global movement preserves local model geometry and input
+00:17 +220: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported rotation declines before any model input or push
+00:17 +221: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported anisotropic scale declines before any model input or push
+00:17 +222: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported reflection declines before any model input or push
+00:17 +223: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported singular declines before any model input or push
+00:17 +224: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported tiny singular declines before any model input or push
+00:17 +225: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported tiny shear declines before any model input or push
+00:17 +226: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported perspective declines before any model input or push
+00:17 +227: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported shear declines before any model input or push
+00:17 +228: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unsupported nonfinite declines before any model input or push
+00:17 +229: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: Offstage and outside-overlay sources reject explicit and semantic open
+00:17 +230: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: unprepared global router never publishes nominal samples
+00:17 +231: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: readiness callback reentry installs only one model and popup
+00:17 +232: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: moving a shown endpoint leaves its old popup independent
+00:17 +233: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: two SDK requests consume one permission once, history=false
+00:17 +234: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: two SDK requests consume one permission once, history=false
+00:17 +235: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: two SDK requests consume one permission once, history=false
+00:17 +236: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: two SDK requests consume one permission once, history=false
+00:17 +237: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: two SDK requests consume one permission once, history=false
+00:17 +238: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: two SDK requests consume one permission once, history=false
+00:17 +239: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:18 +240: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:18 +240: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 60 Hz / 1.0 x
+P2_ASYNC_TIME {"rate":60,"dilation":1.0,"waiting":"opening","requestedAt":0.17566900000000002,"lastSampleAtApproval":0.36333899999999997,"closedAt":0.36333899999999997,"samples":78}
+00:18 +241: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:18 +241: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: settled idle permission preserves current-state physics at 60 Hz / 1.0 x
+P2_ASYNC_TIME {"rate":60,"dilation":1.0,"waiting":"settled idle","requestedAt":0.9423509999999999,"lastSampleAtApproval":0.950019,"closedAt":0.9666859999999999,"samples":115}
+00:18 +242: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:18 +242: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 60 Hz / 5.0 x
+P2_ASYNC_TIME {"rate":60,"dilation":5.0,"waiting":"opening","requestedAt":0.1523358,"lastSampleAtApproval":0.3100054,"closedAt":0.3100054,"samples":334}
+00:18 +243: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:18 +243: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: settled idle permission preserves current-state physics at 60 Hz / 5.0 x
+P2_ASYNC_TIME {"rate":60,"dilation":5.0,"waiting":"settled idle","requestedAt":0.9323513999999999,"lastSampleAtApproval":0.9333524,"closedAt":0.9366858,"samples":542}
+00:18 +244: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:18 +244: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 120 Hz / 1.0 x
+P2_ASYNC_TIME {"rate":120,"dilation":1.0,"waiting":"opening","requestedAt":0.16732999999999998,"lastSampleAtApproval":0.338323,"closedAt":0.338323,"samples":143}
+00:18 +245: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:18 +245: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: settled idle permission preserves current-state physics at 120 Hz / 1.0 x
+P2_ASYNC_TIME {"rate":120,"dilation":1.0,"waiting":"settled idle","requestedAt":0.9339649999999999,"lastSampleAtApproval":0.941629,"closedAt":0.9499620000000001,"samples":222}
+00:18 +246: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:18 +246: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: opening permission preserves current-state physics at 120 Hz / 5.0 x
+P2_ASYNC_TIME {"rate":120,"dilation":5.0,"waiting":"opening","requestedAt":0.152329,"lastSampleAtApproval":0.30665760000000003,"closedAt":0.30665760000000003,"samples":656}
+00:18 +247: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +247: /Volumes/Dev/projects/morph/example/test/proto/menu_route_async_test.dart: settled idle permission preserves current-state physics at 120 Hz / 5.0 x
+P2_ASYNC_TIME {"rate":120,"dilation":5.0,"waiting":"settled idle","requestedAt":0.9322976000000001,"lastSampleAtApproval":0.9332956,"closedAt":0.9349622,"samples":1077}
+00:19 +248: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +249: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +250: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +251: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +252: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +253: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +254: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +255: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +256: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:19 +257: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:20 +258: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:20 +259: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:20 +260: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:20 +261: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:20 +262: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:20 +263: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:21 +263: /Volumes/Dev/projects/morph/example/test/proto/menu_contour_probe_test.dart: negative control: replacing carried contour at gap=0.0 changes pixels
+P2_CONTOUR {"gap":0.0,"time":1.325,"progress":-0.00014028660063146995,"fusionRadius":2.03077073954383,"containerChangedPixels":1382,"preservedChangedPixels":0,"width":277,"height":154}
+00:21 +264: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:21 +264: /Volumes/Dev/projects/morph/example/test/proto/menu_contour_probe_test.dart: negative control: replacing carried contour at gap=8.0 changes pixels
+P2_CONTOUR {"gap":8.0,"time":1.325,"progress":-0.00014028660063146995,"fusionRadius":2.03077073954383,"containerChangedPixels":1086,"preservedChangedPixels":0,"width":301,"height":154}
+00:21 +265: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:21 +265: /Volumes/Dev/projects/morph/example/test/proto/menu_contour_probe_test.dart: negative control: replacing carried contour at gap=12.0 changes pixels
+P2_CONTOUR {"gap":12.0,"time":1.325,"progress":-0.00014028660063146995,"fusionRadius":2.03077073954383,"containerChangedPixels":981,"preservedChangedPixels":0,"width":313,"height":154}
+00:21 +266: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:21 +267: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:22 +268: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:22 +269: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:22 +270: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:22 +271: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:22 +272: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+00:22 +273: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: source inverse painting preserves the independent root contour throughout handback tail
+P2_GEOMETRY_SCENE {"frames":64,"changedPixels":0}
+00:22 +274: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: cover preserves an action already committed by a valid release
+00:22 +275: /Volumes/Dev/projects/morph/example/test/proto/menu_source_geometry_test.dart: later layout with valid boxes cannot invoke readiness or push
+00:22 +276: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+00:22 +277: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+00:22 +278: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+00:22 +279: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: cover from tracked highlight cancels relaxation after command exits
+00:22 +280: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: due action cover prevents a new release from committing
+00:23 +281: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: covered source tail honors SDK TickerMode, opaque=false
+00:23 +282: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: covered source tail honors SDK TickerMode, opaque=true
+00:23 +283: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: force removal inside tracking skips stale observation and old clock
+00:23 +284: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: frame callback removal does not publish a replacement model as the old route
+00:23 +285: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: another source cannot acquire through a hidden current preparation
+00:23 +286: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: Router platform Back follows dispatcher priority: child=false
+00:23 +287: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+00:23 +288: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+00:23 +289: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+00:23 +290: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+00:23 +291: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+00:23 +292: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected publishes progress and completes pop before visual rest
+00:23 +293: /Volumes/Dev/projects/morph/example/test/proto/menu_input_ownership_test.dart: characterization: hidden platform Back with nested=true
+00:23 +294: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected releases input and focus on the first closing frame
+00:23 +295: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected releases input and focus on the first closing frame
+00:23 +296: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected pushReplacement retains the old route until all motion rests
+00:23 +297: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected initial Pages are completed without running an entrance
+00:23 +298: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected replace transfers an in-flight motion without a jump
+00:23 +299: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected replace of a settled page keeps motion and SDK in sync
+00:23 +300: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected restoration adds a completed route that still dismisses
+00:23 +301: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected PopScope veto keeps the open motion and result pending
+00:23 +302: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected uses the input timestamp rather than restarting at delivery
+00:23 +303: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected keeps content stable during frames, insets and a covering route
+00:23 +304: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected paints motion without rebuilding the content each frame
+00:23 +305: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected records SDK rebuilds during steady motion
+P1_BUILDS {"driver":"projected","frames":40,"builds":176,"buildsPerFrame":4.4,"owners":{"AnimatedModalBarrier":22,"ModalBarrier":22,"_ModalBarrierGestureDetector":22,"RawGestureDetector":22,"ListenableBuilder":88}}
+00:23 +306: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected keeps raw overshoot while the SDK progress remains bounded
+00:24 +307: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected pop during entrance preserves geometry and disposes at rest
+00:24 +308: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected forced removal cancels the active clock and push signal
+00:24 +309: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: projected runs Hero flights with an explicitly installed controller
+00:24 +310: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController publishes progress and completes pop before visual rest
+00:24 +311: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController releases input and focus on the first closing frame
+00:24 +312: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController pushReplacement retains the old route until all motion rests
+00:24 +313: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController initial Pages are completed without running an entrance
+00:24 +314: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController replace transfers an in-flight motion without a jump
+00:24 +315: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController replace of a settled page keeps motion and SDK in sync
+00:24 +316: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController restoration adds a completed route that still dismisses
+00:24 +317: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController PopScope veto keeps the open motion and result pending
+00:24 +318: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController uses the input timestamp rather than restarting at delivery
+00:24 +319: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController keeps content stable during frames, insets and a covering route
+00:24 +320: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController paints motion without rebuilding the content each frame
+00:24 +321: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController records SDK rebuilds during steady motion
+P1_BUILDS {"driver":"sdkController","frames":40,"builds":320,"buildsPerFrame":8.0,"owners":{"AnimatedModalBarrier":40,"ModalBarrier":40,"_ModalBarrierGestureDetector":40,"RawGestureDetector":40,"ListenableBuilder":160}}
+00:24 +322: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController keeps raw overshoot while the SDK progress remains bounded
+00:24 +323: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController pop during entrance preserves geometry and disposes at rest
+00:24 +324: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController forced removal cancels the active clock and push signal
+00:24 +325: /Volumes/Dev/projects/morph/example/test/proto/route_probe_test.dart: sdkController runs Hero flights with an explicitly installed controller
+00:24 +326: All tests passed!

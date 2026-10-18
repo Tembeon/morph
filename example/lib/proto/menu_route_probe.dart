@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' show Timeline;
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/scheduler.dart';
@@ -65,8 +66,9 @@ class ProbeMenuSource extends StatefulWidget {
 
   /// Measures a source-local button into its root overlay before interaction.
   ///
-  /// Supports positive uniform scale and translation. Placement padding is zero;
-  /// Active source-to-overlay changes retire the endpoint rather than retargeting.
+  /// Supports positive uniform scale and translation. System safe area and
+  /// keyboard edges are projected from the presentation View into the overlay.
+  /// Observed active placement changes retire the endpoint rather than retargeting.
   const ProbeMenuSource.measured({
     required this.menuBuilder,
     this.button = const Rect.fromLTWH(24, 80, 44, 44),
@@ -216,15 +218,32 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
     });
     if (offstage) return null;
     final map = _UniformMap.read(source.getTransformTo(overlay));
-    if (map == null || _UniformMap.read(overlay.getTransformTo(null)) == null) {
+    final overlayMap = _UniformMap.read(overlay.getTransformTo(null));
+    if (map == null || overlayMap == null) return null;
+    final available = _availableMenuRect(
+      session.affinity.presentationView,
+      overlay.size,
+      overlayMap,
+    );
+    final tuning = session._motion.tuning;
+    final minimum = Size(
+      tuning.menuWidth,
+      tuning.rowHeight + 2 * tuning.verticalPadding,
+    );
+    if (available == null ||
+        !minimum.isFinite ||
+        minimum.isEmpty ||
+        available.width < minimum.width ||
+        available.height < minimum.height) {
       return null;
     }
     final button = map.rect(widget.button);
     if (!button.isFinite ||
         button.isEmpty ||
-        !(Offset.zero & overlay.size).contains(button.topLeft) ||
-        button.right > overlay.size.width ||
-        button.bottom > overlay.size.height ||
+        button.left < available.left ||
+        button.top < available.top ||
+        button.right > available.right ||
+        button.bottom > available.bottom ||
         !widget.sourceHeight.isFinite ||
         widget.sourceHeight <= 0 ||
         !widget.sourceRadius.isFinite ||
@@ -239,6 +258,7 @@ class ProbeMenuSourceState extends State<ProbeMenuSource>
       map,
       button,
       overlay.size,
+      available,
       widget.sourceHeight * map.scale,
       widget.sourceRadius * map.scale,
     );
@@ -562,6 +582,68 @@ class _UniformMap {
       (offset - other.offset).distance <= _geometryEpsilon;
 }
 
+Rect? _availableMenuRect(
+  ui.FlutterView view,
+  Size bounds,
+  _UniformMap overlayToView,
+) {
+  final ratio = view.devicePixelRatio;
+  if (!ratio.isFinite ||
+      ratio <= 0 ||
+      !view.physicalSize.isFinite ||
+      view.physicalSize.isEmpty) {
+    return null;
+  }
+  final safe = view.viewPadding;
+  final keyboard = view.viewInsets;
+  final edges = [
+    (safe.left, keyboard.left),
+    (safe.top, keyboard.top),
+    (safe.right, keyboard.right),
+    (safe.bottom, keyboard.bottom),
+  ];
+  if (edges.any(
+    (edge) =>
+        !edge.$1.isFinite || edge.$1 < 0 || !edge.$2.isFinite || edge.$2 < 0,
+  )) {
+    return null;
+  }
+  final size = view.physicalSize / ratio;
+  final obstructed = edges
+      .map((edge) => math.max(edge.$1, edge.$2) / ratio)
+      .toList();
+  final safeView = Rect.fromLTRB(
+    obstructed[0],
+    obstructed[1],
+    size.width - obstructed[2],
+    size.height - obstructed[3],
+  );
+  if (!size.isFinite ||
+      size.isEmpty ||
+      !safeView.isFinite ||
+      !safeView.size.isFinite ||
+      safeView.isEmpty) {
+    return null;
+  }
+  final projected = Rect.fromPoints(
+    overlayToView.inverse(safeView.topLeft),
+    overlayToView.inverse(safeView.bottomRight),
+  );
+  if (!projected.isFinite || !projected.size.isFinite || projected.isEmpty) {
+    return null;
+  }
+  final available = projected.intersect(Offset.zero & bounds);
+  if (!available.isFinite || !available.size.isFinite || available.isEmpty) {
+    return null;
+  }
+  final right = bounds.width - available.right;
+  final bottom = bounds.height - available.bottom;
+  if (!right.isFinite || right < 0 || !bottom.isFinite || bottom < 0) {
+    return null;
+  }
+  return available;
+}
+
 class _MenuGeometry {
   const _MenuGeometry(
     this.source,
@@ -569,6 +651,7 @@ class _MenuGeometry {
     this.map,
     this.button,
     this.bounds,
+    this.available,
     this.sourceHeight,
     this.sourceRadius,
   );
@@ -578,8 +661,16 @@ class _MenuGeometry {
   final _UniformMap map;
   final Rect button;
   final Size bounds;
+  final Rect available;
   final double sourceHeight;
   final double sourceRadius;
+
+  EdgeInsets get padding => EdgeInsets.fromLTRB(
+    available.left,
+    available.top,
+    bounds.width - available.right,
+    bounds.height - available.bottom,
+  );
 
   bool agrees(_MenuGeometry other) =>
       identical(source, other.source) &&
@@ -587,6 +678,7 @@ class _MenuGeometry {
       map.agrees(other.map) &&
       button == other.button &&
       bounds == other.bounds &&
+      available == other.available &&
       sourceHeight == other.sourceHeight &&
       sourceRadius == other.sourceRadius;
 
@@ -708,7 +800,10 @@ class _MenuSession {
       return false;
     }
     final current = readGeometry?.call();
-    if (current == null) return false;
+    if (current == null) {
+      if (geometry != null && !_canRelayout) loseGeometry?.call();
+      return false;
+    }
     if (geometry == null || !geometry!.agrees(current)) {
       if (!_canRelayout) {
         loseGeometry?.call();
@@ -717,6 +812,7 @@ class _MenuSession {
       _motion.relayout(
         button: current.button,
         bounds: current.bounds,
+        padding: current.padding,
         sourceHeight: current.sourceHeight,
         sourceRadius: current.sourceRadius,
       );
@@ -733,7 +829,9 @@ class _MenuSession {
       return false;
     }
     final latest = readGeometry?.call();
-    return latest != null && geometry!.agrees(latest);
+    if (latest != null && geometry!.agrees(latest)) return true;
+    if (!_canRelayout) loseGeometry?.call();
+    return false;
   }
 
   T command<T>(T Function() operation) {

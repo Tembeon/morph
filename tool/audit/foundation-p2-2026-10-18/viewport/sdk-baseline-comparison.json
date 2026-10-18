@@ -1,0 +1,26 @@
+{
+  "P2_SCENE": {
+    "count": 6,
+    "equalsPreviousSDK": true
+  },
+  "P2_BACKDATE": {
+    "count": 1,
+    "equalsPreviousSDK": true
+  },
+  "P2_REPLAY": {
+    "count": 20,
+    "equalsPreviousSDK": true
+  },
+  "P2_ASYNC_TIME": {
+    "count": 8,
+    "equalsPreviousSDK": true
+  },
+  "P2_CONTOUR": {
+    "count": 3,
+    "equalsPreviousSDK": true
+  },
+  "P2_GEOMETRY_SCENE": {
+    "count": 1,
+    "equalsPreviousSDK": true
+  }
+}

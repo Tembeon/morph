@@ -480,3 +480,10 @@ P2 source affinity, 2026-10-17: идентичности root Navigator, source 
 
 
 P2 measured admission, 2026-10-17: source-local rect и форма измеряются в настоящий root overlay до первого взаимодействия. Snapshot принадлежит сессии; global pointer переводится live inverse root map, source рисует полный contour через обратную карту. Root меню сохраняет собственные метрики. Поддержаны только positive uniform2D scale/translation; idle scroll/move обновляют существующую полностью покоящуюся модель при следующем admission. Активная потеря geometry отключает endpoint прежним безопасным detach, не меняя старую модель. Painter проверяет snapshot перед owner filter и подавляет stale tail при более позднем same-frame paint-only move.34 новые проверки/64 pixel-zero tail-кадра; `menu-source-geometry.md`. Это snapshot invalidation, не active follow, safe area/IME или полный P3; production shape ещё не переносится в main.
+
+
+### Системный viewport P2, 2026-10-18
+
+Measured snapshot дополнен доступным прямоугольником actual root overlay. Safe area и keyboard берутся из physical presentation View, объединяются максимумом по каждой стороне и переводятся через DPR и обратную uniform map. Пересечение учитывает уже уменьшенный overlay и его положение в окне. Из available выводится padding существующего idle-only relayout; source-local MediaQuery не отменяет системные ограничения. Непомещающиеся menu minimums и перекрытый source отклоняются до push.
+
+28 новых проверок, 62 geometry cases; исходный и inset tail совпадают с независимым root renderer на 64 кадрах каждый. Active availability mismatch отключает endpoint прежним путём, без retarget старой модели. Показанный popup может остаться за клавиатурой; немедленная реакция settled popup и native IME policy не заявлены. Контракт `menu-viewport.md`, evidence `tool/audit/foundation-p2-2026-10-18/viewport/report.md`. P2/main gate остаются открытыми.

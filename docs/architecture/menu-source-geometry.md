@@ -2,6 +2,8 @@
 
 2026-10-17, база `67afab10`. Только прототип; P2 открыт. Продолжение `menu-source-affinity.md`.
 
+Следующий этап 2026-10-18 добавляет системную доступную область: [safe area и клавиатура](menu-viewport.md). Описанный ниже нулевой padding относится к исходному этапу, не к текущему measured admission.
+
 ## Вызов
 
 ```dart
@@ -22,7 +24,7 @@ ProbeMenuSource.measured(
 
 Один private snapshot сессии хранит source/overlay RenderBox identity, source→overlay map, точный button, фактические overlay bounds и масштабированные sourceHeight/radius. Модель, popup painter и Flow работают в root-overlay logical coordinates. Масштаб source меняет исходную форму; ширина меню, строки и параметры движения остаются в единицах root.
 
-Original global pointer используется для времени, identity и наблюдений. Только для вызова неизменённого transfer adapter создаётся копия с position в overlay. Обратная карта root→global читается заново: движение всего root в окне сохраняет локальную геометрию модели и её endpoint. Source painter отображает полный переносимый контур обратно в свой canvas; popup не получает дополнительного source transform.
+Original global pointer используется для времени, identity и наблюдений. Только для вызова неизменённого transfer adapter создаётся копия с position в overlay. Обратная карта root→global читается заново. В исходном этапе движение всего root сохраняет локальную геометрию модели и endpoint; с viewport admission это верно лишь при неизменном effective available rect (см. `menu-viewport.md`). Source painter отображает полный переносимый контур обратно в свой canvas; popup не получает дополнительного source transform.
 
 Разрешены только конечные положительные равномерные 2D scale и translation. Коэффициенты семейства проверяются точно; rotation, shear, anisotropic scale, reflection, perspective, singular и nonfinite не заменяются bounding box. Произведения масштаба на размеры формы тоже должны быть конечными. Чужой FlutterView по-прежнему недопустим.
 
