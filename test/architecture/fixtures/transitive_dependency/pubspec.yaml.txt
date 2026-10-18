@@ -1,0 +1,9 @@
+name: morph
+
+dependencies:
+  fake_shaders: ^1.0.0
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  fake_test_helpers: ^1.0.0

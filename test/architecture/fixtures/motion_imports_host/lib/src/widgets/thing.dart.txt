@@ -1,0 +1,3 @@
+import 'package:morph/src/widgets/control.dart';
+
+class _ThingHost extends MorphControlState<StatefulWidget> {}

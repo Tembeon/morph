@@ -1,0 +1,1 @@
+export 'package:fake_shaders/fake_shaders.dart';
