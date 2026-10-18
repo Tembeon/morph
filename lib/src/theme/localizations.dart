@@ -14,6 +14,18 @@ abstract class MorphLocalizations {
   /// covers.
   String get dismissLabel;
 
+  /// The placeholder of an empty search field.
+  String get searchPlaceholder;
+
+  /// The label of a control that starts a search.
+  String get searchLabel;
+
+  /// The label of a control that closes a search or a sheet.
+  String get closeLabel;
+
+  /// The label of a navigation bar's back button.
+  String get backLabel;
+
   /// The nearest strings, or English.
   static MorphLocalizations of(BuildContext context) =>
       Localizations.of<MorphLocalizations>(context, MorphLocalizations) ??
@@ -27,6 +39,18 @@ class DefaultMorphLocalizations extends MorphLocalizations {
 
   @override
   String get dismissLabel => 'Dismiss';
+
+  @override
+  String get searchPlaceholder => 'Search';
+
+  @override
+  String get searchLabel => 'Search';
+
+  @override
+  String get closeLabel => 'Close';
+
+  @override
+  String get backLabel => 'Back';
 
   /// Loads the English strings for every locale.
   static const LocalizationsDelegate<MorphLocalizations> delegate =

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass_button.dart';
@@ -41,14 +42,14 @@ class MorphNavigationSearch {
   const MorphNavigationSearch({
     this.controller,
     this.focusNode,
-    this.placeholder = 'Search',
+    this.placeholder,
     this.onChanged,
     this.onSubmitted,
     this.active,
     this.onActiveChanged,
     this.hidesNavigationBarDuringPresentation = true,
     this.appearance,
-    this.closeLabel = 'Close',
+    this.closeLabel,
   });
 
   /// The controller of the query; null keeps one inside.
@@ -57,8 +58,9 @@ class MorphNavigationSearch {
   /// The focus node of the query; null keeps one inside.
   final FocusNode? focusNode;
 
-  /// The text shown while the field is empty.
-  final String placeholder;
+  /// The text shown while the field is empty; null takes
+  /// [MorphLocalizations.searchPlaceholder].
+  final String? placeholder;
 
   /// Called whenever the query changes, including the empty query when the
   /// search ends.
@@ -82,8 +84,9 @@ class MorphNavigationSearch {
   /// The look of the field; null resolves it from the theme.
   final MorphSearchFieldAppearance? appearance;
 
-  /// The label screen readers announce for the close button.
-  final String closeLabel;
+  /// The label screen readers announce for the close button; null
+  /// takes [MorphLocalizations.closeLabel].
+  final String? closeLabel;
 }
 
 class _StackedScope extends InheritedWidget {
@@ -129,7 +132,9 @@ class MorphStackedSearchSlot extends StatelessWidget {
       ),
       child: Semantics(
         textField: true,
-        label: search.placeholder,
+        label:
+            (search.placeholder ??
+            MorphLocalizations.of(context).searchPlaceholder),
         onTap: scope.presenting ? null : scope.state.present,
         excludeSemantics: true,
         child: GestureDetector(
@@ -142,7 +147,9 @@ class MorphStackedSearchSlot extends StatelessWidget {
               child: ExcludeFocus(
                 child: MorphSearchField(
                   controller: scope.state._controller,
-                  placeholder: search.placeholder,
+                  placeholder:
+                      (search.placeholder ??
+                      MorphLocalizations.of(context).searchPlaceholder),
                   appearance: search.appearance,
                   height: MorphSearchTuning.stackedHeight,
                   glass: false,
@@ -430,7 +437,9 @@ class _MorphStackedSearchHostState extends State<MorphStackedSearchHost>
     return _field = MorphSearchField(
       controller: _controller,
       focusNode: _focus,
-      placeholder: search.placeholder,
+      placeholder:
+          (search.placeholder ??
+          MorphLocalizations.of(context).searchPlaceholder),
       onChanged: search.onChanged,
       onSubmitted: search.onSubmitted,
       appearance: search.appearance,
@@ -449,7 +458,7 @@ class _MorphStackedSearchHostState extends State<MorphStackedSearchHost>
     _closeColor = glyph;
     return _close = Semantics(
       button: true,
-      label: search.closeLabel,
+      label: (search.closeLabel ?? MorphLocalizations.of(context).closeLabel),
       onTap: _end,
       excludeSemantics: true,
       child: MorphGlassButton(

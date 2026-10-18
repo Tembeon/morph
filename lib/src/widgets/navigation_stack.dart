@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart'
     show BoxHitTestResult, RenderRepaintBoundary, RenderTransform;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
@@ -243,7 +244,7 @@ class MorphNavigationStack extends StatefulWidget {
     this.menuAppearance,
     this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
-    this.backButtonSemanticLabel = 'Back',
+    this.backButtonSemanticLabel,
     this.navigatorKey,
     this.observers = const [],
     this.prefersLargeTitles = false,
@@ -268,7 +269,7 @@ class MorphNavigationStack extends StatefulWidget {
     this.menuAppearance,
     this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
-    this.backButtonSemanticLabel = 'Back',
+    this.backButtonSemanticLabel,
     this.navigatorKey,
     this.observers = const [],
     this.prefersLargeTitles = false,
@@ -323,8 +324,9 @@ class MorphNavigationStack extends StatefulWidget {
   /// [morphPresentationOverlayOf], the overlay around the stack.
   final OverlayState? menuOverlay;
 
-  /// The label screen readers announce for the back button.
-  final String backButtonSemanticLabel;
+  /// The label screen readers announce for the back button; null
+  /// takes [MorphLocalizations.backLabel].
+  final String? backButtonSemanticLabel;
 
   /// The key of the stack's navigator.
   final GlobalKey<NavigatorState>? navigatorKey;
@@ -520,10 +522,14 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
       MorphBarButton.back(
         label: switch (below?.backButtonDisplayMode) {
           MorphBackButtonDisplayMode.minimal => null,
-          MorphBackButtonDisplayMode.generic => widget.backButtonSemanticLabel,
+          MorphBackButtonDisplayMode.generic =>
+            (widget.backButtonSemanticLabel ??
+                MorphLocalizations.of(context).backLabel),
           _ => below?.backButtonTitle ?? below?.title,
         },
-        semanticLabel: widget.backButtonSemanticLabel,
+        semanticLabel:
+            (widget.backButtonSemanticLabel ??
+            MorphLocalizations.of(context).backLabel),
         onPressed: () => _navigator.currentState?.maybePop(),
         menu: [
           for (var i = index - 1; i >= 0; i--)
@@ -1435,7 +1441,7 @@ class MorphNavigationScaffold extends StatefulWidget {
     this.backButtonTitle,
     this.backButtonDisplayMode = MorphBackButtonDisplayMode.standard,
     this.hidesBackButton = false,
-    this.backButtonSemanticLabel = 'Back',
+    this.backButtonSemanticLabel,
     this.controller,
     this.appearance,
     this.search,
@@ -1546,8 +1552,9 @@ class MorphNavigationScaffold extends StatefulWidget {
   final String? backButtonTitle;
 
   /// The label screen readers announce for the back button the scaffold
-  /// draws itself, outside a [MorphNavigationStack].
-  final String backButtonSemanticLabel;
+  /// draws itself, outside a [MorphNavigationStack]; null takes
+  /// [MorphLocalizations.backLabel].
+  final String? backButtonSemanticLabel;
 
   /// The controller of the scroll view.
   final ScrollController? controller;
@@ -1907,7 +1914,9 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold>
       leading = [
         MorphBarButtonGroup([
           MorphBarButton.back(
-            semanticLabel: widget.backButtonSemanticLabel,
+            semanticLabel:
+                (widget.backButtonSemanticLabel ??
+                MorphLocalizations.of(context).backLabel),
             onPressed: () => Navigator.maybePop(context),
           ),
         ]),

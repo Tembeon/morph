@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
@@ -77,11 +78,11 @@ class MorphSearchTabBar extends StatefulWidget {
     required this.onActiveChanged,
     this.controller,
     this.focusNode,
-    this.placeholder = 'Search',
+    this.placeholder,
     this.onQueryChanged,
     this.onSubmitted,
-    this.searchLabel = 'Search',
-    this.closeLabel = 'Close',
+    this.searchLabel,
+    this.closeLabel,
     this.appearance,
     this.searchAppearance,
     this.minimizeBehavior = MorphTabBarMinimizeBehavior.automatic,
@@ -124,8 +125,9 @@ class MorphSearchTabBar extends StatefulWidget {
   /// The focus node of the query; null keeps one inside.
   final FocusNode? focusNode;
 
-  /// The text shown while the field is empty.
-  final String placeholder;
+  /// The text shown while the field is empty; null takes
+  /// [MorphLocalizations.searchPlaceholder].
+  final String? placeholder;
 
   /// Called whenever the query changes, including the empty query when
   /// the close button or the end of the search clears it.
@@ -134,11 +136,13 @@ class MorphSearchTabBar extends StatefulWidget {
   /// Called when the keyboard's search key is pressed.
   final ValueChanged<String>? onSubmitted;
 
-  /// The label screen readers announce for the search tab.
-  final String searchLabel;
+  /// The label screen readers announce for the search tab; null
+  /// takes [MorphLocalizations.searchLabel].
+  final String? searchLabel;
 
-  /// The label screen readers announce for the close button.
-  final String closeLabel;
+  /// The label screen readers announce for the close button; null
+  /// takes [MorphLocalizations.closeLabel].
+  final String? closeLabel;
 
   /// The look of the tab bar; null resolves it from the theme.
   final MorphTabBarAppearance? appearance;
@@ -517,7 +521,9 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       _field = MorphSearchField(
         controller: _controller,
         focusNode: _focus,
-        placeholder: widget.placeholder,
+        placeholder:
+            (widget.placeholder ??
+            MorphLocalizations.of(context).searchPlaceholder),
         onChanged: widget.onQueryChanged,
         onSubmitted: widget.onSubmitted,
         appearance: widget.searchAppearance,
@@ -601,8 +607,10 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
           }
           if (!settled) {
             final key = (
-              widget.placeholder,
-              widget.searchLabel,
+              (widget.placeholder ??
+                  MorphLocalizations.of(context).searchPlaceholder),
+              (widget.searchLabel ??
+                  MorphLocalizations.of(context).searchLabel),
               geometry.search,
               searchStyle,
               tabStyle,
@@ -618,8 +626,12 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                 rect: () => _frame.search,
                 restRect: geometry.search,
                 placeholderShown: _placeholder,
-                placeholder: widget.placeholder,
-                label: widget.searchLabel,
+                placeholder:
+                    (widget.placeholder ??
+                    MorphLocalizations.of(context).searchPlaceholder),
+                label:
+                    (widget.searchLabel ??
+                    MorphLocalizations.of(context).searchLabel),
                 style: searchStyle,
                 tabStyle: tabStyle,
                 glass: glass,
@@ -712,7 +724,9 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                         into.scaleByDouble(scale, scale, 1, 1);
                       },
                       child: _RoundGlassButton(
-                        label: widget.closeLabel,
+                        label:
+                            (widget.closeLabel ??
+                            MorphLocalizations.of(context).closeLabel),
                         onPressed: _close,
                         child: _CrossGlyph(color: searchStyle.glyphColor),
                       ),

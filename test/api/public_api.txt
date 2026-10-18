@@ -163,7 +163,7 @@ MorphFlight showMorph(
 class DefaultMorphLocalizations extends MorphLocalizations
   const DefaultMorphLocalizations()
   static const LocalizationsDelegate<MorphLocalizations> delegate
-  overrides: dismissLabel
+  overrides: backLabel, closeLabel, dismissLabel, searchLabel, searchPlaceholder
 class MorphActivityIndicator extends StatefulWidget
   const MorphActivityIndicator({
     bool animating = true,
@@ -1089,8 +1089,12 @@ class MorphListSection extends StatelessWidget
   overrides: build
 abstract class MorphLocalizations
   const MorphLocalizations()
+  String get backLabel
+  String get closeLabel
   String get dismissLabel
   static MorphLocalizations of(BuildContext context)
+  String get searchLabel
+  String get searchPlaceholder
 class MorphMenuAppearance implements MorphAppearance
   const MorphMenuAppearance({
     Color glassColor = const Color(0xF2F9F9FF),
@@ -1658,7 +1662,7 @@ class MorphNavigationScaffold extends StatefulWidget
     String? backButtonTitle,
     MorphBackButtonDisplayMode backButtonDisplayMode = MorphBackButtonDisplayMode.standard,
     bool hidesBackButton = false,
-    String backButtonSemanticLabel = 'Back',
+    String? backButtonSemanticLabel,
     ScrollController? controller,
     MorphBarAppearance? appearance,
     MorphNavigationSearch? search,
@@ -1668,7 +1672,7 @@ class MorphNavigationScaffold extends StatefulWidget
   })
   final MorphBarAppearance? appearance
   final MorphBackButtonDisplayMode backButtonDisplayMode
-  final String backButtonSemanticLabel
+  final String? backButtonSemanticLabel
   final String? backButtonTitle
   final Color? backgroundColor
   final ScrollController? controller
@@ -1695,25 +1699,25 @@ class MorphNavigationSearch
   const MorphNavigationSearch({
     TextEditingController? controller,
     FocusNode? focusNode,
-    String placeholder = 'Search',
+    String? placeholder,
     void Function(String)? onChanged,
     void Function(String)? onSubmitted,
     bool? active,
     void Function(bool)? onActiveChanged,
     bool hidesNavigationBarDuringPresentation = true,
     MorphSearchFieldAppearance? appearance,
-    String closeLabel = 'Close',
+    String? closeLabel,
   })
   final bool? active
   final MorphSearchFieldAppearance? appearance
-  final String closeLabel
+  final String? closeLabel
   final TextEditingController? controller
   final FocusNode? focusNode
   final bool hidesNavigationBarDuringPresentation
   final void Function(bool)? onActiveChanged
   final void Function(String)? onChanged
   final void Function(String)? onSubmitted
-  final String placeholder
+  final String? placeholder
 class MorphNavigationStack extends StatefulWidget
   const MorphNavigationStack({
     required Widget home,
@@ -1721,7 +1725,7 @@ class MorphNavigationStack extends StatefulWidget
     MorphMenuAppearance? menuAppearance,
     MorphBarMenuTuning menuTuning = MorphBarMenuTuning.standard,
     OverlayState? menuOverlay,
-    String backButtonSemanticLabel = 'Back',
+    String? backButtonSemanticLabel,
     GlobalKey<NavigatorState>? navigatorKey,
     List<NavigatorObserver> observers = const [],
     bool prefersLargeTitles = false,
@@ -1735,7 +1739,7 @@ class MorphNavigationStack extends StatefulWidget
     MorphMenuAppearance? menuAppearance,
     MorphBarMenuTuning menuTuning = MorphBarMenuTuning.standard,
     OverlayState? menuOverlay,
-    String backButtonSemanticLabel = 'Back',
+    String? backButtonSemanticLabel,
     GlobalKey<NavigatorState>? navigatorKey,
     List<NavigatorObserver> observers = const [],
     bool prefersLargeTitles = false,
@@ -1743,7 +1747,7 @@ class MorphNavigationStack extends StatefulWidget
     Key? key,
   })
   final MorphBarAppearance? appearance
-  final String backButtonSemanticLabel
+  final String? backButtonSemanticLabel
   final bool contentPopGestureEnabled
   final Widget? home
   final MorphMenuAppearance? menuAppearance
@@ -2008,7 +2012,7 @@ class MorphSearchField extends StatefulWidget
   const MorphSearchField({
     TextEditingController? controller,
     FocusNode? focusNode,
-    String placeholder = 'Search',
+    String? placeholder,
     void Function(String)? onChanged,
     void Function(String)? onSubmitted,
     bool enabled = true,
@@ -2031,7 +2035,7 @@ class MorphSearchField extends StatefulWidget
   static const double maxTextScale
   final void Function(String)? onChanged
   final void Function(String)? onSubmitted
-  final String placeholder
+  final String? placeholder
   final String? semanticLabel
   overrides: createState
 class MorphSearchFieldAppearance implements MorphAppearance
@@ -2091,11 +2095,11 @@ class MorphSearchTabBar extends StatefulWidget
     required void Function(bool) onActiveChanged,
     TextEditingController? controller,
     FocusNode? focusNode,
-    String placeholder = 'Search',
+    String? placeholder,
     void Function(String)? onQueryChanged,
     void Function(String)? onSubmitted,
-    String searchLabel = 'Search',
-    String closeLabel = 'Close',
+    String? searchLabel,
+    String? closeLabel,
     MorphTabBarAppearance? appearance,
     MorphSearchFieldAppearance? searchAppearance,
     MorphTabBarMinimizeBehavior minimizeBehavior = MorphTabBarMinimizeBehavior.automatic,
@@ -2106,7 +2110,7 @@ class MorphSearchTabBar extends StatefulWidget
   final bool active
   final MorphTabBarAppearance? appearance
   final Widget? bottomAccessory
-  final String closeLabel
+  final String? closeLabel
   final MorphContentScroll? contentScroll
   final TextEditingController? controller
   final FocusNode? focusNode
@@ -2116,16 +2120,16 @@ class MorphSearchTabBar extends StatefulWidget
   final void Function(int)? onChanged
   final void Function(String)? onQueryChanged
   final void Function(String)? onSubmitted
-  final String placeholder
+  final String? placeholder
   final MorphSearchFieldAppearance? searchAppearance
-  final String searchLabel
+  final String? searchLabel
   final int selected
   overrides: createState
 class MorphSearchToolbar extends StatefulWidget
   const MorphSearchToolbar({
     TextEditingController? controller,
     FocusNode? focusNode,
-    String placeholder = 'Search',
+    String? placeholder,
     List<MorphBarButtonGroup> leading = const [],
     List<MorphBarButtonGroup> trailing = const [],
     void Function(String)? onChanged,
@@ -2134,14 +2138,14 @@ class MorphSearchToolbar extends StatefulWidget
     bool? active,
     MorphSearchFieldAppearance? appearance,
     MorphGlassButtonAppearance? buttonAppearance,
-    String closeLabel = 'Close',
+    String? closeLabel,
     bool hidesNavigationBarDuringPresentation = true,
     Key? key,
   })
   final bool? active
   final MorphSearchFieldAppearance? appearance
   final MorphGlassButtonAppearance? buttonAppearance
-  final String closeLabel
+  final String? closeLabel
   final TextEditingController? controller
   final FocusNode? focusNode
   final bool hidesNavigationBarDuringPresentation
@@ -2149,7 +2153,7 @@ class MorphSearchToolbar extends StatefulWidget
   final void Function(bool)? onActiveChanged
   final void Function(String)? onChanged
   final void Function(String)? onSubmitted
-  final String placeholder
+  final String? placeholder
   final List<MorphBarButtonGroup> trailing
   overrides: createState
 class MorphSegment

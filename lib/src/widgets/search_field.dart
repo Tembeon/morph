@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/clock.dart';
@@ -203,7 +204,7 @@ class MorphSearchField extends StatefulWidget {
   const MorphSearchField({
     this.controller,
     this.focusNode,
-    this.placeholder = 'Search',
+    this.placeholder,
     this.onChanged,
     this.onSubmitted,
     this.enabled = true,
@@ -232,8 +233,9 @@ class MorphSearchField extends StatefulWidget {
   /// The focus node of the text; null keeps one inside.
   final FocusNode? focusNode;
 
-  /// The text shown while the field is empty.
-  final String placeholder;
+  /// The text shown while the field is empty; null takes
+  /// [MorphLocalizations.searchPlaceholder].
+  final String? placeholder;
 
   /// Called whenever the text changes.
   final ValueChanged<String>? onChanged;
@@ -424,7 +426,10 @@ class _MorphSearchFieldState extends State<MorphSearchField>
                       _controller.text.isEmpty
                       ? ExcludeSemantics(
                           child: Text(
-                            widget.placeholder,
+                            (widget.placeholder ??
+                                MorphLocalizations.of(
+                                  context,
+                                ).searchPlaceholder),
                             maxLines: 1,
                             overflow: TextOverflow.clip,
                             softWrap: false,
@@ -439,7 +444,10 @@ class _MorphSearchFieldState extends State<MorphSearchField>
                       : const SizedBox.shrink(),
                 ),
                 Semantics(
-                  label: widget.semanticLabel ?? widget.placeholder,
+                  label:
+                      widget.semanticLabel ??
+                      (widget.placeholder ??
+                          MorphLocalizations.of(context).searchPlaceholder),
                   child: widget.enabled
                       ? _gestures.buildGestureDetector(
                           behavior: HitTestBehavior.translucent,
@@ -692,7 +700,7 @@ class MorphSearchToolbar extends StatefulWidget {
   const MorphSearchToolbar({
     this.controller,
     this.focusNode,
-    this.placeholder = 'Search',
+    this.placeholder,
     this.leading = const [],
     this.trailing = const [],
     this.onChanged,
@@ -701,7 +709,7 @@ class MorphSearchToolbar extends StatefulWidget {
     this.active,
     this.appearance,
     this.buttonAppearance,
-    this.closeLabel = 'Close',
+    this.closeLabel,
     this.hidesNavigationBarDuringPresentation = true,
     super.key,
   });
@@ -726,8 +734,9 @@ class MorphSearchToolbar extends StatefulWidget {
   /// The focus node of the text; null keeps one inside.
   final FocusNode? focusNode;
 
-  /// The text shown while the field is empty.
-  final String placeholder;
+  /// The text shown while the field is empty; null takes
+  /// [MorphLocalizations.searchPlaceholder].
+  final String? placeholder;
 
   /// The toolbar buttons before the field, shown at rest, one
   /// [MorphBarButtonGroup] per glass circle (UIKit
@@ -755,8 +764,9 @@ class MorphSearchToolbar extends StatefulWidget {
   /// it from the theme.
   final MorphGlassButtonAppearance? buttonAppearance;
 
-  /// The label screen readers announce for the close button.
-  final String closeLabel;
+  /// The label screen readers announce for the close button; null
+  /// takes [MorphLocalizations.closeLabel].
+  final String? closeLabel;
 
   @override
   State<MorphSearchToolbar> createState() => _MorphSearchToolbarState();
@@ -936,7 +946,9 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
       _field = MorphSearchField(
         controller: _controller,
         focusNode: _focus,
-        placeholder: widget.placeholder,
+        placeholder:
+            (widget.placeholder ??
+            MorphLocalizations.of(context).searchPlaceholder),
         onChanged: widget.onChanged,
         onSubmitted: widget.onSubmitted,
         appearance: widget.appearance,
@@ -976,7 +988,8 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
             child: CustomPaint(painter: _CrossPainter(color: glyph)),
           ),
           onPressed: _end,
-          semanticLabel: widget.closeLabel,
+          semanticLabel:
+              (widget.closeLabel ?? MorphLocalizations.of(context).closeLabel),
         ),
         style: widget.buttonAppearance,
       );
