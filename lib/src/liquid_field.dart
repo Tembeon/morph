@@ -26,60 +26,6 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:meta/meta.dart';
 
-/// A named bundle of fusion knobs - in the spirit of MorphMotion
-/// presets. blend and cell are distances in pixels.
-class MorphSkinStyle {
-  /// Creates a named knob bundle.
-  const MorphSkinStyle({
-    required this.name,
-    required this.blend,
-    this.cell = 6,
-    this.smoothPasses = 2,
-  }) : assert(
-         cell >= liquidMinCell,
-         'cell is the outline grid step in px; the finest supported step '
-         'is $liquidMinCell px.',
-       );
-
-  /// Preset name, for debugging and toString.
-  final String name;
-
-  /// The fusion width in px: Liquid Glass's container spacing, 1:1.
-  /// Two facing surfaces start to lean toward each other below a gap
-  /// of blend and touch at a gap of blend / 2.
-  final double blend;
-
-  /// Outline grid step in px; the finest step is 2 px.
-  final double cell;
-
-  /// Chaikin smoothing passes over the traced contour.
-  final int smoothPasses;
-
-  /// SwiftUI's default: a `GlassEffectContainer` without a spacing
-  /// merges with a spacing of 8 pt on iOS 27.
-  static const MorphSkinStyle subtle = MorphSkinStyle(name: 'subtle', blend: 8);
-
-  /// The built-in presets.
-  static const List<MorphSkinStyle> values = <MorphSkinStyle>[subtle];
-
-  // Value equality: MorphTheme compares by ==, and an identity-compared
-  // custom style would make every theme rebuild read as a change.
-  @override
-  bool operator ==(Object other) {
-    return other is MorphSkinStyle &&
-        other.name == name &&
-        other.blend == blend &&
-        other.cell == cell &&
-        other.smoothPasses == smoothPasses;
-  }
-
-  @override
-  int get hashCode => Object.hash(name, blend, cell, smoothPasses);
-
-  @override
-  String toString() => 'MorphSkinStyle.$name';
-}
-
 /// Polynomial smooth minimum in the mix form (no derivative kink at the
 /// seam): `min(a, b) - max(k - |a - b|, 0)^2 / (4 k)`. k = 0 degenerates
 /// to a plain min.
@@ -183,9 +129,8 @@ double liquidRectGap(Rect a, Rect b) {
   return math.sqrt(dx * dx + dy * dy);
 }
 
-/// A raw SDF mass poured into a skin - contentless geometry fused into
-/// the contour alongside the pieces. A mass
-/// has no morph identity: it cannot fly, it only adds to the shape.
+/// A raw SDF mass of a [LiquidField]: contentless geometry fused into
+/// the contour alongside the other shapes.
 /// Sealed: [MorphMass.box] and [MorphMass.bridge] are the whole
 /// vocabulary.
 sealed class MorphMass {
@@ -256,8 +201,8 @@ const int liquidMassSignatureStride = 6;
 
 /// Writes [mass]'s canonical flat encoding into [out] at [i] and
 /// returns the index past it ([liquidMassSignatureStride] doubles).
-/// The ONE flattening of a mass into numbers: the tracer's cluster
-/// keys and the skin's input signature both write through here. Full
+/// The flattening of a mass into numbers behind the tracer's cluster
+/// keys. Full
 /// parameters, not the outer rect: two bridges along opposite
 /// diagonals share an outer rect and a radius yet trace different
 /// capsules.
@@ -346,7 +291,7 @@ class LiquidField {
   }
 
   /// The group bounds with headroom for the fusion bulge: at the
-  /// fillets the skin protrudes outward by up to ~k past a shape's
+  /// fillets the contour protrudes outward by up to ~k past a shape's
   /// edge; without the padding the marching-squares grid would clip the
   /// blend.
   Rect bounds({double pad = 0}) {
@@ -585,10 +530,9 @@ class _FieldSampler {
 }
 
 /// Connectivity labels over [rects]: rects whose gap is at most [k]
-/// share a label (transitively), labels are dense from zero. The ONE
-/// implementation of the body predicate - the tracer's cluster split
-/// and the skin's launch fellowship both delegate here, so the two
-/// notions of "one body" cannot drift apart.
+/// share a label (transitively), labels are dense from zero. The tracer's
+/// cluster split and `morphGlassContainerGroups` both delegate here, so
+/// the two notions of "one body" cannot drift apart.
 @internal
 List<int> liquidConnectivityLabels(List<Rect> rects, double k) {
   final int n = rects.length;
@@ -848,8 +792,8 @@ List<List<Offset>> _tracedAndSmoothed(
 /// A stateful tracer with a per-cluster cache: only clusters whose
 /// geometry actually changed are re-traced; the rest reuse their built
 /// paths from the previous call. This is what keeps a mostly-static group
-/// cheap while one piece animates (a flight blob crossing the canvas
-/// re-traces its own cluster, not the whole scene).
+/// cheap while one piece animates (a moving shape re-traces its own
+/// cluster, not the whole scene).
 ///
 /// Cache keys are full per-cluster signatures (fold order, every shape
 /// parameter, k/cell/smoothing/budget) compared element-wise on hash
@@ -857,8 +801,8 @@ List<List<Offset>> _tracedAndSmoothed(
 /// cache is swapped wholesale on every [trace], so it never grows past
 /// the current scene.
 ///
-/// The pure [liquidPath]/[liquidContours] remain for one-shot use;
-/// Each owner holds one tracer per State.
+/// The pure [liquidPath]/[liquidContours] serve one-shot use; tests and
+/// benches use the tracer as the reference for the merge law.
 class LiquidTracer {
   Map<int, List<_ClusterCacheEntry>> _cache = <int, List<_ClusterCacheEntry>>{};
 
@@ -1045,7 +989,7 @@ _ClusterTrace _traceCluster(
   }
   // A guard against the pathological combination of a huge cluster and
   // a tiny cell (or no eval budget): the grid coarsens to the safety cap
-  // instead of freezing the frame, and the skin never vanishes.
+  // instead of freezing the frame, and the contour never vanishes.
   if (cols * rows > liquidMaxClusterCells) {
     final double factor = math.sqrt(cols * rows / liquidMaxClusterCells);
     step *= factor;

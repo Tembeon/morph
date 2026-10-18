@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/menu.dart' show MorphMenuLayer;
 import 'package:morph/widgets.dart';
 
-import 'support/shuttle.dart';
+import 'support/painted_colors.dart';
 
 /// Rows of a device-sized menu: one free-form row filling a menu [height]
 /// points tall with its 10-point insets.

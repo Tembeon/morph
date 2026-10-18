@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'architecture/checker.dart';
 
-/// morph's structural rules. `docs/architecture/foundation-sketch.md` repeats
-/// them for the reader; this table is their source.
+/// morph's structural rules for the current layout; the sketch in
+/// `docs/architecture/foundation-sketch.md` describes the target layout.
 const _rules = ArchitectureRules(
   forbidden: {
     'package:material_ui/',
@@ -68,8 +68,6 @@ const _rules = ArchitectureRules(
 const _ratchet = <Rule, Set<String>>{
   Rule.forbidden: {
     'lib/src/flight.dart imports package:material_ui/material_ui.dart',
-    'lib/src/show.dart imports package:material_ui/material_ui.dart',
-    'lib/src/theme.dart imports package:material_ui/material_ui.dart',
     'lib/src/widgets/morph_context_menu.dart imports package:material_ui/material_ui.dart',
     'lib/src/widgets/widgets_theme.dart imports package:flutter/material.dart',
     'lib/src/widgets/widgets_theme.dart imports package:material_ui/material_ui.dart',

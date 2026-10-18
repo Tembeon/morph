@@ -830,16 +830,14 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   /// menu, or retargets the live one.
   MorphFlight _launch() {
     final _Placement placement = _placement ??= _place();
-    final MorphTheme? theme = MorphTheme.maybeOf(context);
     final MorphFlight flight = showMorph(
       context,
       from: _tagId,
       motion: MorphContextMenuRegion.measuredMotion,
       maxScrimOpacity:
           widget.maxScrimOpacity ??
-          theme?.maxScrimOpacity ??
           MorphContextMenuRegion.measuredDimOpacity(morphBrightnessOf(context)),
-      scrimColor: widget.scrimColor,
+      scrimColor: widget.scrimColor ?? const Color(0xFF000000),
       scrimMotion: widget.scrimMotion ?? MorphContextMenuRegion.measuredDim,
       semanticLabel: widget.semanticLabel,
       overlay: widget.overlay,

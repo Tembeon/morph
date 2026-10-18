@@ -10,19 +10,17 @@ import 'package:morph/src/motion.dart';
 /// own, retargeted toward 1 when the flight opens and toward 0 when it
 /// closes, each after its own delay.
 ///
-/// Without one a flight dims as a function of its value
-/// (`morphScrimOpacity`: full at 70 percent of the travel). With one the
+/// Without one a flight dims as a function of its value, full at 70
+/// percent of the travel. With one the
 /// scrim opacity is `maxScrimOpacity` times this channel's value - a
 /// dimming that runs on its own clock beside the geometry, the way UIKit
-/// animates a context menu's dimming view on springs of its own. The
-/// channel is a second orthogonal degree of freedom, like the drag
-/// displacement: every retarget starts from its current value and
-/// velocity, so a reversal is continuous, and it never touches the
+/// animates a context menu's dimming view on springs of its own. Every
+/// retarget starts from the channel's current value and velocity, so a reversal is continuous, and it never touches the
 /// flight value or the content's opacity.
 ///
 /// The channel answers the flight's target changing (open, close, a
-/// re-open mid-close), not a scrub of the value. It outlives the
-/// handoff latch: past it the shuttle keeps only the scrim until the
+/// re-open mid-close). It outlives the handoff latch: past it the
+/// flight keeps only the scrim until the
 /// dimming rests, and the flight lands once both are at rest. Under
 /// reduced motion it rides [MorphMotion.instant] with no delays.
 @immutable

@@ -4,10 +4,9 @@ import 'package:meta/meta.dart';
 import 'package:morph/src/flight.dart';
 
 /// The registry of tags and flights. Installed once near the top of the
-/// tree, above the launching context and the tags. A flight's shuttle renders in the NEAREST enclosing [Overlay], so a
-/// nested navigator keeps its flights inside itself; in a
-/// single-navigator app that is the root overlay anyway. Also serves as
-/// the TickerProvider for all flights.
+/// tree, above the launching context and the tags. A flight renders in
+/// [morphPresentationOverlayOf] unless it names an overlay. Also serves
+/// as the TickerProvider for all flights.
 class MorphScope extends StatefulWidget {
   /// Creates the scope; place it once, inside MaterialApp.builder.
   const MorphScope({super.key, required this.child});
@@ -117,8 +116,8 @@ class MorphScopeState extends State<MorphScope> with TickerProviderStateMixin {
   /// the active tree. A flight can outlive its tag (a screen torn down
   /// mid-flight: the scope owns flights, a disposing tag only
   /// unregisters) - such a stray stays visible to observers through
-  /// [flightOf], but engine consumers that would touch the tag (the
-  /// skin's neck, a retarget) must treat it as absent.
+  /// [flightOf], but engine consumers that would touch the tag (a
+  /// retarget, a theme refresh) must treat it as absent.
   @internal
   MorphFlight? liveFlightOf(Object id) {
     final MorphFlight? flight = _flights[id];
@@ -271,17 +270,8 @@ class _MorphScopeMarker extends InheritedWidget {
       state != oldWidget.state;
 }
 
-/// The morph's surface model as a value: everything the engine can
-/// interpolate about a surface - (shape, color, elevation). Declared
-/// once at a [MorphTag] (via [MorphTag.spec]) and readable by any
-/// descendant through [MorphTag.specOf], so the visible surface is
-/// BUILT FROM the declaration instead of duplicating it - drift between
-/// "what the button looks like" and "what the morph believes" becomes
-/// structurally impossible, whatever rendering stack draws it.
-///
-/// Being a plain value, specs compose with any storage the app already
-/// has: its own ThemeExtension of named archetypes, constants, or
-/// inline.
+/// The declared surface of a [MorphTag] as a value: shape, color and
+/// elevation.
 @immutable
 class MorphSurfaceSpec {
   /// Creates a surface model.
@@ -329,31 +319,9 @@ class MorphSurfaceSpec {
       'MorphSurfaceSpec(shape: $shape, color: $color, elevation: $elevation)';
 }
 
-/// The transport behind [MorphTag.specOf]: installed by the tag around
-/// its child and by the shuttle around flight content, so the surface
-/// model is readable at both ends of a flight. Library-internal - not
-/// exported.
-class MorphSurfaceSpecScope extends InheritedWidget {
-  /// Publishes [spec] to the subtree.
-  const MorphSurfaceSpecScope({
-    super.key,
-    required this.spec,
-    required super.child,
-  });
-
-  /// The surface model served to descendants.
-  final MorphSurfaceSpec spec;
-
-  @override
-  bool updateShouldNotify(MorphSurfaceSpecScope oldWidget) =>
-      spec != oldWidget.spec;
-}
-
 /// The identity marker: registers its RenderBox in the scope and hands
 /// the engine a (rect, shape) pair. The shape is declared, never
-/// inferred from decoration. Prefer declaring the whole surface once
-/// via [spec] and rendering from [specOf]; the individual fields
-/// remain for terse cases.
+/// inferred from decoration.
 class MorphTag extends StatefulWidget {
   /// Creates an identity tag around [child].
   const MorphTag({
@@ -370,78 +338,39 @@ class MorphTag extends StatefulWidget {
   /// Unique identity within the enclosing [MorphScope].
   final Object id;
 
-  /// The tagged widget; replicated in the shuttle during flight.
+  /// The tagged widget; a zoom or the context-menu preview replicates it
+  /// while it is airborne.
   ///
   /// The replica is pixels-only: it takes no pointer and no focus. An
   /// explicit [FocusNode] inside the child is nevertheless attached to
-  /// the replica for the duration of the flight (the copy shares this
-  /// widget configuration), so the node may transiently report the
-  /// shuttle as its context; focus itself cannot enter the replica,
-  /// and requestFocus on such a node is ignored while the flight is
-  /// up.
+  /// the replica meanwhile (the copy shares this widget configuration),
+  /// so the node may transiently report the replica as its context.
   final Widget child;
 
   /// The surface model declared as one value; when set it wins over
-  /// [shape]/[surfaceColor]/[elevation]. Descendants read it back via
-  /// [specOf] and render the visible surface from it - one source of
-  /// truth for the eye and for the flight.
+  /// [shape]/[surfaceColor]/[elevation].
   final MorphSurfaceSpec? spec;
 
-  /// The source outline the shuttle takes off from.
+  /// The source outline a sheet or page zoom starts from.
   final ShapeBorder shape;
 
-  /// The source widget's surface color: the shuttle's surfaceColor
-  /// starts from it so the container looks like the button at flight
-  /// start. WITHOUT it the shuttle starts from the TARGET color and
-  /// mismatches the button on the first frame - mandatory for opaque
-  /// buttons.
+  /// The source widget's surface color, part of the declared surface.
   final Color? surfaceColor;
 
-  /// The source widget's elevation: the shuttle's shadow starts from
-  /// it. A button with its own shadow (a FAB) must declare it here,
-  /// otherwise the shadow pops when the tag hides and at handoff.
+  /// The source widget's elevation, part of the declared surface.
   final double elevation;
 
-  /// The "in-flight" version of the child for the shuttle. For buttons
-  /// with their own decoration (background, shadow) put the flat
-  /// content here: in flight the shuttle provides background and
-  /// shadow, and a replicated decoration would be clipped at the edges.
-  /// null - the [child] itself flies.
+  /// The airborne version of the child for a zoom's replica. For buttons
+  /// with their own decoration put the flat content here, so the
+  /// replica does not clip a decoration at its edges. null - the [child]
+  /// itself is replicated.
   final Widget? replica;
 
-  /// The declared surface model of the nearest enclosing [MorphTag] -
-  /// render the visible surface from it instead of repeating the
-  /// values.
-  ///
-  /// Throws a [FlutterError] (in every build mode) outside a tag
-  /// subtree; [maybeSpecOf] degrades to null instead.
-  static MorphSurfaceSpec specOf(BuildContext context) {
-    final MorphSurfaceSpec? spec = maybeSpecOf(context);
-    if (spec == null) {
-      throw FlutterError.fromParts(<DiagnosticsNode>[
-        ErrorSummary('MorphTag.specOf called outside of a MorphTag subtree.'),
-        ErrorHint(
-          'Call it from a descendant of a MorphTag (or of flight content, '
-          'which republishes the target surface), or use maybeSpecOf.',
-        ),
-        context.describeElement('The context that called specOf'),
-      ]);
-    }
-    return spec;
-  }
-
-  /// Like [specOf], but null outside a tag subtree.
-  static MorphSurfaceSpec? maybeSpecOf(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<MorphSurfaceSpecScope>()
-        ?.spec;
-  }
-
   /// The id of the nearest enclosing [MorphTag]. Lets a tap handler
-  /// inside the tag's own subtree call showMorph* WITHOUT repeating the
+  /// inside the tag's own subtree call showMorph WITHOUT repeating the
   /// id - the morph flies from the surface the finger is already on.
-  /// Content that launches a morph from elsewhere (a morphable skin
-  /// piece, a list controller) still names its source explicitly.
+  /// Content that launches a morph from elsewhere still names its source
+  /// explicitly.
   ///
   /// Throws a [FlutterError] (in every build mode) outside a tag
   /// subtree; [maybeIdOf] degrades to null instead.
@@ -483,8 +412,8 @@ class MorphTagState extends State<MorphTag> {
   /// Whether the tag still lives in an active tree. False while
   /// deactivated or after dispose - a flight can outlive its tag (the
   /// scope owns flights, a disposing tag only unregisters), and
-  /// consumers such as the skin must not touch a defunct tag's context
-  /// or widget.
+  /// consumers such as a retarget must not touch a defunct tag's
+  /// context or widget.
   @internal
   bool get isTreeActive => _treeActive && mounted;
 
@@ -512,12 +441,11 @@ class MorphTagState extends State<MorphTag> {
   /// The resolved source elevation.
   double get elevation => widget.spec?.elevation ?? widget.elevation;
 
-  /// The widget the shuttle flies: [MorphTag.replica] or the child.
+  /// The widget a zoom replicates: [MorphTag.replica] or the child.
   @internal
   Widget get replica => widget.replica ?? widget.child;
 
-  /// The resolved surface model of this tag - what specOf serves and
-  /// what the shuttle republishes around the source replica.
+  /// The resolved surface model of this tag.
   MorphSurfaceSpec get surfaceSpec => _effectiveSpec;
 
   /// Notifies when the tag takes a new widget, so a [replica] or
@@ -535,8 +463,7 @@ class MorphTagState extends State<MorphTag> {
 
   /// Registers with the nearest scope, and re-registers when the tag is
   /// reparented under another one. Outside any scope the tag stays
-  /// unregistered (a morphable skin piece degrades to pure fusion); a
-  /// launch from it then reports the missing scope. A live flight from
+  /// unregistered; a launch from it then reports the missing scope. A live flight from
   /// this tag re-reads the source themes it carries.
   @override
   void didChangeDependencies() {
@@ -592,14 +519,14 @@ class MorphTagState extends State<MorphTag> {
     // that is neither the painted rect nor the layout rect: a centered
     // scale moves its top-left but mysteriously keeps its old extent.
     // Capture the whole local bounds through the same transform so the
-    // shuttle's first pixel is exactly the pixel the finger was holding.
+    // presentation starts from exactly the pixel the finger was holding.
     return MatrixUtils.transformRect(
       renderObject.getTransformTo(overlayBox),
       Offset.zero & renderObject.size,
     );
   }
 
-  /// Hides the home widget while its content rides the shuttle.
+  /// Hides the home widget while a presentation stands in for it.
   @internal
   void hideForFlight() {
     if (!_hidden) {
@@ -608,7 +535,7 @@ class MorphTagState extends State<MorphTag> {
   }
 
   /// Un-hides the widget: called by the handoff latch, and by every
-  /// teardown that skips it (abort, a scrub-interrupted finalize) - a
+  /// teardown that skips it (abort, a finalize before the latch) - a
   /// tag left hidden with no flight would stay invisible forever.
   @internal
   void reveal() {
@@ -622,7 +549,8 @@ class MorphTagState extends State<MorphTag> {
     assert(
       widget.child.key is! GlobalKey,
       'MorphTag(id: ${widget.id}): a child with a GlobalKey cannot be '
-      'replicated in the shuttle - one GlobalKey cannot be mounted '
+      'replicated by a zoom or a context-menu preview - one GlobalKey '
+      'cannot be mounted '
       'twice. Remove the key or move it deeper, outside the replicated '
       'part.',
     );
@@ -633,10 +561,7 @@ class MorphTagState extends State<MorphTag> {
         opacity: _hidden ? 0 : 1,
         child: MorphTagVisibility(
           hidden: _hidden,
-          child: _MorphTagIdScope(
-            id: widget.id,
-            child: MorphSurfaceSpecScope(spec: _effectiveSpec, child: child),
-          ),
+          child: _MorphTagIdScope(id: widget.id, child: child),
         ),
       ),
     );
@@ -667,8 +592,7 @@ class MorphTagVisibility extends InheritedWidget {
 }
 
 /// The identity transport behind [MorphTag.idOf]: installed by the tag
-/// itself (and deliberately not republished by the shuttle - dialog
-/// content must name its source explicitly).
+/// itself; flight content must name its source explicitly.
 class _MorphTagIdScope extends InheritedWidget {
   const _MorphTagIdScope({required this.id, required super.child});
 

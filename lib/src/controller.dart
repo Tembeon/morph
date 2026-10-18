@@ -1,29 +1,8 @@
-import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:morph/src/motion.dart';
-
-/// Semantic phases of a flight. Boundaries are computed from the clamped
-/// spring value; consumers react to the phase instead of comparing
-/// rawValue against magic numbers.
-enum MorphPhase {
-  /// Closed and at rest.
-  idle,
-
-  /// Early flight: the container is leaving its source (progress < 0.4).
-  detaching,
-
-  /// Mid flight (progress 0.4 - 0.8).
-  travelling,
-
-  /// Late flight: approaching the target (progress >= 0.8).
-  arriving,
-
-  /// Open and at rest.
-  settled,
-}
 
 /// A single retargetable scalar spring from which all derived morph
 /// values are computed. An interruption (open during close and vice
@@ -53,27 +32,19 @@ class MorphController extends ChangeNotifier {
   double _velocity = 0;
   double _target = 0;
   bool _handedOff = true;
-  bool _scrubbing = false;
 
   /// The latch: fires exactly once per close, on the first zero
-  /// crossing. At that moment the shuttle geometry coincides with the
-  /// source widget - a safe point to swap without flicker.
+  /// crossing, when the morph coincides with its source widget.
   VoidCallback? onHandoff;
 
-  /// The raw spring value, including overshoot outside `0..1`.
-  ///
-  /// Above 1 the container's center, size and concentric corner radius
-  /// extrapolate past the target. Below 0 size and radius hold at the
-  /// source; the close's undershoot follows the handoff latch, once the
-  /// live source widget is back.
+  /// The spring value: 0 closed, 1 open, beyond either during an
+  /// overshoot.
   double get value => _value;
 
   /// The spring velocity in value units per second.
   double get velocity => _velocity;
 
-  /// The value for bounded appearance curves and phases, clamped to `0..1`.
-  ///
-  /// Geometry uses [value] so its open overshoot remains visible.
+  /// The value for bounded appearance curves, clamped to `0..1`.
   double get progress => clampDouble(_value, 0, 1);
 
   /// The current retarget destination: 1 open, 0 closed.
@@ -81,13 +52,6 @@ class MorphController extends ChangeNotifier {
 
   /// Whether a simulation is ticking.
   bool get isAnimating => _ticker.isActive;
-
-  /// Whether a scrub owns the value (see [beginScrub]).
-  bool get isScrubbing => _scrubbing;
-
-  /// true from open() until the spring fully returns to 0: while true,
-  /// the overlay must stay in the tree.
-  bool get isShowing => _target >= 1 || _value > _handoffEpsilon;
 
   /// Whether a close simulation is in flight.
   bool get isClosing => _target == 0 && isAnimating;
@@ -98,10 +62,17 @@ class MorphController extends ChangeNotifier {
   /// Whether reduced motion is active.
   bool get disableAnimations => _disableAnimations;
 
-  /// The controller viewed as a standard [Animation]: derived animations
-  /// (Tween.animate, CurvedAnimation) can be built from it - the engine
-  /// speaks the framework's protocols.
-  late final Animation<double> animation = _MorphAnimationView(this);
+  /// Switches reduced motion; a live simulation retargets onto the
+  /// effective profile with its velocity carried over.
+  set disableAnimations(bool disabled) {
+    if (_disableAnimations == disabled) {
+      return;
+    }
+    _disableAnimations = disabled;
+    if (isAnimating) {
+      _retarget(_target, velocity: _velocity);
+    }
+  }
 
   /// The configured motion profile.
   MorphMotion get motion => _userMotion;
@@ -118,67 +89,27 @@ class MorphController extends ChangeNotifier {
       return;
     }
     _userMotion = next;
-    // Live retarget: swapping the profile mid-flight moves the
-    // simulation onto the new Motion with the current velocity carried
-    // over - same as the disableAnimations setter.
     if (isAnimating) {
       _retarget(_target, velocity: _velocity);
     }
   }
 
-  /// The semantic phase derived from [progress]; consumers react to
-  /// this instead of comparing raw values against magic numbers.
-  MorphPhase get phase {
-    if (!isAnimating && !_scrubbing) {
-      return _target >= 1 ? .settled : .idle;
-    }
-    return switch (progress) {
-      < 0.4 => .detaching,
-      < 0.8 => .travelling,
-      _ => .arriving,
-    };
-  }
-
-  /// Retargets toward 1 on the open motion, carrying velocity over.
+  /// Retargets toward open, carrying the current velocity unless
+  /// [velocity] is given.
   void open({double? velocity}) {
     final double v = velocity ?? _velocity;
-    _scrubbing = false;
     _handedOff = false;
     _retarget(1, velocity: v);
   }
 
-  /// Retargets toward 0 on the close motion, carrying velocity over;
-  /// from rest the close starts still.
+  /// Retargets toward closed; a close from rest starts still unless
+  /// [velocity] is given.
   void close({double? velocity}) {
-    final bool live = isAnimating || _scrubbing;
-    final double v = velocity ?? (live ? _velocity : 0);
-    _scrubbing = false;
+    final double v = velocity ?? (isAnimating ? _velocity : 0);
     _retarget(0, velocity: v);
   }
 
-  /// Gesture driving: the finger directly owns the spring value. The
-  /// simulation is dropped and frames come from dragUpdate; releasing is
-  /// an ordinary open()/close() with the gesture velocity - i.e. the
-  /// same retarget with velocity carry-over.
-  void beginScrub() {
-    _ticker.stop();
-    _sim = null;
-    _scrubbing = true;
-    notifyListeners();
-  }
-
-  /// Sets the scrubbed value; ignored outside a scrub.
-  void updateScrub(double value, {double velocity = 0}) {
-    if (!_scrubbing) {
-      return;
-    }
-    _value = value;
-    _velocity = velocity;
-    notifyListeners();
-  }
-
-  /// Stops the ticker without dispose - for emergency teardown while
-  /// external listeners may still be subscribed.
+  /// Stops the simulation where it is.
   ///
   /// Silent by design: it neither notifies listeners nor fires
   /// [onHandoff]. A teardown runs while the tree may be locked (a
@@ -188,19 +119,6 @@ class MorphController extends ChangeNotifier {
   void stop() {
     _ticker.stop();
     _sim = null;
-    _scrubbing = false;
-  }
-
-  /// Toggles reduced motion; a live simulation retargets onto
-  /// [MorphMotion.instant] (or back) with velocity carried over.
-  set disableAnimations(bool disabled) {
-    if (_disableAnimations == disabled) {
-      return;
-    }
-    _disableAnimations = disabled;
-    if (isAnimating) {
-      _retarget(_target, velocity: _velocity);
-    }
   }
 
   void _retarget(double target, {required double velocity}) {
@@ -256,57 +174,4 @@ class MorphController extends ChangeNotifier {
     _ticker.dispose();
     super.dispose();
   }
-}
-
-class _MorphAnimationView extends Animation<double> {
-  _MorphAnimationView(this._controller);
-
-  final MorphController _controller;
-  final Map<AnimationStatusListener, List<VoidCallback>> _statusProxies =
-      <AnimationStatusListener, List<VoidCallback>>{};
-
-  @override
-  void addListener(VoidCallback listener) => _controller.addListener(listener);
-
-  @override
-  void removeListener(VoidCallback listener) =>
-      _controller.removeListener(listener);
-
-  @override
-  void addStatusListener(AnimationStatusListener listener) {
-    AnimationStatus last = status;
-    void proxy() {
-      final AnimationStatus next = status;
-      if (next != last) {
-        last = next;
-        listener(next);
-      }
-    }
-
-    _statusProxies.putIfAbsent(listener, () => <VoidCallback>[]).add(proxy);
-    _controller.addListener(proxy);
-  }
-
-  @override
-  void removeStatusListener(AnimationStatusListener listener) {
-    final List<VoidCallback>? proxies = _statusProxies[listener];
-    if (proxies == null || proxies.isEmpty) {
-      return;
-    }
-    _controller.removeListener(proxies.removeLast());
-    if (proxies.isEmpty) {
-      _statusProxies.remove(listener);
-    }
-  }
-
-  @override
-  AnimationStatus get status {
-    if (_controller.isScrubbing || _controller.isAnimating) {
-      return _controller.target >= 1 ? .forward : .reverse;
-    }
-    return _controller.target >= 1 ? .completed : .dismissed;
-  }
-
-  @override
-  double get value => _controller.progress;
 }

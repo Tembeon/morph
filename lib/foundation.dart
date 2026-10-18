@@ -1,7 +1,6 @@
 /// The engine under the widget layer: the tag registry ([MorphScope],
 /// [MorphTag]), the spring vocabulary ([MorphSpring], [MorphMotion]) and
-/// the vessel flight ([showMorph], [MorphFlight]) that carries the menus
-/// until they become routes.
+/// the vessel flight ([showMorph], [MorphFlight]) that carries the menus.
 ///
 /// The widget layer is `package:morph/widgets.dart`; it depends on this
 /// library, never the other way around.
@@ -11,8 +10,6 @@
 /// {@canonicalFor flight.MorphContentBuilder}
 /// {@canonicalFor flight.MorphFlight}
 /// {@canonicalFor flight.MorphFlightEvent}
-/// {@canonicalFor liquid_field.MorphMass}
-/// {@canonicalFor liquid_field.MorphSkinStyle}
 /// {@canonicalFor motion.MorphMotion}
 /// {@canonicalFor presentation.MorphPresentationBoundary}
 /// {@canonicalFor presentation.morphPresentationNavigatorOf}
@@ -28,12 +25,10 @@
 /// {@canonicalFor target.MorphTargetSpec}
 /// {@canonicalFor target.morphAnchorRect}
 /// {@canonicalFor target.maybeMorphAnchorRect}
-/// {@canonicalFor theme.MorphTheme}
 library;
 
 export 'src/flight.dart'
     show MorphContentBuilder, MorphFlight, MorphFlightEvent;
-export 'src/liquid_field.dart' show MorphMass, MorphSkinStyle;
 export 'src/motion.dart';
 export 'src/presentation.dart';
 export 'src/scope.dart'
@@ -42,4 +37,3 @@ export 'src/scrim.dart' show MorphScrimMotion;
 export 'src/show.dart';
 export 'src/spring.dart';
 export 'src/target.dart' hide morphTargetPaddingOf;
-export 'src/theme.dart';

@@ -13,15 +13,14 @@ import 'package:morph/src/scrim.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/target.dart';
-import 'package:morph/src/theme.dart';
 import 'package:morph/src/themes.dart';
 
 // Without a scrim motion the scrim fades in over the first 70 percent of
 // the flight's progress.
 const Interval _scrimFade = Interval(0, 0.7);
 
-/// Builds the target content of a flight; called once per flight and
-/// reused between spring ticks.
+/// Builds the target content of a flight; reused between spring ticks and
+/// rebuilt by [MorphFlight.markNeedsBuild].
 typedef MorphContentBuilder =
     Widget Function(BuildContext context, MorphFlight flight);
 
@@ -66,7 +65,6 @@ class MorphFlight {
     required this.maxScrimOpacity,
     required this.scrimColor,
     required this.scrimMotion,
-    required this.shadowColor,
     required this._overlay,
     required MorphMotion motion,
     required bool disableAnimations,
@@ -108,7 +106,7 @@ class MorphFlight {
 
   /// Whether the flight is a MODAL overlay. A modal flight (the
   /// default) mounts the scrim: a pointer-blocking, semantics-blocking
-  /// dimming layer - dialogs, sheets, menus.
+  /// dimming layer - menus and context menus.
   ///
   /// A non-modal flight ([modal] false) mounts NO scrim at all: the
   /// page underneath stays fully interactive while the surface hovers
@@ -134,10 +132,9 @@ class MorphFlight {
 
   MorphScrimChannel? _scrim;
 
-  /// The scrim opacity this frame, before a drag's thinning: the scrim
-  /// channel's value times [maxScrimOpacity] when the flight has a
-  /// [scrimMotion], otherwise the value's own fade
-  /// (`morphScrimOpacity`).
+  /// The scrim opacity this frame: the scrim channel's value times
+  /// [maxScrimOpacity] when the flight has a [scrimMotion], otherwise a
+  /// fade over the first 70 percent of the flight's progress.
   double get scrimOpacity =>
       _scrim?.opacity(maxScrimOpacity) ??
       maxScrimOpacity *
@@ -168,15 +165,12 @@ class MorphFlight {
     _onTick();
   }
 
-  /// Shadow color of the flying surface, opacity included.
-  final Color shadowColor;
   final OverlayState _overlay;
 
   /// The inherited themes of the source tag ([InheritedTheme], such as
   /// the theme, the default text style or the glass painter): the
-  /// shuttle and the settled route page draw everything under them, the
-  /// way a popup route draws under the themes of the context that showed
-  /// it. They follow the source while it is in the tree, one frame late,
+  /// flight draws everything under them, the way a popup route draws
+  /// under the themes of the context that showed it. They follow the source while it is in the tree, one frame late,
   /// and stay as last seen once it is gone.
   @internal
   late final MorphThemeCarrier sourceThemes;
@@ -210,11 +204,12 @@ class MorphFlight {
   /// the overlay unnamed (still scoped).
   String? semanticLabel;
 
-  /// The value spring, for observation, motion changes and custom scrubbing.
+  /// The value spring, for observation and motion changes.
   ///
   /// Use [open], [close], [toggle] and [abort] for lifecycle changes;
   /// driving the controller's lifecycle directly bypasses flight history,
   /// source visibility and finalization.
+  @internal
   late final MorphController controller;
   OverlayEntry? _entry;
 
@@ -223,16 +218,10 @@ class MorphFlight {
   Rect get sourceRect => _sourceRect;
   Rect _sourceRect = .zero;
 
-  /// The current target rect, refreshed by the shuttle or settled route.
-  /// Read-only for apps.
+  /// The current target rect, refreshed by the vessel frame. Read-only
+  /// for apps.
   Rect get lastTargetRect => _lastTargetRect;
   Rect _lastTargetRect = .zero;
-
-  /// Records the target geometry resolved by the shuttle or settled route.
-  @internal
-  void updateTargetRect(Rect rect) {
-    _lastTargetRect = rect;
-  }
 
   bool _finished = false;
   bool _controllerDisposed = false;
@@ -294,10 +283,8 @@ class MorphFlight {
   /// Whether the flight targets the open state.
   bool get isOpenOrOpening => !_finished && controller.target >= 1;
 
-  /// The content lives in the shuttle: from takeoff to the handoff
-  /// latch. For that whole span the source widget is hidden, and its
-  /// mass (for the liquid skin) should follow the shuttle instead of
-  /// sitting at home.
+  /// From takeoff to the handoff latch the source widget is hidden and an
+  /// open menu draws the capsule in its place.
   bool get isAirborne => !_finished && !controller.hasHandedOff;
 
   /// Landing: the latch has fired, the content is back in the widget,
@@ -309,9 +296,8 @@ class MorphFlight {
   // a LocalHistoryEntry on it, so Esc (DismissIntent -> maybePop), the
   // Android back and a plain Navigator.pop all close the TOPMOST
   // surface first - the flight - and only the next pop touches the
-  // route. Route-mode flights skip this: their own route IS the
-  // history. Without the entry, Esc under a morph route popped the
-  // route while the flight kept hanging above it, orphaned.
+  // route. Without the entry, Esc pops the route under the flight and
+  // leaves the flight orphaned above it.
   LocalHistoryEntry? _historyEntry;
   ModalRoute<Object?>? _historyRoute;
   bool _removingHistory = false;
@@ -374,20 +360,12 @@ class MorphFlight {
     }
   }
 
-  /// Geometry changes from the value spring, displacement, content size
-  /// and the target's repaint signal; excludes independent scrim ticks.
-  ///
-  /// Skins use this stream to follow the flying surface without repainting
-  /// when only its scrim changes.
-  late final Listenable geometryTicks = .merge(<Listenable>[
+  /// Every visual change: the value spring, the target's repaint signal
+  /// and the scrim's own springs. The vessel frame, the menu and the
+  /// context menu follow this stream.
+  late final Listenable frameTicks = .merge(<Listenable>[
     controller,
     ?target.repaint,
-  ]);
-
-  /// All visual changes, including [geometryTicks] and independent scrim
-  /// ticks. The shuttle and settled route page use this stream.
-  late final Listenable frameTicks = .merge(<Listenable>[
-    geometryTicks,
     ?_scrim,
   ]);
 
@@ -403,16 +381,13 @@ class MorphFlight {
     MorphMotion? motion,
     bool modal = true,
     bool barrierDismissible = true,
-    double maxScrimOpacity = MorphTheme.defaultMaxScrimOpacity,
-    Color scrimColor = MorphTheme.defaultScrimColor,
+    required double maxScrimOpacity,
+    required Color scrimColor,
     MorphScrimMotion? scrimMotion,
-    Color shadowColor = MorphTheme.defaultShadowColor,
     VoidCallback? onDismissRequested,
     String? semanticLabel,
-    // The shuttle's home. Defaults to morphPresentationOverlayOf; a
-    // route passes its navigator's own overlay explicitly (the
-    // navigator's context sits ABOVE that overlay), and an app passes
-    // one to fly above chrome layered over a nested navigator.
+    // Defaults to morphPresentationOverlayOf; an app passes one to fly
+    // above chrome layered over a nested navigator.
     OverlayState? overlay,
   }) {
     final MorphScopeState scope = MorphScope.of(context);
@@ -447,7 +422,6 @@ class MorphFlight {
       maxScrimOpacity: maxScrimOpacity,
       scrimColor: scrimColor,
       scrimMotion: scrimMotion,
-      shadowColor: shadowColor,
       // The nearest overlay outside any presentation boundary: a
       // nested navigator (a tab, an embedded device mockup) keeps its
       // flights inside itself, a navigation stack's pages fly above
@@ -502,7 +476,7 @@ class MorphFlight {
   /// did the user pick". An accepted close replaces the result;
   /// repeated calls while already closing leave it unchanged.
   void close({double? velocity, Object? result}) {
-    if (_finished || (controller.target == 0 && !controller.isScrubbing)) {
+    if (_finished || controller.target == 0) {
       return;
     }
     _result = result;
@@ -551,7 +525,7 @@ class MorphFlight {
   void markNeedsBuild() => _entry?.markNeedsBuild();
 
   /// Bumped to rebuild only the target content (the builder closure),
-  /// not the shuttle or the settled route page around it.
+  /// not the vessel frame around it.
   @internal
   Listenable get contentRevision => _contentRevision;
   final ValueNotifier<int> _contentRevision = ValueNotifier<int>(0);
@@ -605,39 +579,6 @@ class MorphFlight {
     );
   }
 
-  /// The box of the overlay the shuttle renders in - the coordinate
-  /// space [sourceRect] and [lastTargetRect] live in. Consumers in a
-  /// DIFFERENT space (the skin's mirror blob) translate through it; a
-  /// nested overlay does not sit at the window origin.
-  @internal
-  RenderBox? get overlayBox => _overlayBox;
-
-  /// [overlayBox] for a reader in the paint phase, where neither the
-  /// abort's setState nor a throw may run: null while the overlay is
-  /// being removed (deactivated this frame, its box already detached)
-  /// and once it has been unmounted; an unmounted overlay aborts the
-  /// flight after the frame instead.
-  @internal
-  RenderBox? get overlayBoxOrNull {
-    if (!_overlay.mounted) {
-      if (!_finished && !_lostOverlayAbortScheduled) {
-        _lostOverlayAbortScheduled = true;
-        WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-          _lostOverlayAbortScheduled = false;
-          _abortForLostOverlay();
-        });
-      }
-      return null;
-    }
-    // Element.renderObject, not findRenderObject: the latter asserts on
-    // an element deactivated earlier in this frame, which is exactly
-    // the state a skin outside the removed overlay paints against.
-    final RenderObject? box = (_overlay.context as Element).renderObject;
-    return box is RenderBox && box.attached ? box : null;
-  }
-
-  bool _lostOverlayAbortScheduled = false;
-
   void _insertEntry() {
     refreshSourceRect();
     _entry = OverlayEntry(
@@ -646,12 +587,7 @@ class MorphFlight {
     _overlay.insert(_entry!);
   }
 
-  /// Hides the source once the shuttle can stand in for it: after the
-  /// snapshot shot when one is pending, and, for a measured target,
-  /// after the first measurement - until then the shuttle is invisible
-  /// (nothing to size it by), and a hidden source under an invisible
-  /// shuttle would be a blank frame. Called from every path that can
-  /// satisfy a condition; a no-op until all are met.
+  /// Hides the source while the flight stands in for it.
   void _hideTagWhenStaged() {
     if (_finished ||
         _entry == null ||
@@ -693,18 +629,14 @@ class MorphFlight {
       _abortForLostOverlay();
       return;
     }
-    // A scrub parks the ticker with the target still at 0: that is an
-    // interruption of the close, not its end.
     if (controller.target == 0 &&
         !controller.isAnimating &&
-        !controller.isScrubbing &&
         (_scrim?.isAtRest ?? true)) {
       _finalize();
       return;
     }
     if (controller.target >= 1 &&
         !controller.isAnimating &&
-        !controller.isScrubbing &&
         !_settledAnnounced) {
       _settledAnnounced = true;
       _emit(MorphFlightEvent.settled);
@@ -831,9 +763,8 @@ class MorphFlight {
 }
 
 /// The modal barrier of a flight: the dimming layer, its dismiss tap
-/// and the screen-reader dismiss affordance. Opacity is computed by the
-/// frame (scrim curve x displacement recede x arm cue) and read again on
-/// every notification of [live].
+/// and the screen-reader dismiss affordance. Its opacity is read from
+/// `opacityOf` again on every notification of [live].
 class _ShuttleScrim extends StatelessWidget {
   const _ShuttleScrim({
     required this.flight,
@@ -876,69 +807,10 @@ class _ShuttleScrim extends StatelessWidget {
   }
 }
 
-/// Resolves the target's surface model against the ambient color
-/// scheme: a null target color adopts surfaceContainerHigh, so every
-/// renderer of the target agrees on one value.
-@internal
-MorphSurfaceSpec resolveMorphTargetSurface(
-  MorphFlight flight,
-  ColorScheme scheme,
-) {
-  return flight.target.surface.color == null
-      ? flight.target.surface.copyWith(color: scheme.surfaceContainerHigh)
-      : flight.target.surface;
-}
-
-/// The target-content subtree with its wrapper chain: flight scope,
-/// surface spec and builder.
-@internal
-Widget buildMorphTargetContent({
-  required MorphFlight flight,
-  required MorphSurfaceSpec spec,
-}) {
-  return MorphFlightScope(
-    flight: flight,
-    child: MorphSurfaceSpecScope(
-      spec: spec,
-      child: ListenableBuilder(
-        listenable: flight.contentRevision,
-        builder: (BuildContext context, Widget? _) =>
-            flight.builder(context, flight),
-      ),
-    ),
-  );
-}
-
-/// Gives overlay content access to its flight (to close it, or to read
-/// its spring) without threading the flight through builder parameters.
-class MorphFlightScope extends InheritedWidget {
-  /// Publishes [flight] to the content subtree.
-  const MorphFlightScope({
-    super.key,
-    required this.flight,
-    required super.child,
-  });
-
-  /// The flight this content belongs to.
-  final MorphFlight flight;
-
-  /// The enclosing flight; throws a [FlutterError] outside flight content.
-  static MorphFlight of(BuildContext context) {
-    final MorphFlightScope? scope = context
-        .getInheritedWidgetOfExactType<MorphFlightScope>();
-    if (scope == null) {
-      throw FlutterError(
-        'No MorphFlightScope found: flight consumers only work inside the '
-        'content of a morph overlay.',
-      );
-    }
-    return scope.flight;
-  }
-
-  @override
-  bool updateShouldNotify(MorphFlightScope oldWidget) =>
-      flight != oldWidget.flight;
-}
+Widget _buildTargetContent(MorphFlight flight) => ListenableBuilder(
+  listenable: flight.contentRevision,
+  builder: (BuildContext context, Widget? _) => flight.builder(context, flight),
+);
 
 class _MorphShuttle extends StatefulWidget {
   const _MorphShuttle({required this.flight});
@@ -1057,11 +929,9 @@ class _MorphShuttleState extends State<_MorphShuttle> {
           Positioned.fill(
             child: IgnorePointer(
               ignoring: flight.controller.target < 1,
-              // The scrim's opacity rides its own springs: the frame ticks
-              // repaint the scrim's box, so the vessel's chain does not
-              // build on every frame of the dim,
-              // and in a repaint boundary of its own the dim repaints
-              // alone, not the overlay it lies in.
+              // The frame ticks repaint the scrim's box without rebuilding
+              // the vessel chain, and its own repaint boundary keeps the
+              // dim from repainting the overlay it lies in.
               child: RepaintBoundary(
                 child: _ShuttleScrim(
                   flight: flight,
@@ -1100,18 +970,9 @@ class _MorphShuttleState extends State<_MorphShuttle> {
   }
 
   Widget _buildThemed(BuildContext context) {
-    final ColorScheme scheme = Theme.of(context).colorScheme;
-    final MorphSurfaceSpec targetSpec = resolveMorphTargetSurface(
-      flight,
-      scheme,
-    );
-    // Content is built ONCE and reused between ticks: the spring only
-    // moves the wrappers (Opacity, Transform, rect), not the user's
-    // build at 120 Hz.
-    final Widget content = buildMorphTargetContent(
-      flight: flight,
-      spec: targetSpec,
-    );
+    // The content is built once and reused between ticks; it draws the
+    // motion itself, so a tick rebuilds nothing above it.
+    final Widget content = _buildTargetContent(flight);
     // A FocusScope traps Tab traversal inside the overlay while it is
     // up; Esc handling rides the same node. The Actions map exists
     // because the shuttle lives OUTSIDE any ModalScope: without a
@@ -1141,7 +1002,7 @@ class _MorphShuttleState extends State<_MorphShuttle> {
               final EdgeInsets padding = morphTargetPaddingOf(
                 context,
                 overlaySize,
-                overlayBox: flight.overlayBox,
+                overlayBox: flight._overlayBox,
               );
               return _VesselFrame(
                 flight: flight,
@@ -1160,12 +1021,9 @@ class _MorphShuttleState extends State<_MorphShuttle> {
   }
 }
 
-/// A vessel's frame chain, rebuilt only when something it shows
-/// changes: content ownership, the lingering scrim, the pointer gate,
-/// the dissolve or the scrim opacity. Every other tick (the progress
-/// spring, a vessel's own geometry signal) only advances the flight's
-/// source and target rects - the vessel content draws the motion
-/// itself.
+/// A vessel's frame chain, rebuilt only when the record `_advance`
+/// returns changes. Every other tick only advances the flight's source
+/// and target rects; the vessel content draws the motion itself.
 class _VesselFrame extends StatefulWidget {
   const _VesselFrame({
     required this.flight,
@@ -1215,14 +1073,15 @@ class _VesselFrameState extends State<_VesselFrame> {
 
   /// Advances the rect bookkeeping and returns what the built chain
   /// depends on.
-  Object? _advance() {
+  Object _advance() {
     final MorphFlight flight = widget.flight;
     if (flight._scrimOnly) {
       return (flight.scrimOpacity,);
     }
     flight.refreshSourceRect();
-    flight.updateTargetRect(
-      flight.target.resolveRect(widget.overlaySize, widget.padding),
+    flight._lastTargetRect = flight.target.rectFor(
+      widget.overlaySize,
+      widget.padding,
     );
     return (
       flight.controller.target < 1,
@@ -1240,10 +1099,9 @@ class _VesselFrameState extends State<_VesselFrame> {
 
   @override
   Widget build(BuildContext context) {
-    final Object? built = _advance();
+    final Object built = _advance();
     _built = built;
     return switch (built) {
-      null => const SizedBox.shrink(),
       (double _,) => widget.lingeringScrim(),
       _ => widget.buildVessel(widget.content),
     };

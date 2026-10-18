@@ -1,5 +1,7 @@
 # Engine (lib/src/)
 
+
+Only the scope and tags, the vessel flight behind the menus and the scrim remain in the code; the sections on the shuttle frame, routes, anchors, shared elements and the liquid skin describe removed code and go in the unit 7 rewrite.
 What is where:
 - Physics and value: `spring.dart`, `motion.dart`, `controller.dart`, `frame.dart`.
 - Identity and flights: `scope.dart`, `flight.dart`, `scrim.dart`, `shared.dart`, `measure.dart`.

@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:morph/src/presentation.dart';
-import 'package:morph/src/scope.dart';
 
 /// A flight target whose content draws the whole morph itself: a control
 /// that becomes its own menu.
@@ -27,17 +26,6 @@ class MorphTargetSpec {
   /// Notifies when the target's geometry inputs changed on their own,
   /// so the flight re-lays its frame.
   final Listenable? repaint;
-
-  /// The target's surface model: a vessel draws its own surface.
-  MorphSurfaceSpec get surface => const MorphSurfaceSpec(
-    shape: RoundedRectangleBorder(),
-    color: Color(0x00000000),
-    elevation: 0,
-  );
-
-  /// The rect this frame.
-  Rect resolveRect(Size overlaySize, EdgeInsets padding) =>
-      rectFor(overlaySize, padding);
 }
 
 /// The overlay's obstructed edges as every target's rectFor sees them:
@@ -112,7 +100,7 @@ EdgeInsets _morphOverlayInsets(
 /// moment the morph lives inside a nested navigator.
 ///
 /// A flight that renders in a chosen overlay (the `overlay:` of
-/// showMorph*) works in THAT overlay's space: pass the same [overlay]
+/// showMorph) works in THAT overlay's space: pass the same [overlay]
 /// here, or the anchor drifts by the nested navigator's own offset.
 /// The overlay must live in the same render tree as [context].
 ///

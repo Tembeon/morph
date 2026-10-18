@@ -2,8 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
-/// The page's text style, shorter than the Material body style the
-/// flight's shuttle hosts.
+/// The page's text style, shorter than the default body style.
 const _page = TextStyle(fontSize: 13, height: 1.3, color: Color(0xFF000000));
 
 void main() {

@@ -158,11 +158,7 @@ class MorphZoomSource {
                       alignment: Alignment.topLeft,
                       child: SizedBox.fromSize(
                         size: size,
-                        child: MorphSurfaceSpecScope(
-                          spec: source.surfaceSpec,
-                          child:
-                              _themes?.wrap(source.replica) ?? source.replica,
-                        ),
+                        child: _themes?.wrap(source.replica) ?? source.replica,
                       ),
                     ),
                   ),

@@ -6,11 +6,9 @@ class MorphFlight
   final Widget Function(BuildContext, MorphFlight) builder
   void close({double? velocity, Object? result})
   Future<Object?> get closed
-  late final MorphController controller
   double get dissolveOpacity
   Stream<MorphFlightEvent> get events
   late final Listenable frameTicks
-  late final Listenable geometryTicks
   bool get isAirborne
   bool get isFinished
   bool get isLanding
@@ -29,7 +27,6 @@ class MorphFlight
   double get scrimOpacity
   double? get scrimValue
   String? semanticLabel
-  final Color shadowColor
   Rect get sourceRect
   final MorphTagState tag
   Object get tagId
@@ -42,12 +39,6 @@ enum MorphFlightEvent
   latched,
   landed,
   aborted,
-sealed class MorphMass
-  const MorphMass()
-  const factory MorphMass.box(Rect rect, {double radius})
-  const factory MorphMass.bridge(Offset a, Offset b, {required double radius})
-  abstract double distance(Offset p)
-  Rect get outerRect
 class MorphMotion
   const MorphMotion({
     required String name,
@@ -86,20 +77,6 @@ class MorphScrimMotion
   final Duration closeDelay
   final MorphMotion motion
   final Duration openDelay
-  overrides: ==, hashCode, toString
-class MorphSkinStyle
-  const MorphSkinStyle({
-    required String name,
-    required double blend,
-    double cell = 6,
-    int smoothPasses = 2,
-  })
-  final double blend
-  final double cell
-  final String name
-  final int smoothPasses
-  static const MorphSkinStyle subtle
-  static const List<MorphSkinStyle> values
   overrides: ==, hashCode, toString
 class MorphSpring
   const MorphSpring(double response, double dampingRatio)
@@ -142,11 +119,9 @@ class MorphTag extends StatefulWidget
   final Object id
   static Object idOf(BuildContext context)
   static Object? maybeIdOf(BuildContext context)
-  static MorphSurfaceSpec? maybeSpecOf(BuildContext context)
   final Widget? replica
   final ShapeBorder shape
   final MorphSurfaceSpec? spec
-  static MorphSurfaceSpec specOf(BuildContext context)
   final Color? surfaceColor
   overrides: createState
 class MorphTagState extends State<MorphTag>
@@ -164,29 +139,6 @@ class MorphTargetSpec
   })
   final Rect Function(Size, EdgeInsets) rectFor
   final Listenable? repaint
-  Rect resolveRect(Size overlaySize, EdgeInsets padding)
-  MorphSurfaceSpec get surface
-class MorphTheme extends ThemeExtension<MorphTheme>
-  const MorphTheme({
-    MorphMotion? motion,
-    double? maxScrimOpacity,
-    Color? scrimColor,
-    Color? shadowColor,
-    MorphSkinStyle? skinStyle,
-    MorphScrimMotion? scrimMotion,
-  })
-  static const double defaultMaxScrimOpacity
-  static const Color defaultScrimColor
-  static const Color defaultShadowColor
-  static const double defaultTargetElevation
-  final double? maxScrimOpacity
-  static MorphTheme? maybeOf(BuildContext context)
-  final MorphMotion? motion
-  final Color? scrimColor
-  final MorphScrimMotion? scrimMotion
-  final Color? shadowColor
-  final MorphSkinStyle? skinStyle
-  overrides: ==, copyWith, hashCode, lerp
 Rect? maybeMorphAnchorRect(BuildContext context, {OverlayState? overlay})
 Rect morphAnchorRect(BuildContext context, {OverlayState? overlay})
 NavigatorState? morphPresentationNavigatorOf(BuildContext context)
@@ -199,10 +151,9 @@ MorphFlight showMorph(
   MorphMotion? motion,
   bool modal = true,
   bool barrierDismissible = true,
-  double? maxScrimOpacity,
-  Color? scrimColor,
+  double maxScrimOpacity = 0.45,
+  Color scrimColor = const Color(0xFF000000),
   MorphScrimMotion? scrimMotion,
-  Color? shadowColor,
   void Function()? onDismissRequested,
   String? semanticLabel,
   OverlayState? overlay,
@@ -1130,7 +1081,6 @@ class MorphListSection extends StatelessWidget
   final Widget? footer
   final Widget? header
   overrides: build
-class MorphMass (see package:morph/foundation.dart)
 class MorphMenuAppearance
   const MorphMenuAppearance({
     Color glassColor = const Color(0xF2F9F9FF),
@@ -2342,7 +2292,6 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T>, Gl
   final String? semanticLabel
   final MorphZoomTuning zoom
   overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, leaveMotionRoute, reverseTransitionDuration, transitionDuration
-class MorphSkinStyle (see package:morph/foundation.dart)
 class MorphSlider extends StatefulWidget
   const MorphSlider({
     required double value,
@@ -2635,7 +2584,6 @@ enum MorphTabRole
 class MorphTag (see package:morph/foundation.dart)
 class MorphTagState (see package:morph/foundation.dart)
 class MorphTargetSpec (see package:morph/foundation.dart)
-class MorphTheme (see package:morph/foundation.dart)
 class MorphToolbar extends StatelessWidget
   const MorphToolbar({
     List<MorphBarButtonGroup> leading = const [],
