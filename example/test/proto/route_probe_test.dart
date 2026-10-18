@@ -206,8 +206,10 @@ void main() {
         expect(route.rawProgress, closeTo(before, 1e-9));
         expect(route.motionTime, beforeTime);
         await tester.pumpAndSettle();
+        expect(route.animation!.value, 1);
         expect(route.animation!.status, AnimationStatus.completed);
         expect(route.motionSettled, isTrue);
+        expect(route.overlayEntries.first.opaque, route.opaque);
         expect(old.disposed, isTrue);
         nav.currentState!.pop();
         await tester.pumpAndSettle();
@@ -257,6 +259,7 @@ void main() {
         expect(route.animation!.value, 1);
         expect(route.animation!.status, AnimationStatus.completed);
         expect(route.motionSettled, isTrue);
+        expect(route.overlayEntries.first.opaque, route.opaque);
         nav.currentState!.pop();
         await tester.pumpAndSettle();
         expect(route.disposed, isTrue);
