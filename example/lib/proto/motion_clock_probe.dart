@@ -60,6 +60,24 @@ class ProbeMotionClock {
   /// The most recently sampled motion time.
   double get time => _time;
 
+  /// The motion time of the frame being produced, also before this clock's
+  /// own tick in it, or [time] outside a running frame.
+  ///
+  /// Input delivered from another ticker, such as a scroll notification of
+  /// a fling, reads this so its stamp does not depend on the tickers' order.
+  /// It differs from the next tick's time by at most the grid's snap.
+  double get frameTime {
+    final scheduler = SchedulerBinding.instance;
+    final tick = _tickStamp;
+    if (!_ticking ||
+        tick == null ||
+        scheduler.schedulerPhase != SchedulerPhase.transientCallbacks) {
+      return _time;
+    }
+    final since = scheduler.currentSystemFrameTimeStamp - tick;
+    return _tickTime + since.inMicroseconds / 1e6 / timeDilation;
+  }
+
   /// The learned period of the display grid, in motion seconds.
   double? get framePeriod => _grid.period;
 
