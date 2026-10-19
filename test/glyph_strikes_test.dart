@@ -326,13 +326,23 @@ void main() {
   // each run): tap flat 16 (192 / 33 / 22), drag flat 39 (492 / 56 / 13),
   // tap liquid 124 (1369 / 612 / 235), drag liquid 161 (1783 / 559 / 223),
   // the liquid tier's mostly its lens copy's.
+  //
+  // The liquid ceilings and the tap's last-run keys follow the lens's
+  // start 45 ms after the touch (the device's, MorphLensTuning.tabBar):
+  // this bench lands every touch right after a frame, so the start sits at
+  // a fixed phase of its 60 Hz frame and samples the same scale steps (the
+  // copy's 11 - 12 steps) at other x quarters. Over touch phases 0 / 4 / 8
+  // / 12 ms the tap averages 48.3 strike frames against 46.1 at the former
+  // 20 ms (base itself 38 - 51), on a 120 Hz grid 67 against 70, and the
+  // Pixel 6a A/B of main 6289129a measures no glyph atlas or raster cost.
   const ceilings = {
-    ('tap', MorphGlassTier.flat): 4,
-    ('drag', MorphGlassTier.flat): 6,
-    ('tap', MorphGlassTier.liquid): 39,
-    ('drag', MorphGlassTier.liquid): 36,
+    ('tap', MorphGlassTier.flat): (4, 30),
+    ('drag', MorphGlassTier.flat): (6, 30),
+    ('tap', MorphGlassTier.liquid): (50, 37),
+    ('drag', MorphGlassTier.liquid): (37, 30),
   };
-  for (final MapEntry(key: (cell, tier), value: ceiling) in ceilings.entries) {
+  for (final MapEntry(key: (cell, tier), value: (ceiling, lastRun))
+      in ceilings.entries) {
     testWidgets('tab-bar/$cell/${tier.name} strikes mostly its first visits', (
       tester,
     ) async {
@@ -344,7 +354,7 @@ void main() {
         tier: tier,
         ceiling: ceiling,
       );
-      expect(atlas.lastRunKeys, lessThanOrEqualTo(30));
+      expect(atlas.lastRunKeys, lessThanOrEqualTo(lastRun));
     });
   }
 

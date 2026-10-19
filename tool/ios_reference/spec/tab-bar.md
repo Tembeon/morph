@@ -1,8 +1,8 @@
 # Tab bar passport (lens, look, glow, slow lift)
 
 Status: measured on device (lens, scrub, glow, look, colors); ported;
-replayed (taps against simulator rows; scrubs, taps on the selected tab
-and the glow against device rows). Shared machinery:
+replayed (taps against simulator and device rows; scrubs, taps on the
+selected tab and the glow against device rows). Shared machinery:
 [lens-and-flex.md](lens-and-flex.md). Search tab:
 [search-tab-bar.md](search-tab-bar.md).
 
@@ -28,8 +28,18 @@ UITabBar `tintColor`, `unselectedItemTintColor` (`leadingAccessoryView` /
   too) is held until owned: 0.15 s hold, slop along the bar where the list
   scrolls the other way, or the lift (UIKit delaysContentTouches); a
   floating bar outside a scrollable keeps contact selection.
+- The lens starts `startDelay` 45 ms after the touch's time stamp
+  [device, 79 taps, `tabbar*-taps/pairs/many/no-radio/radio-first`, lift
+  start fitted to the lift progress: 39 - 57 ms, median 45.5]: UIKit
+  delivers the touch 10 - 25 ms after its stamp, then sets up the lift
+  on the main thread (the display link's next frame comes 26 - 39 ms
+  after the one before instead of 8.3; 22 - 42 ms on a tap on the
+  selected tab), and the lens moves from the frame after that.
+  morph counts the delay from the stamp (spec README "Clocks"); the
+  former 20 ms left the travel 5.4 - 24.5 pt rms early.
 - Stays lifted while held; hang 0.215 s + 0.000274 s/px of travel; press
-  delay 50 ms [device].
+  delay 50 ms [device; the same lift setup, 42.5 - 55.5 ms over 8 taps on
+  the selected tab].
 - Scrub: finger travel since touch x `dragGain` 1.013 on follow spring
   0.271/0.803, rubber band (4.55, 0.95); release after `releaseDelay`
   30 ms, travel carries scrub velocity; release picks the tab nearest the
@@ -123,7 +133,11 @@ Scene `tabbar<N>` (N 2..5); env `PROBE_DARK`, `PROBE_TABLAYERS=1`,
 (glass_glow.dart), touch_listener.dart (`delaysInScrollable`). Tests:
 lens_test (simulator taps `ios27/lens/tabbar*`, tab bar on the undeformed
 frame only), lens_scrub_test (device scrubs and taps on the selected tab),
-tab_bar_glow_test (rms bound 0.03 / 0.012), tab_bar_slow_lift_test (sorts
+tab_bar_device_replay_test (79 device taps at their logged stamps: onset
+median within half a frame of `startDelay`, every onset within the
+14.6 ms delivery spread, size rms < 2.5 pt, median center rms < 1.5 pt;
+aligned to each lift start: center < 1.5, size < 2.5; the slow lift
+stays skipped), tab_bar_glow_test (rms bound 0.03 / 0.012), tab_bar_slow_lift_test (sorts
 the device tap fixtures; native behaviour only, it does not run morph),
 disabled_test, tab_bar_api_test, controls_scroll_test, glyph_policy_test,
 glyph_scale_test.

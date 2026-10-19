@@ -70,13 +70,19 @@ class MorphLensTuning {
   /// Seconds between a tap's selection and the start of the motion,
   /// counted from the touch's own time stamp.
   ///
+  /// The tab bar's 0.045 is the median of 79 device taps (iPhone 16 Pro,
+  /// `ios27-device/lens/tabbar*`, lift start fitted to the lift progress,
+  /// 39 - 57 ms): UIKit delivers the touch 10 - 25 ms after its stamp,
+  /// then sets up the lift on the main thread (the next display frame
+  /// comes 26 - 39 ms after the one before instead of 8.3), and the lens
+  /// moves from the frame after that. A touch on the selected tab shows
+  /// the same setup before its [pressDelay].
+  ///
   /// The segmented control's 0.04 is the median of 35 device taps on
-  /// another segment, counted from the release that selects (iPhone 16
-  /// Pro, `ios27-device/lens/segmented-*`, lift start fitted to the lift
-  /// progress, 31.5 - 56 ms): UIKit delivers the release 10 - 25 ms after
-  /// its stamp, then sets up the lift on the main thread (the next display
-  /// frame comes 19.5 - 36 ms after the one before instead of 8.3), and the
-  /// lens moves from the frame after that.
+  /// another segment, counted from the release that selects
+  /// (`ios27-device/lens/segmented-*`, 31.5 - 56 ms): the same delivery and
+  /// setup after the release (the next display frame comes 19.5 - 36 ms
+  /// after the one before).
   final double startDelay;
 
   /// Seconds by which the deformation switches to its lifted response
@@ -146,7 +152,7 @@ class MorphLensTuning {
   /// The segmented control's 0.024 minimizes the release travel rms of its
   /// four device drags together (0.130 pt; 0.030 left 0.496): a release
   /// sets nothing up, so the travel follows UIKit's delivery and begin
-  /// frame.
+  /// frame, as the glass button's return does 26 ms after the release.
   final double releaseDelay;
 
   /// How many pixels the whole control widens while it is pressed.
@@ -200,6 +206,7 @@ class MorphLensTuning {
     followSpring: MorphSpring(0.271, 0.803),
     rubberBand: (4.55, 0.95),
     pressDelay: 0.05,
+    startDelay: 0.045,
     dragGain: 1.013,
     chromeGrowth: 14.6,
     reducedMotionTravelSpring: MorphSpring(0.2, 0.9),

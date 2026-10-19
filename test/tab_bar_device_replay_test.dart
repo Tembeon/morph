@@ -217,48 +217,39 @@ List<String> _failures(Iterable<_Tap> taps, {required bool slowLift}) => [
 ];
 
 void main() {
-  test(
-    'tab bar taps at their logged times start the lens when the device '
-    'does',
-    () {
-      final taps = _all(alignToLift: false);
-      expect(taps, hasLength(79));
-      // The onset is counted from the touch's stamp. The device's own taps
-      // spread by UIKit's delivery around their median (39 - 57 ms, median
-      // 45.5).
-      final onsets = [for (final tap in taps) tap.onset];
+  test('tab bar taps at their logged times start the lens when the device '
+      'does', () {
+    final taps = _all(alignToLift: false);
+    expect(taps, hasLength(79));
+    // The onset is counted from the touch's stamp. The device's own taps
+    // spread by UIKit's delivery around their median (39 - 57 ms, median
+    // 45.5).
+    final onsets = [for (final tap in taps) tap.onset];
+    expect(
+      median(onsets),
+      closeTo(MorphLensTuning.tabBar.startDelay, deviceFrame / 2),
+    );
+    for (final tap in taps) {
       expect(
-        median(onsets),
-        closeTo(MorphLensTuning.tabBar.startDelay, deviceFrame / 2),
+        tap.onset,
+        closeTo(MorphLensTuning.tabBar.startDelay, deliverySpread),
+        reason: tap.label,
       );
-      for (final tap in taps) {
-        expect(
-          tap.onset,
-          closeTo(MorphLensTuning.tabBar.startDelay, deliverySpread),
-          reason: tap.label,
-        );
-        expect(tap.selected, tap.to, reason: tap.label);
-        expect(tap.landed, tap.to, reason: tap.label);
-        if (!tap.slowLift) {
-          expect(_rms(tap.size), lessThan(_sizeTolerance), reason: tap.label);
-        }
+      expect(tap.selected, tap.to, reason: tap.label);
+      expect(tap.landed, tap.to, reason: tap.label);
+      if (!tap.slowLift) {
+        expect(_rms(tap.size), lessThan(_sizeTolerance), reason: tap.label);
       }
-      // The travel center follows each tap's own onset, so the typical tap
-      // meets the aligned tolerance and the others stray by their onset.
-      final centers = [
-        for (final tap in taps)
-          if (tap.center.isNotEmpty) _rms(tap.center),
-      ];
-      expect(centers, hasLength(26));
-      expect(median(centers), lessThan(_centerTolerance));
-    },
-    skip:
-        'the device lens starts 39 - 57 ms (median 45.5, 79 taps) after the '
-        'logged touch, MorphLensTuning.tabBar.startDelay is 20 ms: center '
-        'rms 5.4 - 24.5 pt on 26 of 26 taps vs 1.5, size 1.4 - 3.2 on 8 of '
-        '57 vs 2.5. The 45 ms fix waits for the owner: on the 60 Hz '
-        'glyph bench it costs the tab bar 2.2 strike frames a tap',
-  );
+    }
+    // The travel center follows each tap's own onset, so the typical tap
+    // meets the aligned tolerance and the others stray by their onset.
+    final centers = [
+      for (final tap in taps)
+        if (tap.center.isNotEmpty) _rms(tap.center),
+    ];
+    expect(centers, hasLength(26));
+    expect(median(centers), lessThan(_centerTolerance));
+  });
 
   test('tab bar taps travel, lift and land like the device once the lens '
       'starts', () {
