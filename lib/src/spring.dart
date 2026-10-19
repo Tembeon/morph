@@ -26,8 +26,19 @@ class MorphSpring {
   double get damping => 2 * dampingRatio * omega;
 
   /// The physical description of this spring for a unit mass.
-  SpringDescription get description =>
-      SpringDescription(mass: 1, stiffness: stiffness, damping: damping);
+  ///
+  /// A damping ratio within 1e-9 of 1 is described as exactly critical:
+  /// the SDK picks its solution by the sign of the discriminant, and next
+  /// to critical damping its overdamped form loses about 1e-8 of the
+  /// distance to cancellation.
+  SpringDescription get description {
+    final ratio = (dampingRatio - 1).abs() <= 1e-9 ? 1.0 : dampingRatio;
+    return SpringDescription(
+      mass: 1,
+      stiffness: stiffness,
+      damping: 2 * ratio * omega,
+    );
+  }
 
   /// Linearly interpolates response and damping ratio between [a] and [b].
   static MorphSpring lerp(MorphSpring a, MorphSpring b, double t) =>
