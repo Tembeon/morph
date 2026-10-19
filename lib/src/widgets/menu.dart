@@ -598,8 +598,9 @@ class MorphMenuFlightProgress extends MorphMenuProgress {
   }
 }
 
-/// Wires [content] into [motion]: its layouts, its actions and its
-/// highlight callbacks.
+/// Wires [content]'s submenu layouts into [motion]; its actions and
+/// highlights reach the content through the motion's events
+/// ([MorphMenuController]).
 @internal
 void morphConnectMenu(
   MorphMenuMotion motion,
@@ -607,8 +608,6 @@ void morphConnectMenu(
   bool? dismissOnSelect,
 }) {
   motion.submenuLayout = content.submenu;
-  motion.onActivate = content.activate;
-  motion.onHighlight = content.highlight;
   motion.dismissOnSelect = dismissOnSelect;
 }
 
@@ -684,6 +683,16 @@ abstract interface class MorphMenuHost {
   /// Wakes the motion's clock after a change made through [menuMotion].
   void menuWake();
 
+  /// Runs [command] on the motion at time [at], [menuClock] when null.
+  ///
+  /// The motion is advanced to that time first, each close it requests on
+  /// the way answered at its own time, and the events the command raises
+  /// are delivered before this returns.
+  void menuCommand(
+    void Function(MorphMenuMotion motion, double t) command, {
+    double? at,
+  });
+
   /// A finger touched the open menu.
   void menuPointerDown(PointerDownEvent event);
 
@@ -717,6 +726,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     glyphKey: () => widget._source == null ? null : widget._look,
     semanticLabel: () => _semanticLabel,
     onOpen: (MorphFlight flight) => widget.onOpen?.call(flight),
+    onTap: _tapped,
   );
 
   String? get _semanticLabel => widget.semanticLabel;
@@ -859,7 +869,6 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
       dismissOnSelect: widget.dismissOnSelect,
     );
     motion.opensOnTap = widget._trigger == MorphMenuTrigger.tap;
-    motion.onTap = _tapped;
     return motion;
   }
 
@@ -921,8 +930,8 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   }
 
   void _openFromSemantics() {
-    _prepare().open(clock);
-    wake();
+    _prepare();
+    _host.open();
   }
 
   bool get _landing => _host.isLanding;
@@ -1476,7 +1485,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
 
   void _scrollGesture() {
     final host = widget.host;
-    host.menuMotion?.pointerScrolled(host.menuClock);
+    host.menuCommand((motion, t) => motion.pointerScrolled(t));
     host.menuWake();
   }
 
@@ -1507,7 +1516,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     final motion = host.menuMotion;
     if (motion == null || !motion.isOpen) return;
     if (!identical(motion.cards[motion.topCard].layout, layout)) return;
-    motion.select(host.menuClock, target);
+    host.menuCommand((motion, t) => motion.select(t, target));
     host.menuWake();
   }
 
@@ -1516,7 +1525,6 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     final host = widget.host;
     final motion = host.menuMotion;
     if (motion == null || !motion.isOpen) return KeyEventResult.ignored;
-    final t = host.menuClock;
     final top = motion.topCard;
     final layout = motion.cards[top].layout;
     final order = [for (var i = 0; i < layout.targets.length; i++) i];
@@ -1535,7 +1543,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       final next = at < 0
           ? (step > 0 ? 0 : order.length - 1)
           : (at + step).clamp(0, order.length - 1);
-      motion.highlight(t, order[next]);
+      host.menuCommand((motion, t) => motion.highlight(t, order[next]));
     }
 
     final KeyEventResult result;
@@ -1549,7 +1557,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         key == LogicalKeyboardKey.numpadEnter ||
         key == LogicalKeyboardKey.space) {
       if (current == null) return KeyEventResult.ignored;
-      motion.select(t, current);
+      host.menuCommand((motion, t) => motion.select(t, current));
       result = KeyEventResult.handled;
     } else if (key ==
         (rtl ? LogicalKeyboardKey.arrowLeft : LogicalKeyboardKey.arrowRight)) {
@@ -1557,14 +1565,16 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           layout.targets[current].kind != MorphMenuTargetKind.submenu) {
         return KeyEventResult.ignored;
       }
-      motion.select(t, current);
+      host.menuCommand((motion, t) => motion.select(t, current));
       result = KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.escape ||
         key ==
             (rtl
                 ? LogicalKeyboardKey.arrowRight
                 : LogicalKeyboardKey.arrowLeft)) {
-      if (!motion.back(t)) return KeyEventResult.ignored;
+      var back = false;
+      host.menuCommand((motion, t) => back = motion.back(t));
+      if (!back) return KeyEventResult.ignored;
       result = KeyEventResult.handled;
     } else {
       return KeyEventResult.ignored;

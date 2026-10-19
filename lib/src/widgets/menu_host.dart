@@ -36,6 +36,7 @@ class MorphMenuController implements MorphMenuHost {
     required this.semanticLabel,
     this.onOpen,
     this.onClose,
+    this.onTap,
     this.launch,
   }) {
     menuContent = MorphMenuContent(onChanged: _contentChanged);
@@ -85,6 +86,10 @@ class MorphMenuController implements MorphMenuHost {
   /// Called when the menu starts closing, however it closes: a row chosen,
   /// a touch outside it, Esc or [close].
   final VoidCallback? onClose;
+
+  /// Called for a tap on the source that does not open the menu
+  /// ([MorphMenuTapped]).
+  final VoidCallback? onTap;
   final ValueNotifier<int> _repaint = ValueNotifier<int>(0);
   OverlayState? _overlay;
 
@@ -93,6 +98,7 @@ class MorphMenuController implements MorphMenuHost {
   int? _pointer;
   int? _early;
   bool _routing = false;
+  bool _delivering = false;
   bool _disposed = false;
   bool _repaintDisposed = false;
   MorphMenuAppearance? _lastStyle;
@@ -260,7 +266,6 @@ class MorphMenuController implements MorphMenuHost {
       ),
     );
     morphConnectMenu(motion, menuContent, dismissOnSelect: dismissOnSelect);
-    motion.onTrackedHighlight = _trackedHighlight;
     motion.advance(menuClock);
     _motion = motion;
     return motion;
@@ -300,7 +305,8 @@ class MorphMenuController implements MorphMenuHost {
     final motion = _motion;
     // A closed menu lays its root out again in prepare, before it opens.
     if (motion == null || !(motion.isPresented || motion.isArming)) return;
-    motion.updateLayout(menuClock, animate: animate && motion.isPresented);
+    final animated = animate && motion.isPresented;
+    menuCommand((motion, t) => motion.updateLayout(t, animate: animated));
     menuWake();
   }
 
@@ -357,16 +363,96 @@ class MorphMenuController implements MorphMenuHost {
     }
   }
 
-  /// Closes the motion and its flight, including any pending opening.
+  /// Closes the motion and its flight, including any pending opening,
+  /// from where the motion stands: never before its last sample.
   void close() {
     if (_disposed) return;
-    _motion?.close(menuClock);
+    final motion = _motion;
+    if (motion != null) {
+      menuCommand(
+        (motion, t) => motion.close(t),
+        at: math.max(menuClock, motion.time),
+      );
+    }
     menuWake();
   }
 
   @override
   void menuWake() {
     if (!_disposed) wake();
+  }
+
+  @override
+  void menuCommand(
+    void Function(MorphMenuMotion motion, double t) command, {
+    double? at,
+  }) {
+    final motion = _motion;
+    if (motion == null) return;
+    final t = at ?? menuClock;
+    _reach(motion, t);
+    command(motion, t);
+    _deliver(motion);
+  }
+
+  /// Advances [motion] to [t], delivering its events and answering each
+  /// close it requests on the way at the time it requested it.
+  void _reach(MorphMenuMotion motion, double t) {
+    while (!motion.advanceToRequest(t)) {
+      _deliver(motion);
+    }
+    _deliver(motion);
+  }
+
+  // Events a callback raises while others are delivered follow them, in
+  // order, instead of interrupting them.
+  void _deliver(MorphMenuMotion motion) {
+    if (_delivering) return;
+    _delivering = true;
+    try {
+      for (
+        var events = motion.drainEvents();
+        events.isNotEmpty;
+        events = motion.drainEvents()
+      ) {
+        for (final event in events) {
+          try {
+            _receive(motion, event);
+          } catch (error, stack) {
+            FlutterError.reportError(
+              FlutterErrorDetails(
+                exception: error,
+                stack: stack,
+                library: 'morph',
+                context: ErrorDescription('while delivering a menu event'),
+              ),
+            );
+          }
+        }
+      }
+    } finally {
+      _delivering = false;
+    }
+  }
+
+  void _receive(MorphMenuMotion motion, MorphMenuEvent event) {
+    switch (event) {
+      case MorphMenuHighlightChanged(:final from, :final to, :final tracked):
+        if (_disposed) return;
+        menuContent.highlight(from, to);
+        if (tracked) _trackedHighlight();
+      case MorphMenuActivated(:final target):
+        if (!_disposed) menuContent.activate(target);
+      case MorphMenuTapped():
+        if (!_disposed) onTap?.call();
+      case MorphMenuCloseRequested():
+        // An overlay menu has no pop policy of its own to consult, so it
+        // closes at the measured time; a request a reentrant command
+        // passed by closes from where the motion stands now.
+        if (!motion.admitClose(event) && motion.isOpen) {
+          motion.close(math.max(menuClock, motion.time));
+        }
+    }
   }
 
   /// The motion time before which the menu draws nothing new, or null when
@@ -391,7 +477,7 @@ class MorphMenuController implements MorphMenuHost {
     motion.frameTime = t;
     motion.framePeriod = framePeriod;
     // A pointer event may have advanced the motion past the frame already.
-    motion.advance(math.max(t, motion.time));
+    _reach(motion, math.max(t, motion.time));
     if (_early == null && !motion.isOpenPending) _unroute();
     final layout = motion.layout;
     _prebuildCount = debugPrebuild && _flight == null && motion.isArming
@@ -434,19 +520,19 @@ class MorphMenuController implements MorphMenuHost {
     final motion = _motion;
     if (_disposed || motion == null) return;
     if (_pointer != null) {
-      motion.open(menuClock);
+      menuCommand((motion, t) => motion.open(t));
     } else {
       _pointer = pointer;
-      motion.holdOpen(menuClock, _local(position));
+      final local = _local(position);
+      menuCommand((motion, t) => motion.holdOpen(t, local));
     }
     menuWake();
   }
 
   /// Opens the prepared menu without a finger on it.
   void open() {
-    final motion = _motion;
-    if (_disposed || motion == null) return;
-    motion.open(menuClock);
+    if (_disposed || _motion == null) return;
+    menuCommand((motion, t) => motion.open(t));
     menuWake();
   }
 
@@ -460,13 +546,15 @@ class MorphMenuController implements MorphMenuHost {
       return;
     }
     _pointer = event.pointer;
-    motion.pointerDown(stamp(event), _local(event.position));
+    final local = _local(event.position);
+    menuCommand((motion, t) => motion.pointerDown(t, local), at: stamp(event));
   }
 
   @override
   void menuPointerMove(PointerMoveEvent event) {
     if (_disposed || event.pointer != _pointer) return;
-    _motion?.pointerMove(stamp(event), _local(event.position));
+    final local = _local(event.position);
+    menuCommand((motion, t) => motion.pointerMove(t, local), at: stamp(event));
   }
 
   @override
@@ -475,7 +563,8 @@ class MorphMenuController implements MorphMenuHost {
     _pointer = null;
     final motion = _motion;
     if (motion == null) return;
-    motion.pointerUp(stamp(event), _local(event.position));
+    final local = _local(event.position);
+    menuCommand((motion, t) => motion.pointerUp(t, local), at: stamp(event));
     if (motion.isOpenPending) _route();
   }
 
@@ -483,7 +572,7 @@ class MorphMenuController implements MorphMenuHost {
   void menuPointerCancel(PointerCancelEvent event) {
     if (_disposed || event.pointer != _pointer) return;
     _pointer = null;
-    _motion?.pointerCancel(stamp(event));
+    menuCommand((motion, t) => motion.pointerCancel(t), at: stamp(event));
   }
 
   void _route() {
@@ -529,9 +618,6 @@ class MorphMenuController implements MorphMenuHost {
     _syncPrebuild();
     _unroute();
     menuContent.dispose();
-    _motion?.onActivate = null;
-    _motion?.onHighlight = null;
-    _motion?.onTrackedHighlight = null;
     final flight = _flight;
     if (flight == null || flight.isFinished) {
       _motion?.close(_detachedTime);

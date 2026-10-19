@@ -131,6 +131,54 @@ void main() {
     ]);
   });
 
+  testWidgets('a finger sliding through an open menu plays a selection on '
+      'each row it reaches, before the next frame', (tester) async {
+    final entered = <String>[];
+    final chosen = <String>[];
+    MorphMenuItem item(String title) => MorphMenuItem(
+      title: title,
+      onHighlightChanged: (on) {
+        if (on) entered.add(title);
+      },
+      onSelected: () => chosen.add(title),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => MorphScope(child: child!),
+        home: Scaffold(
+          body: Align(
+            alignment: const Alignment(0, -0.6),
+            child: MorphMenuButton(
+              menu: [item('One'), item('Two'), item('Three')],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MorphMenuButton));
+    await tester.pumpAndSettle();
+    calls.clear();
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('One')),
+    );
+    expect(entered, ['One']);
+    expect(calls, ['HapticFeedbackType.selectionClick']);
+    for (final title in ['Two', 'Three', 'Two']) {
+      await tester.pump(const Duration(milliseconds: 16));
+      await gesture.moveTo(tester.getCenter(find.text(title)));
+      expect(entered.last, title);
+      expect(calls, hasLength(entered.length), reason: title);
+    }
+    await gesture.up();
+    expect(chosen, isEmpty);
+    await tester.pumpAndSettle();
+    expect(chosen, ['Two']);
+    expect(entered, ['One', 'Two', 'Three', 'Two']);
+    expect(calls, [
+      for (final _ in entered) 'HapticFeedbackType.selectionClick',
+    ]);
+  });
+
   testWidgets('a switch set by its owner plays nothing', (tester) async {
     Widget host({required bool value}) => Directionality(
       textDirection: TextDirection.ltr,

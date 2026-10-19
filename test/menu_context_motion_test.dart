@@ -8,6 +8,7 @@ import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_morph_spec.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
+import 'support/menu_events.dart';
 
 const Offset _held = Offset(201, 300);
 const Size _screen = Size(402, 874);
@@ -285,8 +286,6 @@ void main() {
   test('a finger that held the menu open slides onto a row and chooses it '
       'on release; released on the preview it keeps the menu open', () {
     final motion = _motion(const Size(120, 80));
-    var chosen = -1;
-    motion.onSelected = (int index) => chosen = index;
     motion.holdOpen(0, _held);
     motion.advance(1);
     final row = motion.menuRect.topCenter + const Offset(0, 10 + 47 * 1.5);
@@ -294,7 +293,7 @@ void main() {
     expect(motion.highlighted, 1);
     motion.pointerUp(1.2, row);
     motion.advance(1.5);
-    expect(chosen, 1);
+    expect(menuSelections(motion), [1]);
     expect(motion.isClosing || !motion.isPresented, isTrue);
 
     final kept = _motion(const Size(120, 80));

@@ -13,6 +13,7 @@ import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
+import 'support/menu_events.dart';
 
 const _dir = 'test/fixtures/ios27/menu';
 const _device = 'test/fixtures/ios27-device/menu';
@@ -571,8 +572,6 @@ void main() {
       itemCount: 3,
       bounds: const Size(402, 874),
     );
-    final selected = <int>[];
-    motion.onSelected = selected.add;
     final touches = capture.touches;
     motion.advance(touches.first.t - 0.5);
     var swallowed = 0;
@@ -593,7 +592,7 @@ void main() {
       }
     }
     expect(swallowed, 2);
-    expect(selected, isEmpty);
+    expect(menuSelections(motion), isEmpty);
     expect(capture.actions, isEmpty);
   });
 
@@ -626,7 +625,6 @@ void main() {
           tuning: MorphMenuTuning(tapOpenDelay: openDelay),
         );
         final selected = <int>[];
-        motion.onSelected = selected.add;
         motion.advance(capture.touches.first.t - 0.5);
         var next = 0;
         var sum = 0.0;
@@ -646,6 +644,7 @@ void main() {
             }
           }
           motion.advance(t);
+          selected.addAll(menuSelections(motion));
           final error = motion.progress - replay.progressOf(f);
           sum += error * error;
           peak = math.max(peak, motion.progress);

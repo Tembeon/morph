@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
+import 'support/menu_events.dart';
 
 const _screen = Size(402, 874);
 const _fixture = 'test/fixtures/ios27-device/menu/navbar-tap.json';
@@ -246,8 +247,6 @@ void main() {
         bounds: _screen,
         padding: const EdgeInsets.only(top: 62, bottom: 34),
       );
-      final selected = <int>[];
-      motion.onSelected = selected.add;
       motion.advance(0);
       motion.pointerDown(0, center);
       motion.advance(0.5);
@@ -255,7 +254,7 @@ void main() {
       motion.pointerMove(0.6, center + const Offset(2, 2));
       motion.pointerUp(0.742, center + const Offset(2, 2));
       motion.advance(2);
-      expect(selected, isEmpty);
+      expect(menuSelections(motion), isEmpty);
       expect(motion.isOpen, isTrue);
     }
   });

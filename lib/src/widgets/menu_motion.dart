@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/painting.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/motion/motion.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/channel.dart';
 import 'package:morph/src/widgets/flex_interaction.dart';
@@ -12,17 +13,6 @@ import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_morph_spec.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
-
-/// Installs a synchronous admission check for measured, input-driven dismissal.
-///
-/// The check runs at the reaction time before any closing channel changes.
-/// It must not mutate the model. Explicit [MorphMenuMotion.close] is a command
-/// and bypasses this check. A null check preserves autonomous dismissal.
-@internal
-void morphMenuSetCloseAdmission(
-  MorphMenuMotion motion,
-  bool Function(double time)? admission,
-) => motion._closeAdmission = admission;
 
 /// The tuning of a glass button's menu, as measured on iOS 27.
 ///
@@ -496,8 +486,8 @@ class MorphMenuTuning {
   final double holdDuration;
 
   /// How far outside the source, in points, a release still counts as a
-  /// tap on it: within it a tap opens the menu (or calls
-  /// [MorphMenuMotion.onTap] when the menu opens only by holding), beyond
+  /// tap on it: within it a tap opens the menu (or raises
+  /// [MorphMenuTapped] when the menu opens only by holding), beyond
   /// it the release cancels and nothing opens. It is the 70 pt
   /// touch-up-inside slop of a glass `UIButton` measured in
   /// glass-button.md, the same as `MorphGlassButtonMotion.highlightSlop`.
@@ -1188,7 +1178,14 @@ class MorphMenuCard {
 /// menu closes it and a release on a target chooses it. The finger that
 /// opened the menu by holding chooses only after it has left the button:
 /// released on the button it leaves the menu open, as UIKit does.
-class MorphMenuMotion {
+///
+/// What a host acts on comes out as [MorphMenuEvent]s ([drainEvents]). A
+/// release that closes the menu raises [MorphMenuCloseRequested] for its
+/// host to answer before the menu starts closing ([advanceToRequest]); a
+/// motion advanced with [advance] closes on its own at that time.
+class MorphMenuMotion
+    with MorphMotionEvents<MorphMenuEvent>
+    implements MorphMotion<MorphMenuEvent> {
   /// Creates the motion of the button at [button] whose menu is [layout]
   /// (uniform rows of [itemCount] when null), inside [bounds] minus the
   /// safe-area [padding].
@@ -1335,34 +1332,14 @@ class MorphMenuMotion {
   double _glowTarget = 0;
 
   final MorphTimeline _timeline = MorphTimeline(now: 0);
-  bool Function(double time)? _closeAdmission;
-
-  /// Called with the target index when a target of the root list runs its
-  /// action, which is before the menu starts closing.
-  void Function(int index)? onSelected;
+  MorphMenuCloseRequested? _request;
+  bool _yields = false;
 
   /// Whether a tap on the button opens the menu, as a menu that is the
   /// button's primary action; false opens it only by holding, and a tap
-  /// released on the button calls [onTap] instead.
+  /// released on the button, or within [MorphMenuTuning.tapSlop] of it,
+  /// raises [MorphMenuTapped] instead.
   bool opensOnTap = true;
-
-  /// Called when a tap released on the button, or within
-  /// [MorphMenuTuning.tapSlop] of it, does not open the menu because
-  /// [opensOnTap] is false.
-  void Function()? onTap;
-
-  /// Called with the target whenever an action runs, on any card.
-  void Function(MorphMenuTarget target)? onActivate;
-
-  /// Called when the highlighted target changes, with the old and the new
-  /// one (null for none).
-  void Function(MorphMenuTarget? from, MorphMenuTarget? to)? onHighlight;
-
-  /// Called when a finger moves the highlight onto another target: the
-  /// moment UIKit's menu plays its selection haptic (read from UIKit,
-  /// notes private). A highlight the keyboard or a hover moves, or one
-  /// that clears, does not call it.
-  void Function()? onTrackedHighlight;
 
   /// Lays out the card opened by a submenu target; no card opens while
   /// it is null or returns null.
@@ -1395,7 +1372,7 @@ class MorphMenuMotion {
   /// frames; the motion fuses nothing ahead without it.
   double? framePeriod;
 
-  /// The time the motion was last advanced to.
+  @override
   double get time => _now;
 
   /// The layout frame of the button, or of the held view of a context
@@ -1790,14 +1767,16 @@ class MorphMenuMotion {
   /// The card [highlighted] belongs to, 0 for the root list.
   int get highlightedCard => _highlightCard;
 
-  void _setHighlight(int? target, int card) {
+  void _setHighlight(int? target, int card, {bool tracked = false}) {
     if (target == _highlighted && card == _highlightCard) return;
     final from = _targetOf(_highlightCard, _highlighted);
     _highlighted = target;
     _highlightCard = card;
     _dwellGeneration++;
     final to = _targetOf(card, target);
-    if (from != null || to != null) onHighlight?.call(from, to);
+    if (from != null || to != null || tracked) {
+      emit(MorphMenuHighlightChanged(_now, from, to, tracked: tracked));
+    }
   }
 
   MorphMenuTarget? _targetOf(int card, int? index) {
@@ -2361,6 +2340,7 @@ class MorphMenuMotion {
   /// remains does not show (NEAR, invisible). The progress keeps its
   /// remainder, which no layout reads exactly, and so does the flex a held
   /// finger leaves.
+  @override
   void settle() {
     final t = _now;
     _radius.settle(t);
@@ -2376,6 +2356,7 @@ class MorphMenuMotion {
   /// A finger resting on the menu or its button does not keep it awake once
   /// the glow under it has faded in: its next move or release wakes it. A
   /// finger scrolling the content does.
+  @override
   bool get isSettled => _timeline.isEmpty && _still;
 
   /// The motion time of the next pending event while a finger rests and
@@ -2387,7 +2368,7 @@ class MorphMenuMotion {
   /// [MorphMenuTuning.hoverOpenDelay]); the reactions to a release come
   /// due within a few frames, which keep coming, so a test's
   /// `pumpAndSettle` still sees them through.
-  @internal
+  @override
   double? get wakeTime {
     final due = _timeline.nextDue;
     return due != null && _pointer != null && _still ? due : null;
@@ -2609,8 +2590,7 @@ class MorphMenuMotion {
     final moved =
         hit.target != null &&
         (hit.target != _highlighted || hit.card != _highlightCard);
-    _setHighlight(hit.target, hit.card);
-    if (moved) onTrackedHighlight?.call();
+    _setHighlight(hit.target, hit.card, tracked: moved);
     final target = _targetOf(hit.card, hit.target);
     if (target == null || target.kind != MorphMenuTargetKind.submenu) return;
     final generation = _dwellGeneration;
@@ -2742,7 +2722,7 @@ class MorphMenuMotion {
       if (!pointer.openedByHold) {
         final inside = _button.inflate(tuning.tapSlop).contains(position);
         if (!opensOnTap) {
-          if (_phase != _Phase.opening && inside) onTap?.call();
+          if (_phase != _Phase.opening && inside) emit(MorphMenuTapped(t));
           return;
         }
         if (_phase != _Phase.opening && inside) {
@@ -2788,11 +2768,45 @@ class MorphMenuMotion {
   }
 
   /// Advances the motion to time [t]: runs every event due by then and
-  /// samples the progress, integrating the kicks over the interval.
-  void advance(double t) {
-    if (t < _now) return;
+  /// samples the progress, integrating the kicks over the interval. A close
+  /// requested on the way starts at its own time, unanswered.
+  @override
+  void advance(double t) => _advance(t);
+
+  /// Advances the motion toward time [t] as [advance] does, but stops at a
+  /// [MorphMenuCloseRequested] that comes due on the way, the last event it
+  /// raised; returns whether the motion reached [t].
+  ///
+  /// Stopped, the motion stands at the request's time, still open and
+  /// sampled no further: [admitClose] starts the close there, at the
+  /// measured deadline, as if nothing had stopped. Any later advance or
+  /// command goes on with the menu open, which refuses the request; it is
+  /// not raised again, and a close the owner approves later is a [close] at
+  /// the current time.
+  bool advanceToRequest(double t) {
+    _yields = true;
+    try {
+      return _advance(t);
+    } finally {
+      _yields = false;
+    }
+  }
+
+  /// Starts the close [request] asked for, at its time, while the motion
+  /// stands at it ([advanceToRequest]); returns false and changes nothing
+  /// once the motion has moved on.
+  bool admitClose(MorphMenuCloseRequested request) {
+    if (!identical(request, _request)) return false;
+    _request = null;
+    _close(request.time);
+    return true;
+  }
+
+  bool _advance(double t) {
+    _request = null;
+    if (t < _now) return true;
     if ((_timeline.nextDue ?? double.infinity) <= t) _revision++;
-    _timeline.runDue(t);
+    if (!_timeline.runDue(t, until: () => _request != null)) return false;
     _sample(t);
     for (var i = _cards.length - 1; i >= 0; i--) {
       final card = _cards[i];
@@ -2816,6 +2830,7 @@ class MorphMenuMotion {
       _openReference = null;
       _closeReference = null;
     }
+    return true;
   }
 
   /// The final frame of a menu of [size] opened from a button whose frame
@@ -3072,7 +3087,7 @@ class MorphMenuMotion {
         target != null &&
         target.kind == MorphMenuTargetKind.action) {
       _setHighlight(row, 0);
-      _timeline.at(t + tuning.actionDelay, (double s) => _activate(0, row));
+      _timeline.at(t + tuning.actionDelay, (double s) => _activate(s, 0, row));
       _timeline.at(t + tuning.earlyCloseDelay, _requestClose);
     } else if (!_onMenu(release.position)) {
       _timeline.at(t + tuning.earlyCloseDelay, _requestClose);
@@ -3081,7 +3096,13 @@ class MorphMenuMotion {
 
   void _requestClose(double t) {
     if (_phase != _Phase.opening) return;
-    if (_closeAdmission?.call(t) ?? true) _close(t);
+    if (!_yields) {
+      _close(t);
+      return;
+    }
+    final request = MorphMenuCloseRequested(t);
+    _request = request;
+    emit(request);
   }
 
   void _close(double t) {
@@ -3133,11 +3154,10 @@ class MorphMenuMotion {
     });
   }
 
-  void _activate(int card, int index) {
+  void _activate(double t, int card, int index) {
     final target = _targetOf(card, index);
     if (target == null) return;
-    if (card == 0) onSelected?.call(index);
-    onActivate?.call(target);
+    emit(MorphMenuActivated(t, target, card: card, index: index));
   }
 
   void _select(double t, int card, int index) {
@@ -3168,7 +3188,7 @@ class MorphMenuMotion {
           _setHighlight(null, card);
           _timeline.at(
             t + tuning.keptActionDelay,
-            (double s) => _activate(card, index),
+            (double s) => _activate(s, card, index),
           );
           return;
         }
@@ -3176,7 +3196,7 @@ class MorphMenuMotion {
         final delay = card == 0
             ? tuning.actionDelay
             : tuning.submenuActionDelay;
-        _timeline.at(t + delay, (double s) => _activate(card, index));
+        _timeline.at(t + delay, (double s) => _activate(s, card, index));
         _timeline.at(
           t + (card == 0 ? tuning.dismissDelay : tuning.submenuCloseDelay),
           _requestClose,
@@ -3341,3 +3361,74 @@ const List<(double, double)> _sourceKickAmplitude = [
   (230, 1.488),
   (440, 1.777),
 ];
+
+/// What a [MorphMenuMotion] tells its host, at the motion [time] it
+/// happened.
+sealed class MorphMenuEvent {
+  const MorphMenuEvent(this.time);
+
+  /// The motion time of the reaction that raised the event, in seconds.
+  final double time;
+}
+
+/// The highlighted target changed from [from] to [to] (null for none).
+final class MorphMenuHighlightChanged extends MorphMenuEvent {
+  /// Creates the event.
+  const MorphMenuHighlightChanged(
+    super.time,
+    this.from,
+    this.to, {
+    required this.tracked,
+  });
+
+  /// The target highlighted before, or null.
+  final MorphMenuTarget? from;
+
+  /// The target highlighted now, or null.
+  final MorphMenuTarget? to;
+
+  /// Whether a finger moved the highlight onto another target: the moment
+  /// UIKit's menu plays its selection haptic (read from UIKit, notes
+  /// private). A highlight the keyboard or a hover moves, or one that
+  /// clears, is not tracked.
+  final bool tracked;
+}
+
+/// The action of [target] runs, before the menu starts closing.
+final class MorphMenuActivated extends MorphMenuEvent {
+  /// Creates the event.
+  const MorphMenuActivated(
+    super.time,
+    this.target, {
+    required this.card,
+    required this.index,
+  });
+
+  /// The target whose action runs.
+  final MorphMenuTarget target;
+
+  /// The card [target] is on, 0 for the root list.
+  final int card;
+
+  /// The index of [target] on its card.
+  final int index;
+}
+
+/// A tap released on the button, or within [MorphMenuTuning.tapSlop] of
+/// it, does not open the menu because [MorphMenuMotion.opensOnTap] is
+/// false.
+final class MorphMenuTapped extends MorphMenuEvent {
+  /// Creates the event.
+  const MorphMenuTapped(super.time);
+}
+
+/// The menu would start closing now, at the measured reaction to a
+/// release outside it, on an action or before it appeared.
+///
+/// Raised by [MorphMenuMotion.advanceToRequest], which stops here until
+/// the host answers with [MorphMenuMotion.admitClose] or goes on, which
+/// refuses it.
+final class MorphMenuCloseRequested extends MorphMenuEvent {
+  /// Creates the event.
+  MorphMenuCloseRequested(super.time);
+}
