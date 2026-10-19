@@ -170,12 +170,14 @@ void main() {
       '${rim.offset.toStringAsFixed(3)} px, row jump '
       '${rim.jump.toStringAsFixed(3)} px',
     );
-    // NEAR: the matte's quantization and its exact pixel centers; the
-    // lens keeps the dispersed fringes of the page's black lines.
+    // NEAR: the matte's quantization read at the pass's pixel centers
+    // (host run 2026-10-19: the rim 0.04 px off, the lens max 13, mean
+    // 0.27).
     expect(rim.offset, lessThan(0.25));
     expect(rim.jump, lessThan(0.25));
     expect(outside.max, lessThanOrEqualTo(16));
-    expect(through.mean, lessThan(0.6));
+    expect(through.max, lessThanOrEqualTo(32));
+    expect(through.mean, lessThan(0.5));
   });
 }
 

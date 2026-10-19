@@ -114,7 +114,9 @@ const ({double min, double max}) glassMatteDensityRange = (min: 0.5, max: 2);
 /// into its pass, so that its nearest sampled matte reads one texel per
 /// pixel of the pass: the scale of [layerToPass] when it scales both axes
 /// alike, without rotation, skew or perspective, by a factor within
-/// [glassMatteDensityRange], rounded to 1/1024; else 1.
+/// [glassMatteDensityRange] and more than a rounding error from 1; else 1.
+/// The scale is exact: a density off by a part in a thousand moves the
+/// texels of a thousand-pixel matte a pixel off the pass's pixels.
 ///
 /// A matte of the layer's own device pixels under a scale of 1.05 repeats
 /// every twentieth texel, which sets the rim of every shape a device pixel
@@ -132,10 +134,11 @@ double glassMatteDensity(Matrix4 layerToPass) {
     return 1;
   }
   if (!(scale >= glassMatteDensityRange.min &&
-      scale <= glassMatteDensityRange.max)) {
+          scale <= glassMatteDensityRange.max) ||
+      (scale - 1).abs() < 1e-6) {
     return 1;
   }
-  return (scale * 1024).roundToDouble() / 1024;
+  return scale;
 }
 
 /// The offset in [layer]'s logical coordinates by which [layer], encoding

@@ -55,8 +55,9 @@ void main() {
 
     expect(glassMatteDensity(Matrix4.identity()), 1);
     expect(glassMatteDensity(Matrix4.translationValues(3.4, 9, 0)), 1);
-    expect(glassMatteDensity(scaled(1.05, 1.05)), 1075 / 1024);
-    expect(glassMatteDensity(scaled(0.93, 0.93)), 952 / 1024);
+    expect(glassMatteDensity(scaled(1.05, 1.05)), 1.05);
+    expect(glassMatteDensity(scaled(0.93, 0.93)), 0.93);
+    expect(glassMatteDensity(scaled(1 + 1e-9, 1 + 1e-9)), 1);
     // Two scales, a rotation or a scale out of range keep the layer's own
     // device pixels.
     expect(glassMatteDensity(scaled(1.05, 1.1)), 1);
