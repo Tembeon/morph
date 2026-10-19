@@ -265,6 +265,21 @@ lab runs menu-phone-20261005-10..12; recordings/device-navbar-20261005).
   time stamp but 44.0 - 45.3 ms after its delivery (latency 14.9 -
   17.3 ms); `dismissDelay` 0.059 is the former. A host anchored on
   delivery therefore applies the latency twice.
+- Onsets by control (2026-10-19, display-link rows of the device lens
+  and control captures; test/support/onset.dart): a reaction that sets
+  nothing up starts one delivery plus a begin frame after the stamp (the
+  glass button's lift and return 22 - 29 ms, median 26, in a scroll view
+  too; the segmented release travel 24). A lens that lifts first makes
+  UIKit set the lift up on the main thread: the display link's next frame
+  comes 19.5 - 41.7 ms after the one before instead of 8.3 (once 64.9),
+  and the lens moves from the frame after that (tab bar taps 39 - 57 ms,
+  median 45.5; segmented taps from the release 31.5 - 56, median 40.5;
+  presses on the selected segment 33 - 80, median 47). The first touch
+  after a scene appears pays a one-time setup (glass button +12 - 21 ms).
+  Replays feed the touches at their stamps and check each onset against
+  the median within half a frame and the delivery (plus setup) spread.
+  Simulator stamps do not follow this reference (first lift 53 - 174 ms
+  after the stamp).
 - MorphClock (2026-10-05, after 493f012) stamps an event at its own time
   stamp moved onto the frame clock: on iOS / macOS the offset is read
   from CLOCK_MONOTONIC_RAW - CLOCK_UPTIME_RAW (FFI; matches the measured
