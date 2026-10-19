@@ -66,10 +66,10 @@ class MorphSatellite {
 ///
 /// The menu IS the button menu, as in UIKit: the card, rows, sections,
 /// submenus, highlight, flex, scrolling, keyboard and haptics of
-/// [MorphMenuButton], on the context menu's measured morph
-/// ([MorphMenuMorphSpec.context]). It stands [measuredMenuGap] below the
-/// lifted preview, above it (its entries reversed unless [order] is
-/// [MorphMenuOrder.fixed]) when it does not fit below, and when it fits
+/// [MorphMenuButton], on the context menu's measured morph. It stands
+/// [measuredMenuGap] below the lifted preview, above it (its entries
+/// reversed unless [order] is [MorphMenuOrder.fixed]) when it does not
+/// fit below, and when it fits
 /// on neither side the preview moves with it until it fits. The finger
 /// that held the preview may slide onto a row and choose it on release,
 /// with a selection haptic on each row; let go on the preview, it leaves

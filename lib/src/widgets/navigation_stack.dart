@@ -690,7 +690,7 @@ class _Observer extends NavigatorObserver {
 /// zoom rests; a finger dragging the page down, or from the leading edge
 /// in any direction, shrinks it under the finger and on release either
 /// zooms it back into the source or returns it. See
-/// [MorphPushZoomMotion]; [pushMorphZoom] pushes such a page.
+/// [MorphPushZoomMotion]. Pass [from] to push such a page.
 class MorphNavigationRoute<T> extends PageRoute<T>
     with MorphMotionRouteMixin<T> {
   /// Creates a route for the page [builder] builds.

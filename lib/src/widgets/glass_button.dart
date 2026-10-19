@@ -455,7 +455,7 @@ class MorphGlassButton extends StatefulWidget {
   ///
   /// Without [onPressed] the menu is the button's primary action
   /// (`showsMenuAsPrimaryAction`): a tap opens it on release, a held
-  /// finger opens it after [MorphMenuTuning.holdDuration] and may slide
+  /// finger opens it after the measured hold and may slide
   /// onto a row and choose it on release ([MorphMenuTrigger.tap]). With
   /// [onPressed] a tap presses the button and only a hold opens the menu
   /// ([MorphMenuTrigger.hold]). The button then lifts by the menu's
