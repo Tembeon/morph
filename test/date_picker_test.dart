@@ -11,6 +11,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/date_picker_motion.dart';
+import 'support/motion_at.dart';
 
 const _dir = 'test/fixtures/ios27/date_picker';
 const double _frame = 1 / 60;
@@ -98,9 +99,9 @@ void main() {
             ...() {
               final t = _d(r, 't') + _frame;
               return [
-                m.scale(t) - _d(r, 'sx'),
-                m.opacity(t) - _d(r, 'a').clamp(0.0, 1.0),
-                (m.height(t, 332) - _d(r, 'bh')) / 332,
+                m.at(t).scale - _d(r, 'sx'),
+                m.at(t).opacity - _d(r, 'a').clamp(0.0, 1.0),
+                (m.at(t).height(332) - _d(r, 'bh')) / 332,
               ];
             }(),
       ];
@@ -130,7 +131,7 @@ void main() {
           if (_d(r, 't') >= openUp && _d(r, 't') < closeUp)
             ...() {
               final t = _d(r, 't') + _frame;
-              final s = m.scale(t);
+              final s = m.at(t).scale;
               final a = placement.anchor;
               final left = a.dx + s * (placement.rect.left - a.dx);
               final top = a.dy + s * (placement.rect.top - a.dy);
@@ -213,7 +214,7 @@ void main() {
         m.turnPage(start, 1);
         return [
           for (final r in day)
-            (222.33 - 320 * m.page(_d(r, 't') + _frame)) - _d(r, 'x'),
+            (222.33 - 320 * m.at(_d(r, 't') + _frame).page) - _d(r, 'x'),
         ];
       });
       expect(rms, lessThan(2.5));
@@ -239,7 +240,8 @@ void main() {
         m.press(at);
         m.release(at + up - down);
         return [
-          for (final r in label) m.highlight(_d(r, 't') + _frame) - _d(r, 'a'),
+          for (final r in label)
+            m.at(_d(r, 't') + _frame).highlight - _d(r, 'a'),
         ];
       });
       expect(rms, lessThan(0.03));
@@ -277,11 +279,11 @@ void main() {
         ].first;
         final m = MorphDatePickerMotion();
         m.open(openUp);
-        m.close(closeUp);
         final open = <double>[];
         final close = <double>[];
         for (final r in platter) {
           final t = _d(r, 't');
+          if (t >= closeUp && m.isOpen) m.close(closeUp);
           // Before the animation's first frame the view reads its final
           // layout, and the close's first frame its hidden one (one row
           // each); the springs are compared from their start on.
@@ -290,7 +292,7 @@ void main() {
               (t > closeUp && _d(r, 'a') == 0)) {
             continue;
           }
-          final e = m.scale(t) - _d(r, 'sx');
+          final e = m.at(t).scale - _d(r, 'sx');
           if (t < closeUp) {
             open.add(e);
           } else {
@@ -315,19 +317,19 @@ void main() {
         List<double> errors(double openAt) {
           final m = MorphDatePickerMotion();
           m.open(lifts.first, delay: openAt - lifts.first);
-          m.close(lifts.last);
           final out = <double>[];
           for (final r in rows) {
             if (r['k'] != 'V') continue;
             final t = _d(r, 't');
+            if (t >= lifts.last && m.isOpen) m.close(lifts.last);
             // One row per capture reads the platter's hidden state
             // mid-flight (a presentation-layer artifact).
             if (t < lifts.first + 0.1 ||
                 (_d(r, 'sx') == 0.2 && t > lifts.first + 0.16)) {
               continue;
             }
-            out.add(m.scale(t) - _d(r, 'sx'));
-            out.add(m.opacity(t) - _d(r, 'a').clamp(0.0, 1.0));
+            out.add(m.at(t).scale - _d(r, 'sx'));
+            out.add(m.at(t).opacity - _d(r, 'a').clamp(0.0, 1.0));
           }
           return out;
         }
@@ -363,10 +365,10 @@ void main() {
           }
           if (r['id'] == ids.first) {
             if (t > closeUp + 0.04 && _d(r, 'sx') == 0.2) continue;
-            closing.add(old.scale(t) - _d(r, 'sx'));
+            closing.add(old.at(t).scale - _d(r, 'sx'));
           } else {
-            opening.add(fresh.scale(t) - _d(r, 'sx'));
-            opening.add(fresh.opacity(t) - _d(r, 'a').clamp(0.0, 1.0));
+            opening.add(fresh.at(t).scale - _d(r, 'sx'));
+            opening.add(fresh.at(t).opacity - _d(r, 'a').clamp(0.0, 1.0));
           }
         }
         expect(closing.length, greaterThan(20));
@@ -1153,9 +1155,9 @@ void main() {
           }
           if (t <= titleTaps.first || t >= closeTap) continue;
           if (r['cls'] == '_UICalendarWeekdayView') {
-            fade.add(m.yearPicker(t) - (1 - _d(r, 'a')));
+            fade.add(m.at(t).yearPicker - (1 - _d(r, 'a')));
           } else if (r['cls'] == 'chevron') {
-            chevron.add(m.yearPickerTurn(t) - turn(r));
+            chevron.add(m.at(t).yearPickerTurn - turn(r));
           }
         }
         expect(fade.length, greaterThan(50));
@@ -1519,11 +1521,11 @@ void main() {
     test('opens from a fifth of its size and its 50 point box', () {
       final m = MorphDatePickerMotion();
       m.open(0);
-      expect(m.scale(0), MorphDatePickerTuning.hiddenScale);
-      expect(m.height(0, 332), 50);
+      expect(m.at(0).scale, MorphDatePickerTuning.hiddenScale);
+      expect(m.at(0).height(332), 50);
       m.advance(2);
-      expect(m.scale(2), closeTo(1, 1e-3));
-      expect(m.height(2, 332), closeTo(332, 0.5));
+      expect(m.at(2).scale, closeTo(1, 1e-3));
+      expect(m.at(2).height(332), closeTo(332, 0.5));
       m.close(2);
       m.advance(4);
       expect(m.isClosed, isTrue);
@@ -1534,13 +1536,13 @@ void main() {
       m.showYearPicker(1, show: true);
       expect(m.showsYearPicker, isTrue);
       const show = MorphDatePickerTuning.yearPickerShowDelay;
-      expect(m.yearPicker(1 + show), 0);
-      expect(m.yearPicker(1 + show + 0.125), closeTo(0.5, 1e-9));
-      expect(m.yearPicker(1 + show + 0.25), 1);
+      expect(m.at(1 + show).yearPicker, 0);
+      expect(m.at(1 + show + 0.125).yearPicker, closeTo(0.5, 1e-9));
+      expect(m.at(1 + show + 0.25).yearPicker, 1);
       m.showYearPicker(2, show: false);
       const hide = MorphDatePickerTuning.yearPickerHideDelay;
-      expect(m.yearPicker(2 + hide), 1);
-      expect(m.yearPicker(2 + hide + 0.125), closeTo(0.5, 1e-9));
+      expect(m.at(2 + hide).yearPicker, 1);
+      expect(m.at(2 + hide + 0.125).yearPicker, closeTo(0.5, 1e-9));
     });
 
     test('a reversal restarts from where the change stands', () {
@@ -1549,17 +1551,17 @@ void main() {
       m.showYearPicker(0.15, show: false);
       const hide = MorphDatePickerTuning.yearPickerHideDelay;
       final at = 0.15 + hide;
-      final before = m.yearPicker(at - 1e-6);
+      final before = m.at(at - 1e-6).yearPicker;
       expect(before, greaterThan(0));
-      expect(m.yearPicker(at), closeTo(before, 1e-4));
-      expect(m.yearPicker(at + 0.25), 0);
+      expect(m.at(at).yearPicker, closeTo(before, 1e-4));
+      expect(m.at(at + 0.25).yearPicker, 0);
       // A reversal scheduled to start before the change has started
       // leaves it where it was.
       final n = MorphDatePickerMotion();
       n.showYearPicker(0, show: true);
       n.showYearPicker(0.01, show: false);
       for (var t = 0.0; t < 0.6; t += 0.01) {
-        expect(n.yearPicker(t), 0);
+        expect(n.at(t).yearPicker, 0);
       }
     });
   });

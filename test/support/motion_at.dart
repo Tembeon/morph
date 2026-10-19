@@ -1,4 +1,5 @@
 import 'package:morph/src/widgets/alert_motion.dart';
+import 'package:morph/src/widgets/date_picker_motion.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/widgets/zoom_motion.dart';
@@ -44,6 +45,15 @@ extension MorphZoomMotionAt on MorphZoomMotion {
 extension MorphPushZoomMotionAt on MorphPushZoomMotion {
   /// Advances to [t] and returns this motion.
   MorphPushZoomMotion at(double t) {
+    advance(t);
+    return this;
+  }
+}
+
+/// See [MorphAlertMotionAt].
+extension MorphDatePickerMotionAt on MorphDatePickerMotion {
+  /// Advances to [t] and returns this motion.
+  MorphDatePickerMotion at(double t) {
     advance(t);
     return this;
   }

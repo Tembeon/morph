@@ -783,8 +783,7 @@ class _CompactLabelState extends State<_CompactLabel>
                   child: MorphLiveFadedText(
                     widget.text,
                     live: frames,
-                    opacityOf: () =>
-                        widget.enabled ? _motion.highlight(_motion.time) : 1,
+                    opacityOf: () => widget.enabled ? _motion.highlight : 1,
                     maxLines: 1,
                     textScaler: scaler,
                     style: MorphTypography.resolve(
@@ -972,9 +971,9 @@ class _OverlayViewState extends State<_OverlayView>
 
   void _syncStructure() {
     final t = _motion.time;
-    _pageTurning.value = _motion.page(t) < 1;
-    _yearsVisible.value = _motion.yearPicker(t).clamp(0.0, 1.0) > 0;
-    final box = (_motion.progress(t), _swap.value(t));
+    _pageTurning.value = _motion.page < 1;
+    _yearsVisible.value = _motion.yearPicker.clamp(0.0, 1.0) > 0;
+    final box = (_motion.progress, _swap.value(t));
     if (box != _boxState) {
       _boxState = box;
       _boxFrames.value++;
@@ -1023,7 +1022,7 @@ class _OverlayViewState extends State<_OverlayView>
   @override
   void advanceMotion(double t) {
     _motion.advance(t);
-    if (_queuedTurns != 0 && _motion.page(t) >= 1) {
+    if (_queuedTurns != 0 && _motion.page >= 1) {
       final direction = _queuedTurns.sign;
       _queuedTurns -= direction;
       _turn(direction);
@@ -1146,7 +1145,8 @@ class _OverlayViewState extends State<_OverlayView>
           b.localizations.daySemanticFormatter;
 
   void _turn(int direction) {
-    if (_motion.page(clock) < 1) {
+    _motion.advance(clock);
+    if (_motion.page < 1) {
       _queuedTurns += direction;
       wake();
       return;
@@ -1482,9 +1482,8 @@ class _BoxFrame {
   }) {
     final rect = placement.rect;
     final anchor = placement.anchor;
-    final t = motion.time;
-    final s = motion.scale(t);
-    final h = math.min(rect.height, motion.height(t, rect.height));
+    final s = motion.scale;
+    final h = math.min(rect.height, motion.height(rect.height));
     final box = Rect.fromLTWH(
       rect.left,
       below ? rect.top : rect.bottom - h,
@@ -1504,7 +1503,7 @@ class _BoxFrame {
         Offset.zero & box.size,
         const Radius.circular(MorphDatePickerTuning.cornerRadius),
       ),
-      opacity: motion.opacity(t),
+      opacity: motion.opacity,
     );
   }
 
@@ -1708,7 +1707,7 @@ class _Calendar extends StatelessWidget {
   bool _canTurn(int direction) =>
       _canTurnMonth(month, direction, firstDate, lastDate);
 
-  double _years() => motion.yearPicker(motion.time);
+  double _years() => motion.yearPicker;
 
   Widget _fading(Widget child, {required bool out}) => FadeTransition(
     opacity: _FrameValue(frames, () {
@@ -1800,7 +1799,7 @@ class _Calendar extends StatelessWidget {
                                       live: frames,
                                       matrixOf: () => _rotationZ(
                                         (rtl ? -1 : 1) *
-                                            motion.yearPickerTurn(motion.time) *
+                                            motion.yearPickerTurn *
                                             math.pi /
                                             2,
                                       ),
@@ -1917,7 +1916,7 @@ class _Calendar extends StatelessWidget {
                                         return const SizedBox.shrink();
                                       }
                                       final turning = pageTurning.value;
-                                      double p() => motion.page(motion.time);
+                                      double p() => motion.page;
                                       double dir() =>
                                           motion.pageDirection *
                                           (rtl ? -1.0 : 1.0);

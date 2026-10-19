@@ -339,7 +339,7 @@ class MorphDatePickerMotion {
         _overlaySettled &&
         _now >= _highlightStart + MorphDatePickerTuning.highlightDuration &&
         _now >= _pageStart + MorphDatePickerTuning.pageDuration &&
-        yearPickerSettled(_now);
+        _yearPickerSettledAt(_now);
   }
 
   /// Advances the motion to time [t].
@@ -414,8 +414,10 @@ class MorphDatePickerMotion {
     return projected;
   }
 
-  /// The overlay's progress at time [t]: 0 hidden, 1 open.
-  double progress(double t) {
+  /// The overlay's progress: 0 hidden, 1 open.
+  double get progress => _progressAt(_now);
+
+  double _progressAt(double t) {
     if (!reducedMotion) return _spring(t).value(t);
     final at = _pendingAt;
     if (at == null || t < at) return _fade(t);
@@ -429,21 +431,27 @@ class MorphDatePickerMotion {
             MorphDatePickerTuning.reducedMotionCurve.transform(k);
   }
 
-  /// The overlay's scale about its anchor at time [t].
-  double scale(double t) => reducedMotion
+  /// The overlay's scale about its anchor.
+  double get scale => _scaleAt(_now);
+
+  double _scaleAt(double t) => reducedMotion
       ? 1
       : MorphDatePickerTuning.hiddenScale +
-            (1 - MorphDatePickerTuning.hiddenScale) * progress(t);
+            (1 - MorphDatePickerTuning.hiddenScale) * _progressAt(t);
 
-  /// The overlay's opacity at time [t].
-  double opacity(double t) => progress(t).clamp(0.0, 1.0);
+  /// The overlay's opacity.
+  double get opacity => _opacityAt(_now);
 
-  /// The height of the overlay's box before the scale at time [t], for an
+  double _opacityAt(double t) => _progressAt(t).clamp(0.0, 1.0);
+
+  /// The height of the overlay's box before the scale, for an
   /// overlay [full] points tall.
-  double height(double t, double full) => reducedMotion
+  double height(double full) => _heightAt(_now, full);
+
+  double _heightAt(double t, double full) => reducedMotion
       ? full
       : MorphDatePickerTuning.hiddenHeight +
-            (full - MorphDatePickerTuning.hiddenHeight) * progress(t);
+            (full - MorphDatePickerTuning.hiddenHeight) * _progressAt(t);
 
   /// The label's text dims under a finger at time [t].
   void press(double t) => _highlight(t, MorphDatePickerTuning.highlightOpacity);
@@ -453,13 +461,15 @@ class MorphDatePickerMotion {
 
   void _highlight(double t, double to) {
     advance(t);
-    _highlightFrom = highlight(t);
+    _highlightFrom = _highlightAt(t);
     _highlightTo = reducedMotion ? 1 : to;
     _highlightStart = t;
   }
 
-  /// The opacity of the label's text at time [t].
-  double highlight(double t) {
+  /// The opacity of the label's text.
+  double get highlight => _highlightAt(_now);
+
+  double _highlightAt(double t) {
     final k = ((t - _highlightStart) / MorphDatePickerTuning.highlightDuration)
         .clamp(0.0, 1.0);
     return _highlightFrom +
@@ -471,14 +481,16 @@ class MorphDatePickerMotion {
   /// time [t]. A running turn completes before another can start.
   void turnPage(double t, int direction) {
     advance(t);
-    if (page(t) < 1) return;
+    if (_pageAt(t) < 1) return;
     _pageStart = t;
     _pageDirection = direction;
   }
 
-  /// How far the current page turn has gone at time [t], from 0 (the old
+  /// How far the current page turn has gone, from 0 (the old
   /// month in place) to 1 (the new one); 1 when no turn runs.
-  double page(double t) {
+  double get page => _pageAt(_now);
+
+  double _pageAt(double t) {
     final k = (t - _pageStart) / MorphDatePickerTuning.pageDuration;
     if (k >= 1) return 1;
     if (k <= 0) return 0;
@@ -536,8 +548,8 @@ class MorphDatePickerMotion {
   final List<_Turn> _turns = [];
   double _turnTarget = 0;
 
-  /// How far the month title's chevron has turned toward pointing down at
-  /// time [t]: 0 pointing forward, 1 down.
+  /// How far the month title's chevron has turned toward pointing down: 0
+  /// pointing forward, 1 down.
   ///
   /// UIKit adds each change of the chevron's transform on top of the ones
   /// still running instead of restarting from the current angle (an
@@ -545,7 +557,9 @@ class MorphDatePickerMotion {
   /// chevron on to 0.82 of the turn before it comes back, while the fades
   /// turn around at once), so the turn is the sum of every change's
   /// remaining part.
-  double yearPickerTurn(double t) {
+  double get yearPickerTurn => _yearPickerTurnAt(_now);
+
+  double _yearPickerTurnAt(double t) {
     var value = _turnTarget;
     for (final turn in _turns) {
       final k = (t - turn.start) / MorphDatePickerTuning.yearPickerDuration;
@@ -560,14 +574,18 @@ class MorphDatePickerMotion {
     return value;
   }
 
-  /// How far the calendar has turned to its month and year wheels at time
-  /// [t]: 0 the day grid, 1 the wheels.
-  double yearPicker(double t) =>
+  /// How far the calendar has turned to its month and year wheels: 0 the
+  /// day grid, 1 the wheels.
+  double get yearPicker => _yearPickerAt(_now);
+
+  double _yearPickerAt(double t) =>
       t >= _years.start ? _years.value(t) : _yearsBefore.value(t);
 
   /// Whether the change between the day grid and the wheels has finished
-  /// at time [t], the chevron's turn included.
-  bool yearPickerSettled(double t) =>
+  ///, the chevron's turn included.
+  bool get yearPickerSettled => _yearPickerSettledAt(_now);
+
+  bool _yearPickerSettledAt(double t) =>
       t >= _years.start + MorphDatePickerTuning.yearPickerDuration &&
       _turns.every(
         (_Turn turn) =>
