@@ -26,6 +26,18 @@ abstract class MorphLocalizations {
   /// The label of a navigation bar's back button.
   String get backLabel;
 
+  /// The label of a spinning activity indicator.
+  String get inProgressLabel;
+
+  /// The label of a list row's detail button.
+  String get moreInfoLabel;
+
+  /// The label of a stepper's minus button.
+  String get decrementLabel;
+
+  /// The label of a stepper's plus button.
+  String get incrementLabel;
+
   /// The nearest strings, or English.
   static MorphLocalizations of(BuildContext context) =>
       Localizations.of<MorphLocalizations>(context, MorphLocalizations) ??
@@ -51,6 +63,18 @@ class DefaultMorphLocalizations extends MorphLocalizations {
 
   @override
   String get backLabel => 'Back';
+
+  @override
+  String get inProgressLabel => 'In progress';
+
+  @override
+  String get moreInfoLabel => 'More info';
+
+  @override
+  String get decrementLabel => 'Decrement';
+
+  @override
+  String get incrementLabel => 'Increment';
 
   /// Loads the English strings for every locale.
   static const LocalizationsDelegate<MorphLocalizations> delegate =

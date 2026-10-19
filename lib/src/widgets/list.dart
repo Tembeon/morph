@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass_container.dart';
@@ -732,7 +733,7 @@ class _MorphListRowState extends State<MorphListRow>
           Semantics(
             container: true,
             button: true,
-            label: 'More info',
+            label: MorphLocalizations.of(context).moreInfoLabel,
             onTap: widget.onAccessoryTap,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,

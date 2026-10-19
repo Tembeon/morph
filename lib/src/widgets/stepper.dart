@@ -1,5 +1,6 @@
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -141,8 +142,8 @@ class MorphStepper extends StatefulWidget {
     this.backgroundColor,
     this.foregroundColor,
     this.appearance,
-    this.decrementLabel = 'Decrement',
-    this.incrementLabel = 'Increment',
+    this.decrementLabel,
+    this.incrementLabel,
     this.semanticFormatterCallback,
     super.key,
   });
@@ -172,11 +173,13 @@ class MorphStepper extends StatefulWidget {
   /// The look of the stepper; null resolves it from the theme.
   final MorphStepperAppearance? appearance;
 
-  /// The label screen readers announce for the minus half.
-  final String decrementLabel;
+  /// The label screen readers announce for the minus half; null takes
+  /// [MorphLocalizations.decrementLabel].
+  final String? decrementLabel;
 
-  /// The label screen readers announce for the plus half.
-  final String incrementLabel;
+  /// The label screen readers announce for the plus half; null takes
+  /// [MorphLocalizations.incrementLabel].
+  final String? incrementLabel;
 
   /// Formats the value announced by each half. Null uses up to twelve
   /// significant digits, without binary floating-point tails.
@@ -402,7 +405,9 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
                   bottom: 0,
                   width: size.width / 2,
                   child: _HalfSemantics(
-                    label: widget.decrementLabel,
+                    label:
+                        widget.decrementLabel ??
+                        MorphLocalizations.of(context).decrementLabel,
                     value: value,
                     enabled: enabled && _canStep(_Half.minus),
                     onTap: () => _key(_Half.minus),
@@ -414,7 +419,9 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
                   bottom: 0,
                   width: size.width / 2,
                   child: _HalfSemantics(
-                    label: widget.incrementLabel,
+                    label:
+                        widget.incrementLabel ??
+                        MorphLocalizations.of(context).incrementLabel,
                     value: value,
                     enabled: enabled && _canStep(_Half.plus),
                     onTap: () => _key(_Half.plus),

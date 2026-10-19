@@ -2,7 +2,7 @@
 class DefaultMorphLocalizations extends MorphLocalizations
   const DefaultMorphLocalizations()
   static const LocalizationsDelegate<MorphLocalizations> delegate
-  overrides: backLabel, closeLabel, dismissLabel, searchLabel, searchPlaceholder
+  overrides: backLabel, closeLabel, decrementLabel, dismissLabel, inProgressLabel, incrementLabel, moreInfoLabel, searchLabel, searchPlaceholder
 class MorphActivityIndicator extends StatefulWidget
   const MorphActivityIndicator({
     bool animating = true,
@@ -679,7 +679,11 @@ abstract class MorphLocalizations
   const MorphLocalizations()
   String get backLabel
   String get closeLabel
+  String get decrementLabel
   String get dismissLabel
+  String get inProgressLabel
+  String get incrementLabel
+  String get moreInfoLabel
   static MorphLocalizations of(BuildContext context)
   String get searchLabel
   String get searchPlaceholder
@@ -1657,16 +1661,16 @@ class MorphStepper extends StatefulWidget
     Color? backgroundColor,
     Color? foregroundColor,
     MorphStepperAppearance? appearance,
-    String decrementLabel = 'Decrement',
-    String incrementLabel = 'Increment',
+    String? decrementLabel,
+    String? incrementLabel,
     String Function(double)? semanticFormatterCallback,
     Key? key,
   })
   final MorphStepperAppearance? appearance
   final Color? backgroundColor
-  final String decrementLabel
+  final String? decrementLabel
   final Color? foregroundColor
-  final String incrementLabel
+  final String? incrementLabel
   final double max
   final double min
   final void Function(double)? onChanged

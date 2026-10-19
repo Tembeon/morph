@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/theme/theme.dart';
 
@@ -140,7 +141,7 @@ class MorphActivityIndicator extends StatefulWidget {
   final MorphActivityIndicatorAppearance? appearance;
 
   /// The label screen readers announce while it turns; null announces
-  /// "In progress".
+  /// [MorphLocalizations.inProgressLabel].
   final String? semanticLabel;
 
   /// The box of a spinner of [size], with the spoke width and the inner
@@ -232,7 +233,10 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
     final hidden = !widget.animating && widget.hidesWhenStopped;
     return Semantics(
       container: true,
-      label: widget.animating ? widget.semanticLabel ?? 'In progress' : null,
+      label: widget.animating
+          ? widget.semanticLabel ??
+                MorphLocalizations.of(context).inProgressLabel
+          : null,
       child: SizedBox.square(
         dimension: m.box,
         child: hidden
