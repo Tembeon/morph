@@ -1,0 +1,12 @@
+509a537f  runs 3  fixed-perf False  2026-10-19 22:48
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+nav/nav-navigation-steady-liquid    270   2.0   3.6   9.4  13.6   4.8   1.1    0   644  raster-cpu:3 bad raster: waitForBufferRelease 5.5, SurfaceFrame::Encode 3.7, QueueSubmit 3.5  [raster 11.77->13.6, gpu 5.425->4.794, power_mw 795->644]
+nav/nav-navigation-nested-push-liq  178   6.1  11.5   7.7  12.1   8.5   2.2    4   588  ui-build:3 ui-layout:1 bad ui: layout 10.1, build 7.5, paint 4.0  [gpu 6.831->8.528, power_mw 711->588]
+nav/nav-navigation-nested-pop-liqu  169   6.5  11.1   8.6  12.7   6.4   2.4    3   523  ui-layout:3 ui-paint:1 bad ui: layout 16.9, paint 6.3, build 5.4  [ui 8.576->11.12, raster 10.98->12.69, gpu 5.442->6.383, over_pct 1.3->2.4, power_mw 715->523]
+nav/nav-navigation-enter-flat       174   3.5   6.2   6.5   8.9   4.4   0.6    3   451  ui-layout:1 bad ui: layout 10.5, build 7.7, paint 2.4  [ui 5.496->6.222, gpu 3.317->4.384, power_mw 579->451]
+nav/nav-navigation-steady-flat      271   1.8   3.3   5.7   7.1   1.5   0.0    0   525    [ui 3.923->3.3, power_mw 608->525]
+nav/nav-navigation-nested-push-fla  174   3.9   7.9   5.9   8.0   4.1   1.1    9   516  ui-build:2 bad ui: build 9.9, layout 8.0, paint 4.6  [gpu 2.918->4.101, power_mw 619->516]
+nav/nav-navigation-nested-pop-flat  166   3.9  10.6   6.0   7.8   2.9   1.8    6   437  ui-layout:3 bad ui: layout 14.5, build 6.2, paint 3.0  [ui 6.906->10.61, gpu 2.394->2.929, power_mw 622->437]
+nav/nav-navigation-enter-liquid     176   4.8   8.3   8.6  11.7   7.0   0.6    4   559  ui-layout:1 bad ui: layout 15.1, build 9.0, paint 3.8  [gpu 5.642->6.953, power_mw 700->559]
