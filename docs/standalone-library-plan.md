@@ -176,11 +176,11 @@ morph даёт приложению полный набор Liquid Glass-ком�
 - **Сделать.**
   - [ ] Перевести alert, action sheet и popover date picker на `MorphPopupRoute` с уровнем окна.
   - [ ] Перевести push и pop navigation и push zoom на `MorphNavigationRoute(from:)`. Edge swipe через `navigator.didStartUserGesture()`.
-  - [ ] Один observer predictive back на binding для всех morph routes.
+  - [x] Один observer predictive back на binding для всех morph routes. `a8255041`: страница со slide и zoom-страница берут жест, только когда все routes вокруг них current; sheet, alert и открытое меню оставляют обычный back. Прогресс жеста заменяет долю ширины под пальцем (приближение, у iOS нет эталона).
 - **Видно.** Android back с предпросмотром на routes morph. Zoom из ячейки списка не меняется.
 - **Проверка, unit.**
   - [ ] Replay navigation release (2bdb3e47, 5e163f5f).
-  - [ ] Predictive back commit и cancel.
+  - [x] Predictive back commit и cancel. `test/predictive_back_test.dart`: commit, cancel, back под sheet закрывает sheet, zoom-страница.
   - [ ] Alert и date picker на root navigator из вложенного navigator.
   - [ ] Veto и возврат фокуса.
 - **Проверка, устройство.**
@@ -276,8 +276,8 @@ morph даёт приложению полный набор Liquid Glass-ком�
 - [ ] Выбран candidate SHA. Исходники, manifests, hooks, shaders, документы, `LICENSE`, renderer `NOTICE` и `VENDORED` находятся в этом commit.
 - [ ] Проверки единицы 8 связаны с candidate SHA, версиями SDK, платформами и конфигурацией.
 - [ ] Минимальная заявленная и основная stable-версии Flutter проверены. Результаты на beta записаны отдельно.
-- [ ] Асинхронные представления: исключение deferred loader, отклонённый Future, пустой результат, ответ после закрытия, быстрый reopen (`menu_content.dart`, `menu_entries.dart`).
-- [ ] При длительном повторении основных сценариев overlay entries, активные tickers, подписки и память не растут от цикла к циклу. Число циклов и границы записаны до прогона.
+- [x] Асинхронные представления: исключение deferred loader, отклонённый Future, пустой результат, ответ после закрытия, быстрый reopen (`menu_content.dart`, `menu_entries.dart`). `test/menu_deferred_async_test.dart` (`413521e7`); найденные дефекты синхронного throw и reopen во время закрытия исправлены в `566842a9`. Открыто: bar-меню создаёт новый контроллер на каждое открытие, поэтому `cache: true` между открытиями bar-меню, вероятно, не держится; отклонённый `load` кешируется как пустой и не повторяется.
+- [x] При длительном повторении основных сценариев overlay entries, активные tickers, подписки и память не растут от цикла к циклу. Число циклов и границы записаны до прогона. `test/presentation_cycles_test.dart` (`72ce8c88`): sheet, alert, меню, контекстное меню, zoom, по 25 циклов, flat tier; утечка `ValueNotifier` в меню исправлена в `566842a9`. Liquid tier в цикле не проверен.
 - [ ] Версия в `pubspec.yaml`, `CHANGELOG.md` и тег согласованы, breaking changes описаны.
 - [ ] Получение Git-зависимости проверено один раз: доступ к приватному репозиторию, разрешённый SHA в lockfile, краткий запуск.
 - [ ] Пара commit приложения и commit morph записана. Выпущенные теги не перемещаются, исправления выходят новым тегом.

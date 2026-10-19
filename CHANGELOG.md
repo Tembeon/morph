@@ -63,6 +63,15 @@ no behaviour or pixel change: every rename keeps what the old name did.
     `material_ui` is a dev dependency only.
   - The minimizing tab bar stamps scroll input on the current frame, so
     its springs no longer start a frame early or late with ticker order.
+  - Android predictive back previews the pop of slid and zoomed pages:
+    the page follows the gesture as it follows the edge swipe, a commit
+    pops it from there and a cancel returns it. Sheets, alerts and open
+    menus keep the plain back. An app opts in with
+    `android:enableOnBackInvokedCallback="true"`, as the example does.
+  - Deferred menu groups: a `load` that throws synchronously reports the
+    error and answers empty, as a rejected Future does, instead of leaving
+    the menu unopened; a menu reopened while it closes loads its uncached
+    groups again. Menus no longer leave one notifier undisposed per open.
 - Search and tab bars follow the native sweep of 2026-10-14 (pixel
   changes, declared in the search, search tab bar and minimize
   passports):
