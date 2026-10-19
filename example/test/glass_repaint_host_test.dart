@@ -9,8 +9,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The test drives and reads the renderer's own layers.
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
-// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';

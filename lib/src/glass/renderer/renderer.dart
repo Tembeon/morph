@@ -16,3 +16,22 @@ export 'package:morph/src/glass/renderer/liquid_glass_visibility.dart'
 export 'package:morph/src/glass/renderer/liquid_shape.dart';
 export 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show LiquidGlassLayer;
+export 'package:morph/src/glass/renderer/geometry/glass_rest.dart'
+    show AnalyticGeometryMode, GlassGeometryFlags;
+export 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart'
+    show BackdropCaptureDebug, GlassLayerOwners, debugRegisterBackdropCapture;
+export 'package:morph/src/glass/renderer/internal/blur_reach.dart'
+    show
+        debugMorphHalfResolutionBlur,
+        morphBackdropSeed,
+        morphBlurReach,
+        morphHalfResolutionSigma,
+        morphImpellerBlurSigma;
+export 'package:morph/src/glass/renderer/internal/content_snapshot.dart'
+    show GlassContentGlyphs, GlassContentSnapshot, GlassContentSource;
+export 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart'
+    show FlutterGpuGeometryRenderer;
+export 'package:morph/src/glass/renderer/internal/glass_defaults.dart'
+    show MorphGlassDefaults;
+export 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart'
+    show MorphGlassShadowShader;

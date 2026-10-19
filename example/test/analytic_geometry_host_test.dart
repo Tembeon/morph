@@ -20,8 +20,6 @@ import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
-// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'

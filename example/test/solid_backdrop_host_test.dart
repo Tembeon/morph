@@ -9,13 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The A/B toggles the renderer's own paths.
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
-// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
-// ignore: implementation_imports
-import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
-// ignore: implementation_imports
-import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/glass_warm_up.dart';
 // ignore: implementation_imports

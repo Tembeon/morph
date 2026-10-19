@@ -8,8 +8,6 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
-import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
-import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/liquid_glass.dart';

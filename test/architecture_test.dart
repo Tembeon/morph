@@ -4,9 +4,21 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'architecture/checker.dart';
 
+/// The renderer directories the widget layer may not import.
+const _rendererInternals = [
+  'composition',
+  'geometry',
+  'internal',
+  'pass',
+  'rendering',
+];
+
+/// The module names of [_rendererInternals].
+final _glassInternals = [for (final dir in _rendererInternals) 'glass $dir'];
+
 /// morph's structural rules for the current layout; the sketch in
 /// `docs/architecture/foundation-sketch.md` describes the target layout.
-const _rules = ArchitectureRules(
+final _rules = ArchitectureRules(
   forbidden: {
     'package:material_ui/',
     'package:cupertino_ui/',
@@ -46,29 +58,48 @@ const _rules = ArchitectureRules(
     'dart.library.ui_web',
   },
   modules: [
-    Module('api', 'lib/', nested: false),
+    const Module('api', 'lib/', nested: false),
     Module(
       'engine',
       'lib/src/',
       nested: false,
-      mayNotImport: {'api', 'glass', 'widgets'},
+      mayNotImport: {'api', 'glass', ..._glassInternals, 'widgets'},
     ),
-    Module(
+    const Module(
       'glass',
       'lib/src/glass/',
       mayNotImport: {'api', 'engine', 'widgets'},
     ),
+    // The renderer's modules behind its seam (renderer.dart): the widget
+    // layer reaches them only through it.
+    for (final dir in _rendererInternals)
+      Module(
+        'glass $dir',
+        'lib/src/glass/renderer/$dir/',
+        mayNotImport: {'api', 'engine', 'widgets'},
+      ),
     Module(
       'motion',
       'lib/src/motion/',
-      mayNotImport: {'api', 'engine', 'glass', 'theme', 'widgets'},
+      mayNotImport: {
+        'api',
+        'engine',
+        'glass',
+        ..._glassInternals,
+        'theme',
+        'widgets',
+      },
     ),
     Module(
       'theme',
       'lib/src/theme/',
-      mayNotImport: {'api', 'engine', 'glass', 'widgets'},
+      mayNotImport: {'api', 'engine', 'glass', ..._glassInternals, 'widgets'},
     ),
-    Module('widgets', 'lib/src/widgets/', mayNotImport: {'api'}),
+    Module(
+      'widgets',
+      'lib/src/widgets/',
+      mayNotImport: {'api', ..._glassInternals},
+    ),
   ],
 );
 
@@ -84,6 +115,18 @@ const _ratchet = <Rule, Set<String>>{
     'lib/src/glass/renderer/internal/optimized_clip.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/liquid_glass.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/rendering/liquid_glass_layer.dart imports lib/src/live.dart',
+    // The cache scope becomes a plane's backdrop (glass composition M7).
+    'lib/src/widgets/alert.dart imports lib/src/glass/renderer/internal/backdrop_cache.dart',
+    'lib/src/widgets/date_picker.dart imports lib/src/glass/renderer/internal/backdrop_cache.dart',
+    'lib/src/widgets/sheet.dart imports lib/src/glass/renderer/internal/backdrop_cache.dart',
+    // The raster anchor goes with the container joins (glass composition M9).
+    'lib/src/widgets/glass_liquid_draw.dart imports lib/src/glass/renderer/internal/raster_phase.dart',
+    // The liquid capability bootstrap, renderer code living in widgets/.
+    'lib/src/widgets/glass_liquid_native.dart imports lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart',
+    'lib/src/widgets/glass_liquid_native.dart imports lib/src/glass/renderer/internal/glass_warm_up.dart',
+    'lib/src/widgets/glass_liquid_native.dart imports lib/src/glass/renderer/internal/liquid_capability.dart',
+    'lib/src/widgets/glass_liquid_native.dart imports lib/src/glass/renderer/internal/multi_shader_builder.dart',
+    'lib/src/widgets/glass_liquid_web.dart imports lib/src/glass/renderer/internal/liquid_capability.dart',
   },
 };
 

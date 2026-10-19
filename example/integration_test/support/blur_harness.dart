@@ -18,9 +18,6 @@ import 'package:flutter_test/flutter_test.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/composition/glass_backdrop_draw.dart';
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/internal/blur_reach.dart'
-    show debugMorphHalfResolutionBlur;
-// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/scroll_edge_effect.dart'

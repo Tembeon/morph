@@ -9,8 +9,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The test drives the renderer's own layer.
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
-// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
