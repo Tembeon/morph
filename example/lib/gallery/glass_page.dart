@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -48,10 +49,10 @@ class _GlassPageState extends State<GlassPage> {
   /// The iOS Settings > Display & Brightness > Liquid Glass choice; the
   /// knob below sets any position between the two.
   static final _liquidGlass = {0.0: 'Clear', 1.0: 'Tinted'};
-  static const _appearances = {
-    ThemeMode.system: 'System',
-    ThemeMode.light: 'Light',
-    ThemeMode.dark: 'Dark',
+  static const _appearances = <Brightness?, String>{
+    null: 'System',
+    Brightness.light: 'Light',
+    Brightness.dark: 'Dark',
   };
   static const _frameRates = {
     GalleryFrameRate.auto: 'Auto',
@@ -214,7 +215,7 @@ class _GlassPageState extends State<GlassPage> {
   @override
   Widget build(BuildContext context) {
     final settings = GalleryGlassScope.of(context);
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = galleryBrightnessOf(context);
     final drawn = GlassAdaptiveScope.tierOf(context);
     final liquid = drawn == MorphGlassTier.liquid;
     return GalleryPage(
@@ -224,9 +225,11 @@ class _GlassPageState extends State<GlassPage> {
           child: BackdropGroup(
             child: Stack(
               children: [
-                Positioned.fill(child: _Backdrop(dark: dark)),
+                Positioned.fill(
+                  child: _Backdrop(dark: brightness == Brightness.dark),
+                ),
                 DefaultTextStyle.merge(
-                  style: TextStyle(color: dark ? Colors.white : Colors.black),
+                  style: TextStyle(color: galleryLabelColor(brightness)),
                   child: _scene(context),
                 ),
               ],
@@ -313,11 +316,12 @@ class _GlassPageState extends State<GlassPage> {
                 'and haptics set the theme of every control.',
               ),
               children: [
-                GalleryChoice<ThemeMode>(
+                GalleryChoice<Brightness?>(
                   label: 'Appearance',
                   options: _appearances,
                   value: settings.appearance,
-                  onChanged: (ThemeMode mode) => settings.appearance = mode,
+                  onChanged: (Brightness? appearance) =>
+                      settings.appearance = appearance,
                 ),
                 GalleryToggle(
                   label: 'Right to left',

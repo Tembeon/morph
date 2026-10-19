@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 
@@ -27,8 +28,8 @@ void main() {
     );
     unawaited(
       navigator.push(
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => const _Page(),
+        PageRouteBuilder<void>(
+          pageBuilder: (BuildContext context, _, _) => const _Page(),
         ),
       ),
     );
@@ -72,9 +73,9 @@ class _Page extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: galleryBackgroundColor(Theme.of(context).brightness),
-      body: const Center(
+    return ColoredBox(
+      color: galleryBackgroundColor(galleryBrightnessOf(context)),
+      child: const Center(
         child: MorphMenuButton(
           menu: [
             MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),

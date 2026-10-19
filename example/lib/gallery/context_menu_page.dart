@@ -1,4 +1,5 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/knobs.dart';
@@ -158,12 +159,21 @@ class _ContextMenuPageState extends State<ContextMenuPage> {
               padding: const .symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: color,
-                    radius: 18,
+                  Container(
+                    width: 36,
+                    height: 36,
+                    alignment: .center,
+                    decoration: BoxDecoration(color: color, shape: .circle),
                     child: Text(
                       name.substring(0, 1),
-                      style: const TextStyle(color: Colors.white),
+                      textScaler: .noScaling,
+                      style: MorphTypography.resolve(
+                        const TextStyle(
+                          color: Color(0xFFFFFFFF),
+                          fontSize: 16,
+                          fontWeight: .w500,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -276,7 +286,10 @@ class _ContextMenuPageState extends State<ContextMenuPage> {
                               borderRadius: const .all(.circular(12)),
                             ),
                             child: const Center(
-                              child: Icon(Icons.photo, color: Colors.white),
+                              child: Icon(
+                                Icons.photo,
+                                color: Color(0xFFFFFFFF),
+                              ),
                             ),
                           ),
                         ),
@@ -348,10 +361,10 @@ class _PhotoPreview extends StatelessWidget {
         child: Column(
           mainAxisSize: .min,
           children: [
-            const Icon(Icons.photo, color: Colors.white, size: 48),
+            const Icon(Icons.photo, color: Color(0xFFFFFFFF), size: 48),
             Text(
               'Photo ${index + 1}',
-              style: const TextStyle(color: Colors.white, fontSize: 17),
+              style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 17),
             ),
           ],
         ),

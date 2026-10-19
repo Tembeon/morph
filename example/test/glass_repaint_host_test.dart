@@ -106,7 +106,7 @@ void main() {
     await frames(tester, 10);
     final settings = GalleryGlassScope.read(navigator.currentContext!);
     settings.tier = MorphGlassTier.liquid;
-    settings.appearance = ThemeMode.dark;
+    settings.appearance = Brightness.dark;
     await frames(tester, 10);
     final entry = galleryEntries.firstWhere((e) => e.title == page);
     unawaited(

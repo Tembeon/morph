@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
 // The renderer's material, frost, refraction and light knobs are not
 // public API; this file is the gallery's renderer lab.
 // ignore_for_file: implementation_imports
@@ -61,7 +61,7 @@ class GalleryGlassSettings extends ChangeNotifier {
   double _light = 1;
   double _tint = 0;
   bool _frostControls = false;
-  ThemeMode _appearance = ThemeMode.system;
+  Brightness? _appearance;
   bool _rtl = false;
   bool _disabled = false;
   bool _inspector = false;
@@ -111,9 +111,9 @@ class GalleryGlassSettings extends ChangeNotifier {
   set frostControls(bool value) =>
       _set(_frostControls, value, () => _frostControls = value);
 
-  /// Light, dark or the system appearance.
-  ThemeMode get appearance => _appearance;
-  set appearance(ThemeMode value) =>
+  /// Light, dark, or null for the system appearance.
+  Brightness? get appearance => _appearance;
+  set appearance(Brightness? value) =>
       _set(_appearance, value, () => _appearance = value);
 
   /// Whether the whole gallery lays out right to left.
@@ -278,7 +278,7 @@ class GalleryGlassScope extends InheritedModel<GalleryGlassAspect> {
   final GalleryGlassSettings settings;
 
   final (MorphGlassTier?, GlassBuiltInPainter) _glass;
-  final ThemeMode _appearance;
+  final Brightness? _appearance;
   final bool _rtl;
   final bool _disabled;
   final bool _inspector;

@@ -1,4 +1,5 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/context_menu_page.dart';
 import 'package:morph_example/gallery/gallery.dart';

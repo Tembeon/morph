@@ -7,13 +7,13 @@ import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/gallery/knobs.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 
-/// Every text on screen that fell through to the app's error text style:
-/// a yellow double underline marks text outside any Material.
-List<String> _unstyledTexts(WidgetTester tester) => [
-  for (final element in find.byType(RichText).evaluate())
-    if ((element.widget as RichText).text.style?.decorationStyle ==
-        TextDecorationStyle.double)
-      (element.widget as RichText).text.toPlainText(),
+import 'support/gallery_text.dart';
+
+/// The Material app, themes and surfaces in the tree, offstage included.
+List<Widget> _materialWidgets() => [
+  for (final type in [MaterialApp, Theme, Material, Scaffold])
+    for (final element in find.byType(type, skipOffstage: false).evaluate())
+      element.widget,
 ];
 
 Future<void> _pumpGallery(
@@ -99,9 +99,11 @@ void main() {
             .backgroundColor,
         galleryBackgroundColor(brightness),
       );
+      expect(find.byType(WidgetsApp), findsOneWidget);
       for (final entry in galleryEntries) {
         await _open(tester, entry.title);
-        expect(_unstyledTexts(tester), isEmpty, reason: entry.title);
+        expect(unstyledTexts(), isEmpty, reason: entry.title);
+        expect(_materialWidgets(), isEmpty, reason: entry.title);
         expect(_slowMotion('1x'), findsOneWidget, reason: entry.title);
         _pages(tester).popUntil((Route<Object?> route) => route.isFirst);
         await tester.pumpAndSettle(
@@ -110,9 +112,30 @@ void main() {
           const Duration(seconds: 10),
         );
       }
-      expect(_unstyledTexts(tester), isEmpty);
+      expect(unstyledTexts(), isEmpty);
     });
   }
+
+  testWidgets('a text outside every morph surface reads as body text', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const GalleryApp(home: Center(child: Text('Loose'))),
+    );
+    final style = tester
+        .widget<RichText>(
+          find.descendant(
+            of: find.text('Loose'),
+            matching: find.byType(RichText),
+          ),
+        )
+        .text
+        .style!;
+    expect(style.fontSize, MorphTypography.body.fontSize);
+    expect(style.color, MorphListAppearance.light.titleColor);
+    expect(style.decoration, isNull);
+    expect(unstyledTexts(), ['Loose']);
+  });
 
   testWidgets('the open menu has styled rows', (tester) async {
     await _pumpGallery(tester);
@@ -132,7 +155,7 @@ void main() {
       const Duration(seconds: 10),
     );
     expect(find.text('Duplicate'), findsOneWidget);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 
   testWidgets('the slow-motion button sits in the bar, clear of the tab bar', (
@@ -178,7 +201,7 @@ void main() {
     await gesture.up();
     await _settle(tester);
     expect(find.text('Copy'), findsOneWidget);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 
   testWidgets('the glass page settings reach every page', (tester) async {
@@ -235,10 +258,10 @@ void main() {
       MorphGlassTier.flat,
     );
     expect(
-      Theme.of(tester.element(find.byType(MorphSwitch).first)).brightness,
+      MorphTheme.of(tester.element(find.byType(MorphSwitch).first)).brightness,
       Brightness.dark,
     );
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 
   testWidgets('section headers differ from entry titles, titles are unique', (
@@ -314,7 +337,7 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Orange'));
     await _settle(tester);
     expect(find.text('Probe orange'), findsOneWidget);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 }
 

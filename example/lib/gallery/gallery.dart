@@ -1,6 +1,7 @@
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 
 import 'package:morph_example/gallery/alert_page.dart';
@@ -32,10 +33,11 @@ import 'package:morph/src/widgets/glass_inspector.dart';
 /// The example app: widgets that move exactly like UIKit, each checked
 /// against recordings of the real controls.
 ///
-/// The gallery follows the system appearance unless its glass page picks
-/// one, and every control below the root draws its glass at the tier the
-/// [GalleryGlassSettings] select, or the one the theme picks by the
-/// device's GPU.
+/// A [WidgetsApp] whose only theme is a [MorphTheme]: nothing above or
+/// inside the gallery is a Material widget. The gallery follows the
+/// system appearance unless its glass page picks one, and every control
+/// below the root draws its glass at the tier the [GalleryGlassSettings]
+/// select, or the one the theme picks by the device's GPU.
 class GalleryApp extends StatefulWidget {
   /// Creates the app.
   const GalleryApp({this.navigatorKey, this.home, super.key});
@@ -75,24 +77,6 @@ class _GalleryAppState extends State<GalleryApp> {
         .ignore();
   }
 
-  static ThemeData _theme(Brightness brightness) {
-    final list = switch (brightness) {
-      Brightness.light => MorphListAppearance.light,
-      Brightness.dark => MorphListAppearance.dark,
-    };
-    return ThemeData(
-      brightness: brightness,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF007AFF),
-        brightness: brightness,
-      ),
-      scaffoldBackgroundColor: list.backgroundColor,
-      splashFactory: NoSplash.splashFactory,
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
-    );
-  }
-
   static MorphThemeData _morphTheme(
     Brightness brightness,
     Color? accent,
@@ -123,7 +107,17 @@ class _GalleryAppState extends State<GalleryApp> {
   @override
   Widget build(BuildContext context) => GalleryGlassHost(
     settings: _settings,
-    child: _GalleryMaterialApp(
+    child: WidgetsApp(
+      title: 'Morph widgets',
+      color: const Color(0xFF007AFF),
+      debugShowCheckedModeBanner: false,
+      pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
+          PageRouteBuilder<T>(
+            settings: settings,
+            pageBuilder: (BuildContext context, _, _) => builder(context),
+          ),
+      builder: (BuildContext context, Widget? child) =>
+          _GalleryChrome(child: child!),
       home:
           widget.home ??
           MorphNavigationStack(
@@ -134,33 +128,31 @@ class _GalleryAppState extends State<GalleryApp> {
   );
 }
 
-class _GalleryMaterialApp extends StatelessWidget {
-  const _GalleryMaterialApp({required this.home});
+/// The debug label of the text style the gallery falls back to outside
+/// every morph surface.
+///
+/// The fallback reads as body text, so a text that falls through looks
+/// right; tests find such a text by this label in its style.
+const String galleryFallbackTextLabel = 'gallery fallback text';
 
-  final Widget home;
-
-  /// Built once per brightness, so a ThemeData stays identical between
-  /// builds and the page below does not rebuild for an unchanged theme.
-  static final _themes = <Brightness, ThemeData>{};
-
-  static ThemeData _theme(Brightness brightness) => _themes.putIfAbsent(
-    brightness,
-    () => _GalleryAppState._theme(brightness),
-  );
+/// Keeps Android's stretching overscroll, as the platform's own apps
+/// draw it, instead of the widgets layer's glow.
+class _GalleryScrollBehavior extends ScrollBehavior {
+  const _GalleryScrollBehavior();
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Morph widgets',
-      debugShowCheckedModeBanner: false,
-      theme: _theme(.light),
-      darkTheme: _theme(.dark),
-      themeMode: GalleryGlassScope.of(context, .appearance).appearance,
-      builder: (BuildContext context, Widget? child) =>
-          _GalleryChrome(child: child!),
-      home: home,
-    );
-  }
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => switch (getPlatform(context)) {
+    .android => StretchingOverscrollIndicator(
+      axisDirection: details.direction,
+      clipBehavior: details.decorationClipBehavior ?? .hardEdge,
+      child: child,
+    ),
+    _ => super.buildOverscrollIndicator(context, child, details),
+  };
 }
 
 class _GalleryChrome extends StatelessWidget {
@@ -191,6 +183,10 @@ class _GalleryChrome extends StatelessWidget {
     final accessibility = GalleryGlassScope.of(context, .accessibility);
     final theming = GalleryGlassScope.of(context, .theming);
     final media = MediaQuery.of(context);
+    final brightness =
+        GalleryGlassScope.of(context, .appearance).appearance ??
+        media.platformBrightness;
+    final label = galleryLabelColor(brightness);
     return MediaQuery(
       data: media.copyWith(
         disableAnimations:
@@ -201,20 +197,46 @@ class _GalleryChrome extends StatelessWidget {
         textDirection: GalleryGlassScope.of(context, .rtl).rtl ? .rtl : .ltr,
         child: MorphTheme(
           data: _themeData(
-            Theme.of(context).brightness,
+            brightness,
             theming.accent,
             theming.haptics,
             glass.tier,
           ),
-          child: MorphGlassInspector(
-            enabled: GalleryGlassScope.of(context, .inspector).inspector,
-            child: GalleryGlassTuning(child: BackdropGroup(child: child)),
+          child: DefaultTextStyle(
+            style: MorphTypography.resolve(
+              MorphTypography.body.copyWith(
+                color: label,
+                debugLabel: galleryFallbackTextLabel,
+              ),
+            ),
+            child: IconTheme(
+              data: IconThemeData(color: label),
+              child: ScrollConfiguration(
+                behavior: const _GalleryScrollBehavior(),
+                child: MorphGlassInspector(
+                  enabled: GalleryGlassScope.of(context, .inspector).inspector,
+                  child: GalleryGlassTuning(child: BackdropGroup(child: child)),
+                ),
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 }
+
+/// The brightness the gallery's controls draw in at [context]: the
+/// theme's, or the platform's when the theme follows it.
+Brightness galleryBrightnessOf(BuildContext context) =>
+    MorphTheme.of(context).brightness ??
+    MediaQuery.platformBrightnessOf(context);
+
+/// The primary text and glyph color of a gallery page: iOS label.
+Color galleryLabelColor(Brightness brightness) => switch (brightness) {
+  Brightness.light => MorphListAppearance.light.titleColor,
+  Brightness.dark => MorphListAppearance.dark.titleColor,
+};
 
 /// The grouped background of a gallery page: iOS systemGroupedBackground.
 Color galleryBackgroundColor(Brightness brightness) => switch (brightness) {

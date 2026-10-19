@@ -4,13 +4,7 @@ import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/knobs.dart';
 
-/// Every text on screen that fell through to the app's error text style.
-List<String> _unstyledTexts(WidgetTester tester) => [
-  for (final element in find.byType(RichText).evaluate())
-    if ((element.widget as RichText).text.style?.decorationStyle ==
-        TextDecorationStyle.double)
-      (element.widget as RichText).text.toPlainText(),
-];
+import 'support/gallery_text.dart';
 
 Future<void> _settle(WidgetTester tester) => tester.pumpAndSettle(
   const Duration(milliseconds: 100),
@@ -150,7 +144,7 @@ void main() {
     });
     expect(find.byType(MorphToolbar), findsNothing);
     expect(find.byType(MorphLargeTitle), findsWidgets);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
     expect(tester.takeException(), isNull);
   });
 
@@ -194,7 +188,7 @@ void main() {
       find.text('Pages: Library / Album 1 / Album 2 / Album 3'),
       findsOneWidget,
     );
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
     expect(tester.takeException(), isNull);
   });
 }

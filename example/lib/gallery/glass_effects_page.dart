@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -173,7 +174,7 @@ class _GlassEffectsPageState extends State<GlassEffectsPage> {
     ],
   );
 
-  Widget _scene(BuildContext context, bool dark) {
+  Widget _scene(BuildContext context, Brightness brightness) {
     final shapes = Row(
       mainAxisAlignment: .spaceEvenly,
       crossAxisAlignment: .start,
@@ -181,11 +182,11 @@ class _GlassEffectsPageState extends State<GlassEffectsPage> {
     );
     return Stack(
       children: [
-        Positioned.fill(child: _Backdrop(dark: dark)),
+        Positioned.fill(child: _Backdrop(dark: brightness == Brightness.dark)),
         DefaultTextStyle.merge(
-          style: TextStyle(color: dark ? Colors.white : Colors.black),
+          style: TextStyle(color: galleryLabelColor(brightness)),
           child: IconTheme.merge(
-            data: IconThemeData(color: dark ? Colors.white : Colors.black),
+            data: IconThemeData(color: galleryLabelColor(brightness)),
             child: Padding(
               padding: const .fromLTRB(16, 24, 16, 32),
               child: Column(
@@ -217,7 +218,7 @@ class _GlassEffectsPageState extends State<GlassEffectsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    final brightness = galleryBrightnessOf(context);
     return GalleryPage(
       title: 'Glass effects',
       options: _options,
@@ -227,7 +228,7 @@ class _GlassEffectsPageState extends State<GlassEffectsPage> {
             child: MorphGlassInspector(
               enabled: _inspector,
               alignment: _alignment,
-              child: _scene(context, dark),
+              child: _scene(context, brightness),
             ),
           ),
         ),

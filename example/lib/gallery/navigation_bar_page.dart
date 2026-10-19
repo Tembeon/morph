@@ -1,4 +1,5 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -331,7 +332,7 @@ class _ZoomTiles extends StatelessWidget {
                         borderRadius: const .all(.circular(16)),
                       ),
                       child: const Center(
-                        child: Icon(Icons.photo, color: Colors.white),
+                        child: Icon(Icons.photo, color: Color(0xFFFFFFFF)),
                       ),
                     ),
                   ),
@@ -360,7 +361,9 @@ class _Zoomed extends StatelessWidget {
     slivers: const [
       SliverFillRemaining(
         hasScrollBody: false,
-        child: Center(child: Icon(Icons.photo, color: Colors.white, size: 120)),
+        child: Center(
+          child: Icon(Icons.photo, color: Color(0xFFFFFFFF), size: 120),
+        ),
       ),
     ],
   );

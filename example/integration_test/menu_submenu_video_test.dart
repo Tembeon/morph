@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -52,8 +53,8 @@ void main() {
 
     await tester.pump(_lead);
     const modes = bool.fromEnvironment('VIDEO_LIGHT_ONLY')
-        ? [ThemeMode.light]
-        : [ThemeMode.dark, ThemeMode.light];
+        ? [Brightness.light]
+        : [Brightness.dark, Brightness.light];
     for (final mode in modes) {
       settings.appearance = mode;
       unawaited(
@@ -104,9 +105,9 @@ class _Page extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
-    return Scaffold(
-      backgroundColor: galleryBackgroundColor(Theme.of(context).brightness),
-      body: Stack(
+    return ColoredBox(
+      color: galleryBackgroundColor(galleryBrightnessOf(context)),
+      child: Stack(
         children: [
           Positioned(
             left: _button.dx - 24,

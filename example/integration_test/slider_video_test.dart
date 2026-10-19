@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -67,7 +67,7 @@ void main() {
     Future<void> tap(Offset at, double hold) =>
         stroke(at, const [], press: hold);
 
-    for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+    for (final mode in [Brightness.light, Brightness.dark]) {
       settings.appearance = mode;
       for (final ticks in [0, 5]) {
         final value = ValueNotifier<double>(ticks == 0 ? 0.3 : 0);
@@ -136,9 +136,9 @@ class _Page extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    return Scaffold(
-      backgroundColor: galleryBackgroundColor(Theme.of(context).brightness),
-      body: Stack(
+    return ColoredBox(
+      color: galleryBackgroundColor(galleryBrightnessOf(context)),
+      child: Stack(
         children: [
           Positioned(
             left: (width - 300) / 2,
