@@ -169,7 +169,11 @@ abstract final class MorphSheetTuning {
   /// with (0.53 and 0.65 fitted).
   static const double flickDismissVelocityGain = 0.6;
 
-  /// The scale a floating sheet swells by under a touch.
+  /// The scale a floating sheet swells by under a touch. The swell holds
+  /// while the touch drags the sheet (device: the area scale stays
+  /// 0.96837, the floating 0.9602 times this, through every drag of a
+  /// floating sheet) and goes when the drag's settle starts; a sheet
+  /// docked at the touch does not swell.
   static const double pressScale = 1.00854;
 
   /// The spring the swell follows, on touch and on release (0.0001 rms in
@@ -296,8 +300,9 @@ abstract final class MorphSheetTuning {
 /// crosses [MorphSheetTuning.backgroundSwitch], so the glass gives way to
 /// the fill at a point of the drag rather than along it.
 ///
-/// A touch swells a floating sheet by [MorphSheetTuning.pressScale]. A
-/// drag moves the sheet's top edge with the finger: between the smallest
+/// A touch swells a floating sheet by [MorphSheetTuning.pressScale] and
+/// the swell holds through the drag the touch turns into. A drag moves
+/// the sheet's top edge with the finger: between the smallest
 /// and the largest detent the height follows it point for point, above
 /// a floating largest detent it rubber-bands toward the maximum height
 /// (at most [MorphSheetTuning.stretchLimit]), a docked sheet does not
@@ -690,15 +695,23 @@ class MorphSheetMotion
     _fill.retarget(t, target);
   }
 
-  /// A finger touched the sheet: a floating sheet swells.
+  /// A finger touched the sheet: a sheet floating at the touch swells,
+  /// and keeps its swell through a drag the touch turns into; a sheet
+  /// docked at the touch does not swell for it, even once a drag undocks
+  /// it.
   void press(double t) {
     advance(t);
+    if (_dockAt(t) >= 1) return;
     _pressAt = t + MorphSheetTuning.pressDelay;
   }
 
-  /// The touch ended or turned into a drag: the swell goes.
+  /// The touch ended without a drag: the swell goes.
   void unpress(double t) {
     advance(t);
+    _letGo(t);
+  }
+
+  void _letGo(double t) {
     _pressAt = null;
     _press.retarget(t, 1);
   }
@@ -715,17 +728,19 @@ class MorphSheetMotion
     });
   }
 
-  /// The swell of the sheet under a touch, as a factor on
-  /// [scale]; it fades as the sheet docks.
+  /// The swell of the sheet under a touch, as a factor on [scale]: it
+  /// fades as the square root of the way left to docking, so a sheet a
+  /// drag docks loses it at the large detent (fitted to the device drags
+  /// up from medium, 0.0004 - 0.0007 rms in the area scale where a linear
+  /// fade leaves 0.0012 - 0.0017).
   double get pressScale => _pressScaleAt(_now);
 
   double _pressScaleAt(double t) =>
-      1 + (_press.value(t) - 1) * (1 - _dockAt(t));
+      1 + (_press.value(t) - 1) * math.sqrt(1 - _dockAt(t));
 
   /// A finger started dragging the sheet at screen position [y].
   void dragStart(double t, double y) {
     advance(t);
-    unpress(t);
     _holdStretch(t);
     if (_dockAt(t) < 1) {
       _stretch.retarget(t, 0);
@@ -806,6 +821,7 @@ class MorphSheetMotion
     _holdStretch(t);
     _released = true;
     _timeline.at(t + MorphSheetTuning.releaseDelay, (double s) {
+      _letGo(s);
       _released = false;
       _settle(s, velocity);
     });

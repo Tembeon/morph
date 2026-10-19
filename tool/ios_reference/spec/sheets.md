@@ -37,7 +37,15 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   (`dragDockShortfall`; 768 of 778 in every simulator row).
   The opaque fill: see "Spec - background".
 - Dimming black 0.2, scaled by progress past an undimmed detent.
-- Touch: floating sheet swells 1.00854 on 0.2835/0.70 after 28 ms.
+- Touch: floating sheet swells 1.00854 on 0.2835/0.70 after 28 ms. The
+  swell holds through the drag the touch turns into (device: the area
+  scale sqrt(sx sy) stays 0.96837 = 0.9602 x 1.00854 in every drag of a
+  floating sheet), fades as sqrt(1 - p) while the drag docks it (drag-up
+  from medium), and goes with the settle, 25 ms after the lift. A sheet
+  docked at the touch never swells, even once the drag undocks it
+  (large-drag-down: 1.0000 throughout). Replay: area scale 0.0003 -
+  0.0018 rms (simulator and device; 0.0024 - 0.0068 when the swell went
+  at the drag's start).
 - Drag moves the height point for point between the detents, a slide below
   the smallest; above the largest see "Spec - stretch above the largest
   detent".
@@ -222,9 +230,6 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
 
 - The present's 8 pt horizontal drift (first-frame artifact).
 - One frame per docking reading the sheet at y 0.
-- The touch swell holds through a drag (sqrt(sx sy) stays 1.00854 x the
-  floating scale in every device drag of a floating sheet); morph lets it
-  go when the drag begins.
 - Keyboard MOTION: morph moves the raised sheet on the sheet spring as
   the insets change; UIKit's curve under the keyboard is not measured. A
   sheet with three detents was not captured (whether the keyboard picks
