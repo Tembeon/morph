@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 
@@ -14,100 +13,6 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 @internal
 double glassShadowBlurSupport(double blurRadius) =>
     Shadow.convertRadiusToSigma(blurRadius) * 3;
-
-/// Paints [BoxShadow]s for a [LiquidShape] around [child]: the standalone
-/// form of [GlassShadowCaster], which a liquid glass shape mixes in to
-/// paint its own shadows.
-@internal
-class GlassShadow extends SingleChildRenderObjectWidget {
-  /// Creates a new [GlassShadow] widget with the given [shape], [shadows], and
-  /// optional [child].
-  const GlassShadow({
-    required this.shape,
-    required this.shadows,
-    required this.settings,
-    this.appearanceVisibility = 1,
-    super.child,
-    super.key,
-  });
-
-  /// The shape to paint shadows for.
-  final LiquidShape shape;
-
-  final LiquidGlassSettings settings;
-
-  /// Per-shape materialization progress.
-  final double appearanceVisibility;
-
-  /// The list of shadows to paint.
-  ///
-  /// Only outer-equivalent shadows are supported; [BoxShadow.blurStyle] is
-  /// ignored. When any shadow has a non-zero [BoxShadow.offset], the
-  /// shadows are clipped to outside the glass shape so they do not bleed
-  /// through the translucent glass body.
-  final List<BoxShadow> shadows;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) => _RenderGlassShadow(
-    shape: shape,
-    shadows: shadows,
-    visibility: appearanceVisibility,
-  );
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    // ignore: library_private_types_in_public_api
-    _RenderGlassShadow renderObject,
-  ) {
-    renderObject.shape = shape;
-    renderObject.shadows = shadows;
-    renderObject.visibility = appearanceVisibility;
-  }
-}
-
-class _RenderGlassShadow extends RenderProxyBox with GlassShadowCaster {
-  _RenderGlassShadow({
-    required this._shape,
-    required this._shadows,
-    required double visibility,
-  }) : _visibility = visibility.clamp(0, 1);
-
-  @override
-  LiquidShape get shape => _shape;
-  LiquidShape _shape;
-  set shape(LiquidShape value) {
-    if (_shape == value) return;
-    _shape = value;
-    markNeedsPaint();
-  }
-
-  @override
-  List<BoxShadow> get shadows => _shadows;
-  List<BoxShadow> _shadows;
-  set shadows(List<BoxShadow> value) {
-    if (_shadows == value) return;
-    _shadows = value;
-    markNeedsPaint();
-  }
-
-  double get visibility => _visibility;
-  double _visibility = 1;
-  set visibility(double value) {
-    if (_visibility == value) return;
-    _visibility = value.clamp(0, 1);
-    markNeedsPaint();
-  }
-
-  @override
-  double get shadowVisibility => _visibility;
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    paintShadows(context, offset);
-    super.paint(context, offset);
-  }
-}
 
 /// Paints the [BoxShadow]s of a [LiquidShape] that fills this box, using
 /// canvas primitives (drawRRect, drawCircle, drawRSuperellipse, etc.)
@@ -127,8 +32,10 @@ mixin GlassShadowCaster on RenderBox {
   /// The shape to paint shadows for.
   LiquidShape get shape;
 
-  /// The shadows to paint, outside the shape when one is offset (see
-  /// [GlassShadow.shadows]).
+  /// The shadows to paint. Only outer-equivalent shadows are supported;
+  /// [BoxShadow.blurStyle] is ignored. When any shadow has a non-zero
+  /// [BoxShadow.offset], the shadows are clipped to outside the glass shape
+  /// so they do not bleed through the translucent glass body.
   List<BoxShadow> get shadows;
 
   /// The materialization progress the shadows fade and tighten with, from

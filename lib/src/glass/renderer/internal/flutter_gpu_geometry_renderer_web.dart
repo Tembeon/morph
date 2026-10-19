@@ -22,30 +22,13 @@ class FlutterGpuGeometryRenderer {
   /// Nothing is ever cached on the web.
   static FlutterGpuGeometryRenderer? tryCreateCached(String assetKey) => null;
 
-  /// There is no Flutter GPU context on the web.
-  static Future<void> waitUntilGpuContextAvailable() => Future.value();
-
-  static int get debugTotalRenderCount => 0;
-  static int get debugActiveRendererCount => 0;
   static int get debugActiveGeometryTextureCount => 0;
-  static int get debugActiveMaterialTextureCount => 0;
 
   /// Matches the native renderer's reuse horizon; nothing is reused here.
   static const int reuseAfterFrames = 1;
-  static int debugReusedTextureCount = 0;
-  static int debugAllocatedTextureCount = 0;
-  static int debugDroppedTextureCount = 0;
-  static int get debugReleasedTextureCount => 0;
 
   /// Nothing is ever deferred on the web.
   static void flushPendingSubmissions() {}
-  static int debugBatchedSubmitCount = 0;
-  static int debugDeferredPassCount = 0;
-  static int debugPostFrameFlushCount = 0;
-  int get debugRetiredTextureCount => 0;
-  int get debugMatteTextureCount => 0;
-  Object? get debugMatteTexture => null;
-  (int, int)? get debugMatteTextureSize => null;
 
   /// Material map texels per matte pixel; shared constant with the native
   /// renderer so uniform math stays identical.
@@ -55,10 +38,8 @@ class FlutterGpuGeometryRenderer {
   static const int maxShapes = 32;
 
   int debugRenderCount = 0;
-  Object get debugPipelineIdentity => this;
   int get debugUniformBlockLength => 0;
   Object? get debugUniformArenaIdentity => null;
-  bool get debugDisposed => true;
   ui.Image? get materialImage => null;
 
   // ignore: avoid_unused_constructor_parameters

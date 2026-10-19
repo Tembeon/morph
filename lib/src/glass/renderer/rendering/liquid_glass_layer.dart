@@ -1108,7 +1108,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   static bool debugSeedsBlur = true;
 
   static final BackdropKey _probeKey = BackdropKey();
-  static ImageFilter? _probePooledFilter;
   static final Set<String> _probeLogged = {};
 
   bool _blursOwnBackdrop = false;
@@ -1249,7 +1248,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   ImageFilter _updateShaderFilter() {
     final inputsChanged = _pass.takeInputsChanged();
     if (_cachedFilter != null && !inputsChanged) return _cachedFilter!;
-    if (debugGlassCostProbe case GlassCostProbe.copy || GlassCostProbe.pooled) {
+    if (debugGlassCostProbe == GlassCostProbe.copy) {
       return _cachedFilter = morphBackdropSeed;
     }
     final shader = _pass.shaderFilter();
@@ -1271,9 +1270,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     final filter = frostSigma > 0
         ? ImageFilter.compose(inner: _pass.frostBlur(frostSigma), outer: shader)
         : shader;
-    if (debugGlassCostProbe == GlassCostProbe.pooledShader) {
-      return _cachedFilter = _probePooledFilter ??= filter;
-    }
     _cachedFilter = filter;
     return filter;
   }
@@ -1317,9 +1313,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       final shader = (_shaderHandle.layer ??= BackdropFilterLayer())
         ..filter = _updateShaderFilter()
         ..backdropKey = switch (debugGlassCostProbe) {
-          GlassCostProbe.shared ||
-          GlassCostProbe.pooled ||
-          GlassCostProbe.pooledShader => _probeKey,
+          GlassCostProbe.shared => _probeKey,
           _ => backdropKey,
         };
       GlassLayerOwners.note(shader, this);
@@ -1769,19 +1763,8 @@ enum GlassCostProbe {
   /// The frost blur goes, the glass shader stays in the filter.
   nofrost,
 
-  /// Every liquid layer reads one backdrop key through one identity color
-  /// filter: Impeller filters the read once and draws each layer's rect of
-  /// it straight into the pass, with no offscreen pass per layer.
-  pooled,
-
   /// Every liquid layer draws its glass as a paint over opaque black: the
   /// glass shader over the layer's area without a backdrop read or an
   /// offscreen pass.
   solid,
-
-  /// Every liquid layer reads one backdrop key through one glass filter
-  /// (the first layer's): Impeller runs the glass shader once over the whole
-  /// read and draws each layer's rect of it, the cost of one filter per
-  /// plane.
-  pooledShader,
 }

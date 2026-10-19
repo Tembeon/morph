@@ -53,10 +53,6 @@ class FlutterGpuGeometryRenderer {
     _offsetShapeBounds = resources.offsetShapeBounds;
     _vertexBufferView = resources.vertexBufferView;
     _uniformData = ByteData(_uniformSize);
-    assert(() {
-      _debugActiveRendererCount++;
-      return true;
-    }(), 'Track live geometry renderers in debug builds.');
   }
 
   /// The most shapes one geometry pass encodes, `MAX_SHAPES` of the GPU
@@ -123,23 +119,6 @@ class FlutterGpuGeometryRenderer {
         : FlutterGpuGeometryRenderer._fromShared(resources);
   }
 
-  /// Completes once the Flutter GPU context exists without blocking.
-  ///
-  /// Workaround for Flutter 3.47.1 on Android: the engine creates the
-  /// Impeller context on the raster thread after startup, off the critical
-  /// path (`shell/common/shell.cc`), and reading `gpu.gpuContext` before
-  /// then blocks the UI thread until it exists, which takes 100 ms or more on
-  /// some Vulkan devices. The first rasterized frame needs the context, so
-  /// waiting for it avoids the block. This initializes the widgets binding
-  /// if needed, including before `runApp`. Remove it once the engine creates
-  /// the context before the first frame or offers a non-blocking way to wait
-  /// for it. On every other platform it completes immediately.
-  static Future<void> waitUntilGpuContextAvailable() async {
-    if (!Platform.isAndroid) return;
-    await WidgetsFlutterBinding.ensureInitialized()
-        .waitUntilFirstFrameRasterized;
-  }
-
   static final Map<String, Future<_SharedGeometryResources>> _assetResources =
       {};
   static final Map<String, _SharedGeometryResources> _resolvedAssetResources =
@@ -158,25 +137,11 @@ class FlutterGpuGeometryRenderer {
 
   // These ownership counters exclude clones held by callers and native
   // references retained by submitted scenes; they are not GPU memory metrics.
-  static int _debugActiveRendererCount = 0;
   static int _debugActiveGeometryTextureCount = 0;
-  static int _debugActiveMaterialTextureCount = 0;
-  static int _debugTotalRenderCount = 0;
-
-  /// Counts SDF submissions across all owners, including temporary renderers.
-  @visibleForTesting
-  static int get debugTotalRenderCount => _debugTotalRenderCount;
-
-  @visibleForTesting
-  static int get debugActiveRendererCount => _debugActiveRendererCount;
 
   @visibleForTesting
   static int get debugActiveGeometryTextureCount =>
       _debugActiveGeometryTextureCount;
-
-  @visibleForTesting
-  static int get debugActiveMaterialTextureCount =>
-      _debugActiveMaterialTextureCount;
 
   static gpu.BufferView _emplaceUniforms(ByteData bytes, int uniformSize) {
     final alignment = gpu.gpuContext.minimumUniformByteAlignment;
@@ -228,9 +193,6 @@ class FlutterGpuGeometryRenderer {
   late final gpu.RenderPipeline _materialTintGradientPipeline;
 
   @visibleForTesting
-  Object get debugPipelineIdentity => _pipeline;
-
-  @visibleForTesting
   int get debugUniformBlockLength => _uniforms?.blockLength ?? 0;
 
   @visibleForTesting
@@ -239,9 +201,6 @@ class FlutterGpuGeometryRenderer {
   /// Number of geometry command buffers submitted by this renderer.
   @visibleForTesting
   int debugRenderCount = 0;
-
-  @visibleForTesting
-  bool get debugDisposed => _disposed;
 
   bool _disposed = false;
 
@@ -318,7 +277,6 @@ class FlutterGpuGeometryRenderer {
   }) {
     assert(() {
       debugRenderCount++;
-      _debugTotalRenderCount++;
       return true;
     }(), 'Track geometry submissions in debug builds.');
     final matteWidth = _bucketDimension(width);
@@ -374,10 +332,6 @@ class FlutterGpuGeometryRenderer {
       _materialImage = null;
       _materialRenderTarget = null;
       _materialTexture = null;
-      assert(() {
-        _debugActiveMaterialTextureCount--;
-        return true;
-      }(), 'Track replaced material textures in debug builds.');
     }
     if (writeMaterials) {
       final material = _materials.next(
@@ -394,10 +348,6 @@ class FlutterGpuGeometryRenderer {
       _materialTexture = material.texture;
       _materialRenderTarget = material.renderTarget;
       _materialImage = _materialTexture!.asImage();
-      assert(() {
-        _debugActiveMaterialTextureCount++;
-        return true;
-      }(), 'Track live material textures in debug builds.');
     } else {
       _materials.releaseCurrent(_completedFrames);
     }
@@ -601,25 +551,8 @@ class FlutterGpuGeometryRenderer {
   static final MorphDeferredSubmissions<gpu.CommandBuffer> _pending =
       MorphDeferredSubmissions((commandBuffer) {
         commandBuffer.submit();
-        assert(() {
-          debugBatchedSubmitCount++;
-          return true;
-        }(), 'Count batched submissions in debug builds.');
       });
   static bool _postFrameFlushScheduled = false;
-
-  /// Command buffers submitted by [flushPendingSubmissions].
-  @visibleForTesting
-  static int debugBatchedSubmitCount = 0;
-
-  /// Flushes left to the post-frame safety net because no glass layer of the
-  /// frame's scene flushed first.
-  @visibleForTesting
-  static int debugPostFrameFlushCount = 0;
-
-  /// Passes whose submission was deferred to [flushPendingSubmissions].
-  @visibleForTesting
-  static int debugDeferredPassCount = 0;
 
   // Only the paint and compositing phases are followed by a scene build that
   // flushes before the scene reaches the raster thread.
@@ -632,10 +565,6 @@ class FlutterGpuGeometryRenderer {
       commandBuffer.submit();
       return;
     }
-    assert(() {
-      debugDeferredPassCount++;
-      return true;
-    }(), 'Count deferred geometry passes in debug builds.');
     _pending.add(commandBuffer);
     if (_postFrameFlushScheduled) return;
     _postFrameFlushScheduled = true;
@@ -643,10 +572,6 @@ class FlutterGpuGeometryRenderer {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _postFrameFlushScheduled = false;
       if (_pending.isEmpty) return;
-      assert(() {
-        debugPostFrameFlushCount++;
-        return true;
-      }(), 'Count safety-net flushes in debug builds.');
       flushPendingSubmissions();
     });
   }
@@ -700,7 +625,6 @@ class FlutterGpuGeometryRenderer {
       _released.removeWhere((texture) {
         final stale =
             _completedFrames - texture.retiredFrame > _idleFramesBeforeTrim;
-        if (stale) _countDropped();
         return stale;
       });
       if (_renderersWithSpares.isEmpty) return;
@@ -716,51 +640,6 @@ class FlutterGpuGeometryRenderer {
   }
 
   int _lastRenderFrame = 0;
-
-  /// Textures this renderer holds that are not in use.
-  @visibleForTesting
-  int get debugRetiredTextureCount =>
-      _mattes.spareCount + _materials.spareCount;
-
-  /// Matte textures this renderer holds, including the one in use.
-  @visibleForTesting
-  int get debugMatteTextureCount => _mattes.textureCount;
-
-  /// The latest matte texture, compared by identity in tests.
-  @visibleForTesting
-  Object? get debugMatteTexture => _texture;
-
-  /// Size of the latest matte texture.
-  @visibleForTesting
-  (int, int)? get debugMatteTextureSize => switch (_texture) {
-    final texture? => (texture.width, texture.height),
-    null => null,
-  };
-
-  /// Renders that wrote into a reused texture instead of allocating one.
-  @visibleForTesting
-  static int debugReusedTextureCount = 0;
-
-  /// Textures allocated, all renderers.
-  @visibleForTesting
-  static int debugAllocatedTextureCount = 0;
-
-  /// Textures dropped, all renderers. Once a texture has lived a few young
-  /// GCs its wrapper is promoted, and dropping it pins its storage until an
-  /// old-generation GC.
-  @visibleForTesting
-  static int debugDroppedTextureCount = 0;
-
-  /// Released textures waiting for another renderer.
-  @visibleForTesting
-  static int get debugReleasedTextureCount => _released.length;
-
-  static void _countDropped() {
-    assert(() {
-      debugDroppedTextureCount++;
-      return true;
-    }(), 'Count dropped geometry textures in debug builds.');
-  }
 
   /// A mature released texture that holds [width] x [height] without
   /// wasting more than 1.5x per dimension, or null.
@@ -972,12 +851,6 @@ class FlutterGpuGeometryRenderer {
     _materialRenderTarget = null;
     _materialImage?.dispose();
     _materialImage = null;
-    if (_materialTexture != null) {
-      assert(() {
-        _debugActiveMaterialTextureCount--;
-        return true;
-      }(), 'Track disposed material textures in debug builds.');
-    }
     _materialTexture = null;
     if (_texture != null) {
       assert(() {
@@ -994,10 +867,6 @@ class FlutterGpuGeometryRenderer {
     _disposed = true;
     releaseOutput();
     _fieldTextures.release();
-    assert(() {
-      _debugActiveRendererCount--;
-      return true;
-    }(), 'Track disposed geometry renderers in debug builds.');
   }
 }
 
@@ -1058,23 +927,16 @@ final class _TextureRing {
       if (previous.covers(_width, _height)) {
         previous.retiredFrame = frame;
         _spares.add(previous);
-      } else {
-        FlutterGpuGeometryRenderer._countDropped();
       }
     }
     // Spares retire in frame order, so the first is the oldest.
     if (_spares.isNotEmpty &&
         frame - _spares.first.retiredFrame >=
             FlutterGpuGeometryRenderer.reuseAfterFrames) {
-      assert(() {
-        FlutterGpuGeometryRenderer.debugReusedTextureCount++;
-        return true;
-      }(), 'Count reused geometry textures in debug builds.');
       return _current = _spares.removeAt(0);
     }
     while (_spares.length > _maxSpares) {
       _spares.removeAt(0);
-      FlutterGpuGeometryRenderer._countDropped();
     }
     final released = FlutterGpuGeometryRenderer._claimReleased(
       frame,
@@ -1082,10 +944,6 @@ final class _TextureRing {
       _height,
     );
     if (released != null) {
-      assert(() {
-        FlutterGpuGeometryRenderer.debugReusedTextureCount++;
-        return true;
-      }(), 'Count reused geometry textures in debug builds.');
       return _current = released;
     }
     return _current = _allocate(_width, _height);
@@ -1103,9 +961,7 @@ final class _TextureRing {
   /// Drops spare textures, except those [keep] accepts.
   void dropSpares({bool Function(_RingTexture texture)? keep}) {
     _spares.removeWhere((texture) {
-      if (keep?.call(texture) ?? false) return false;
-      FlutterGpuGeometryRenderer._countDropped();
-      return true;
+      return !(keep?.call(texture) ?? false);
     });
   }
 
@@ -1123,7 +979,6 @@ final class _TextureRing {
     }
     while (released.length > FlutterGpuGeometryRenderer._maxReleased) {
       released.removeAt(0);
-      FlutterGpuGeometryRenderer._countDropped();
     }
   }
 
@@ -1135,10 +990,6 @@ final class _TextureRing {
   }
 
   static _RingTexture _allocate(int width, int height) {
-    assert(() {
-      FlutterGpuGeometryRenderer.debugAllocatedTextureCount++;
-      return true;
-    }(), 'Count allocated geometry textures in debug builds.');
     return _RingTexture(
       gpu.gpuContext.createTexture(
         gpu.StorageMode.devicePrivate,

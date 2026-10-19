@@ -678,10 +678,6 @@ final class GlassFinalPass {
     }();
   }
 
-  /// Whether the shared placeholder image exists, for tests.
-  @visibleForTesting
-  static bool get debugHasBlankImage => _blankImage != null;
-
   /// Releases the analytic shaders and the placeholder image.
   void dispose() {
     if (_holdsBlankImage) {

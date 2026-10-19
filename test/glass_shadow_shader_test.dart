@@ -8,11 +8,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/glass/renderer/glass_shadow.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
+
+import 'support/glass_shadow_box.dart';
 
 /// The floating platter shadow at [lift], as the lens, knob and thumb
 /// draw it.
@@ -77,10 +78,9 @@ Widget _shadowScene(
               top: at.dy,
               width: size.width,
               height: size.height,
-              child: GlassShadow(
+              child: GlassShadowBox(
                 shape: shape,
                 shadows: shadows,
-                settings: const LiquidGlassSettings(),
                 appearanceVisibility: visibility,
               ),
             ),
@@ -216,7 +216,7 @@ void main() {
                 _shadowScene(at, size, shape, shadows, visibility),
               );
               final shaded = await _shot(tester);
-              final box = tester.renderObject(find.byType(GlassShadow));
+              final box = tester.renderObject(find.byType(GlassShadowBox));
               final region = (box as RenderBox).paintBounds.shift(at);
               // The outlines the shadows are cut at: the glass deflated by
               // half a pixel when a shadow is offset, else each shadow's own
@@ -423,7 +423,7 @@ void main() {
           1,
         ),
       );
-      final box = tester.renderObject(find.byType(GlassShadow));
+      final box = tester.renderObject(find.byType(GlassShadowBox));
       final pattern = paints;
       pattern.clipPath();
       pattern.rsuperellipse();
@@ -447,7 +447,7 @@ void main() {
           1,
         ),
       );
-      var box = tester.renderObject<RenderBox>(find.byType(GlassShadow));
+      var box = tester.renderObject<RenderBox>(find.byType(GlassShadowBox));
       if (ui.ImageFilter.isShaderFilterSupported) {
         expect(box, paintsExactlyCountTimes(#clipPath, 0));
         expect(box, paintsExactlyCountTimes(#drawRect, 1));
@@ -475,7 +475,7 @@ void main() {
           1,
         ),
       );
-      box = tester.renderObject<RenderBox>(find.byType(GlassShadow));
+      box = tester.renderObject<RenderBox>(find.byType(GlassShadowBox));
       final pattern = paints;
       pattern.clipPath();
       pattern.rrect();

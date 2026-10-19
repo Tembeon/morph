@@ -3,10 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/glass/renderer/glass_shadow.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/widgets/glass_body_shadow.dart';
+
+import 'support/glass_shadow_box.dart';
 
 /// The fused-body shadow as it was painted before: one shifted copy of the
 /// outline per shadow in an offscreen layer, the outline cut out of it.
@@ -159,10 +160,9 @@ void main() {
                   children: [
                     Positioned.fromRect(
                       rect: box,
-                      child: GlassShadow(
+                      child: GlassShadowBox(
                         shape: shape,
                         shadows: shadows,
-                        settings: const LiquidGlassSettings(),
                         child: const SizedBox.expand(),
                       ),
                     ),
@@ -174,7 +174,7 @@ void main() {
         ),
       );
       expect(
-        tester.renderObject(find.byType(GlassShadow)),
+        tester.renderObject(find.byType(GlassShadowBox)),
         paintsExactlyCountTimes(#saveLayer, 0),
       );
       final boundary =
