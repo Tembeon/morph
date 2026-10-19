@@ -24,7 +24,8 @@ import 'support/glass_scenes.dart';
 /// fixture with `PERF_COUNTS_UPDATE=true flutter test
 /// test/perf_counts_test.dart` after a change that lowers a count.
 /// `PERF_COUNTS_OWNERS=true` also prints, per scene, the widgets that
-/// built during the run and how often.
+/// built and the render objects that painted during the run and how
+/// often.
 ///
 /// flutter_test has no Impeller, so the liquid tier builds its real widget
 /// and render tree but paints through the renderer's fallback: captures
@@ -95,6 +96,12 @@ void main() {
             '$name builds: '
             '${[for (final e in built.take(8)) '${e.key} ${e.value}'].join(', ')}',
           );
+          final painted = counter.painters.entries.toList();
+          painted.sort((a, b) => b.value.compareTo(a.value));
+          debugPrint(
+            '$name paints: '
+            '${[for (final e in painted.take(10)) '${e.key} ${e.value}'].join(', ')}',
+          );
         }
         await _settle(tester);
         final idle = await _idleFrames(tester);
@@ -154,6 +161,9 @@ class _Counter {
 
   /// How often each widget type built while counting.
   final Map<String, int> owners = {};
+
+  /// How often each render object type painted while counting.
+  final Map<String, int> painters = {};
   int _paints = 0;
   int _pictures = 0;
   int _captures = 0;
@@ -174,6 +184,8 @@ class _Counter {
     };
     debugOnProfilePaint = (RenderObject object) {
       _framePaints++;
+      final type = object.runtimeType.toString();
+      painters[type] = (painters[type] ?? 0) + 1;
     };
     _seen = _collectPictures(
       tester.binding.renderViews.first.debugLayer!,
