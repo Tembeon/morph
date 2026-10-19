@@ -391,7 +391,7 @@ const _ceilings = <String, _Ceiling>{
   // down, after the touch-down frame (lifecycle.md, touch rows).
   'segmented-touch/flat tap-seg2': (
     first: 0,
-    ms: 1408,
+    ms: 1424,
     builds: 0,
     layouts: 0,
     paints: 0,
@@ -405,7 +405,7 @@ const _ceilings = <String, _Ceiling>{
   ),
   'segmented-touch/flat press-hold-other': (
     first: 0,
-    ms: 2224,
+    ms: 2240,
     builds: 0,
     layouts: 0,
     paints: 0,
@@ -468,7 +468,7 @@ const _ceilings = <String, _Ceiling>{
   ),
   'segmented-touch/liquid tap-seg2': (
     first: 0,
-    ms: 1408,
+    ms: 1424,
     builds: 0,
     layouts: 0,
     paints: 0,
@@ -482,7 +482,7 @@ const _ceilings = <String, _Ceiling>{
   ),
   'segmented-touch/liquid press-hold-other': (
     first: 0,
-    ms: 2224,
+    ms: 2240,
     builds: 0,
     layouts: 0,
     paints: 0,

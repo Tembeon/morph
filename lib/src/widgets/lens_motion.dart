@@ -67,7 +67,16 @@ class MorphLensTuning {
   /// slots of different widths.
   final MorphSpring liftSpring;
 
-  /// Seconds between a tap's selection and the start of the motion.
+  /// Seconds between a tap's selection and the start of the motion,
+  /// counted from the touch's own time stamp.
+  ///
+  /// The segmented control's 0.04 is the median of 35 device taps on
+  /// another segment, counted from the release that selects (iPhone 16
+  /// Pro, `ios27-device/lens/segmented-*`, lift start fitted to the lift
+  /// progress, 31.5 - 56 ms): UIKit delivers the release 10 - 25 ms after
+  /// its stamp, then sets up the lift on the main thread (the next display
+  /// frame comes 19.5 - 36 ms after the one before instead of 8.3), and the
+  /// lens moves from the frame after that.
   final double startDelay;
 
   /// Seconds by which the deformation switches to its lifted response
@@ -117,7 +126,13 @@ class MorphLensTuning {
   final double dragGain;
 
   /// Seconds between a touch on the selected item and the start of its
-  /// lift.
+  /// lift, counted from the touch's own time stamp.
+  ///
+  /// The segmented control's 0.047 is the median of 8 device presses on
+  /// the selected segment (lift start fitted to the lift progress, 33 -
+  /// 80 ms: delivery, then UIKit setting the lift up on the main thread,
+  /// the next display frame 21 - 65 ms after the one before). The tab
+  /// bar's 0.05 is measured on its device taps on the selected tab.
   final double pressDelay;
 
   /// The shortest time, in seconds from the touch, a pressed selected
@@ -125,7 +140,13 @@ class MorphLensTuning {
   final double pressHang;
 
   /// Seconds between the release of a held lens and the start of its
-  /// travel to the chosen slot and of its landing.
+  /// travel to the chosen slot and of its landing, counted from the
+  /// release's own time stamp.
+  ///
+  /// The segmented control's 0.024 minimizes the release travel rms of its
+  /// four device drags together (0.130 pt; 0.030 left 0.496): a release
+  /// sets nothing up, so the travel follows UIKit's delivery and begin
+  /// frame.
   final double releaseDelay;
 
   /// How many pixels the whole control widens while it is pressed.
@@ -162,7 +183,9 @@ class MorphLensTuning {
     presentationSpring: MorphSpring(0.442, 0.582),
     followSpring: MorphSpring(0.225, 1),
     rubberBand: (12, 0.55),
-    pressDelay: 0.04,
+    pressDelay: 0.047,
+    releaseDelay: 0.024,
+    startDelay: 0.04,
   );
 
   /// The lens of a floating UITabBar.

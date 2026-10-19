@@ -38,12 +38,21 @@ ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
   title adds one proxy paint where the glass records the labels (perf
   counts segmented-drag / lens-held fake and liquid +1.7 / +3 paints,
   ceilings re-pinned).
-- Unlift anchored 0.25 s after the touch-up (`hangFromTouch`); the lift
-  start varies with input latency, the touch-up anchor does not [device].
-- Press on the SELECTED segment lifts in place after `pressDelay` 40 ms and
-  drags it: grab offset preserved, follow spring 0.225/1.0 [device],
+- A touch on another segment selects on release; the lens starts
+  `startDelay` 40 ms after the release's time stamp [device, 35 taps:
+  31.5 - 56 ms, median 40.5; UIKit delivers the release, then sets the
+  lift up on the main thread, the display link's next frame coming 19.5 -
+  36 ms after the one before]. Unlift anchored 0.25 s after the touch-up
+  (`hangFromTouch`); the lift start varies with that latency, the
+  touch-up anchor does not [device].
+- Press on the SELECTED segment lifts in place after `pressDelay` 47 ms
+  [device, 8 presses: 33 - 80 ms, median 47; the same setup, frame gap
+  21 - 65 ms; the former 40] and drags it: grab offset preserved, follow spring 0.225/1.0 [device],
   rubber band past the end CENTERS (12, 0.55); release picks the slot
-  nearest the FINGER. dragGain 1.
+  nearest the FINGER. dragGain 1. The release travels after
+  `releaseDelay` 24 ms [device, the four drags fitted together: travel
+  rms 0.130 pt, 0.496 at the former 30 ms; no setup after a release].
+  Every delay counts from the touch's own stamp (spec README "Clocks").
 - Tap on the selected segment: lifts in place, lands no earlier than
   `pressHang` 0.25 s after the touch (or `releaseDelay` after a longer hold).
 - Lens lift +24 x +16 px; travel 0.401/0.856; flex gains see lens-and-flex.
@@ -94,11 +103,16 @@ lens_widgets_test, highlight_motion_test, segmented_api_test,
 disabled_test, accessibility_test, controls_platform_test,
 controls_scroll_test (the control owns a touch after 150 ms or a
 horizontal drag past slop), release_bounds_test (replays
-release-outside.jsonl). No test loads the press-and-drag captures
-(`segmented-seg5-dragslow-from-selected`, `-seg5-release-choice-rubberband`,
-`-seg5-scrub-offset-overrun-back`, `-seg2-hold1200`, simulator and
-device): `pressDelay`, the follow spring and the rubber band are
-measured, not replayed.
+release-outside.jsonl), segmented_device_replay_test (the press-and-drag
+captures `segmented-seg5-dragslow-from-selected`,
+`-seg5-release-choice-rubberband`, `-seg5-scrub-offset-overrun-back`,
+`-seg2-hold1200` and the device taps: device
+onsets at the logged stamps (taps from the release, presses from the
+touch: medians within half a frame of `startDelay` / `pressDelay`, each
+within the delivery plus setup spread, 36.8 ms), drags, release choice,
+release travel (< 0.4 pt rms) and the press lift aligned to each drag's
+onset (< 0.6 / 1.8); the simulator drags stay skipped, their stamps
+leading the first lift by 53 - 174 ms).
 
 Repaints: the control is a repaint boundary, so its lens no longer
 repaints the page around it, and on the flat tier (and without a painter)
