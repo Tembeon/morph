@@ -1,8 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/live.dart';
 import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/motion/spring_state.dart';
 import 'package:morph/src/motion/timeline.dart';
@@ -15,9 +13,11 @@ import 'package:morph/src/motion/timeline.dart';
 /// color channel, and a soft spot under the finger that multiplies the
 /// channels by [factorAt] - most at [center], fading as a Gaussian of
 /// standard deviation [radius]. Both stay inside the surface's shape and
-/// under the control's content. A [MorphGlassPainter] draws them with
-/// `buildGlow`; the default paints them with additive and color-dodge
-/// blending, exact for gray backdrops.
+/// under the control's content, and clamp at white: the spot is the color
+/// dodge whose white level is `1 - 1 / factorAt`. A [MorphGlassPainter]
+/// renders them as part of the surface's glass or not at all; the
+/// package's renderer evaluates both in its liquid tier's final glass
+/// shader, and its flat and fake tiers draw no glow.
 @immutable
 class MorphGlassGlow {
   /// Creates a glow description.
@@ -63,95 +63,6 @@ class MorphGlassGlow {
 
   @override
   int get hashCode => Object.hash(wash, center, radius, gain);
-}
-
-/// Paints [glow] inside [shape], both in the painted box's coordinates,
-/// over what the canvas already holds.
-@internal
-void morphPaintGlassGlow(Canvas canvas, RRect shape, MorphGlassGlow glow) {
-  if (!glow.isVisible) return;
-  canvas.save();
-  canvas.clipRRect(shape);
-  if (glow.wash > 0) {
-    final wash = Paint();
-    wash.blendMode = BlendMode.plus;
-    wash.color = Color.fromRGBO(255, 255, 255, glow.wash.clamp(0.0, 1.0));
-    canvas.drawRect(shape.outerRect, wash);
-  }
-  if (glow.gain > 0 && glow.radius > 0) {
-    final reach = 3 * glow.radius;
-    final spot = Paint();
-    spot.blendMode = BlendMode.colorDodge;
-    spot.shader = _spotShader(glow.radius, glow.gain);
-    canvas.save();
-    canvas.translate(glow.center.dx, glow.center.dy);
-    canvas.drawRect(
-      shape.outerRect
-          .shift(-glow.center)
-          .intersect(Rect.fromCircle(center: Offset.zero, radius: reach)),
-      spot,
-    );
-    canvas.restore();
-  }
-  canvas.restore();
-}
-
-final Map<(double, double), Shader> _spotShaders = {};
-
-Shader _spotShader(double radius, double gain) {
-  final key = (radius, gain);
-  final cached = _spotShaders[key];
-  if (cached != null) return cached;
-  const stops = 16;
-  final colors = <Color>[];
-  final positions = <double>[];
-  for (var i = 0; i <= stops; i++) {
-    final p = i / stops;
-    final factor = 1 + gain * math.exp(-0.5 * 9 * p * p);
-    final dodge = 1 - 1 / factor;
-    colors.add(Color.from(alpha: 1, red: dodge, green: dodge, blue: dodge));
-    positions.add(p);
-  }
-  final shader = RadialGradient(
-    colors: colors,
-    stops: positions,
-  ).createShader(Rect.fromCircle(center: Offset.zero, radius: 3 * radius));
-  if (_spotShaders.length == 4) _spotShaders.remove(_spotShaders.keys.first);
-  _spotShaders[key] = shader;
-  return shader;
-}
-
-/// Paints a surface's glow in a box placed at the surface's bounds.
-@internal
-class MorphGlassGlowPainter extends CustomPainter {
-  /// Paints the glow of [data] inside its outline, both relative to the
-  /// painted box, repainting when a live [data] changes.
-  MorphGlassGlowPainter(this.data)
-    : super(
-        repaint: data is MorphFixed<(RRect, MorphGlassGlow)>
-            ? null
-            : MorphChanges<Object?>(data, () => data.value),
-      );
-
-  /// The outline and the glow, relative to the painted box.
-  final ValueListenable<(RRect, MorphGlassGlow)> data;
-
-  /// The outline that clips the glow.
-  RRect get shape => data.value.$1;
-
-  /// The glow to paint.
-  MorphGlassGlow get glow => data.value.$2;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final (shape, glow) = data.value;
-    morphPaintGlassGlow(canvas, shape, glow);
-  }
-
-  @override
-  bool shouldRepaint(MorphGlassGlowPainter oldDelegate) =>
-      data is! MorphFixed<(RRect, MorphGlassGlow)> ||
-      oldDelegate.data.value != data.value;
 }
 
 /// The touch glow of a pressed glass surface as a function of time:

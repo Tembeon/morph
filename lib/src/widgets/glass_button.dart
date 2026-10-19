@@ -800,7 +800,6 @@ class MorphControlCapsule extends StatelessWidget {
           color: color,
           rim: rim,
           shadow: shadow,
-          glow: glow,
         ),
         child: child,
       );
@@ -853,14 +852,12 @@ class _CapsulePainter extends CustomPainter {
     required this.color,
     required this.rim,
     required this.shadow,
-    required this.glow,
   }) : super(repaint: frames);
 
   final RRect Function(Size size) shape;
   final Color color;
   final Color rim;
   final Color shadow;
-  final MorphGlassGlow? Function()? glow;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -877,8 +874,6 @@ class _CapsulePainter extends CustomPainter {
     stroke.strokeWidth = 0.5;
     stroke.color = rim;
     canvas.drawRRect(shape.deflate(0.25), stroke);
-    final light = glow?.call();
-    if (light != null) morphPaintGlassGlow(canvas, shape, light);
   }
 
   @override
@@ -886,6 +881,5 @@ class _CapsulePainter extends CustomPainter {
       oldDelegate.shape != shape ||
       oldDelegate.color != color ||
       oldDelegate.rim != rim ||
-      oldDelegate.shadow != shadow ||
-      oldDelegate.glow != glow;
+      oldDelegate.shadow != shadow;
 }

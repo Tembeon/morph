@@ -27,6 +27,7 @@ import 'package:morph/src/glass/renderer/internal/rounded_superellipse_parameter
 import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
 import 'package:morph/src/glass/renderer/internal/snap_rect_to_pixels.dart';
 import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart';
+import 'package:morph/src/glass/renderer/liquid_glass_glow.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_render_scope.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_settings.dart';
 import 'package:morph/src/glass/renderer/rendering/consolidated_fake_glass_layer.dart';
@@ -53,19 +54,21 @@ class LiquidGlassLayer extends StatefulWidget {
   }) : live = null,
        settingsOf = null,
        fieldOf = null,
-       outlineOf = null;
+       outlineOf = null,
+       glowOf = null;
 
   /// Creates a layer whose settings and field follow [live].
   ///
-  /// Every notification of [live] writes [settingsOf] and [fieldOf] into
-  /// the layer's render object and into its shapes without rebuilding
-  /// them.
+  /// Every notification of [live] writes [settingsOf], [fieldOf] and
+  /// [glowOf] into the layer's render object and into its shapes without
+  /// rebuilding them.
   const LiquidGlassLayer.live({
     required this.child,
     required this.live,
     required LiquidGlassSettings Function() this.settingsOf,
     this.fieldOf,
     this.outlineOf,
+    this.glowOf,
     this.defaultAppearance,
     this.fake = false,
     this.useBackdropGroup = false,
@@ -94,6 +97,10 @@ class LiquidGlassLayer extends StatefulWidget {
   /// themselves; fake glass clips its backdrop and surfaces to it as it
   /// does to a field's [GlassField.outline].
   final Path? Function()? outlineOf;
+
+  /// The touch glow the final pass applies now, for a live layer; null for
+  /// a layer that never glows. Fake glass draws no glow.
+  final LiquidGlassGlow? Function()? glowOf;
 
   final LiquidGlassSettings _settings;
 
@@ -382,6 +389,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
               link: _link,
               gpuGeometryRenderer: gpuRenderer,
               fieldOf: () => widget.field,
+              glowOf: () => widget.glowOf?.call(),
               child: child!,
             );
           }, child: KeyedSubtree(key: _childKey, child: widget.child)),
@@ -453,6 +461,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required Widget super.child,
     required this.link,
     required this.fieldOf,
+    required this.glowOf,
     this.gpuGeometryRenderer,
   });
 
@@ -471,6 +480,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final GeometryRenderLink link;
   final FlutterGpuGeometryRenderer? gpuGeometryRenderer;
   final GlassField? Function() fieldOf;
+  final LiquidGlassGlow? Function() glowOf;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
@@ -491,6 +501,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     layer.blursOwnBackdrop = blursOwnBackdrop;
     layer.solidBackdrop = solidBackdrop;
     layer.backdropCache = backdropCache;
+    layer.glow = glowOf();
     layer.bindLive(live, () => _apply(layer));
     return layer;
   }
@@ -498,6 +509,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   void _apply(RenderLiquidGlassLayer layer) {
     layer.settings = settingsOf();
     layer.field = fieldOf();
+    layer.glow = glowOf();
   }
 
   @override
@@ -513,6 +525,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     renderObject.blursOwnBackdrop = blursOwnBackdrop;
     renderObject.solidBackdrop = solidBackdrop;
     renderObject.backdropCache = backdropCache;
+    renderObject.glow = glowOf();
     renderObject.bindLive(live, () => _apply(renderObject));
   }
 }
@@ -582,6 +595,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _field = value;
     needsGeometryUpdate = true;
     _geometryInputsChanged = true;
+    markNeedsPaint();
+  }
+
+  LiquidGlassGlow? _glow;
+
+  /// The touch glow the final pass applies to the glass, or null for none.
+  LiquidGlassGlow? get glow => _glow;
+  set glow(LiquidGlassGlow? value) {
+    if (_glow == value) return;
+    _glow = value;
+    _updateShaderSettings();
     markNeedsPaint();
   }
 
@@ -1210,6 +1234,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     for (var i = 0; i < 4; i++) {
       shader.setFloat(solidBackdropUniform + i, 0);
     }
+    shader.setFloatUniforms(
+      initialIndex: glowUniform,
+      (value) =>
+          value.setFloats(LiquidGlassGlow.uniformsOf(_glow, devicePixelRatio)),
+    );
   }
 
   /// Writes uBackdropShrinkAxis (float indices 63 and 64): half the line the
@@ -1758,10 +1787,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   static bool get debugHasBlankImage => _blankImage != null;
 
   /// Float index of uAnalyticHeader (the optics vec4, then the ranges
-  /// vec4), the first analytic uniform, after the 69 common floats
+  /// vec4), the first analytic uniform, after the 81 common floats
   /// (shaders/analytic_geometry.glsl).
   @visibleForTesting
-  static const int analyticUniformIndex = 69;
+  static const int analyticUniformIndex =
+      glowUniform + LiquidGlassGlow.floatCount;
 
   /// Float index of uShapeData, after the two vec4 of uAnalyticHeader.
   @visibleForTesting
@@ -2137,6 +2167,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// uBackdropShrinkAxis.
   @internal
   static const int solidBackdropUniform = 65;
+
+  /// Float index of the touch glow in every final shader (uGlowSpot,
+  /// uGlowBox, uGlowShape), after uSolidBackdrop.
+  @visibleForTesting
+  static const int glowUniform = solidBackdropUniform + 4;
 
   // The shaders whose uSolidBackdrop holds a color now; the others hold
   // the initial zero, which reads the backdrop.

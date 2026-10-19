@@ -526,8 +526,8 @@ class MorphGlassContainerLink {
 /// that all of the frame's shapes share, and how many shapes there are.
 ///
 /// Null when no container takes the frame: on the flat tier, while
-/// anything of it moves or lifts, when it fuses or floats glass, holds a
-/// bar or a menu, or mixes looks.
+/// anything of it moves, lifts or glows (a glow is its own layer's), when
+/// it fuses or floats glass, holds a bar or a menu, or mixes looks.
 @internal
 ({LiquidGlassSettings settings, LiquidGlassAppearance appearance, int shapes})?
 morphGlassJoinLook(GlassBuiltInPainter renderer, MorphGlassFrame frame) {
@@ -543,6 +543,7 @@ morphGlassJoinLook(GlassBuiltInPainter renderer, MorphGlassFrame frame) {
   LiquidGlassAppearance? appearance;
   for (final surface in parts.separate) {
     if (surface.lift != 0 ||
+        surface.glow != null ||
         surface.kind == MorphGlassKind.bar ||
         surface.kind == MorphGlassKind.menu) {
       return null;

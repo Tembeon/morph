@@ -1219,7 +1219,6 @@ class _MenuShapes extends StatelessWidget {
               outline: now.outline,
               surface: surface,
               glassShare: surface == null ? 1 : 1 - now.look.opacity,
-              glow: now.glow,
             ),
           );
         },
@@ -3427,7 +3426,6 @@ class _GlassPainter extends CustomPainter {
     this.outline,
     this.surface,
     this.glassShare = 1,
-    this.glow,
   });
 
   final MorphMenuAppearance style;
@@ -3436,7 +3434,6 @@ class _GlassPainter extends CustomPainter {
   final MorphGlassOutline? outline;
   final ({Color color, Color? rim})? surface;
   final double glassShare;
-  final MorphGlassGlow? glow;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -3458,8 +3455,6 @@ class _GlassPainter extends CustomPainter {
         ? style.glassColor
         : Color.lerp(surface.color, style.glassColor, glassShare)!;
     canvas.drawPath(shape, fill);
-    final glow = this.glow;
-    if (menu != null && glow != null) morphPaintGlassGlow(canvas, menu, glow);
     final rim = surface?.rim;
     if (rim == null || glassShare >= 1) return;
     final stroke = Paint();
@@ -3476,8 +3471,7 @@ class _GlassPainter extends CustomPainter {
       oldDelegate.outline != outline ||
       oldDelegate.style != style ||
       oldDelegate.surface != surface ||
-      oldDelegate.glassShare != glassShare ||
-      oldDelegate.glow != glow;
+      oldDelegate.glassShare != glassShare;
 }
 
 class _Ellipsis extends StatelessWidget {

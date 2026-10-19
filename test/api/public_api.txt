@@ -2045,7 +2045,6 @@ abstract class MorphGlassPainter
     List<MorphGlassSurface> surfaces,
   )
   Widget buildFill(BuildContext context, MorphGlassSurface surface)
-  Widget buildGlow(BuildContext context, MorphGlassSurface surface)
   Widget buildLayer(
     BuildContext context,
     List<MorphGlassSurface> surfaces, {

@@ -201,8 +201,12 @@ class MorphGlassSurface {
   final double opacity;
 
   /// The glow a finger raises on the surface, or null when it is not
-  /// lit; a painter draws it with [MorphGlassPainter.buildGlow] over the
-  /// surface and under the control's content.
+  /// lit.
+  ///
+  /// A painter renders it as part of the surface's glass, over everything
+  /// the glass shows and under the control's content, or not at all. The
+  /// package's renderer lights the glass on its liquid tier; its flat and
+  /// fake tiers, like a control without a painter, draw no glow.
   final MorphGlassGlow? glow;
 
   /// The box the surface occupies in the control's local coordinates.
@@ -257,19 +261,6 @@ abstract class MorphGlassPainter {
   ) {
     return CustomPaint(
       painter: _BodyPainter(MorphFixed(_bodyOf(outline, surfaces))),
-    );
-  }
-
-  /// Builds the widget that draws the [MorphGlassSurface.glow] of
-  /// [surface], sized to its bounds and placed over the surface.
-  ///
-  /// The default applies the glow's wash and spot to what is already
-  /// painted, inside [MorphGlassSurface.localShape]. A painter that
-  /// renders [buildLayer] itself places this over each lit surface.
-  Widget buildGlow(BuildContext context, MorphGlassSurface surface) {
-    if (surface.glow == null) return const SizedBox.expand();
-    return CustomPaint(
-      painter: MorphGlassGlowPainter(MorphFixed(_glowOf(surface))),
     );
   }
 
@@ -328,7 +319,7 @@ abstract class MorphGlassPainter {
       children: [
         if (outline != null && glass.isNotEmpty)
           Positioned.fill(child: buildBody(context, outline, glass)),
-        for (final surface in surfaces) ...[
+        for (final surface in surfaces)
           if (outline == null || !surface.glass)
             Positioned.fromRect(
               rect: surface.bounds,
@@ -336,12 +327,6 @@ abstract class MorphGlassPainter {
                   ? buildSurface(context, surface)
                   : buildFill(context, surface),
             ),
-          if (surface.glow != null)
-            Positioned.fromRect(
-              rect: surface.bounds,
-              child: buildGlow(context, surface),
-            ),
-        ],
         if (content != null)
           Positioned.fill(
             key: const ValueKey<String>('content'),
@@ -358,19 +343,6 @@ abstract class MorphGlassPainter {
     alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
   ),
 );
-
-(RRect, MorphGlassGlow) _glowOf(MorphGlassSurface surface) {
-  final glow = surface.glow!;
-  return (
-    surface.localShape,
-    MorphGlassGlow(
-      wash: glow.wash,
-      center: glow.center - surface.bounds.topLeft,
-      radius: glow.radius,
-      gain: glow.gain,
-    ),
-  );
-}
 
 (MorphGlassOutline, Color) _bodyOf(
   MorphGlassOutline outline,
@@ -535,17 +507,6 @@ class _BodySlotPainter extends CustomPainter {
       data is! MorphFixed<(MorphGlassOutline, Color)?> ||
       oldDelegate.data.value != data.value;
 }
-
-/// The glow of the surface [select] picks from [source], as
-/// [MorphGlassPainter.buildGlow] draws it, following the source; the
-/// surface must keep a glow while the structure holds.
-@internal
-Widget morphGlassLiveGlow(
-  MorphGlassSource source,
-  MorphGlassSurface Function(MorphGlassFrame frame) select,
-) => CustomPaint(
-  painter: MorphGlassGlowPainter(source.pick((f) => _glowOf(select(f)))),
-);
 
 class _FillPainter extends CustomPainter {
   _FillPainter(this.data) : super(repaint: morphRepaintOn(data));
