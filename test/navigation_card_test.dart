@@ -3,11 +3,12 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
+import 'package:morph/src/widgets/navigation_stack.dart'
+    show debugNavigationCardOf;
 
 const _screen = Size(402, 874);
 
@@ -92,19 +93,11 @@ RenderMorphLiveBox _card(WidgetTester tester, String title) => tester
 
 /// The opacities of every dimming layer of the stack's pages now.
 List<double> _dims(WidgetTester tester) => [
-  for (final box in tester.renderObjectList<RenderCustomPaint>(
+  for (final box in tester.renderObjectList(
     find.byKey(const ValueKey<String>('morph.navigation.dim')),
   ))
-    (() {
-      final canvas = TestRecordingCanvas();
-      box.painter!.paint(canvas, box.size);
-      final draws = canvas.invocations.where(
-        (i) => i.invocation.memberName == #drawRect,
-      );
-      return draws.isEmpty
-          ? 0.0
-          : (draws.single.invocation.positionalArguments[1]! as Paint).color.a;
-    })(),
+    if (debugNavigationCardOf(box) case (:final dim, shown: _, clip: _))
+      Color.getAlphaFromOpacity(dim.clamp(0.0, 1.0)) / 255,
 ];
 
 void main() {
