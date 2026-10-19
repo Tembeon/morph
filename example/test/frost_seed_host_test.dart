@@ -5,11 +5,10 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/composition/glass_backdrop_draw.dart';
 import 'package:morph/morph.dart';
 // The test reads the renderer's own layer below the widget layer.
-// ignore: implementation_imports
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer;
 
 import '../integration_test/support/shader_harness.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
@@ -50,7 +49,7 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    addTearDown(() => RenderLiquidGlassLayer.debugSeedsBlur = true);
+    addTearDown(() => GlassBackdropDraw.debugSeedsBlur = true);
     await tester.runAsync(GlassBuiltInPainter.precache);
     if (!MorphTheme.liquidGlassAvailable) return;
     final harness = ShaderHarness(tester);
@@ -59,7 +58,7 @@ void main() {
       String name, {
       required bool seed,
     }) async {
-      RenderLiquidGlassLayer.debugSeedsBlur = seed;
+      GlassBackdropDraw.debugSeedsBlur = seed;
       await harness.show(
         harnessCasesNamed(name).single,
         ShaderVariant.candidate,

@@ -10,19 +10,15 @@ import 'package:flutter/scheduler.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/src/glass/renderer/internal/ancestor_clip.dart';
-import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
-import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
-import 'package:morph/src/glass/renderer/internal/filter_pass_transform.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
-import 'package:morph/src/glass/renderer/internal/snap_rect_to_pixels.dart';
 import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_glow.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_render_scope.dart';
+import 'package:morph/src/glass/renderer/composition/glass_backdrop_draw.dart';
 import 'package:morph/src/glass/renderer/geometry/glass_geometry.dart';
 import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
 import 'package:morph/src/glass/renderer/geometry/glass_shape_pack.dart';
@@ -464,7 +460,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         LiquidGlassLayerRenderObject,
         GlassPassSource,
         GlassGeometrySource,
-        GlassRestHost {
+        GlassRestHost,
+        GlassDrawSource {
   RenderLiquidGlassLayer({
     required List<FragmentShader> matteShaders,
     required super.backdropKey,
@@ -478,12 +475,14 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _pass = GlassFinalPass(this, matteShaders);
     _encoder = GlassGeometryEncoder(this, _pass);
     _rest = GlassRestWatch(this);
+    _draw = GlassBackdropDraw(this, _pass);
     _pass.updateSettings();
   }
 
   late final GlassFinalPass _pass;
   late final GlassGeometryEncoder _encoder;
   late final GlassRestWatch _rest;
+  late final GlassBackdropDraw _draw;
 
   GlassField? _field;
 
@@ -508,16 +507,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   LiquidGlassGlow? get glow => _pass.glow;
   set glow(LiquidGlassGlow? value) {
     if (!_pass.setGlow(value)) return;
-    final filter = _shaderHandle.layer;
-    if (filter != null &&
-        attached &&
-        !drawableEmpty &&
-        hasReusableGeometry &&
-        _solidHandle.layer == null) {
-      filter.filter = _updateShaderFilter();
-    } else {
-      markNeedsPaint();
-    }
+    if (!_draw.refreshFilter()) markNeedsPaint();
   }
 
   Listenable? _glows;
@@ -639,6 +629,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// Whether the committed shapes exist but none can be drawn by this
   /// effect - a function of the committed geometry, so it stays correct
   /// when a retained refresh commits new shapes between paints.
+  @override
   bool get drawableEmpty =>
       shapesWithGeometry.isNotEmpty && !hasDrawableGlass(shapesWithGeometry);
 
@@ -646,6 +637,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// analytic frame's shapes written into its shader's uniforms - so
   /// ancestor motion can stay on the compositor without crossing this
   /// layer's repaint boundary.
+  @override
   @protected
   bool get hasReusableGeometry => _geometryImage != null || _analytic;
 
@@ -830,7 +822,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _phaseMoved = false;
     if (geometryBounds == null) {
       _clearGeometryImage();
-      _releaseCompositorFilter();
+      _draw.release();
       releaseRetainedEffectLayer();
       return;
     }
@@ -838,7 +830,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     switch (frameState) {
       case GlassFrameState.empty:
         _clearGeometryImage();
-        _releaseCompositorFilter();
+        _draw.release();
         if (shapesWithGeometry.isEmpty) {
           releaseRetainedEffectLayer();
           return;
@@ -846,11 +838,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         needsGeometryUpdate = false;
         link.markClean();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {
-          _paintMaterialFilter(
-            effectContext,
-            effectOffset,
-            materialPaintBounds,
-          );
+          _draw.paint(effectContext, effectOffset, materialPaintBounds);
         });
       case GlassFrameState.idle:
         // Keep the last matte and its encode snapshot; ancestor motion
@@ -858,7 +846,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         // rebaselines on the committed frame, not on that snapshot. Skip
         // the backdrop filter so idle glass does not sample.
         updateIdleAncestorClips();
-        _releaseCompositorFilter();
+        _draw.release();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {});
       case GlassFrameState.active:
         // Analytic shapes have no raster grid; test that before walking
@@ -866,7 +854,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         if (hasReusableGeometry &&
             !_analytic &&
             _encoder.rasterGridStale(
-              shaderCoordinateTransform,
+              _draw.passTransform,
               analytic: _analytic,
             )) {
           needsGeometryUpdate = true;
@@ -894,11 +882,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {
           if (hasReusableGeometry) {
             _bindGeometryShader(_geometryImage);
-            _paintMaterialFilter(
-              effectContext,
-              effectOffset,
-              materialPaintBounds,
-            );
+            _draw.paint(effectContext, effectOffset, materialPaintBounds);
           }
         });
     }
@@ -952,7 +936,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // Resource binding is separate from recording/painting children so a
   // changed geometry frame can be prepared without invoking child paint.
   void _bindGeometryShader(ui.Image? geometryImage) {
-    syncCoordinateMapping();
+    _draw.syncMapping();
     _pass.bindGeometry(
       geometryImage: geometryImage,
       materialImage: _materialImage,
@@ -975,144 +959,24 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     return transform;
   }
 
-  /// This layer's transform into the pass its filter samples. During
-  /// compositing it may be the tracked screen transform itself: callers
-  /// read it and never modify it.
-  Matrix4 get shaderCoordinateTransform {
-    final seeding = compositionProbeSeeding;
-    final translation = compositorTranslation;
-    final screen = _compositingScreen;
-    final ownPass = _seedsBlur;
-    final transform = filterPassTransform(
-      this,
-      screen: seeding || ownPass || translation != Offset.zero
-          ? screen?.clone()
-          : screen,
-      seeding: seeding,
-      devicePixelRatio: devicePixelRatio,
-      translation: translation,
-    );
-    if (ownPass) {
-      final origin = _seedPassOrigin(transform);
-      transform.leftTranslateByDouble(-origin.dx, -origin.dy, 0, 1);
-    }
-    return transform;
-  }
+  @override
+  Matrix4? get compositingScreen => _compositingScreen;
 
-  (double, double, double, double, double, double)? _coordinateMapping;
-  Rect? _backdropBounds;
+  @override
+  Offset get effectTranslation => compositorTranslation;
 
-  /// Layer-local rect the native filter captures backdrop for, or `null`
-  /// when it is unbounded. Refraction mirrors samples that would leave it:
-  /// outside the clip the filter input is transparent.
-  @protected
-  Rect? get backdropSampleBounds {
-    final clip = _filterClip;
-    if (clip == null || frost.passSigma <= 0) return clip;
-    final translation = compositorTranslation;
-    var captured = clip.shift(translation);
-    if (retainedClipBounds case final retained?) {
-      captured = captured.intersect(retained);
-    }
-    if (localPaintClipAbove(this) case final above?) {
-      captured = captured.intersect(above);
-    }
-    return captured.shift(-translation);
-  }
+  @override
+  Rect? get effectClipBounds => retainedClipBounds;
 
-  /// The [backdropSampleBounds] last written to the shader.
-  @visibleForTesting
-  Rect? get debugBackdropSampleBounds => _backdropBounds;
+  @override
+  bool get seededOpacity => compositionProbeSeeding;
 
-  @protected
-  bool syncCoordinateMapping() {
-    final solid = _solid != null;
-    final mapping = solid
-        ? _solidCoordinateMapping()
-        : _currentCoordinateMapping();
-    final backdropBounds = solid ? null : backdropSampleBounds;
-    final changed =
-        mapping != _coordinateMapping || backdropBounds != _backdropBounds;
-    _coordinateMapping = mapping;
-    _backdropBounds = backdropBounds;
-    if (changed) _pass.markInputsChanged();
-    _pass.writeMapping(mapping, backdropBounds);
-    return changed;
-  }
-
-  (double, double, double, double, double, double) _currentCoordinateMapping() {
-    final layerToPass = shaderCoordinateTransform;
-    final globalToMatte = _globalToMatte;
-    if (globalToMatte.copyInverse(layerToPass) == 0.0) {
-      throw ArgumentError.value(
-        layerToPass,
-        'other',
-        'Matrix cannot be inverted',
-      );
-    }
-    final m = globalToMatte.storage;
-    final originX = _mappedX(m, 0, 0);
-    final originY = _mappedY(m, 0, 0);
-    return (
-      _mappedX(m, 1, 0) - originX,
-      _mappedX(m, 0, 1) - originX,
-      _mappedY(m, 1, 0) - originY,
-      _mappedY(m, 0, 1) - originY,
-      originX * devicePixelRatio,
-      originY * devicePixelRatio,
-    );
-  }
-
-  // Over a solid backdrop the glass is a paint, whose fragment coordinates
-  // are the logical canvas coordinates it is recorded in: the layer's own
-  // coordinates shifted by its paint offset. The matte is the layer's own
-  // coordinates in device pixels, so neither the pass nor any ancestor
-  // transform enters, and compositor motion never changes the mapping.
-  (double, double, double, double, double, double) _solidCoordinateMapping() {
-    final offset = retainedPaintOffset;
-    return (
-      devicePixelRatio,
-      0,
-      0,
-      devicePixelRatio,
-      -offset.dx * devicePixelRatio,
-      -offset.dy * devicePixelRatio,
-    );
-  }
-
-  final Matrix4 _globalToMatte = Matrix4.zero();
-
-  // MatrixUtils.transformPoint, one coordinate at a time.
-  static double _mappedX(Float64List m, double x, double y) {
-    final rx = m[0] * x + m[4] * y + m[12];
-    final rw = m[3] * x + m[7] * y + m[15];
-    return rw == 1.0 ? rx : rx / rw;
-  }
-
-  static double _mappedY(Float64List m, double x, double y) {
-    final ry = m[1] * x + m[5] * y + m[13];
-    final rw = m[3] * x + m[7] * y + m[15];
-    return rw == 1.0 ? ry : ry / rw;
-  }
-
-  // MARK: Native filter
-
-  final _shaderHandle = LayerHandle<BackdropFilterLayer>();
-  final _clipRectLayerHandle = LayerHandle<ClipRectLayer>();
-  final _seedClipHandle = LayerHandle<ClipRectLayer>();
-  final _seedHandle = LayerHandle<BackdropFilterLayer>();
-
-  /// Whether a layer that [blursOwnBackdrop] copies its backdrop; off
-  /// blurs the whole pass as every other layer does, for an A/B.
-  @visibleForTesting
-  static bool debugSeedsBlur = true;
-
-  static final BackdropKey _probeKey = BackdropKey();
-  static final Set<String> _probeLogged = {};
+  // MARK: Composition inputs
 
   bool _blursOwnBackdrop = false;
 
   /// See [LiquidGlassLayer.blursOwnBackdrop].
+  @override
   bool get blursOwnBackdrop => _blursOwnBackdrop;
   set blursOwnBackdrop(bool value) {
     if (_blursOwnBackdrop == value) return;
@@ -1125,6 +989,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   /// The cached backdrop the glass paints over instead of reading its
   /// backdrop, while [debugMorphBackdropCache] is on.
+  @override
   GlassBackdropCache? get backdropCache => _backdropCache;
   set backdropCache(GlassBackdropCache? value) {
     if (identical(value, _backdropCache)) return;
@@ -1133,19 +998,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     markNeedsPaint();
   }
 
-  // Decided when the layer paints; the copy itself is taken while the
-  // frame composites.
-  bool _cachesBackdrop = false;
-
-  bool get _wantsCachedBackdrop =>
-      _backdropCache != null &&
-      debugMorphBackdropCache &&
-      debugGlassCostProbe == GlassCostProbe.off &&
-      _backdropCache!.ready;
-
   Color? _solidBackdrop;
 
   /// See [LiquidGlassLayer.solidBackdrop].
+  @override
   Color? get solidBackdrop => _solidBackdrop;
   set solidBackdrop(Color? value) {
     if (_solidBackdrop == value) return;
@@ -1154,295 +1010,14 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     markNeedsPaint();
   }
 
-  /// The opaque color the glass is shaded over without a backdrop read, or
-  /// null when the layer reads its backdrop.
-  Color? get _solid {
-    if (debugGlassCostProbe == GlassCostProbe.solid) {
-      return const Color(0xFF000000);
-    }
-    final color = _solidBackdrop;
-    return color != null && color.a == 1 ? color : null;
-  }
-
-  // The slot of the picture the glass is recorded into over a solid
-  // backdrop; a retained geometry refresh replaces the picture in it.
-  final _solidHandle = LayerHandle<ContainerLayer>();
-
   /// Whether the layer drew its glass as a paint over [solidBackdrop] in
   /// its last frame.
   @visibleForTesting
-  bool get debugDrawsOverSolidBackdrop => _solidHandle.layer != null;
-
-  bool get _seedsBlur =>
-      _blursOwnBackdrop &&
-      debugSeedsBlur &&
-      frost.passSigma > 0 &&
-      backdropKey == null &&
-      !compositionProbeSeeding;
-
-  /// The logical pixels around the blurred coverage the frost blur reads.
-  double get _seedMargin => morphBlurReach(frost.passSigma, devicePixelRatio);
-
-  // The seed pass's clip in the translated frame, on the filter clip's
-  // pixel buckets so retained motion does not resize the pass.
-  Rect? get _seedClip {
-    final clip = _filterClip;
-    if (clip == null) return null;
-    final translation = compositorTranslation;
-    return clip
-        .shift(translation)
-        .inflate(_seedMargin)
-        .expandToPixelBuckets(devicePixelRatio)
-        .shift(-translation);
-  }
-
-  // Impeller bounds the seed pass by its clip and every clip above it,
-  // rounded out to device pixels; the glass shader's fragment coordinates
-  // start at that origin.
-  Offset _seedPassOrigin(Matrix4 layerToScreen) {
-    final seed = _seedClip;
-    if (seed == null) return Offset.zero;
-    var screen = MatrixUtils.transformRect(layerToScreen, seed);
-    if (screenClipAbove(this) case final above?) {
-      screen = screen.intersect(above);
-    }
-    return Offset(
-      (screen.left * devicePixelRatio).floorToDouble() / devicePixelRatio,
-      (screen.top * devicePixelRatio).floorToDouble() / devicePixelRatio,
-    );
-  }
-
-  @visibleForTesting
-  BackdropFilterLayer? get debugBackdropFilterLayer => _shaderHandle.layer;
+  bool get debugDrawsOverSolidBackdrop => _draw.drawsOverSolid;
 
   /// The most recent layer-local clip used by the native glass filter.
-  ///
-  /// This intentionally excludes exterior-shadow support, which is painted in
-  /// a separate canvas layer before the clipped filter pass.
   @visibleForTesting
-  Rect? debugFilterBounds;
-  Rect? _filterMaterialBounds;
-  // The bounds the last sync was given, before a shader frost grew them.
-  Rect? _filterGlassBounds;
-  Offset _filterPaintOffset = Offset.zero;
-
-  // The native filter clip, kept on stable pixel buckets in the translated
-  // frame so retained compositor motion does not resize its render target.
-  Rect? get _filterClip {
-    final bounds = _filterMaterialBounds;
-    if (bounds == null) return null;
-    final translation = compositorTranslation;
-    return bounds
-        .shift(translation)
-        .expandToPixelBuckets(devicePixelRatio)
-        .shift(-translation);
-  }
-
-  // Unblurred, the filter input is the backdrop inside the filter's own clip.
-  // With a blur pass, Impeller re-rasterizes the blurred input into the
-  // filter's coverage, which every clip around the filter narrows: the
-  // retained clips between this layer and its shapes, and the clips above
-  // this layer up to its pass. The texture is transparent outside it.
-  ImageFilter? _cachedFilter;
-
-  ImageFilter _updateShaderFilter() {
-    final inputsChanged = _pass.takeInputsChanged();
-    if (_cachedFilter != null && !inputsChanged) return _cachedFilter!;
-    if (debugGlassCostProbe == GlassCostProbe.copy) {
-      return _cachedFilter = morphBackdropSeed;
-    }
-    final shader = _pass.shaderFilter();
-    final frostSigma = frost.passSigma;
-    if (debugGlassCostProbe != GlassCostProbe.off && _probeLogged.length < 60) {
-      final bounds = debugFilterBounds;
-      final screen = bounds == null || !attached
-          ? null
-          : MatrixUtils.transformRect(getTransformTo(null), bounds);
-      final key =
-          'sigma ${frostSigma.toStringAsFixed(2)} '
-          '${(screen?.width ?? 0) ~/ 20 * 20}x${(screen?.height ?? 0) ~/ 20 * 20} '
-          'top ${(screen?.top ?? 0) ~/ 100 * 100}';
-      if (_probeLogged.add(key)) debugPrint('MORPH_GLASS_LAYER $key');
-    }
-    if (debugGlassCostProbe == GlassCostProbe.nofrost) {
-      return _cachedFilter = shader;
-    }
-    final filter = frostSigma > 0
-        ? ImageFilter.compose(inner: _pass.frostBlur(frostSigma), outer: shader)
-        : shader;
-    _cachedFilter = filter;
-    return filter;
-  }
-
-  // Both painting and retained geometry updates need the same native filter
-  // bounds. This only updates existing handles; it never paints children.
-  Rect _syncMaterialFilter(
-    Rect glassBounds,
-    Offset offset, {
-    bool retained = false,
-  }) {
-    // A frost the final pass blurs reads three sigma past the rim.
-    final shaderFrost = frost.shaderSigma;
-    final materialBounds = shaderFrost > 0
-        ? glassBounds.inflate(3 * shaderFrost / devicePixelRatio)
-        : glassBounds;
-    final filterBounds = materialBounds.expandToPixelBuckets(devicePixelRatio);
-    _filterGlassBounds = glassBounds;
-    _filterMaterialBounds = materialBounds;
-    _filterPaintOffset = offset;
-    debugFilterBounds = filterBounds;
-    if (_solid case final solid?) {
-      _recordSolidMaterial(solid, filterBounds, offset);
-      return filterBounds;
-    }
-    _clipRectLayerHandle.layer?.clipRect = filterBounds.shift(offset);
-    if (_seedClipHandle.layer case final seedClip?) {
-      if (_seedClip case final seed?) seedClip.clipRect = seed.shift(offset);
-    }
-    if (retained &&
-        (_seedsBlur && !drawableEmpty) != (_seedClipHandle.layer != null)) {
-      markNeedsPaint();
-    }
-    if (drawableEmpty) {
-      _shaderHandle.layer?.remove();
-      _shaderHandle.layer = null;
-      _cachedFilter = null;
-    } else {
-      syncCoordinateMapping();
-      _pass.readBackdrop();
-      final shader = (_shaderHandle.layer ??= BackdropFilterLayer())
-        ..filter = _updateShaderFilter()
-        ..backdropKey = switch (debugGlassCostProbe) {
-          GlassCostProbe.shared => _probeKey,
-          _ => backdropKey,
-        };
-      GlassLayerOwners.note(shader, this);
-      if (_clipRectLayerHandle.layer case final clip?) {
-        if (!identical(shader.parent, clip)) {
-          shader.remove();
-          clip.append(shader);
-        }
-      }
-    }
-    return filterBounds;
-  }
-
-  void _paintMaterialFilter(
-    PaintingContext context,
-    Offset offset,
-    Rect materialBounds,
-  ) {
-    if (!attached) return;
-    if (debugGlassCostProbe == GlassCostProbe.skip) {
-      _releaseCompositorFilter();
-      return;
-    }
-    _cachesBackdrop = _wantsCachedBackdrop;
-    if (_cachesBackdrop) {
-      // The filter stays ready: a frame whose copy is not exact reads the
-      // backdrop through it. Compositing picks the path.
-      _seedClipHandle.layer = null;
-      _seedHandle.layer = null;
-      _syncMaterialFilter(materialBounds, offset);
-      context.addLayer(_solidHandle.layer ??= ContainerLayer());
-      return;
-    }
-    if (_solid != null) {
-      _releaseBackdropFilter();
-      _syncMaterialFilter(materialBounds, offset);
-      context.addLayer(_solidHandle.layer!);
-      return;
-    }
-    _solidHandle.layer = null;
-    // The engine snapshots this shader's uniforms into the native image
-    // filter at creation, so the composed filter can only be reused while
-    // every snapshotted input is unchanged. Repaints with identical shader
-    // inputs (for example a static layer invalidated by foreground content)
-    // skip all Dart and native filter allocation.
-    final filterBounds = _syncMaterialFilter(materialBounds, offset);
-    final shaderLayer = _shaderHandle.layer;
-    assert(() {
-      if (!drawableEmpty && shaderLayer != null) {
-        debugRegisterBackdropCapture(this, backdropKey);
-      }
-      return true;
-    }(), 'Count independent backdrop captures in debug builds.');
-
-    void paintFilter(PaintingContext context, Offset offset) {
-      _clipRectLayerHandle.layer = context.pushClipRect(
-        needsCompositing,
-        offset,
-        filterBounds,
-        (context, offset) {
-          if (drawableEmpty) return;
-          context.pushLayer(shaderLayer!, (context, offset) {}, offset);
-        },
-        oldLayer: _clipRectLayerHandle.layer,
-      );
-    }
-
-    final seed = _seedsBlur && !drawableEmpty ? _seedClip : null;
-    if (seed == null) {
-      _seedClipHandle.layer = null;
-      _seedHandle.layer = null;
-      paintFilter(context, offset);
-      return;
-    }
-    final seedLayer = _seedHandle.layer ??= BackdropFilterLayer(
-      filter: morphBackdropSeed,
-    );
-    GlassLayerOwners.note(seedLayer, this);
-    _seedClipHandle.layer = context.pushClipRect(
-      needsCompositing,
-      offset,
-      seed,
-      (context, offset) => context.pushLayer(seedLayer, paintFilter, offset),
-      oldLayer: _seedClipHandle.layer,
-    );
-  }
-
-  // Records the glass as one rect painted with the final shader over
-  // [solid], into the layer's own picture so a retained geometry refresh
-  // can replace it without painting. The shader snapshots its uniforms and
-  // samplers when the rect is recorded, as the filter does when it is
-  // created. The background sampler keeps whatever image is bound to it
-  // (the matte or the blank image); the shader never reads it.
-  void _recordSolidMaterial(Color solid, Rect filterBounds, Offset offset) {
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final rect = filterBounds.shift(offset);
-    if (!drawableEmpty) {
-      syncCoordinateMapping();
-      final shader = _pass.overSolid(
-        solid,
-        filterBounds.size * devicePixelRatio,
-      );
-      final paint = Paint();
-      paint.shader = shader;
-      // The filter path clips its output to this rect with a hard edge.
-      paint.isAntiAlias = false;
-      canvas.drawRect(rect, paint);
-    }
-    final slot = _solidHandle.layer ??= ContainerLayer();
-    slot.removeAllChildren();
-    final picture = PictureLayer(rect);
-    picture.picture = recorder.endRecording();
-    slot.append(picture);
-  }
-
-  /// Drops native backdrop-filter state while this sample is idle.
-  void _releaseCompositorFilter() {
-    _releaseBackdropFilter();
-    _solidHandle.layer = null;
-  }
-
-  void _releaseBackdropFilter() {
-    _shaderHandle.layer = null;
-    _clipRectLayerHandle.layer = null;
-    _seedClipHandle.layer = null;
-    _seedHandle.layer = null;
-    _cachedFilter = null;
-  }
+  Rect? get debugFilterBounds => _draw.filterBounds;
 
   // MARK: Compositing
 
@@ -1463,113 +1038,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       return;
     }
     runCompositorPoll();
-    if (_backdropCache != null && _cachesBackdrop != _wantsCachedBackdrop) {
-      // The source came or went: paint picks the path again next frame.
-      markNeedsPaint();
-    } else if (_cachesBackdrop) {
-      _composeCachedBackdrop();
-    }
+    _draw.composite();
     _compositingScreen = null;
     _phaseMoved = false;
-  }
-
-  // Records the glass as one rect painted with the final shader over the
-  // cache's copy of the backdrop. The rect is drawn in screen device pixels
-  // (the canvas undoes the layer's transform), so the shader's fragment
-  // coordinates are the screen coordinates its filter mapping expects and
-  // the copy is sampled where the backdrop filter would have read.
-  void _composeCachedBackdrop() {
-    final slot = _solidHandle.layer;
-    final bounds = _filterGlassBounds;
-    if (slot == null || bounds == null) return;
-    slot.removeAllChildren();
-    if (drawableEmpty) return;
-    if (_recordCachedMaterial(slot, bounds)) return;
-    // No exact copy this frame: the backdrop filter, its mapping synced to
-    // this frame's transform.
-    final offset = _filterPaintOffset;
-    final filterBounds = _syncMaterialFilter(bounds, offset);
-    final shaderLayer = _shaderHandle.layer;
-    if (shaderLayer == null) return;
-    final clip = _clipRectLayerHandle.layer ??= ClipRectLayer();
-    clip.clipRect = filterBounds.shift(offset);
-    clip.clipBehavior = Clip.hardEdge;
-    if (!identical(shaderLayer.parent, clip)) {
-      shaderLayer.remove();
-      clip.append(shaderLayer);
-    }
-    slot.append(clip);
-  }
-
-  bool _recordCachedMaterial(ContainerLayer slot, Rect bounds) {
-    final cache = _backdropCache!;
-    final dpr = devicePixelRatio;
-    final translation = compositorTranslation;
-    final screen = getTransformTo(null);
-    screen.multiply(
-      Matrix4.translationValues(translation.dx, translation.dy, 0),
-    );
-    final filterBounds = bounds.expandToPixelBuckets(dpr);
-    final logical = MatrixUtils.transformRect(screen, filterBounds);
-    final sigma = frost.passSigma;
-    // Everything the glass may sample: its bounds, the frost's kernel and
-    // the refraction's reach (dispersion stays inside it).
-    final copy = cache.imageFor(
-      sigma: sigma,
-      devicePixelRatio: dpr,
-      region: logical.inflate(
-        3 * sigma + settings.effectiveRefractionAmount + 2,
-      ),
-    );
-    if (copy == null) return false;
-    final (image, corner) = copy;
-    syncCoordinateMapping();
-    // The copy starts at [corner]: fragment coordinates are taken from
-    // there, so the filter->matte offset moves by the basis times it.
-    final origin = corner * dpr;
-    final shader = _pass.overCopy(
-      image,
-      filterToMatteOffset: switch (_coordinateMapping) {
-        (final b0, final b1, final b2, final b3, final ox, final oy) => Offset(
-          ox + b0 * origin.dx + b1 * origin.dy,
-          oy + b2 * origin.dx + b3 * origin.dy,
-        ),
-        null => null,
-      },
-      overlay: cache.overlay,
-    );
-    final device = Rect.fromLTRB(
-      logical.left * dpr,
-      logical.top * dpr,
-      logical.right * dpr,
-      logical.bottom * dpr,
-    );
-    final canvasToScreen = screen.clone();
-    canvasToScreen.multiply(
-      Matrix4.translationValues(
-        -_filterPaintOffset.dx,
-        -_filterPaintOffset.dy,
-        0,
-      ),
-    );
-    final screenToCanvas = Matrix4.zero();
-    if (screenToCanvas.copyInverse(canvasToScreen) == 0) return false;
-    screenToCanvas.multiply(Matrix4.diagonal3Values(1 / dpr, 1 / dpr, 1));
-    screenToCanvas.multiply(Matrix4.translationValues(origin.dx, origin.dy, 0));
-    final drawn = device.shift(-origin);
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    canvas.transform(screenToCanvas.storage);
-    final paint = Paint();
-    paint.shader = shader;
-    paint.isAntiAlias = false;
-    canvas.drawRect(drawn, paint);
-    final picture = PictureLayer(
-      MatrixUtils.transformRect(screenToCanvas, drawn),
-    );
-    picture.picture = recorder.endRecording();
-    slot.append(picture);
-    return true;
   }
 
   @override
@@ -1581,19 +1052,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @override
   void onCompositorTranslated(Offset translation) {
-    if (_cachesBackdrop) return;
-    final clip = _filterClip;
-    if (clip != null && _clipRectLayerHandle.layer != null) {
-      _clipRectLayerHandle.layer!.clipRect = clip.shift(_filterPaintOffset);
-    }
-    if (_seedClipHandle.layer case final seedClip?) {
-      if (_seedClip case final seed?) {
-        seedClip.clipRect = seed.shift(_filterPaintOffset);
-      }
-    }
-    final mapped =
-        !drawableEmpty && hasReusableGeometry && syncCoordinateMapping();
-    if (mapped) _shaderHandle.layer?.filter = _updateShaderFilter();
+    if (_draw.cachesBackdrop) return;
+    final mapped = _draw.translated();
     // The poll reaches here on every composited frame, moved or not; a
     // watch on a still frame would ask for the next frame forever.
     if (mapped || _phaseMoved) _watchRasterPhase();
@@ -1603,28 +1063,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   void onCompositorTranslationMissed(
     ({bool needsRepaint, Offset? translation}) motion,
   ) {
-    if (_cachesBackdrop) return;
-    // A pass-origin change - the probe enabling, or a capture's clip moving
-    // with paint-only changes inside it - moves no tracked transform, so the
-    // translation poll misses it. Re-sync the coordinate mapping into the
-    // retained filter, or repaint when its inputs cannot be reused.
-    if (syncCoordinateMapping()) {
-      if (!drawableEmpty &&
-          hasReusableGeometry &&
-          _shaderHandle.layer != null) {
-        _shaderHandle.layer!.filter = _updateShaderFilter();
-      } else {
-        markNeedsPaint();
-      }
-    }
-    final retained = _solid != null
-        ? _solidHandle.layer != null
-        : (_shaderHandle.layer != null || drawableEmpty) &&
-              _clipRectLayerHandle.layer != null;
+    if (_draw.cachesBackdrop) return;
+    final retained = _draw.missed();
     if (motion.needsRepaint &&
         retained &&
         refreshRetainedGeometry((shapes, bounds, offset) {
-          _syncMaterialFilter(bounds, offset, retained: true);
+          _draw.sync(bounds, offset, retained: true);
         })) {
       return;
     }
@@ -1633,12 +1077,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @override
   void dispose() {
-    _shaderHandle.layer = null;
-    _clipRectLayerHandle.layer = null;
-    _seedClipHandle.layer = null;
-    _seedHandle.layer = null;
-    _solidHandle.layer = null;
-    _cachedFilter = null;
+    _draw.dispose();
     _clearGeometryImage();
     _gpuGeometryRenderer = null;
     _pass.dispose();
@@ -1662,7 +1101,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       shapesWithGeometry,
       bounds,
       layer: this,
-      layerToPass: shaderCoordinateTransform,
+      layerToPass: _draw.passTransform,
       flags: (
         analyticEnabled: GlassGeometryFlags.analyticGeometryEnabled,
         resting: _rest.resting,
@@ -1724,47 +1163,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       scheduler.scheduleFrame();
       return;
     }
-    if (_encoder.rasterGridStale(
-      shaderCoordinateTransform,
-      analytic: _analytic,
-    )) {
+    if (_encoder.rasterGridStale(_draw.passTransform, analytic: _analytic)) {
       markNeedsPaint();
     }
   }
-}
-
-/// A device timing probe that replaces one part of every liquid layer's
-/// composition; [GlassCostProbe.off] draws the glass as it is.
-///
-/// The probes change pixels: they exist to split the cost of a glass
-/// surface on the device (tool/audit/2026-10-12-glass-composition.md).
-@visibleForTesting
-GlassCostProbe debugGlassCostProbe = GlassCostProbe.off;
-
-/// The part of a liquid layer's composition that [debugGlassCostProbe]
-/// replaces, to time it on a device.
-@visibleForTesting
-enum GlassCostProbe {
-  /// The glass as it is.
-  off,
-
-  /// The glass filter is an identity color matrix: the backdrop read, the
-  /// layer's offscreen pass and its composite stay, the frost blur and the
-  /// glass shader go.
-  copy,
-
-  /// No backdrop filter at all: the floor the other probes are read from.
-  skip,
-
-  /// Every liquid layer reads one backdrop key: a single backdrop read per
-  /// frame, each layer still filtered in its own offscreen pass.
-  shared,
-
-  /// The frost blur goes, the glass shader stays in the filter.
-  nofrost,
-
-  /// Every liquid layer draws its glass as a paint over opaque black: the
-  /// glass shader over the layer's area without a backdrop read or an
-  /// offscreen pass.
-  solid,
 }
