@@ -1280,7 +1280,7 @@ class _EdgePopState extends State<_EdgePop> implements MorphBackPreview {
       } else if (route.isActive) {
         navigator?.removeRoute(route);
       }
-    } else {
+    } else if (!_leaving(route, c)) {
       c.animateWith(
         SpringSimulation(
           MorphNavigationTuning.interactiveSpring.description,
@@ -1294,19 +1294,28 @@ class _EdgePopState extends State<_EdgePop> implements MorphBackPreview {
   }
 
   void _cancel() {
-    final c = widget.route._gestureController;
+    final route = widget.route;
+    final c = route._gestureController;
     if (!_active || c == null) return;
     _active = false;
-    c.animateWith(
-      SpringSimulation(
-        MorphNavigationTuning.interactiveSpring.description,
-        c.value,
-        1,
-        0,
-      ),
-    );
+    if (!_leaving(route, c)) {
+      c.animateWith(
+        SpringSimulation(
+          MorphNavigationTuning.interactiveSpring.description,
+          c.value,
+          1,
+          0,
+        ),
+      );
+    }
     _stopWhenSettled(c);
   }
+
+  // The drag wins an uncontested arena on the touch, so a tap whose own
+  // handler pops the page (a bar button acts on the pointer up) ends a
+  // drag of a page the navigator is already taking away.
+  bool _leaving(MorphNavigationRoute<Object?> route, AnimationController c) =>
+      !route.isCurrent && c.status == AnimationStatus.reverse;
 
   void _stopWhenSettled(AnimationController c) {
     final route = widget.route;
