@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
 
 // The bench measures package INTERNALS by design - it is an instrument
 // of the package, living in the example only to get an AOT build.
@@ -24,8 +24,15 @@ class ReleaseBenchApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return WidgetsApp(
+      color: const Color(0xFF2A2440),
       debugShowCheckedModeBanner: false,
+      textStyle: const TextStyle(color: Color(0xFFFFFFFF)),
+      pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
+          PageRouteBuilder<T>(
+            settings: settings,
+            pageBuilder: (BuildContext context, _, _) => builder(context),
+          ),
       builder: (BuildContext context, Widget? child) =>
           MorphScope(child: child!),
       home: const _BenchHome(),
@@ -54,8 +61,9 @@ class _BenchHomeState extends State<_BenchHome> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
+    return ColoredBox(
+      color: const Color(0xFFFFFFFF),
+      child: Center(
         child: MorphTag(
           id: _benchSourceId,
           shape: RoundedRectangleBorder(borderRadius: .circular(20)),
