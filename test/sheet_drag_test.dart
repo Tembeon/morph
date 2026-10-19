@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
+import 'support/motion_at.dart';
 
 const _dir = 'test/fixtures/ios27/sheet-drag';
 const _deviceDir = 'test/fixtures/ios27-device/sheet-drag';
@@ -93,7 +94,7 @@ class _Capture {
   );
   motion.present(0);
   motion.advance(down.$1 - 2);
-  final rect = motion.visibleRect(down.$1 - 2, _h);
+  final rect = motion.at(down.$1 - 2).visibleRect(_h);
   if ((rect.top - before.top).abs() > 1) {
     throw StateError('$name rests at ${before.top}, model ${rect.top}');
   }
@@ -119,8 +120,9 @@ class _Capture {
           motion.dragEnd(t, v);
         } else {
           motion.unpress(t);
-          final top = motion.visibleRect(t, _h).top;
-          if ((y - top) / motion.scale(t) < MorphSheetTuning.grabberHitHeight) {
+          final top = motion.at(t).visibleRect(_h).top;
+          if ((y - top) / motion.at(t).scale <
+              MorphSheetTuning.grabberHitHeight) {
             motion.tapGrabber(t);
           }
         }
@@ -138,9 +140,9 @@ class _Capture {
     if (row.t < down.$1) continue;
     feed(row.t);
     motion.advance(row.t);
-    final r = motion.visibleRect(row.t, _h);
+    final r = motion.at(row.t).visibleRect(_h);
     final e = [r.top - row.top, r.bottom - row.bottom];
-    stretchErrors.add(motion.stretch(row.t) - row.ratio);
+    stretchErrors.add(motion.at(row.t).stretch - row.ratio);
     if (e.any((double v) => v.abs() > 60) && row.top <= 0.5) continue;
     if (row.top >= _h - 1 && r.top >= _h - 1) continue;
     errors.addAll(e);
@@ -281,20 +283,20 @@ void main() {
       motion.dragUpdate(t, y);
     }
     motion.dragEnd(t, -1300);
-    final peak = motion.stretch(t);
+    final peak = motion.at(t).stretch;
     expect(peak, greaterThan(1.02));
     final regrab = t + 0.1;
     motion.advance(regrab);
-    final before = motion.stretch(regrab);
+    final before = motion.at(regrab).stretch;
     expect(before, greaterThan(1.01));
-    expect(motion.dock(regrab), lessThan(1));
+    expect(motion.at(regrab).dock, lessThan(1));
     motion.dragStart(regrab, y);
-    expect(motion.stretch(regrab), closeTo(before, 1e-9));
+    expect(motion.at(regrab).stretch, closeTo(before, 1e-9));
     var last = before;
     for (var i = 1; i <= 24; i++) {
       final s = regrab + i * step;
       motion.dragUpdate(s, y);
-      final now = motion.stretch(s);
+      final now = motion.at(s).stretch;
       expect((now - last).abs(), lessThan(0.003));
       last = now;
     }

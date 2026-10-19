@@ -619,7 +619,8 @@ class _SheetViewState extends State<_SheetView>
     }
     final zoom = _zoom;
     if (zoom != null) {
-      final natural = motion.visibleRect(clock, _size.height);
+      motion.advance(clock);
+      final natural = motion.visibleRect(_size.height);
       final scrub = _scrubAt(clock);
       _zoomContent ??= natural.size;
       _zoomTarget ??= scrub == null
@@ -873,10 +874,11 @@ class _SheetViewState extends State<_SheetView>
     }
     final motion = _motion;
     if (motion == null || !motion.isDragging) return;
+    motion.advance(_stamp);
     if (_zoom != null &&
         _dismissAllowed &&
         y > _dragY &&
-        motion.height(_stamp) <= motion.heights.first + 0.5) {
+        motion.height <= motion.heights.first + 0.5) {
       motion.dragCancel(_stamp);
       _scrubFrom = _dragY;
       _scrubTravel = y - _dragY;
@@ -949,14 +951,14 @@ class _SheetViewState extends State<_SheetView>
   bool get _canExpand {
     final motion = _motion;
     if (motion == null) return false;
-    return motion.height(motion.time) < motion.heights.last - 0.5;
+    return motion.height < motion.heights.last - 0.5;
   }
 
   bool get _scrollDragging => _motion?.isDragging ?? false;
 
   double _fillNow() {
     final motion = _motion;
-    return motion == null ? 0 : motion.fill(motion.time);
+    return motion == null ? 0 : motion.fill;
   }
 
   // The content widget is reused while its inputs hold, so a rebuild of
@@ -1060,7 +1062,7 @@ class _SheetViewState extends State<_SheetView>
                 ) {
                   final sheet = _SheetBody(
                     frames: frames,
-                    fill: () => motion.fill(motion.time),
+                    fill: () => motion.fill,
                     opaque: structure.opaque,
                     filling: structure.filling,
                     clipped: structure.zooming,
@@ -1154,24 +1156,24 @@ class _SheetViewState extends State<_SheetView>
   _SheetFrame _frame(Size size) {
     final motion = _motion!;
     final t = motion.time;
-    final h = motion.height(t);
-    final s = motion.scale(t);
-    final dim = motion.dimming(t);
-    final fill = motion.fill(t);
+    final h = motion.height;
+    final s = motion.scale;
+    final dim = motion.dimming;
+    final fill = motion.fill;
     final floating = _floatingRadius;
     final bottomRadius = math.max(
       0.0,
-      floating + (_dockedRadius - floating) * motion.cornerBlend(t),
+      floating + (_dockedRadius - floating) * motion.cornerBlend,
     );
     final dimOpacity =
         _style.dimmingColor.a * MorphSheetTuning.dimmingOpacity * dim;
     final scrub = _zooming ? null : _scrubAt(t);
-    final natural = motion.visibleRect(t, size.height);
+    final natural = motion.visibleRect(size.height);
     final drawn = scrub == null
         ? natural
         : _route.zoom.scrubFrame(natural, scrub);
     final k = size.width <= 0 ? 1.0 : drawn.width / size.width;
-    final stretched = motion.stretch(t) != 1;
+    final stretched = motion.stretch != 1;
     final ky = scrub == null && stretched && h > 0 ? drawn.height / h : k;
     final transform = Matrix4.translationValues(drawn.left, drawn.top, 0);
     transform.multiply(Matrix4.diagonal3Values(k, ky, 1));
@@ -1276,7 +1278,7 @@ extension on _SheetViewState {
     final motion = _motion!;
     final t = motion.time;
     final frame = _frame(size);
-    final natural = motion.visibleRect(t, size.height);
+    final natural = motion.visibleRect(size.height);
     final destination = _zoomTarget ?? natural;
     final source = _source.capture(context) ?? destination;
     zoom.travel = MorphRest.travel(source, destination);

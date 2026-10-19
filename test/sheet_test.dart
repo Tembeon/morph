@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
+import 'support/motion_at.dart';
 
 const _sim = 'test/fixtures/ios27/sheet';
 const _device = 'test/fixtures/ios27-device/sheet';
@@ -125,7 +126,7 @@ double _max(MorphSheetDetent d) => d.resolve(_h - _top - _bottom) + _bottom;
     _Row row, {
     required bool presenting,
   }) {
-    final rect = motion.visibleRect(row.t, _h);
+    final rect = motion.at(row.t).visibleRect(_h);
     final top = row.d('y') - row.d('h') / 2;
     final bottom = row.d('y') + row.d('h') / 2;
     final left = row.d('x') - row.d('w') / 2;
@@ -165,7 +166,7 @@ double _max(MorphSheetDetent d) => d.resolve(_h - _top - _bottom) + _bottom;
         }
         m.advance(row.t);
         final bg = (row.raw['bg']! as List).cast<num>();
-        dims.add(m.dimming(row.t) * MorphSheetTuning.dimmingOpacity - bg[3]);
+        dims.add(m.at(row.t).dimming * MorphSheetTuning.dimmingOpacity - bg[3]);
       }
     }
     return errors;

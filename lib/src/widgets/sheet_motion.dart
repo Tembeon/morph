@@ -464,30 +464,40 @@ class MorphSheetMotion {
 
   double get _scaleRest => MorphRest.scale(math.max(width, _heights[_index]));
 
-  /// The unscaled height at time [t].
-  double height(double t) => _height.value(t);
+  /// The unscaled height.
+  double get height => _heightAt(_now);
 
-  /// The translation down from the resting place at time [t].
-  double offset(double t) => _offset.value(t);
+  double _heightAt(double t) => _height.value(t);
 
-  /// The docking progress at time [t]: 0 floating, 1 edge to edge.
-  double dock(double t) => _dockFor(height(t));
+  /// The translation down from the resting place.
+  double get offset => _offsetAt(_now);
 
-  /// The opacity of the opaque fill at time [t], 0 to 1: 0 shows the
+  double _offsetAt(double t) => _offset.value(t);
+
+  /// The docking progress: 0 floating, 1 edge to edge.
+  double get dock => _dockAt(_now);
+
+  double _dockAt(double t) => _dockFor(_heightAt(t));
+
+  /// The opacity of the opaque fill, 0 to 1: 0 shows the
   /// glass of a floating sheet, 1 the fill of a docked one, which hides
   /// the glass.
-  double fill(double t) => _fill.value(t).clamp(0.0, 1.0);
+  double get fill => _fillAt(_now);
+
+  double _fillAt(double t) => _fill.value(t).clamp(0.0, 1.0);
 
   /// How far the bottom corners have turned from the floating radius to
-  /// the docked one at time [t], 0 to 1.
+  /// the docked one, 0 to 1.
   ///
   /// A drag sets the radius from the docking progress `p` as
   /// `1 - (1 - p)^2`: the corner keeps concentric with the shrinking gap
   /// to the screen edge, so it reaches the docked radius sooner than the
   /// scale. A settle or a programmatic change carries the radius from
   /// where it started to its end in step with the docking.
-  double cornerBlend(double t) {
-    final d = dock(t);
+  double get cornerBlend => _cornerBlendAt(_now);
+
+  double _cornerBlendAt(double t) {
+    final d = _dockAt(t);
     if (_dragFrom != null) return 1 - (1 - d) * (1 - d);
     if (_toDocked) {
       final span = 1 - _dockStart;
@@ -533,18 +543,22 @@ class MorphSheetMotion {
     return inset * (reference / width - 1) * (1 - dock);
   }
 
-  /// The uniform scale of the sheet at time [t], the swell of a touch
+  /// The uniform scale of the sheet, the swell of a touch
   /// included.
-  double scale(double t) => _scaleFor(dock(t)) * pressScale(t);
+  double get scale => _scaleAt(_now);
 
-  /// The ratio of the sheet's vertical to its horizontal scale at time
-  /// [t]: 1 at rest, above 1 while a drag stretches the sheet. The drawn
+  double _scaleAt(double t) => _scaleFor(_dockAt(t)) * _pressScaleAt(t);
+
+  /// The ratio of the sheet's vertical to its horizontal scale: 1 at
+  /// rest, above 1 while a drag stretches the sheet. The drawn
   /// height is the [scale]d height times its square root, the drawn width
   /// the [scale]d width over it, about the bottom edge. A drag that
   /// catches the sheet while a stretch still returns stretches it on top
   /// of that remainder, which keeps returning on
   /// [MorphSheetTuning.stretchSpring].
-  double stretch(double t) =>
+  double get stretch => _stretchAt(_now);
+
+  double _stretchAt(double t) =>
       1 +
       _stretch.value(t) +
       (_stretching
@@ -554,7 +568,7 @@ class MorphSheetMotion {
 
   void _holdStretch(double t) {
     if (!_stretching) return;
-    _stretch.snap(t, stretch(t) - 1);
+    _stretch.snap(t, _stretchAt(t) - 1);
     _stretching = false;
   }
 
@@ -563,21 +577,29 @@ class MorphSheetMotion {
     _stretch.retarget(t, 0);
   }
 
-  /// The vertical shift of the scaled sheet's center at time [t], on top
+  /// The vertical shift of the scaled sheet's center, on top
   /// of [offset]: what keeps a floating sheet [inset] off the bottom.
-  double shift(double t) => _shiftFor(height(t), dock(t));
+  double get shift => _shiftAt(_now);
 
-  /// How strongly the sheet dims what is behind it at time [t], 0 to 1;
+  double _shiftAt(double t) => _shiftFor(_heightAt(t), _dockAt(t));
+
+  /// How strongly the sheet dims what is behind it, 0 to 1;
   /// multiply by [MorphSheetTuning.dimmingOpacity].
-  double dimming(double t) {
+  double get dimming => _dimmingAt(_now);
+
+  double _dimmingAt(double t) {
     final hidden = hiddenOffset;
-    final shown = hidden <= 0 ? 1.0 : (1 - offset(t) / hidden).clamp(0.0, 1.0);
+    final shown = hidden <= 0
+        ? 1.0
+        : (1 - _offsetAt(t) / hidden).clamp(0.0, 1.0);
     final undimmed = undimmedIndex;
     if (undimmed == null) return shown;
     if (undimmed >= _heights.length - 1) return 0;
     final lo = _heights[undimmed];
     final hi = _heights[undimmed + 1];
-    final f = hi <= lo ? 1.0 : ((height(t) - lo) / (hi - lo)).clamp(0.0, 1.0);
+    final f = hi <= lo
+        ? 1.0
+        : ((_heightAt(t) - lo) / (hi - lo)).clamp(0.0, 1.0);
     return shown * f;
   }
 
@@ -631,9 +653,9 @@ class MorphSheetMotion {
   }
 
   void _transition(double t, int index, {double? velocity}) {
-    final h = height(t);
+    final h = _heightAt(t);
     final d = _dockFor(h);
-    final corner = cornerBlend(t);
+    final corner = _cornerBlendAt(t);
     _dragFrom = null;
     _releaseStretch(t);
     final changed = index != _index;
@@ -685,16 +707,19 @@ class MorphSheetMotion {
     });
   }
 
-  /// The swell of the sheet under a touch at time [t], as a factor on
+  /// The swell of the sheet under a touch, as a factor on
   /// [scale]; it fades as the sheet docks.
-  double pressScale(double t) => 1 + (_press.value(t) - 1) * (1 - dock(t));
+  double get pressScale => _pressScaleAt(_now);
+
+  double _pressScaleAt(double t) =>
+      1 + (_press.value(t) - 1) * (1 - _dockAt(t));
 
   /// A finger started dragging the sheet at screen position [y].
   void dragStart(double t, double y) {
     advance(t);
     unpress(t);
     _holdStretch(t);
-    if (dock(t) < 1) {
+    if (_dockAt(t) < 1) {
       _stretch.retarget(t, 0);
       _stretching = true;
       _travel = 0;
@@ -859,13 +884,17 @@ class MorphSheetMotion {
     if (_stretch.isWithin(_now, _scaleRest)) _stretch.settle(_now);
   }
 
-  /// The sheet's visible rect at time [t] in a container [containerHeight]
+  /// The sheet's visible rect in a container [containerHeight]
   /// pixels tall, transforms applied.
-  Rect visibleRect(double t, double containerHeight) {
-    final h = height(t);
-    final s = scale(t);
-    final bottom = containerHeight + (s - 1) * h / 2 + shift(t) + offset(t);
-    final k = math.sqrt(math.max(stretch(t), 0.5));
+  Rect visibleRect(double containerHeight) =>
+      _visibleRectAt(_now, containerHeight);
+
+  Rect _visibleRectAt(double t, double containerHeight) {
+    final h = _heightAt(t);
+    final s = _scaleAt(t);
+    final bottom =
+        containerHeight + (s - 1) * h / 2 + _shiftAt(t) + _offsetAt(t);
+    final k = math.sqrt(math.max(_stretchAt(t), 0.5));
     final w = width * s / k;
     return Rect.fromLTRB(
       (width - w) / 2,
