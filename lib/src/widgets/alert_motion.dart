@@ -117,7 +117,22 @@ abstract final class MorphAlertTuning {
   /// The horizontal space between an alert's edge and a text field.
   static const double fieldInset = 15;
 
-  /// The space between a text field and the buttons.
+  /// The space between two text fields.
+  ///
+  /// Carried from the first port as [buttonGap]: no committed capture
+  /// holds an alert with more than one text field, so the gap is not
+  /// replayed.
+  static const double fieldGap = 8;
+
+  /// The space below the last text field, above the buttons' own
+  /// [buttonInset].
+  ///
+  /// UIKit's view dumps (see [headerTop]): the row alert's text field
+  /// collection view runs from 280 to 332 around a 48 point cell ending
+  /// at 328, and the actions view starting at 332 holds its first button
+  /// at 348, so the buttons rest 20 points under the field in a 216 point
+  /// platter. Only one text field was captured; with several, the space
+  /// is assumed to follow the last one.
   static const double fieldBottom = 4;
 
   /// The opacity of a pressed button's fill, relative to its normal fill.

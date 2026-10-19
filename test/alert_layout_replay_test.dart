@@ -90,17 +90,43 @@ Finder _button(String title) => find.ancestor(
   ),
 );
 
+/// A device view dump's window size, its keyboard's height and every
+/// view's class and frame in window points, in the dump's order.
+({Size screen, double keyboard, List<_View> views}) _dump(String path) {
+  final row = RegExp(r'^\s*(\S+) (-?[\d.]+),(-?[\d.]+) ([\d.]+)x([\d.]+)');
+  final views = [
+    for (final line in File(path).readAsLinesSync())
+      if (row.firstMatch(line) case final m?)
+        (
+          cls: m[1]!,
+          frame: Rect.fromLTWH(
+            double.parse(m[2]!),
+            double.parse(m[3]!),
+            double.parse(m[4]!),
+            double.parse(m[5]!),
+          ),
+        ),
+  ];
+  final screen = views.first.frame.size;
+  final keyboard = views
+      .singleWhere((_View v) => v.cls == '_UIKeyboardLayoutAlignmentView')
+      .frame;
+  return (screen: screen, keyboard: screen.height - keyboard.top, views: views);
+}
+
 Future<void> _show(
   WidgetTester tester,
   Size screen,
-  void Function(BuildContext context) show,
-) async {
+  void Function(BuildContext context) show, {
+  double keyboard = 0,
+}) async {
   tester.view.physicalSize = screen * 3;
   tester.view.devicePixelRatio = 3;
   tester.view.padding = FakeViewPadding(
     top: _safeArea.top * 3,
     bottom: _safeArea.bottom * 3,
   );
+  tester.view.viewInsets = FakeViewPadding(bottom: keyboard * 3);
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     MaterialApp(
@@ -184,6 +210,57 @@ void main() {
       }
     });
   }
+
+  testWidgets('a row alert with a text field rests where UIKit lays out '
+      'its platter, its field and its buttons (dump-dis-alertrow)', (
+    tester,
+  ) async {
+    final dump = _dump(
+      'tool/ios_reference/references/disabled/dumps/'
+      'dump-dis-alertrow-light-rest.txt',
+    );
+    Rect view(String cls) =>
+        dump.views.singleWhere((_View v) => v.cls == cls).frame;
+    final platter = view('_UIAlertControllerPhoneTVMacView');
+    expect(platter.height, 216);
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+    await _show(
+      tester,
+      dump.screen,
+      (BuildContext context) => showMorphAlert(
+        context,
+        title: 'Rename',
+        message: 'Enter a name.',
+        textFields: [
+          MorphAlertTextField(placeholder: 'Name', controller: controller),
+        ],
+        actions: const [
+          MorphAlertAction(title: 'Cancel', style: .cancel),
+          MorphAlertAction(title: 'OK'),
+        ],
+      ),
+      keyboard: dump.keyboard,
+    );
+    _compare(tester.getRect(_card()), platter, 'platter');
+    _compare(
+      tester.getRect(
+        find.byWidgetPredicate(
+          (Widget w) => '${w.runtimeType}' == '_AlertField',
+        ),
+      ),
+      view('_UIAlertControllerTextFieldView'),
+      'field',
+    );
+    final buttons = [
+      for (final v in dump.views)
+        if (v.cls == '_UIInterfaceActionCustomViewRepresentationView') v.frame,
+    ];
+    buttons.sort((Rect a, Rect b) => a.left.compareTo(b.left));
+    for (final (i, title) in ['Cancel', 'OK'].indexed) {
+      _compare(tester.getRect(_button(title)), buttons[i], title);
+    }
+  });
 
   final placements =
       (jsonDecode(File('$_sim/placements.json').readAsStringSync()) as Map)

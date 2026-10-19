@@ -1283,17 +1283,16 @@ class _AlertCard extends StatelessWidget {
         ),
     ];
     final fieldWidgets = <Widget>[
-      for (var i = 0; i < fields.length; i++)
-        Padding(
-          padding: const EdgeInsets.only(bottom: MorphAlertTuning.buttonGap),
-          child: _AlertField(
-            field: fields[i],
-            controller: controllers[i],
-            style: style,
-            autofocus: fields[i].autofocus ?? i == 0,
-            onSubmit: onSubmit,
-          ),
+      for (var i = 0; i < fields.length; i++) ...[
+        if (i > 0) const SizedBox(height: MorphAlertTuning.fieldGap),
+        _AlertField(
+          field: fields[i],
+          controller: controllers[i],
+          style: style,
+          autofocus: fields[i].autofocus ?? i == 0,
+          onSubmit: onSubmit,
         ),
+      ],
     ];
     final buttons = [
       for (var i = 0; i < actions.length; i++)
@@ -1364,10 +1363,8 @@ class _AlertCard extends StatelessWidget {
             ),
           if (buttons.isNotEmpty)
             Padding(
-              padding: EdgeInsets.only(
-                top: fieldWidgets.isEmpty
-                    ? MorphAlertTuning.buttonInset
-                    : MorphAlertTuning.fieldBottom,
+              padding: const EdgeInsets.only(
+                top: MorphAlertTuning.buttonInset,
                 left: MorphAlertTuning.buttonInset,
                 right: MorphAlertTuning.buttonInset,
               ),
