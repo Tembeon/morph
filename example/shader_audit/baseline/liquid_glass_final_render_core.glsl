@@ -9,9 +9,16 @@
 // the coordinate subtraction into visible shimmer on large layers.
 precision highp float;
 
+// 1 evaluates the shapes in this pass (analytic_geometry.glsl) instead of
+// reading a geometry matte and a material map.
+#ifndef ANALYTIC_GEOMETRY
+#define ANALYTIC_GEOMETRY 0
+#endif
+
 #include <flutter/runtime_effect.glsl>
 #include "gpu/displacement_encoding.glsl"
 #include "render.glsl"
+#include "glass_glow.glsl"
 
 uniform vec2 uSize;
 uniform vec2 uGeometryOffset;
@@ -20,6 +27,8 @@ uniform vec2 uGeometrySize;
 uniform vec4 uTint;
 uniform vec3 uOpticalProps;
 uniform vec3 uLightConfig;
+// The layer writes the light direction (0, 1) and a white highlight here;
+// the pass reads them as constants (see the rim constants below).
 uniform vec2 uLightDirection;
 uniform vec4 uHighlightColor;
 uniform vec4 uContourColor;
@@ -53,9 +62,21 @@ uniform vec2 uMaterialTextureSize;
 // Half the line backdropShrink is about, matte device px from the material
 // center. Zero shrinks about the center itself.
 uniform vec2 uBackdropShrinkAxis;
-// The live shaders' solid backdrop; declared for the uniform layout the
-// layer writes, never read here (the baseline always reads the backdrop).
-uniform vec4 uSolidBackdrop;
+// An opaque uniform backdrop the layer declared (straight RGB, alpha 1),
+// or alpha 0 to read the backdrop texture. Refraction, dispersion and
+// softening of a uniform color are that color, so with alpha 1 no read
+// touches uBackgroundTexture: the pass draws as a plain paint whose
+// fragment coordinates are the layer's own canvas coordinates.
+// [0] uSolidBackdrop, then the touch glow of one lit surface (glass_glow.glsl):
+// [1] the spot, [2] the lit surface's box, [3] its corner radius and the
+// wash; no glow while the spot's gain and the wash are both 0. One array,
+// because Metal gives every declaration a buffer slot of its 31 and the
+// fused tint variants use them all (analytic_geometry.glsl).
+uniform vec4 uSolidBackdropGlow[4];
+#define uSolidBackdrop uSolidBackdropGlow[0]
+#define uGlowSpot uSolidBackdropGlow[1]
+#define uGlowBox uSolidBackdropGlow[2]
+#define uGlowShape uSolidBackdropGlow[3]
 
 float uDisplacementScale = uOpticalProps.x;
 float uDispersion = uOpticalProps.y;
@@ -65,11 +86,8 @@ float uLightIntensity = uLightConfig.x;
 float uBackdropScale = uLightConfig.y;
 float uSaturation = uLightConfig.z;
 float uEdgeWidth = uContourConfig.x;
-float uContourTransmittance = uContourConfig.y;
 float uContourDirectionality = uContourConfig.z;
-float uContourOffset = uProfileConfig.x;
 vec2 uMaterialCenter = uProfileConfig.yz;
-float uSpecularWrap = uProfileConfig.w;
 float uTransmissionGamma = uMaterialConfig.x;
 float uVibrancy = uMaterialConfig.y;
 // iOS 27 Liquid Glass slider: 0 = Clear, 1 = Tinted.
@@ -77,10 +95,18 @@ float uTintAmount = clamp(uMaterialConfig.z, 0.0, 1.0);
 float uBevelShadowStrength = uBevelShadowConfig.x;
 float uBevelShadowDepth = uBevelShadowConfig.y;
 float uBevelShadowOffset = uBevelShadowConfig.z;
-float uBevelShadowDirectionality = uLightingShapeConfig.x;
-float uBevelShadowSizeResponse = uLightingShapeConfig.y;
 float uHighlightWidth = uLightingShapeConfig.z;
-float uHighlightOppositeStrength = uLightingShapeConfig.w;
+
+// Rim parameters the layer always writes the same (GlassRim and the literals
+// of RenderLiquidGlassLayer._writeCommonShaderUniforms;
+// test/glass_rim_constants_test.dart holds them equal) are folded as
+// constants instead of read: no uniform reads, and the arithmetic they gate
+// is gone. Their uniform slots stay in the layout. The light falls along +y
+// on a white highlight; the contour starts at the silhouette (offset 0) and
+// absorbs all transmitted light; the glint has the measured wrap 0.5 (an
+// exponent of exactly 1) and full strength on both walls; the bevel shadow
+// follows the light by half and does not grow with size.
+const float kBevelShadowDirectionality = 0.5;
 
 // The fitted/default CA range is below the pixel response of the backdrop
 // sampler: the pinned three-scene scan found no score or decoded-image gain
@@ -115,9 +141,11 @@ float gGlintVibrancy = kGlintVibrancy;
 const float kContourCoverageFeather = 1.0;
 
 uniform sampler2D uBackgroundTexture;
+#if !ANALYTIC_GEOMETRY
 uniform sampler2D uGeometryTexture;
 #if SHAPE_APPEARANCE || SHAPE_TINT
 uniform sampler2D uMaterialTexture;
+#endif
 #endif
 #if SHAPE_APPEARANCE
 uniform sampler2D uMaterialLinearTexture;
@@ -252,39 +280,53 @@ vec2 ios27FaceTransfer(
     return mix(light, dark, darkWeight);
 }
 
-// Light and dark glass select tint tones differently; merged light and dark
-// shapes mix the two by darkWeight.
+// Light and dark glass select tint tones differently.
+vec3 ios27LightTintTone(vec3 tint, float luminance) {
+    float lightScale = 0.76059211 +
+        (1.0 - 0.76059211) * pow(luminance, 0.90667748);
+    return clamp(
+        lightScale * pow(
+            max(tint, vec3(0.0)),
+            vec3(1.0 + 0.07044432 * (1.0 - luminance))
+        ),
+        0.0,
+        1.0
+    );
+}
+
+vec3 ios27DarkTintTone(vec3 tint, float luminance) {
+    float darkFloor = 0.08611765 * pow(
+        min(1.0, luminance / 0.62019473),
+        1.01150514
+    );
+    float darkCeiling = 1.0 - 0.01560784 * pow(
+        min(1.0, luminance / 0.46837318),
+        1.85642966
+    );
+    return clamp(mix(vec3(darkFloor), vec3(darkCeiling), tint), 0.0, 1.0);
+}
+
+// Merged light and dark shapes mix the two tones by darkWeight.
 vec3 ios27TintTone(vec3 tint, float backdropLuminance, float darkWeight) {
     float luminance = clamp(backdropLuminance, 0.0, 1.0);
+    #if SHAPE_APPEARANCE
     vec3 tone = vec3(0.0);
     if (darkWeight < 1.0) {
-        float lightScale = 0.76059211 +
-            (1.0 - 0.76059211) * pow(luminance, 0.90667748);
-        tone = clamp(
-            lightScale * pow(
-                max(tint, vec3(0.0)),
-                vec3(1.0 + 0.07044432 * (1.0 - luminance))
-            ),
-            0.0,
-            1.0
-        );
+        tone = ios27LightTintTone(tint, luminance);
     }
     if (darkWeight > 0.0) {
-        float darkFloor = 0.08611765 * pow(
-            min(1.0, luminance / 0.62019473),
-            1.01150514
-        );
-        float darkCeiling = 1.0 - 0.01560784 * pow(
-            min(1.0, luminance / 0.46837318),
-            1.85642966
-        );
-        tone = mix(
-            tone,
-            clamp(mix(vec3(darkFloor), vec3(darkCeiling), tint), 0.0, 1.0),
-            darkWeight
-        );
+        tone = mix(tone, ios27DarkTintTone(tint, luminance), darkWeight);
     }
     return tone;
+    #else
+    // One color model for the layer: darkWeight is exactly 0 or 1, and one
+    // tone alone holds fewer registers than the light one carried into the
+    // dark one's mix.
+    if (darkWeight > 0.0) {
+        return ios27DarkTintTone(tint, luminance);
+    }
+    return ios27LightTintTone(tint, luminance);
+    #endif
 }
 
 // Direct, dark and clear shares of a color model code (0 direct, 1 iOS 27
@@ -307,20 +349,16 @@ float pickExact(float a, float b, float pick) {
 }
 
 float contourExtent() {
-    return max(
-        kContourCoverageFeather,
-        uContourOffset + uEdgeWidth + kContourCoverageFeather
-    );
+    return max(kContourCoverageFeather, uEdgeWidth + kContourCoverageFeather);
 }
 
-// The dark border starts at the silhouette (shifted outward by
-// contourOffset) and fades linearly outward over contourWidth. It is often
-// narrower than a pixel, so it is box-filtered over the same one-pixel
-// footprint as the silhouette instead of being point-sampled, which would
-// alias into a dotted line along curves. This is the ramp's integral from
-// the silhouette to outward distance t.
+// The dark border starts at the silhouette and fades linearly outward over
+// contourWidth. It is often narrower than a pixel, so it is box-filtered
+// over the same one-pixel footprint as the silhouette instead of being
+// point-sampled, which would alias into a dotted line along curves. This is
+// the ramp's integral from the silhouette to outward distance t.
 float contourIntegral(float t) {
-    float u = clamp(t - uContourOffset, 0.0, uEdgeWidth);
+    float u = clamp(t, 0.0, uEdgeWidth);
     return u - u * u / (2.0 * uEdgeWidth);
 }
 
@@ -339,10 +377,10 @@ vec2 contourCoverage(float signedEdgeDistance) {
     );
 }
 
-// The fraction of the normal perpendicular to the light axis. The glint
+// The fraction of the normal perpendicular to the light axis (+y). The glint
 // lives where it is zero; the dark border concentrates where it is one.
 float lightAxisTangency(vec2 surfaceNormal) {
-    return abs(dot(surfaceNormal, vec2(-uLightDirection.y, uLightDirection.x)));
+    return abs(surfaceNormal.x);
 }
 
 float contourDirection(vec2 surfaceNormal) {
@@ -383,7 +421,7 @@ vec2 mirrorIntoBackdrop(vec2 sourceOffset, vec2 matteCoord) {
     );
     // Keep bilinear footprints, and the softening taps one texel out, off
     // the uncaptured side of the edge.
-    float margin = 0.5 + uSoften;
+    float margin = 0.5 + (uSoften > 1.5 ? 1.0 : uSoften);
     vec2 lo = uBackdropBounds.xy + margin;
     vec2 hi = uBackdropBounds.zw - margin;
     if (all(greaterThanEqual(sampleMatte, lo)) &&
@@ -443,7 +481,7 @@ vec3 applySpecularHighlights(
     }
 
     vec2 normalXY = surfaceNormal;
-    float lightFacing = dot(normalXY, -uLightDirection);
+    float lightFacing = -normalXY.y;
     // Deep inside, past the glint's bleed, the inner border and the bevel
     // band (with a margin over the band's division), every term below is
     // exactly zero.
@@ -456,27 +494,12 @@ vec3 applySpecularHighlights(
         return baseColor;
     }
 
-    // Both walls along the light axis catch the glint; it fades linearly
-    // with the normal's tangential component. highlightWrap = 0.5 is the
-    // linear falloff measured on iOS 27; lower values narrow the lobes and
-    // higher values carry them further around corners.
-    float axisAlignment = 1.0 - lightAxisTangency(normalXY);
-    // The measured wrap 0.5 is an exponent of exactly 1: no pow.
-    float lobe = max(axisAlignment, 0.0);
-    if (uSpecularWrap != 0.5) {
-        lobe = pow(
-            lobe,
-            exp2(2.0 - 4.0 * clamp(uSpecularWrap, 0.0, 1.0))
-        );
-    }
-    float returnWeight = pickExact(
-        clamp(uHighlightOppositeStrength, 0.0, 1.0),
-        1.0,
-        step(0.0, lightFacing)
-    );
+    // Both walls along the light axis catch the glint with the same
+    // energy; it fades linearly with the normal's tangential component, the
+    // falloff measured on iOS 27.
+    float lobe = max(1.0 - lightAxisTangency(normalXY), 0.0);
     float glint = clamp(
-        max(uLightIntensity, 0.0) * kGlintPeak * lobe * returnWeight *
-            glintProfile,
+        max(uLightIntensity, 0.0) * kGlintPeak * lobe * glintProfile,
         0.0,
         1.0
     );
@@ -485,24 +508,7 @@ vec3 applySpecularHighlights(
     // another compositor pass.
     float bevelShadow = 0.0;
     if (uBevelShadowStrength >= 0.001) {
-        float configuredBevelDepth = max(uBevelShadowDepth, 0.001);
-        float sizeAwareBevelDepth = configuredBevelDepth;
-        float surfaceHalfMinor = min(uGeometrySize.x, uGeometrySize.y) * 0.5;
-        float sizeProgress = smoothstep(
-            configuredBevelDepth * 3.5,
-            configuredBevelDepth * 5.0,
-            surfaceHalfMinor
-        );
-        float sizeEnergy = mix(
-            1.0,
-            1.875,
-            sizeProgress * clamp(uBevelShadowSizeResponse, 0.0, 1.0)
-        );
-        // A bevel occupies proportionally less of a large surface, so its wall
-        // contributes more integrated shadow without extending farther into
-        // the face. Small controls retain the configured strength; larger
-        // surfaces grow smoothly up to 2x. This avoids the broad matte wash
-        // produced by globally increasing strength or band depth.
+        float bevelDepth = max(uBevelShadowDepth, 0.001);
         // The raised rim shades the face like a wall lit along the light
         // axis: its band is displaced by the offset along the light. Below
         // the lit wall it falls inside the face, along the sides it starts
@@ -515,7 +521,7 @@ vec3 applySpecularHighlights(
             : 1.0;
         float bevelFalloff = 1.0 - smoothstep(
             0.0,
-            sizeAwareBevelDepth,
+            bevelDepth,
             inwardDistance - shadowShift
         );
         float bevelBand = bevelLeadingEdge * bevelFalloff;
@@ -534,13 +540,10 @@ vec3 applySpecularHighlights(
         float bevelDirection = mix(
             1.0,
             wrappedLightFacing,
-            clamp(uBevelShadowDirectionality, 0.0, 1.0)
+            kBevelShadowDirectionality
         );
         bevelShadow = clamp(
-            bevelBand *
-                bevelDirection *
-                uBevelShadowStrength *
-                sizeEnergy,
+            bevelBand * bevelDirection * uBevelShadowStrength,
             0.0,
             1.0
         );
@@ -553,9 +556,7 @@ vec3 applySpecularHighlights(
         1.0
     );
     vec3 result = baseColor * (1.0 - edgeAbsorption) +
-        uContourColor.rgb * edgeAbsorption +
-        transmittedColor * edgeAbsorption *
-            clamp(uContourTransmittance, 0.0, 1.0);
+        uContourColor.rgb * edgeAbsorption;
     // The shadow absorbs only light that came through the glass: the wash
     // emits the same over any backdrop, so over black the face is unshaded.
     result = max(
@@ -566,7 +567,7 @@ vec3 applySpecularHighlights(
     // luminance toward a target above SDR white and amplifies the face's own
     // chroma, so glass over color glints in that color.
     float resultLuminance = dot(result, LUMA_WEIGHTS);
-    vec3 glintTarget = uHighlightColor.rgb * gGlintLuminance +
+    vec3 glintTarget = vec3(gGlintLuminance) +
         result * gGlintFaceGain +
         (result - vec3(resultLuminance)) * gGlintVibrancy;
     // Only the lower bound is clamped: amplified chroma must not produce
@@ -577,6 +578,9 @@ vec3 applySpecularHighlights(
     return result;
 }
 
+#if ANALYTIC_GEOMETRY
+#include "analytic_geometry.glsl"
+#endif
 
 void main() {
     // Map image-filter fragment coordinates back into the layer-local geometry
@@ -600,10 +604,18 @@ void main() {
         return;
     }
 
+    #if ANALYTIC_GEOMETRY
+    AnalyticGeometry analytic = analyticGeometry(
+        matteCoord,
+        4.0 * max(uThickness, 1.0),
+        contourExtent()
+    );
+    #else
     vec4 geometryData = texture(
         uGeometryTexture,
         geometryUV * uGeometryUVScale
     );
+    #endif
     vec4 materialTint = uTint;
     float appearanceVisibility = clamp(uAppearanceConfig.y, 0.0, 1.0);
     // Weight of the material over the refracted backdrop. Frosted glass
@@ -612,7 +624,9 @@ void main() {
     // never twice.
     float materialVisibility = mix(appearanceVisibility, 1.0, uBlurFade);
     vec3 colorModelShares = colorModelSharesOf(uAppearanceConfig.x);
-    #if SHAPE_TINT
+    #if SHAPE_TINT && ANALYTIC_GEOMETRY
+    materialTint = analytic.tint;
+    #elif SHAPE_TINT
     {
         float materialRasterScale = max(uAppearanceConfig.z, 1.0);
         vec2 materialSize = max(
@@ -738,11 +752,15 @@ void main() {
     #endif
 
     float maxDisplacement = max(uDisplacementScale, 0.001);
+    #if ANALYTIC_GEOMETRY
+    float signedEdgeDistance = analytic.signedEdgeDistance;
+    #else
     float signedEdgeDistance = decodeSignedEdgeDistance(
         geometryData,
         4.0 * max(uThickness, 1.0),
         contourExtent()
     );
+    #endif
     // Box-filtered coverage of one physical pixel, as Core Animation
     // rasterizes the silhouette: a pixel-aligned edge stays hard, so the
     // glint's first row is not diluted by a wider feather.
@@ -755,11 +773,15 @@ void main() {
         fragColor = vec4(0.0);
         return;
     }
+    #if ANALYTIC_GEOMETRY
+    vec2 displacement = analytic.displacement * appearanceVisibility;
+    vec2 surfaceNormal = analytic.surfaceNormal;
+    #else
     vec2 displacement =
         decodeDisplacement(geometryData, maxDisplacement) *
         appearanceVisibility;
     vec2 surfaceNormal = decodeSurfaceNormal(geometryData);
-    float contourDirectionWeight = contourDirection(surfaceNormal);
+    #endif
 
     vec2 invUSize = 1.0 / uSize;
     vec2 backdropScaleOffset = vec2(0.0);
@@ -794,7 +816,11 @@ void main() {
     // Skip two texture reads only when the maximum channel separation is
     // subpixel. The uniform predicate stays coherent across the layer and the
     // displacement bound keeps this optimization valid for either CA sign.
-    if (
+    if (uSolidBackdrop.a > 0.5) {
+        // Every displaced, dispersed or softened read of a uniform backdrop
+        // returns its color; the branch is uniform across the draw.
+        refractColor = vec4(uSolidBackdrop.rgb, 1.0);
+    } else if (
         abs(uDispersion) * maxDisplacement <=
         kDispersionSubpixelThreshold
     ) {
@@ -826,6 +852,67 @@ void main() {
                 mirrorBackgroundUV(refractedUV, invUSize)
             );
         }
+        #if FROST
+        if (uSoften > 1.5) {
+            // A frost folded into this pass (sigma uSoften - 2 device px):
+            // 24 bilinear taps importance-sampled from the Gaussian on a
+            // golden-angle spiral, equal weights. The filter's clip is grown
+            // by three sigma, so the taps read real backdrop past the rim.
+            float sigmaPx = (uSoften - 2.0) * appearanceVisibility;
+            vec4 frost = vec4(0.0);
+            #if SHAPE_APPEARANCE
+            // The mixed-appearance variant keeps one mirrored loop: split
+            // as below, it spills to stack on the Mali-G78.
+            for (int i = 0; i < 24; i++) {
+                float u = (float(i) + 0.5) / 24.0;
+                float r = sigmaPx * sqrt(-2.0 * log(1.0 - u));
+                float a = float(i) * 2.39996323;
+                vec2 tap = refractedUV + vec2(cos(a), sin(a)) * r * invUSize;
+                frost += texture(
+                    uBackgroundTexture,
+                    mirrorBackgroundUV(tap, invUSize)
+                );
+            }
+            #else
+            // Where every tap lies inside the texture (the outermost at
+            // sqrt(2 ln 48) = 2.78 sigma), mirroring would return each tap
+            // within an ulp, so the taps read their coordinates as they are:
+            // a third of the pass's arithmetic.
+            vec2 reach = vec2(2.79 * sigmaPx) * invUSize;
+            vec2 halfTexel = invUSize * 0.5;
+            if (
+                all(greaterThanEqual(refractedUV - reach, halfTexel)) &&
+                all(lessThanEqual(refractedUV + reach, vec2(1.0) - halfTexel))
+            ) {
+                for (int i = 0; i < 24; i++) {
+                    float u = (float(i) + 0.5) / 24.0;
+                    float r = sigmaPx * sqrt(-2.0 * log(1.0 - u));
+                    float a = float(i) * 2.39996323;
+                    frost += texture(
+                        uBackgroundTexture,
+                        refractedUV + vec2(cos(a), sin(a)) * r * invUSize
+                    );
+                }
+            } else {
+                // uSoften is never negative, so the bound is 24; read from a
+                // uniform, it keeps this rare edge loop rolled, where its
+                // mirrored taps would otherwise double the code and spill.
+                int taps = 24 - int(min(uSoften, 0.0));
+                for (int i = 0; i < taps; i++) {
+                    float u = (float(i) + 0.5) / 24.0;
+                    float r = sigmaPx * sqrt(-2.0 * log(1.0 - u));
+                    float a = float(i) * 2.39996323;
+                    vec2 tap = refractedUV + vec2(cos(a), sin(a)) * r * invUSize;
+                    frost += texture(
+                        uBackgroundTexture,
+                        mirrorBackgroundUV(tap, invUSize)
+                    );
+                }
+            }
+            #endif
+            refractColor = frost / 24.0;
+        } else
+        #endif
         if (uSoften > 0.5) {
             // The offset scales with visibility, so hidden glass collapses
             // the kernel onto the unfiltered backdrop.
@@ -870,10 +957,28 @@ void main() {
         
         refractColor = vec4(red, greenSample.g, blue, greenSample.a);
     }
-    
+    // A cached backdrop carries the uniform color painted between it and
+    // the glass (a dimming) as an alpha in (0, 0.5]; the filter path and a
+    // solid backdrop never land in that range.
+    if (uSolidBackdrop.a > 0.0 && uSolidBackdrop.a <= 0.5) {
+        refractColor.rgb = mix(
+            refractColor.rgb,
+            uSolidBackdrop.rgb * refractColor.a,
+            uSolidBackdrop.a * 2.0
+        );
+    }
+
+    // Derived again from the edge distance and the normal rather than held
+    // across the refraction's taps: on the Mali-G78 the held values pushed
+    // the mixed-appearance variant into stack spills.
+    materialAlpha = clamp(signedEdgeDistance + 0.5, 0.0, 1.0);
+    contourCover = contourCoverage(signedEdgeDistance);
+    float contourDirectionWeight = contourDirection(surfaceNormal);
+
     vec3 transmittedColor = vec3(0.0);
     vec3 baseColor = vec3(0.0);
     float directShare = colorModelShares.x;
+    #if DIRECT_MODEL
     if (directShare > 0.0) {
         transmittedColor = max(refractColor.rgb, vec3(0.0));
         if (uTransmissionGamma != 1.0) {
@@ -894,6 +999,8 @@ void main() {
             1.0
         );
     }
+    #endif
+    #if IOS27_MODELS
     if (directShare < 1.0) {
         // Apple's public tint is not a flat source-over wash. Its documented
         // "range of tones" is selected from backdrop brightness, while tint
@@ -1000,6 +1107,7 @@ void main() {
             directShare
         );
     }
+    #endif
 
     // Reconstruct the original material silhouette from the signed SDF. The
     // geometry alpha is only an expanded support mask, allowing the attached
@@ -1030,6 +1138,23 @@ void main() {
         contourDirectionWeight *
         appearanceVisibility;
     float alpha = visibleMaterialAlpha + externalContourAlpha;
+    // Under the content, over everything the glass shows, as the flex
+    // interaction's glow matrices filter the glass behind the content.
+    // Last, with the matte coordinate derived again, so no register holds
+    // it across the shading.
+    if (uGlowSpot.w > 0.0 || uGlowShape.y > 0.0) {
+        vec2 glowCoord = FlutterFragCoord().xy;
+        finalColor = applyGlassGlow(
+            finalColor,
+            vec2(
+                dot(uFilterToMatteBasis.xy, glowCoord),
+                dot(uFilterToMatteBasis.zw, glowCoord)
+            ) + uFilterToMatteOffset,
+            uGlowSpot,
+            uGlowBox,
+            uGlowShape
+        );
+    }
     vec3 premultipliedColor = finalColor * visibleMaterialAlpha +
         uContourColor.rgb * externalContourAlpha;
 
