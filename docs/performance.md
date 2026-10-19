@@ -108,6 +108,7 @@ approximation. Both renderers - liquid glass and flat - stay supported.
 | Skin eval budget | `MorphSkin.defaultEvalBudget` coarsens the grid by the overshoot factor | 64-piece worst case 1.9 ms (8.2 unbounded) |
 | Backdrop cache | glass over an opaque route below it (sheet, alert, action sheet, popover, date picker) paints over a frosted copy of that route, re-copied when what it samples changes, never an older frame (`GlassBackdropCache`); menus excluded | on; `MORPH_BACKDROP_CACHE=false` reads every frame; NEAR (host max 45 - 55 on < 200 px while opening, 0 - 1 at rest); Pixel sheet GPU 515 -> 393 ms/s, 1119 -> 833 mW; iPhone sheet raster p50/p99 -0.23/-0.82 ms |
 | Shader frost | a frost up to 8 device px without dispersion is blurred by the final pass (24 Gaussian taps), no blur pass | on; `MORPH_SHADER_FROST=false` restores the blur pass; NEAR (host tab bar max 29 along the rim); Pixel tab bar GPU 560 -> 514 ms/s, 904 -> 798 mW; iPhone tab bar raster p50/p95 -0.31/-0.35 ms |
+| Covered page cut | while a navigation page slides over another, the page below and its dim paint only the strip the moving card leaves visible: a rect clip (a scissor on Impeller) to the card's leading edge plus the reach of its rounded superellipse (`navigationCardEdgeReach`: Impeller's top and bottom edges are chords of a superellipse from the edge's middle, so the page shows through the first MSAA sample row up to ~1.65 r from the corner). Needs the card above to start with the scaffold's opaque fill under pass-through proxies, Impeller, and the card's edges on pixel rows; a page holding a backdrop read on that frame (a backdrop filter, an opacity seed while it seeds), an image filter or a platform view stays whole, decided as its clip layer goes into the scene, and only its dim is cut. Gallery enter / push / pop: 117 of 120 slide frames cut in both tiers | IDENTICAL (example/test/navigation_cover_host_test.dart: every frame byte-equal against the uncut page, both tiers and appearances; the reach checked against Impeller's raster of the clip); Pixel pending |
 
 ## 4. Standing lessons
 
@@ -141,6 +142,13 @@ approximation. Both renderers - liquid glass and flat - stay supported.
   the snapped origin a sixteenth of a device pixel past a whole one (off
   the quarters' edges, which glyphs a whole number of points apart hit at
   2.625x).
+- A non-rect clip is not free on Impeller: it draws its shape into the
+  stencil and covers its bounds with depth, about twice its on-screen
+  area in fill, again after every backdrop read inside it. An
+  axis-aligned rect clip is only a scissor. Navigation card clip: the
+  sliding page's rounded-superellipse card costs 0.6 - 1.0 ms GPU p95 on
+  the Pixel's enter, push and pop in both tiers (perf/2026-10-19-bench-navcard-*);
+  it is a declared cost of the measured look (alternatives in section 5).
 - On the Pixel the nested-navigation raster tail is the bar button
   glyphs and their blur, not page painting or glass (hiding glyphs cut
   nested raster p95 24-33 -> 7-8 ms in ablation).
@@ -191,6 +199,7 @@ approximation. Both renderers - liquid glass and flat - stay supported.
 | Backdrop region (one read per bar band for the edge blur and the bar's glass, e6ce856) | GPU within +-2 percent in every audit scene, power and raster in launch spread: a saved full-screen read is worth about what the region's own pass costs; removed | tool/audit/2026-10-12-glass-composition.md, perf/2026-10-12-bench-gr-* |
 | Analytic containers under a closed gate (3611bf0, reverted) | a scaled sheet's glass container keeps its members analytically: host backdrop filters per frame 9.84 -> 6.13, Pixel sheet saveLayers 3.5 -> 2.4 but GPU 8.04 -> 8.24 ms/frame, raster and power within launch noise: the one layer over the members' union costs what their passes did | perf/2026-10-13-bench-plane-gate, -plane-off |
 | Flat sparse field + Android glyph raster | push raster p95 improves, power 556/534 -> 542/547 mW (no saving), other actions mixed; shipped for frame time | tool/audit/codex-navigation-stable-report.md, perf/2026-10-08-navigation-stable |
+| Navigation card clip with the same pixels for less (2026-10-19) | none found: dart:ui has difference clips only for rects, so Impeller's one-draw difference clip cannot carve the corners; one layer subtree paints once, so the page cannot be split into an unclipped body and clipped corners; copying the page below into the corners after the card (a shared backdrop key) costs a pass break and a full-screen backdrop redraw, more than the clip; painting the page below over the card's corners needs the overlay's paint order inverted and a rect-minus-superellipse path, whose tessellation differs from Impeller's superellipse at the edge (NEAR). Not tried, pixel-changing: dropping the clip in the settle's last frames, when the card is within a device pixel of rest | docs/performance.md section 4; perf/2026-10-19-bench-navcard-* |
 | Glass planes for the floating sheet's buttons (`MORPH_GLASS_PLANE`, archived) | one filter object per plane, members drawing their own rects: host NEAR (max 2); Pixel sheet open-close / buttons-open-close GPU p95 7.4 / 12.3 -> 7.6 / 12.8 ms, no gain against the pooledShader probe's -0.4 to -1.3 bound (members stay analytic at rest; pressed, glowing or fading frames fall back per member); rejected: Impeller's equal-filter path evaluates the shader over the whole read with no coverage hint (+0.3 ms) against 0.1 - 0.16 ms saved per member, so it cannot pay before an engine change (docs/architecture/glass-composition.md); tag archive/2026-10-19/exp/glass-plane | tool/audit/2026-10-19-glass-plane (on the branch), perf/2026-10-19-bench-pass6-plane* |
 
 Open owner decisions (pixel-changing levers with device numbers): Redmi

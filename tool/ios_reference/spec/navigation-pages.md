@@ -76,9 +76,17 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
   `MorphNavigationTuning.fallbackCardRadius` = 62); the page underneath
   takes black at `underDimOpacity` (0.1) x the top page's progress, on
   pushes and pops with or without a finger. Pinned by navigation_card_test.
-  Cost: one rounded-superellipse clip layer on the moving page and a
-  direct black paint below it, only while the slide moves. Pixel 6a
-  navigation measurements are in the branch-completion audit.
+  Cost, only while the slide moves (Pixel 6a, one launch each of
+  809c5fd4 and of it without the clip or without the dim,
+  perf/2026-10-19-bench-navcard-*): the clip 0.6 - 1.0 ms GPU p95 on
+  enter, nested push and pop in both tiers, the dim 0.3 - 0.7. The clip
+  is kept, a declared cost of the look: Impeller draws a non-rect clip as
+  a stencil of its shape plus a depth cover of its bounds, and no render
+  with the same pixels avoids it (docs/performance.md, "Navigation card
+  clip"). IDENTICAL saving: a page under the opaque card of a navigation
+  page above it paints itself and its dim only in the strip that card
+  leaves visible (a rect clip, a scissor on Impeller); see
+  docs/performance.md, "Covered page cut".
 
 ## Spec - the content back swipe [device, 2026-10-15]
 
