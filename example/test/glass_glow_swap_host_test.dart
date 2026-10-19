@@ -18,15 +18,22 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
 import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// A frame that changes only a liquid layer's touch glow draws the new
-/// glow without painting the layer, the same pixels a paint draws, on the
-/// host's Impeller:
+/// glow without painting the layer, the same pixels a paint draws, through
+/// its backdrop filter and over a solid backdrop, on the host's Impeller:
 ///
 ///     flutter test --enable-impeller --enable-flutter-gpu \
 ///       test/glass_glow_swap_host_test.dart
 ///
 /// Without Impeller there is no glass and the test does nothing.
 void main() {
-  testWidgets('a glow-only frame draws the glow without a paint', (
+  for (final solid in [false, true]) {
+    _glowSwap(solid: solid);
+  }
+}
+
+void _glowSwap({required bool solid}) {
+  testWidgets('a glow-only frame draws the glow without a paint '
+      '(${solid ? 'over a solid backdrop' : 'through the filter'})', (
     WidgetTester tester,
   ) async {
     if (!ui.ImageFilter.isShaderFilterSupported) return;
@@ -55,7 +62,7 @@ void main() {
       Directionality(
         textDirection: TextDirection.ltr,
         child: ColoredBox(
-          color: const Color(0xFF406080),
+          color: _page,
           child: RepaintBoundary(
             key: boundary,
             child: LiquidGlassLayer.live(
@@ -63,6 +70,7 @@ void main() {
               settingsOf: () => const LiquidGlassSettings(frost: 0),
               glowOf: () => glow,
               glows: glows,
+              solidBackdrop: solid ? _page : null,
               child: Stack(
                 children: [
                   Positioned.fromRect(
@@ -89,6 +97,7 @@ void main() {
         .whereType<RenderLiquidGlassLayer>()
         .toSet()
         .single;
+    expect(layer.debugDrawsOverSolidBackdrop, solid);
 
     Future<List<int>> shot() async {
       final render =
@@ -119,3 +128,5 @@ void main() {
     expect(layer.glow, glowAt(80));
   });
 }
+
+const Color _page = Color(0xFF406080);

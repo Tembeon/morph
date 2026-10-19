@@ -462,15 +462,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   /// The touch glow the final pass applies to the glass, or null for none.
   ///
-  /// A new glow is a change of the final shader's uniforms only: while the
-  /// layer draws through the backdrop filter it composited last, over
-  /// geometry it can reuse, the filter is replaced by one over the new
-  /// uniforms and nothing paints. Glass recorded into a picture (over a
-  /// solid or a cached backdrop) repaints.
+  /// A new glow is a change of the final shader's uniforms only: over
+  /// geometry the layer can reuse, the backdrop filter it composited last
+  /// is replaced by one over the new uniforms, or glass over a solid
+  /// backdrop is recorded again into its slot, and nothing paints. Glass
+  /// over a cached backdrop repaints.
   LiquidGlassGlow? get glow => _pass.glow;
   set glow(LiquidGlassGlow? value) {
     if (!_pass.setGlow(value)) return;
-    if (!_draw.refreshFilter()) markNeedsPaint();
+    if (!_draw.refreshUniforms()) markNeedsPaint();
   }
 
   Listenable? _glows;

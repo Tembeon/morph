@@ -674,8 +674,8 @@ Local patches (some commits include related package changes):
   pixel-bucketed clip, the seed pass of a lifted lens, the picture over a
   solid or a cached backdrop), the mapping of its fragment coordinates
   (passTransform, syncMapping, backdropSampleBounds), the filter reuse,
-  the in-place filter swap of glow-only frames (refreshFilter) and the
-  compositor sync; it reads the layer through GlassDrawSource.
+  the in-place refresh of glow-only frames (refreshUniforms: a new
+  filter, or the solid picture recorded again) and the compositor sync; it reads the layer through GlassDrawSource.
   composition/glass_cost_probe.dart holds the device probes
   (debugGlassCostProbe, GlassCostProbe), now @internal so benches set
   them; debugSeedsBlur moved to GlassBackdropDraw. No pixel change.

@@ -902,8 +902,9 @@ its backdrop in its own layer (2026-10-20: on the gallery's Glass buttons
 page a pressed button of the solid section read the app group's copy
 above the picture section, the group's first reader there, and every
 clear button over the picture showed the page until it settled back;
-host pin container_press_backdrop_host_test, 119 levels before, 0 after);
-translucent
+host pin container_press_backdrop_host_test, 119 levels before, 0 after;
+its glow-only frames over the solid record the picture again, no paint,
+glass_glow_swap_host_test); translucent
 colors, null, the fake tier and the flat tier keep their paths. The
 gallery's sheet, controls and menu pages declare their page background
 (`MorphListAppearance.resolve(context, null).backgroundColor`). Host A/B
