@@ -18,6 +18,8 @@ import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
 // The audit times the package's outline fusion on the device.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/composition/glass_cost_probe.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/glass_frost.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart'
@@ -25,9 +27,6 @@ import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart'
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart'
     show debugMorphHalfResolutionBlur;
-// ignore: implementation_imports
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show GlassCostProbe, debugGlassCostProbe;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_container.dart';
 // ignore: implementation_imports
@@ -168,6 +167,7 @@ final bool _matrixOnly = BenchArgs.flag(
 
 /// The glass cost probe of the launch (`MORPH_GLASS_PROBE`: off, copy,
 /// skip, shared, solid); see [debugGlassCostProbe].
+// ignore: invalid_use_of_internal_member
 final GlassCostProbe _probe = GlassCostProbe.values.byName(
   BenchArgs.string('MORPH_GLASS_PROBE', 'off'),
 );
@@ -194,6 +194,7 @@ void main() {
     // ignore: invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
     if (_stagesOff) debugMorphGlassStagesOpen = false;
     // ignore: invalid_use_of_visible_for_testing_member
+    // ignore: invalid_use_of_internal_member
     debugGlassCostProbe = _probe;
     if (BenchArgs.flag(
       'AUDIT_PROFILE_WIDGETS',

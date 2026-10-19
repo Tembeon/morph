@@ -25,12 +25,11 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The harness renders the renderer's own layers, below the widget layer.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/composition/glass_backdrop_draw.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
-// ignore: implementation_imports
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/shaders.dart';
 
@@ -465,7 +464,7 @@ void useShaderVariant(ShaderVariant variant) {
     ShaderVariant.baseline => harnessSeedAB ? null : baselineShaderRoot,
   };
   if (harnessSeedAB) {
-    RenderLiquidGlassLayer.debugSeedsBlur = variant == ShaderVariant.candidate;
+    GlassBackdropDraw.debugSeedsBlur = variant == ShaderVariant.candidate;
   }
 }
 

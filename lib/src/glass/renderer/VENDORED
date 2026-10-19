@@ -668,3 +668,14 @@ Local patches (some commits include related package changes):
   to the layer's device pixels as gl_FragCoord / uMatteDensity + uOffset;
   shapes, fields, boxes and ranges are packed in the layer's device pixels
   whatever the density.
+- 2026-10-19 composition as its own module:
+  composition/glass_backdrop_draw.dart (GlassBackdropDraw) owns the
+  engine layers a glass pass draws into (the backdrop filter under its
+  pixel-bucketed clip, the seed pass of a lifted lens, the picture over a
+  solid or a cached backdrop), the mapping of its fragment coordinates
+  (passTransform, syncMapping, backdropSampleBounds), the filter reuse,
+  the in-place filter swap of glow-only frames (refreshFilter) and the
+  compositor sync; it reads the layer through GlassDrawSource.
+  composition/glass_cost_probe.dart holds the device probes
+  (debugGlassCostProbe, GlassCostProbe), now @internal so benches set
+  them; debugSeedsBlur moved to GlassBackdropDraw. No pixel change.
