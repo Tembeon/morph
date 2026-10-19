@@ -1,125 +1,129 @@
 # Adaptive bar brightness - capture protocol (iPhone 16 Pro)
 
-For the coordinator's device run. Measures what
-[adaptive-brightness.md](adaptive-brightness.md) leaves open: whether bar
-glass and glyphs switch between a light and a dark look over content on
-iOS 27.0.1, at which luma in each direction, how fast, and which elements
-switch. Follows [README.md](README.md) (device lock, recording pipeline,
-clocks, fixture conventions). Agents do not touch the phone outside a lock
-session and never change phone settings.
+For the coordinator's device run. The reading
+([adaptive-brightness.md](adaptive-brightness.md)) already gives the live
+mechanism (the glass material's adapted scheme with per-base hysteresis
+ranges, two candidate default sets) and the input chain. The capture
+measures only what is still open: which range set is live, the look's
+latency and transition, glass vs glyph sync, which elements flip, the luma
+weights, and scrolling. Follows [README.md](README.md) (device lock,
+recording pipeline, clocks, fixture conventions). Agents do not touch the
+phone outside a lock session and never change phone settings.
 
 ## Owner-only steps
 
-- Before the run: Settings > Display: Light. Reduce Motion OFF, Reduce
-  Transparency OFF, Increase Contrast OFF (the start rows record `rm`,
-  `rt`; note Increase Contrast by hand). Developer > Enable UI Automation
-  ON. Do not change anything else.
-- Between pass sets: switch Light -> Dark when the coordinator asks.
-- MorphRecorder runs on the Mac (camera permission, `open`): the
-  coordinator asks the owner before launching it.
+- Before the light run: Settings > Display & Brightness: Light. Reduce
+  Motion OFF, Reduce Transparency OFF, Increase Contrast OFF (the start
+  rows record `rm`, `rt`; note Increase Contrast by hand). Developer >
+  Enable UI Automation ON. Phone unlocked, on the cable, Auto-Lock long
+  enough for the run (about 30 minutes). Do not change anything else.
+- After the light run finishes: switch to Dark, then the dark run.
+- The headless MorphRecorder films the phone from the Mac during the filmed
+  passes (camera permission granted to it once).
 
 ## Do NOT force the appearance
 
-UIKit stops tracking luma for a view whose user interface style is fixed.
-`PROBE_DARK` sets the window's style, so it must stay UNSET in every pass;
-the system appearance is switched by the owner instead.
+The material adapts against the base (system) scheme, and UIKit's other
+path stops tracking for a fixed style. `PROBE_DARK` stays UNSET in every
+pass (the UI test never sets it); the analysis flags any capture whose
+window style was forced.
 
-## Probe scene to add (`abright`, keeper)
+## Run
 
-New file `Sources/AdaptiveBrightness.swift`, registered in the scene picker,
-running the X3Sampler (it logs label text / colour and image view tint per
-tick) and the `dl` rows:
+```sh
+cd tool/ios_reference/lab
+python3 capture_abright.py --theme light   # owner set Light; about 25 min
+python3 capture_abright.py --theme dark    # owner set Dark; about 16 min
+python3 analyze_abright.py ../recordings/abright-light-<stamp> ../recordings/abright-dark-<stamp>
+```
 
-- Variants by `PROBE_AB_BARS`:
-  - `tab`: `UITabBarController`, 3 tabs (SF Symbols `house`, `star`,
-    `gear`, with titles); tab 1 is a `UINavigationController` with an inline
-    title ("Bands"), a leading `ellipsis` and a trailing `plus` bar button
-    item, no toolbar.
-  - `toolbar`: a `UINavigationController` (same nav bar) with the toolbar
-    shown (`trash`, flexible space, `square.and.pencil`), no tab bar.
-  - `search`: `tab` with a `UISearchTab` as the last tab, plus a second run
-    of `toolbar` whose navigation item has a search controller with toolbar
-    placement.
-- Content: a vertical `UIScrollView` filling the screen, automatic content
-  insets and edge effects (defaults; nothing overridden), whose content is
-  a column of solid views. All colours sRGB, opaque:
-  `UIColor(red: g, green: g, blue: g, alpha: 1)` for greys.
-  - `PROBE_AB_CONTENT=solid`: one view 3 x the screen tall; script actions
-    recolour it.
-  - `PROBE_AB_CONTENT=stripes:<pt>`: alternating black / white bands of
-    `<pt>`.
-  - `PROBE_AB_CONTENT=split`: two views side by side (`left:<fraction>`
-    white, the rest black) or one above the other (`edge:<y>`: white above
-    window y, black below); script actions move the split.
-- A spinner (`PROBE_SPINNER=1` behaviour) at the screen's centre, never
-  under a bar, so the film keeps its clock during still periods.
-- `PROBE_SCRIPT` actions (logged as `evt` rows with the display link
-  timestamp of the tick that applied them, the value and the action):
-  `grey:<g>`, `rgb:<r>,<g>,<b>`, `left:<f>`, `edge:<y>`,
-  `scroll:<pt/s>,<seconds>` (programmatic constant-speed scroll, offset
-  logged per tick), `top` (scroll to top).
-- Start row extras: the values of `CalistogaAllowLumaTracking` and
-  `MPLumaChangeDuration` as read from
-  `UserDefaults(suiteName: "com.apple.UIKit")` and from
-  `UserDefaults.standard` (object or nil; read only, never written), the
-  OS build, `PROBE_AB_BARS`, `PROBE_AB_CONTENT`.
-- Per tick, for the tracked bar views (`PROBE_X3TRACK` covering the tab
-  bar, toolbar and navigation bar subtrees: their buttons, labels and image
-  views): add `uis` = `traitCollection.userInterfaceStyle` (0 / 1 / 2) to
-  the X3Sampler row, next to the logged colours.
+`capture_abright.py` takes the device lock itself (it refuses while
+someone else holds it), builds (`--skip-build` reuses the build), runs one
+`xcodebuild test-without-building` per pass, films the filmed passes,
+exports the screenshot attachments and pulls the probe's rows into
+`tool/ios_reference/recordings/abright-<theme>-<stamp>/` (gitignored).
+`--passes a,b` picks passes, `--only <capture>` captures inside them,
+`--fine <falling>,<rising>` re-centres the fine staircases (default by
+theme, below), `--no-film` skips the films, `--build-only` checks the
+build without a phone.
+
+## Scene `abright` (Sources/AdaptiveBrightness.swift)
+
+- Bars (`PROBE_AB_BARS`): `all` (default: a tab bar with Home / Star /
+  Settings; Home is a navigation controller with an inline title "Bands",
+  a leading `ellipsis` and a trailing `plus` item, and its toolbar shown:
+  `trash`, flexible space, `square.and.pencil`), `tab`, `toolbar`,
+  `search` (a search tab last), `searchbar` (a search field in the toolbar).
+- Host (`PROBE_AB_HOST`): `scroll` (default: content in a scroll view) or
+  `static` (a plain view). The material adapts on both; a difference would
+  point at the scroll pocket.
+- Content (`PROBE_AB_CONTENT`), sRGB, opaque: `solid` (recoloured by
+  `grey:` / `rgb:`), `stripes:<pt>[:<a>,<b>]`, `ladder:<pt>[:<steps>]`
+  (greys 0 ... 1 from the top), `split` (a white and a black part moved by
+  `left:`, `edge:`, `edgeb:`).
+- Luma meters: hidden backdrop layers with luma tracking over the content
+  under each bar (`lm` rows): the render server's own value of the content.
+- The test taps the content to start the script; every applied action is a
+  `step` row. `abs` rows: per bar, its style and every glyph's and label's
+  style and resolved colour (when changed; the material's flip is not
+  expected to move them). `abcrops`: window boxes of the bars, glyphs,
+  labels, glass patches, a content patch, the status bar and the home
+  indicator. `abstart`: system style, forced style (must be 0), the UIKit
+  defaults `CalistogaAllowLumaTracking` and `MPLumaChangeDuration` as read
+  on the phone (read only), launch arguments, band layout.
+- A red spinner at the screen centre keeps the film's clock during still
+  periods; it is never under a bar.
 
 ## Passes
 
-Dwell 2.5 s per step everywhere (render-server luma grid 0.25 s + glass
-settle 0.35 s + an expected 0.6 s transition, with margin). Every pass
-records probe rows AND a MorphRecorder film (full resolution).
+Dwell 2.5 s per staircase step (render-server grid 0.25 s, the 0.35 s
+settle and the transition, with margin), 4 s per transition step.
+Screenshots (attachments) 0.7 s before the end of every step in the shot
+passes; films for the transition and scroll passes. The look per step comes
+from the screenshot (glyphs lighter than the glass = dark look).
 
-| pass | scene | script | measures |
-|---|---|---|---|
-| P1 | `tab`, `solid` | `grey:0` then up to 1 in 1/32 steps, then down to 0 | flip luma up and down (coarse) |
-| P1b | `tab`, `solid` | 1/128 steps over +- 3/32 around each P1 flip, approached from the flip's starting side | flip luma (fine) |
-| P2 | `toolbar`, `solid` | P1 and P1b | the same for the toolbar and nav bar |
-| P3 | `tab` and `toolbar`, `solid` | 0 -> 1 -> 0 x 3 with 4 s dwell; then 0.3 <-> 0.8 x 3 | latency, transition duration and curve, glass vs glyphs |
-| P4 | `tab`, `solid` | from `grey:0` (8 s): 0.45 / 0.65 alternating x 6; from `grey:1` (8 s): the same | hysteresis hold (no flip expected for a 0.40 / 0.70 rule) |
-| P5 | `tab`, `solid` | from `grey:0` and from `grey:1` (5 s each): `rgb` red, green, blue, cyan, magenta, yellow at 1.0 and 0.5 | luma weights |
-| P6a | `tab`, `split` | from all black / all white: `left:` 0, 0.25, 0.5, 0.75, 1 | statistic (area mean?) |
-| P6b | `tab` and `toolbar`, `split` | `edge:` from the bottom up to 300 pt above it in 8 pt steps and back; top band: from the top down to 300 pt and back | the sampled region of each band |
-| P7 | `tab`, `stripes:300` and `stripes:100` | `scroll:` 300 and 1200 pt/s, 6 s each; then one finger fling (XCUITest swipe) | behaviour while scrolling |
-| P8 | owner switches to Dark | P1, P2 (coarse), P3, P4 | the dark-mode base |
-| P9 | `search` | P3 | search tab circle, bottom search field |
-| P10 | optional, `tab` | P3 and P4 with the launch argument `-CalistogaAllowLumaTracking YES` | the pocket path's look when stock shows no discrete flip |
+| pass (`--passes`) | captures | bars, host, content | script | measures | min |
+|---|---|---|---|---|---|
+| stairs | stairs, fine-down, fine-up | all, scroll, solid | 0 -> 1 -> 0 in 1/32; 1/128 steps falling from light around 0.15 (light base; covers 0.20 / 0.10) or 0.65 (dark; 0.60 / 0.70) and rising from dark around 0.40 (light; 0.50 / 0.30) or 0.90 (dark) | which range set, every bar at once (shots) | 6.7 |
+| toolbar | toolbar-stairs | toolbar, scroll, solid | coarse staircase | the floating toolbar alone (shots) | 2.9 |
+| steps | steps, steps-static, hold, hold-static | all, scroll and static, solid | 0 / 1 x 3 at 4 s (filmed); from 0 and from 1, alternating inside the base's range (light 0.25 / 0.45, dark 0.65 / 0.85) (shots) | latency, transition, glass vs glyphs; hold inside the band (set A holds, set B flips once); static = scroll | 3.9 |
+| colours | colours | all, scroll, solid | R, G, B, C, M, Y from black and from white | luma weights (shots, meters) | 1.3 |
+| coverage | split-width | all, scroll, split | white share of the width 0 ... 1, each way | area mean over capsules (shots) | 0.9 |
+| scroll | stripes-300, stripes-100, ladder | all, scroll, stripes / ladder | 300 and 1200 pt/s each way, finger flings; the grey ladder at 150 pt/s down and up | behaviour while scrolling (film) | 3.8 |
+| search | search-tab, search-toolbar | search / searchbar | 0 / 1 at 4 s | search tab circle, bottom search field (film) | 0.9 |
+| pocketflag | flag-steps, flag-hold | all, scroll, solid | steps and hold with `-CalistogaAllowLumaTracking YES` | the scroll pocket's added style flip (optional, NOT stock) | 1.9 |
 
-P10 sets a default for the probe process only (argument domain), not a
-phone setting; run it only if P1 - P4 show no discrete flip and the
-coordinator agrees. Its results are labelled "not stock".
+Light run: stairs, toolbar, steps, colours, coverage, scroll, search.
+Dark run: stairs, steps, scroll. Add about 45 s of xcodebuild per pass.
 
-Total about 25 minutes of phone time plus film handling.
+pocketflag sets a UIKit default for the probe process only (argument
+domain), not a phone setting; run it (`--passes pocketflag`) only if the
+coordinator wants the pocket path's look on record.
 
-## Analysis (host, after the run)
+## Analysis (`lab/analyze_abright.py`)
 
-- Flip events: from the `uis` rows of each bar view and from the film
-  (per-frame mean colour of fixed crops: one tab glyph's interior, a label,
-  a glass capsule area free of glyphs, the nav bar item glyph, the toolbar
-  glyph, the status bar, the home indicator). A flip = a monotonic change
-  of more than 8 / 255 that settles.
-- Flip luma: the grey of the step that triggered a flip, per direction,
-  per bar, per appearance; P1b brackets it to 1/128.
-- Latency: from the step's `evt` timestamp to the first film frame that
-  moves (film aligned to the probe rows as README describes), and to the
-  `uis` change.
-- Transition: normalise each crop 0 -> 1; duration 10 - 90 percent and
-  full; fit the curve (UIKit curve families and springs); report the glass
-  vs glyph onset and duration difference.
-- Elements: a yes / no table per element and pass.
-- Statistic and region: P6a against an area mean; P6b's flip positions give
-  each band's sampled extent above the screen edge.
-- Scrolling: flips per second and their lag behind the content in P7.
+- Environment: system style per capture against the run's theme, forced
+  styles (discard), the UIKit defaults read on the phone, meter rows.
+- Range set: per bar, the bound crossed going down and going up (midpoint
+  of the flipping step and the one before, fine staircases first) and the
+  nearest default set for the run's base.
+- Per shot capture: a step table per bar (content value, meter luma, trait
+  style, glass-patch luma, look) and the flips with their direction.
+- Per filmed step capture: the film aligned to the steps through the
+  content patch; per step and crop (glass patches, glyphs, labels, status
+  bar, home indicator) the immediate change (the glass transmits the
+  content at once) and the delayed one: latency, 5 / 50 / 95 percent
+  times, the best of the UIKit curves and a critically damped spring, and
+  glyph minus glass timing.
+- Per scroll capture: every style change with the meter luma and the
+  content luma under the bar at that moment (trait rows; the film shows the
+  look).
 
 ## Deliverables
 
 - Fixtures `test/fixtures/ios27-device/adaptive-brightness/` (compact
-  jsonl, `manifest.json` documenting the row keys and the `evt` actions).
+  jsonl rows of the captures, a `manifest.json` documenting the row keys).
 - Reference crops (lossless) `tool/ios_reference/references/adaptive-brightness/`
   before and after a flip, light and dark base.
-- A passport update with every number tagged `[device]`, and the answers
-  to its open questions.
+- A passport update with every number tagged `[device]`, the live range
+  set, and the answers to its open questions.

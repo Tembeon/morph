@@ -1,7 +1,7 @@
 # Adaptive bar brightness passport (bar glass and glyphs over light / dark content)
 
-Status: DRAFT. Read from UIKit (iOS 27.0 simulator cache and the iPhone 16
-Pro's 27.0.1 UIKitCore, SwiftUICore, QuartzCore; notes private); NOT
+Status: DRAFT. Read from UIKit, SwiftUI and the glass material library
+(iOS 27.0 simulator cache and the 27.0.1 device cache; notes private); NOT
 measured; NOT ported. The device capture is specified in
 [adaptive-brightness-capture.md](adaptive-brightness-capture.md). Related:
 [bars.md](bars.md) (edge effect, bar glass groups), [tab-bar.md](tab-bar.md),
@@ -9,159 +9,139 @@ measured; NOT ported. The device capture is specified in
 
 ## Native
 
-No public API: the behaviour is automatic. What the reading found:
+No public API: the behaviour is automatic and on by default (the owner sees
+bars flip on iOS 27). What the reading found:
 
-- Two separate luminance paths start at a `CABackdropLayer` with luma
-  tracking. The render server averages the backdrop's luma, rounds it to
-  1/64 and sends it to the app asynchronously (main thread, delegate
-  callback); it samples on a quarter-second grid (next sample time rounded
-  to 0.25 s), so a value is up to about 0.25 s old when it arrives.
-- Path 1, the scroll pocket (`ScrollEdgeEffectView`'s pocket, one per
-  edge): its blur backdrop tracks the luma of the filtered (blurred) band
-  and turns it into a DISCRETE scheme with hysteresis, which UIKit forwards
-  as a user interface style to the bars and bar items registered on that
-  edge (and to the status bar). Glass and glyphs both resolve from that
-  trait, so they flip together.
-- Path 2, the glass material: every glass capsule of a bar (the capsules
-  are SDF element layers of one SDF layer, bars.md) reports the luma of its
-  own backdrop; a per-bar aggregator combines them and the result reaches
-  the glass views as a smoothed, quantized luminance value. The floating
-  tab bar's glass and its bottom pocket share one aggregator.
-- UIKit only enables path 1 behind a feature flag (below). Which path the
-  owner's phone actually shows, and whether path 2 ever makes a discrete
-  flip, is the first thing the capture answers.
+- The render server averages a tracked backdrop's luma, rounds it to 1/64
+  and sends it to the app asynchronously (main thread); it samples on a
+  quarter-second grid (next sample time rounded to 0.25 s).
+- THE LIVE PATH is the glass material itself (the system glass material
+  provider every bar capsule uses): each capsule reports the luma of its own
+  backdrop, a per-bar aggregator combines them, and the material picks an
+  adapted light or dark scheme with hysteresis. The glass face AND the
+  glyphs on it resolve in that adapted scheme (the glyphs are the
+  material's foreground), so they flip together, without any change of the
+  views' user interface style (trait).
+- A second path, the scroll pocket under each bar edge, can also flip the
+  bars' style, but it is disabled on a stock install (a UIKit user default
+  that is absent, read below). It is documented for completeness only.
 
-## Spec - path 1, the scroll pocket (read from UIKit)
+## Spec - the glass material (live path, read from the binaries)
 
-- Gate: the pocket tracks luma only when the view has no fixed (overridden)
-  user interface style AND the UIKit user default
-  `CalistogaAllowLumaTracking` is true. When the key is absent the flag is
-  false, so on a stock install the pocket does not track. The capture logs
-  the key on the phone. An app-forced style (`overrideUserInterfaceStyle`,
-  also the probe's `PROBE_DARK`) disables tracking.
-- Input: the pocket's blur backdrop (filtered luma, whole band, render
-  server cadence above). No smoothing in UIKit beyond the 1/64 rounding.
-- Decision, with `L` the luma in [0, 1] and the current scheme `s`
-  (initially the pocket's base scheme):
-  - `s == dark`: becomes light when `L > 0.70`, else stays dark;
-  - `s == light`: becomes dark when `L < 0.40`, else stays light.
-  The band [0.40, 0.70] holds the current scheme. Asymmetric: a light
-  scheme survives down to 0.40, a dark one up to 0.70. (The upstream
-  experiment's 0.5 +- 0.1, i.e. 0.4 / 0.6, is hand-picked and has the upper
-  edge wrong by 0.1.)
-- Output: a per-edge style (top, bottom, leading, trailing) forwarded to
-  the edge's pocket receivers: the bar, its items when they apply pocket
-  traits, the status bar. A hidden (effectively hidden) pocket does not
-  update. Under a floating toolbar or a tab bar the bottom edge effect is
-  empty by default (bars.md); whether its pocket still tracks is open.
-- Timing read: the status bar's style change uses duration 0.6 s, delay 0,
-  UIKit curve 5 (UIKit's default `MPLumaChangeDuration`, overridable by a
-  UIKit user default). Whether bars and items animate on the same 0.6 s is
-  NOT read: the capture measures it.
+Input, per bar (glass group):
 
-## Spec - path 2, the glass aggregator (read from UIKit)
-
-- Each glass capsule's backdrop luma is rounded to 1/32 and reported only
-  when it changes.
+- Each capsule's backdrop luma is rounded to 1/32 and reported only when it
+  changes.
 - Aggregate: area-weighted mean over the bar's capsules (each capsule's
-  bounds in the bar's host coordinates); no capsules -> 0.5.
+  bounds in the bar's coordinates); no capsules -> 0.5.
 - Smoothing: an exponential moving average PER SAMPLE (not per frame):
   `s = 0.3 s + 0.7 raw` (the first sample after a reset is taken as is),
   then quantized `q = round(min(s, 1) x 32) / 32`. When `|s - raw| > 1/32`
-  a one-shot settle timer of 0.35 s is (re)armed; if no newer sample
-  cancels it, it resets the average and takes `raw` directly. A system
-  light / dark change resets the aggregator and reports "no value".
-- Output: the quantized luminance goes to the bar's glass views (they lay
-  out again and, inside an animation block, animate). How the glass turns
-  it into its look is in SwiftUI's glass resolution and was NOT found:
-  there is an adaptive glass option with a hysteresis range type (one
-  closed range for light and one for dark, a default, a disabled and custom
-  ranges), an initial and a fixed luminance, and an external luminance
-  option; the default ranges live in the unread consumer. Glass buttons
-  (every glass button configuration) and the context menu list explicitly
-  turn adaptivity off; bars do not, so their glass is presumably adaptive.
+  a one-shot 0.35 s settle timer is (re)armed; if no newer sample cancels
+  it, it resets the average and takes `raw` directly. A system light / dark
+  change resets the aggregator.
+
+Decision (the material's state keeps the adapted scheme; until the first
+luminance it shows the base scheme):
+
+- The base scheme is the environment's (system appearance or an explicit
+  scheme on the view). It picks one of two ranges: `light` when the base is
+  light, `dark` when it is dark.
+- With `L` the aggregated luminance and the range `[lo, hi]`: `L < lo` ->
+  dark look; `L > hi` -> light look; `lo <= L <= hi` -> keep the previous
+  adapted look.
+- Default ranges (either set may be live; a glass-library setting picks it,
+  not pinned in the reading):
+
+  | set | light base `[lo, hi]` | dark base `[lo, hi]` |
+  |---|---|---|
+  | A | 0.20 ... 0.50 | 0.60 ... 0.90 |
+  | B | 0.10 ... 0.30 | 0.70 ... 0.90 |
+
+  So on a light system a bar turns dark only over content darker than 0.20
+  (B: 0.10) and returns to light above 0.50 (B: 0.30); on a dark system it
+  turns light only above 0.90 and returns to dark below 0.60 (B: 0.70).
+  Both ranges can be overridden by two-number user defaults
+  (`AdaptiveGlassHysteresisLightRangeArray`, `...DarkRangeArray`), and a
+  view can set a custom range; one special glass kind uses 0.70 ... 0.75 in
+  both. The upstream experiment's 0.5 +- 0.1 matches neither.
+- Predicted timing (from the input chain, to be measured): a step to black
+  under a light bar arrives within one 0.25 s grid step; the average jumps
+  70 percent (1 -> 0.3, still above 0.20), and the settle timer takes the
+  raw value 0.35 s later: about 0.6 s before the flip starts. A step to
+  white under a dark bar crosses 0.50 after the first sample (0 -> 0.7):
+  about 0.25 s. The look's own animation is not read.
+
+## Spec - the scroll pocket (disabled on stock, read from the binaries)
+
+- The pocket under a bar edge tracks luma only if the UIKit user default
+  `CalistogaAllowLumaTracking` is true AND the view has no fixed style AND
+  the edge effect's options prefer luma tracking. The default is read once;
+  absent means false, and nothing registers it. The probe logs the key on
+  the phone.
+- When enabled: base dark -> light style when the pocket's (blurred) luma
+  is above 0.70; base light -> dark style when it is below 0.40; the
+  threshold follows the base (system or preferred) scheme, with no memory
+  of the previous result. The style is forwarded to the edge's bars and
+  items and to the status bar; the status bar animates it over 0.6 s.
 
 ## What the capture must still measure
 
-1. Which path is live on the owner's 27.0.1 in light and in dark mode, and
-   whether bar glass and glyphs change DISCRETELY at all (path 2 could be
-   continuous only: morph's glass already conditions its tint on the
-   backdrop luminance per pixel, glass-optics.md).
-2. The flip luma in each direction, per bar (tab bar, toolbar, nav bar
-   items), on grey steps (luma = grey for any weights) and on colours (the
-   luma weights).
-3. Latency from a content step to the flip's first frame, and the
-   transition: duration, curve, glass vs glyph onset and length (together
-   or not).
-4. Which elements flip: tab bar glass, tab glyphs and labels, the selected
-   lens, toolbar capsules and glyphs, nav bar items and title, search field
-   (toolbar placement) and the search tab circle, status bar, home
-   indicator.
-5. The sampled region: what part of the screen a bar's decision reads
-   (pocket band vs the capsules), and the statistic (area mean or not).
-6. Behaviour while scrolling over alternating content (rate limit, missed
-   flips, flicker).
-7. Whether the base system appearance shifts the thresholds.
+1. Confirm the live path on 27.0.1: the bars flip with the scroll host and
+   with a plain (static) host alike, and the views' style rows stay put.
+2. Which range set is live: the flip luma on a light system going down
+   (0.20 or 0.10) and up (0.50 or 0.30); on a dark system going up (0.90)
+   and down (0.60 or 0.70). The hold tests inside the bands separate the
+   sets.
+3. The luma the material sees for a colour (render-server weights) and per
+   bar mixes (area mean over capsules).
+4. Latency and the look's transition: duration, curve, glass vs glyphs.
+5. Which elements flip: tab bar glass, glyphs, labels, the selected lens,
+   toolbar, navigation bar items and title, search field and search tab
+   circle; whether the status bar follows (it would only with the pocket).
+6. Behaviour while scrolling over alternating content.
 
 ## morph design (proposal, not implemented)
 
-Goal: the UIKit behaviour with one tiny luminance probe per bar band, no
-full-screen readback, no frame-late glass, and nothing to do for the app.
+Goal: the native behaviour with one tiny luminance probe per bar, no
+full-screen readback, no frame-late glass, nothing to do for the app.
 
-- Bands: top (navigation bar and its items), bottom (tab bar, search tab
-  bar, toolbar, bottom search field). One controller per band, owned by the
-  band's chrome host (the screen's `MorphChromeBackdrop`, the tab bar
-  chrome). UIKit decides per edge too.
-- Probe: when the content under the band changed (the same layer
-  signature test `GlassBackdropCache` uses; idle costs nothing), at most
-  every 0.25 s like the render server, take the band's backdrop region from
-  the content's repaint boundary as a tiny image (`OffsetLayer.toImage`
-  at a pixel ratio that makes the band about 32 x 4 px, from the frame's
-  existing layers, no repaint) and read it back asynchronously; average
-  the luma in Dart (128 pixels). Works the same for the flat and the liquid
-  renderer (it reads the content, not the glass). No full-screen copy, no
-  synchronous readback, never on the frame's critical path.
-- Decision: the measured rule of the live path. If it is path 1: quantize
-  to 1/64, hysteresis 0.40 / 0.70, initial = the platform brightness. If it
-  is path 2: the area mean over the band's capsules, the 0.7 per-sample
-  average, 1/32 quantization, the 0.35 s settle, then the measured ranges.
-- Transition: the band's brightness becomes an animated value (0 light,
-  1 dark) on the measured duration and curve (0.6 s until measured); the
-  bar's glyph colours and its glass face (the appearance tables' light and
-  dark entries) interpolate on it. During the transition only colours and
-  glass uniforms change: no relayout, no rebuild of the bar tree.
+- Bars: per glass group (tab bar, toolbar, navigation bar items, bottom
+  search field), as the material decides per bar.
+- Probe: when the content under the bar changed (the same layer signature
+  test `GlassBackdropCache` uses; idle costs nothing), at most every 0.25 s
+  like the render server, take the region under the bar's capsules from the
+  content's repaint boundary as a tiny image (`OffsetLayer.toImage` at a
+  pixel ratio that makes a capsule a few pixels, from the frame's existing
+  layers, no repaint), read it back asynchronously, and average the luma
+  per capsule in Dart, weighted by capsule area. Works the same for the
+  flat and the liquid renderer.
+- Decision: the measured chain: 1/32 quantization, the 0.7 per-sample
+  average, the 0.35 s settle, then the range of the base scheme with the
+  measured bounds (set A or B), keeping the previous look inside it.
+- Transition: the bar's look becomes an animated value (0 light, 1 dark)
+  on the measured duration and curve; glyph colours and the glass face
+  (the appearance tables' light and dark entries) interpolate on it. Only
+  colours and glass uniforms change: no relayout, no rebuild.
 - No frame-late glass: the probe never gates the glass's own backdrop,
-  which stays live every frame. Only the brightness target lags, and UIKit
-  lags more (0.25 s grid, async delivery, then the animation), so a
-  decision one frame later than the content is invisible and native.
+  which stays live every frame; only the look's target lags, as natively.
 - Overrides: an explicit brightness on the bar (a `MorphTheme` above it)
-  disables tracking, as UIKit's fixed style does. A per-band app override
-  (UIKit has a private per-edge preferred style) only if an app needs it.
-- Off switch: tracking follows the live path's default; if the capture
-  shows the stock phone does not flip discretely, morph ships it off with
-  an opt-in, not on.
+  fixes the base scheme; a per-bar custom range mirrors the native one.
 
-Pixel 6a budget (to verify on the device, bench scenes `bars` and
-`tab-bar`, scrolling content under the bars):
-
-- Idle (nothing under a band changes): 0 probes, 0 cost.
-- Scrolling: <= 4 probes per second per band; each <= 0.3 ms raster
-  thread (a tiny offscreen render of the band's layers) and <= 0.05 ms UI
-  thread; the readback async, adding no missed frame slot. Average added
-  frame time <= 0.1 ms at 60 Hz.
-- Transition frames (0.6 s per flip): uniform and colour updates only,
-  within the bar's existing per-frame paint cost.
-- Energy: no measurable increase in a sustained scroll (within the bench's
-  noise); admission as docs/performance.md.
+Pixel 6a budget (to verify, bench scenes `bars` and `tab-bar`, scrolling
+content under the bars): idle 0; scrolling <= 4 probes per second per bar,
+each <= 0.3 ms raster thread and <= 0.05 ms UI thread, the readback async
+with no missed frame slot; average added frame time <= 0.1 ms at 60 Hz;
+transition frames update colours and uniforms only; energy within the
+bench's noise (admission as docs/performance.md).
 
 Widgets it touches: `MorphTabBar`, `MorphSearchTabBar`, `MorphTabBarChrome`
 (minimized circle, accessory), `MorphToolbar`, `MorphNavigationBar` and
-`MorphBarItems` / `MorphBarButton` (bar item glyphs and capsules),
-`MorphSearchField` / `MorphSearchToolbar` (bottom placement),
-`MorphScrollEdgeEffect` (its tint follows the band's scheme, as the pocket
-does), `MorphChromeBackdrop` (the probe's source and the band key), the
-theme (`morphBrightnessOf` gains a band-scoped brightness for the bar
-subtree), and optionally the status bar style.
+`MorphBarItems` / `MorphBarButton`, `MorphSearchField` /
+`MorphSearchToolbar` (bottom placement), `MorphChromeBackdrop` (the probe's
+source), the theme (`morphBrightnessOf` gains a per-bar adapted look for the
+bar subtree). The scroll edge effect and the status bar stay on the system
+scheme, as on a stock phone.
 
 ## Fixtures
 
@@ -169,10 +149,7 @@ None yet: [adaptive-brightness-capture.md](adaptive-brightness-capture.md).
 
 ## Open questions
 
-- Which path is live on 27.0.1, and is the owner's visible flip discrete?
-- The glass path's default hysteresis ranges (not found in the reading).
-- The render server's luma weights and colour space, and the default luma
-  update interval (a 0.25 s grid seen; the interval value not proven).
-- Whether bars animate the style on the status bar's 0.6 s and curve.
-- Whether the bottom pocket tracks under a tab bar / floating toolbar
-  where its edge effect is empty.
+- Which default range set (A or B) is live, and which setting picks it.
+- The look's transition (duration, curve) and glass / glyph sync.
+- The render server's luma weights and the luma update interval (a 0.25 s
+  grid seen; the interval value not proven).
