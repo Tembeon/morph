@@ -423,7 +423,6 @@ class _MorphSegmentedControlState
         height: _style.height - 2 * _style.inset,
         frameRate: motionFrameRate,
       );
-      created.onSelect = _selected;
       created.isSelectable = _selectable;
       _motion = created;
     } else if (!_sameSlots(slots, _slots)) {
@@ -453,6 +452,20 @@ class _MorphSegmentedControlState
       index < widget.segments.length &&
       widget.segments[index].enabled;
 
+  @override
+  void deliverMotionEvents() {
+    super.deliverMotionEvents();
+    final motion = _motion;
+    if (motion == null) return;
+    for (final event in motion.drainEvents()) {
+      if (!mounted) return;
+      switch (event) {
+        case MorphLensSelected(:final index):
+          _selected(index);
+      }
+    }
+  }
+
   void _selected(int index) {
     if (index != widget.selectedIndex) widget.onChanged?.call(index);
     reconcileSelection(() {
@@ -473,6 +486,7 @@ class _MorphSegmentedControlState
       return;
     }
     motion.select(clock, index);
+    deliverMotionEvents();
     wake();
   }
 

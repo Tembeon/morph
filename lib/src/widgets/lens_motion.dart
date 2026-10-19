@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:morph/src/gesture.dart';
+import 'package:morph/src/motion/motion.dart';
 import 'package:morph/src/widgets/flex_integrator.dart';
 import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
@@ -232,7 +233,9 @@ typedef MorphLensSlot = ({double center, double width});
 /// Feed pointer events with their timestamps, call [advance] with the
 /// frame time, then read [center], [size], [scaleX] and [scaleY]. All
 /// lengths are pixels along the track, all times seconds.
-class MorphLensMotion {
+class MorphLensMotion
+    with MorphMotionEvents<MorphLensEvent>
+    implements MorphMotion<MorphLensEvent> {
   /// Creates a lens resting in [selected] among [slots].
   /// Empty slots have selection -1 and ignore input; other indices clamp
   /// to the available slots.
@@ -323,9 +326,6 @@ class MorphLensMotion {
 
   _Pointer? _pointer;
 
-  /// Called with the new index whenever the selection changes.
-  void Function(int index)? onSelect;
-
   /// Whether the slot at an index can be selected; null makes every slot
   /// selectable.
   ///
@@ -377,8 +377,12 @@ class MorphLensMotion {
     _flex.reset(slot.center);
   }
 
-  /// The time the lens was last advanced to.
+  @override
   double get time => _now;
+
+  // The lifted lens rests under a still finger and wakes with its moves.
+  @override
+  double? get wakeTime => null;
 
   /// The center the travel spring carries, before the deformation drift.
   double get travelCenter => _travel.value(_now);
@@ -414,6 +418,7 @@ class MorphLensMotion {
   /// every spring's remaining swing below [MorphRest] (NEAR, invisible;
   /// [settle] snaps the rest). A finger held still counts: the lens rests
   /// lifted under it until the finger moves or lifts.
+  @override
   bool get isSettled {
     if (!_timeline.isEmpty || (_pointer?.unfollowed ?? false)) return false;
     const length = MorphRest.length;
@@ -432,6 +437,7 @@ class MorphLensMotion {
   }
 
   /// Puts a settled lens exactly onto its slot, flat and undeformed.
+  @override
   void settle() {
     _travel.settle(_now);
     _width.settle(_now);
@@ -549,7 +555,7 @@ class MorphLensMotion {
 
   /// Selects the clamped [index] without a touch: the lens travels without
   /// lifting. With [notify] false, reconciles the parent's selection and
-  /// cancels pending touch reactions without calling [onSelect].
+  /// cancels pending touch reactions without raising [MorphLensSelected].
   void select(double t, int index, {bool notify = true}) {
     advance(t);
     if (_slots.isEmpty) return;
@@ -561,7 +567,7 @@ class MorphLensMotion {
       _lift.retarget(t, 0);
     }
     _selected = selected;
-    if (notify) onSelect?.call(selected);
+    if (notify) emit(MorphLensSelected(selected));
     final slot = _slots[selected];
     _resetFlex();
     _travelTo(t, slot);
@@ -569,7 +575,7 @@ class MorphLensMotion {
   }
 
   /// Puts the lens at rest on the clamped [index] at once, without
-  /// travel, lift or [onSelect]: where a control that showed no selection
+  /// travel, lift or [MorphLensSelected]: where a control that showed no selection
   /// shows one appear. Cancels a touch and pending reactions.
   void place(double t, int index) {
     advance(t);
@@ -584,6 +590,7 @@ class MorphLensMotion {
 
   /// Advances the lens to time [t], stepping the deformation loop once
   /// for every frame of [frameRate] on the way.
+  @override
   void advance(double t) {
     if (!_started) {
       _started = true;
@@ -712,7 +719,7 @@ class MorphLensMotion {
 
   void _setSelected(int index) {
     _selected = index;
-    onSelect?.call(index);
+    emit(MorphLensSelected(index));
   }
 }
 
@@ -734,4 +741,18 @@ class _Pointer {
 
   // A move the lens has not followed yet: the next frame follows it.
   bool unfollowed = false;
+}
+
+/// What a [MorphLensMotion] tells its host.
+sealed class MorphLensEvent {
+  const MorphLensEvent();
+}
+
+/// The selection changed to [index].
+final class MorphLensSelected extends MorphLensEvent {
+  /// Creates the event.
+  const MorphLensSelected(this.index);
+
+  /// The selected slot.
+  final int index;
 }

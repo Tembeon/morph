@@ -430,7 +430,6 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       height: _lensHeight,
       frameRate: motionFrameRate,
     );
-    created.onSelect = _selected;
     created.isSelectable = _selectable;
     return created;
   }
@@ -452,6 +451,20 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
     }
   }
 
+  @override
+  void deliverMotionEvents() {
+    super.deliverMotionEvents();
+    final motion = _motion;
+    if (motion == null) return;
+    for (final event in motion.drainEvents()) {
+      if (!mounted) return;
+      switch (event) {
+        case MorphLensSelected(:final index):
+          _selected(index);
+      }
+    }
+  }
+
   void _selected(int index) {
     setState(() {});
     if (index != widget.selected) widget.onChanged?.call(index);
@@ -469,6 +482,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       return;
     }
     motion.select(clock, index);
+    deliverMotionEvents();
     wake();
   }
 

@@ -82,8 +82,6 @@ void main() {
       selected: 0,
       height: 28,
     );
-    final picked = <int>[];
-    motion.onSelect = picked.add;
     motion.advance(0);
     motion.pointerDown(0.1, 60);
     for (var i = 1; i <= 30; i++) {
@@ -93,7 +91,13 @@ void main() {
     expect(motion.center, greaterThan(250));
     expect(motion.lift, closeTo(1, 0.01));
     motion.pointerUp(0.7, 300);
-    expect(picked, [2]);
+    expect(
+      [
+        for (final event in motion.drainEvents())
+          if (event case MorphLensSelected(:final index)) index,
+      ],
+      [2],
+    );
     motion.advance(2.5);
     expect(motion.center, closeTo(300, 0.05));
     expect(motion.isSettled, isTrue);
