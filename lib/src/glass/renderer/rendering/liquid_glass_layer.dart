@@ -23,6 +23,7 @@ import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
 import 'package:morph/src/glass/renderer/geometry/glass_shape_pack.dart';
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/src/glass/renderer/pass/glass_frost.dart';
+import 'package:morph/src/glass/renderer/plane/render_glass_plane.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
@@ -42,6 +43,8 @@ class LiquidGlassLayer extends StatefulWidget {
     this.defaultAppearance,
     this.read = GlassRead.own,
     this.solidBackdrop,
+    this.reach,
+    this.planePass = false,
     this._field,
     super.key,
   }) : live = null,
@@ -65,8 +68,10 @@ class LiquidGlassLayer extends StatefulWidget {
     this.defaultAppearance,
     this.read = GlassRead.own,
     this.solidBackdrop,
+    this.reach,
     super.key,
-  }) : _settings = const LiquidGlassSettings(),
+  }) : planePass = false,
+       _settings = const LiquidGlassSettings(),
        _field = null;
 
   /// The source of a live layer's settings and field, or null for fixed
@@ -143,6 +148,16 @@ class LiquidGlassLayer extends StatefulWidget {
   /// shapes (an image, text, a second fill) would not show through the
   /// glass.
   final Color? solidBackdrop;
+
+  /// How far around its box the layer may paint, or null for anywhere.
+  ///
+  /// The backdrop pass the renderer blurs then covers the layer's control
+  /// instead of the whole screen.
+  final double? reach;
+
+  /// Whether the layer is the pass of a plane, shading the glass merged
+  /// into it; it is no member of a plane itself.
+  final bool planePass;
 
   @override
   State<LiquidGlassLayer> createState() => _LiquidGlassLayerState();
@@ -260,46 +275,112 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
     final gpuRenderer = _gpuGeometryRenderer;
     final live = widget.live;
     final child = KeyedSubtree(key: _childKey, child: widget.child);
-    return RepaintBoundary(
-      child: LiquidGlassRenderScope(
-        settings: widget.settings,
-        settingsLive: live == null ? null : _settingsLive,
-        defaultAppearance: defaultAppearance,
-        backdropKey: backdropKey,
-        child: InheritedGeometryRenderLink(
-          link: _link,
-          child: !shaderFiltersSupported || gpuRenderer == null
-              ? child
-              : MultiShaderBuilder(assetKeys: ShaderKeys.liquidGlassRenders, (
-                  context,
-                  shaders,
-                  child,
-                ) {
-                  return _RawShapes(
-                    matteShaders: shaders,
-                    backdropKey: backdropKey,
-                    blursOwnBackdrop: widget.read == GlassRead.lifted,
-                    solidBackdrop: widget.solidBackdrop,
-                    // A plane reads its own copy on purpose (glass painted
-                    // in between belongs in it); only a read of its own is
-                    // cached.
-                    backdropCache: backdropKey == null
-                        ? GlassPlaneScope.cacheOf(context)
-                        : null,
-                    live: live,
-                    settingsOf: () => widget.settings,
-                    defaultAppearance: defaultAppearance,
-                    link: _link,
-                    gpuGeometryRenderer: gpuRenderer,
-                    fieldOf: () => widget.field,
-                    glowOf: () => widget.glowOf?.call(),
-                    glows: widget.glows,
-                    child: child!,
-                  );
-                }, child: child),
-        ),
+    final backdropCache = backdropKey == null
+        ? GlassPlaneScope.cacheOf(context)
+        : null;
+    final scope = LiquidGlassRenderScope(
+      settings: widget.settings,
+      settingsLive: live == null ? null : _settingsLive,
+      defaultAppearance: defaultAppearance,
+      backdropKey: backdropKey,
+      child: InheritedGeometryRenderLink(
+        link: _link,
+        child: !shaderFiltersSupported || gpuRenderer == null
+            ? child
+            : MultiShaderBuilder(assetKeys: ShaderKeys.liquidGlassRenders, (
+                context,
+                shaders,
+                child,
+              ) {
+                return _RawShapes(
+                  matteShaders: shaders,
+                  backdropKey: backdropKey,
+                  blursOwnBackdrop: widget.read == GlassRead.lifted,
+                  solidBackdrop: widget.solidBackdrop,
+                  // A plane reads its own copy on purpose (glass painted
+                  // in between belongs in it); only a read of its own is
+                  // cached.
+                  backdropCache: backdropCache,
+                  live: live,
+                  settingsOf: () => widget.settings,
+                  defaultAppearance: defaultAppearance,
+                  link: _link,
+                  gpuGeometryRenderer: gpuRenderer,
+                  fieldOf: () => widget.field,
+                  glowOf: () => widget.glowOf?.call(),
+                  glows: widget.glows,
+                  child: child!,
+                );
+              }, child: child),
       ),
     );
+    if (widget.planePass) return RepaintBoundary(child: scope);
+    return _GlassMember(
+      read: widget.read,
+      link: _link,
+      inputsOf: () => (
+        settings: widget.settings,
+        fused: widget.field != null,
+        glows: widget.glowOf?.call() != null,
+      ),
+      live: live,
+      glows: widget.glows,
+      reach: widget.reach,
+      painted: (widget.solidBackdrop?.a ?? 0) == 1 || backdropCache != null,
+      backdropKey: backdropKey,
+      child: scope,
+    );
+  }
+}
+
+class _GlassMember extends SingleChildRenderObjectWidget {
+  const _GlassMember({
+    required this.read,
+    required this.link,
+    required this.inputsOf,
+    required this.live,
+    required this.glows,
+    required this.reach,
+    required this.painted,
+    required this.backdropKey,
+    required super.child,
+  });
+
+  final GlassRead read;
+  final GeometryRenderLink link;
+  final GlassMemberInputs Function() inputsOf;
+  final Listenable? live;
+  final Listenable? glows;
+  final double? reach;
+  final bool painted;
+  final BackdropKey? backdropKey;
+
+  @override
+  RenderGlassMember createRenderObject(BuildContext context) {
+    final member = RenderGlassMember(
+      read: read,
+      link: link,
+      inputsOf: inputsOf,
+      reach: reach,
+      painted: painted,
+      backdropKey: backdropKey,
+    );
+    member.listen(live, glows);
+    return member;
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderGlassMember renderObject,
+  ) {
+    renderObject.read = read;
+    renderObject.link = link;
+    renderObject.readInputs(inputsOf);
+    renderObject.listen(live, glows);
+    renderObject.reach = reach;
+    renderObject.painted = painted;
+    renderObject.backdropKey = backdropKey;
   }
 }
 

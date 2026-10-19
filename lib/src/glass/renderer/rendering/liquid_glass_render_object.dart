@@ -727,12 +727,25 @@ class GeometryRenderLink {
   /// Whether geometry changed since the layer last consumed the flag.
   bool get isDirty => _dirty;
 
+  int _revision = 0;
+
+  /// Counts the changes of the registered shapes: a shape that joined,
+  /// left, moved within the layer, or changed its geometry or material.
+  /// Unlike [isDirty] no reader consumes it, so any number of observers can
+  /// tell whether the shapes changed since they last looked.
+  int get revision => _revision;
+
+  void _touch() {
+    _dirty = true;
+    _revision++;
+  }
+
   /// Consumes the dirty flag after the layer rebuilt its frame.
   void markClean() => _dirty = false;
 
   void updatePaintOrder(RenderObject owner) {
     if (sortGlassPaintOrder(owner, _shapeGeometries, (source) => source)) {
-      _dirty = true;
+      _touch();
     }
     for (final geometry in _shapeGeometries) {
       geometry.updatePaintOrder();
@@ -755,14 +768,11 @@ class GeometryRenderLink {
 
   void registerGeometry(RenderLiquidGlassGeometry renderObject) {
     if (_shapeGeometries.contains(renderObject)) return;
-    _dirty = true;
     _shapeGeometries.add(renderObject);
     markShapesChanged();
   }
 
-  void markDirty() {
-    _dirty = true;
-  }
+  void markDirty() => _touch();
 
   /// Asks the [owner] to paint in the current frame, for a shape that
   /// joined, left, or turned visible or hidden.
@@ -772,7 +782,7 @@ class GeometryRenderLink {
   /// only after this frame painted, and the frame would show a shape that
   /// joined without glass and keep the glass of a shape that left.
   void markShapesChanged() {
-    _dirty = true;
+    _touch();
     final layer = owner;
     if (layer == null || !layer.attached) return;
     if (layer.owner?.debugDoingPaint ?? false) return;

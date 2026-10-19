@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
+import 'package:morph/src/glass/renderer/plane/render_glass_plane.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 
 /// Where one glass layer reads its backdrop.
 @internal
@@ -58,6 +59,20 @@ final class CachedGlassBackdrop extends GlassBackdrop {
   int get hashCode => identityHashCode(cache);
 }
 
+/// What the owner of a plane ([GlassPlaneScope.owned]) guarantees about
+/// painting between the plane and its glass.
+@internal
+enum GlassPaintOrder {
+  /// Nothing paints between the plane and its members' glass: everything
+  /// in the plane is content over its glass.
+  owned,
+
+  /// Content paints between the plane and its members' glass, never inside
+  /// a member's outline: glass that reads only inside its outline (no
+  /// frost) looks the same drawn at the plane.
+  outsideGlass,
+}
+
 /// Declares glass planes: which glass shares one backdrop read, and what
 /// glass with a read of its own reads.
 ///
@@ -73,6 +88,12 @@ final class CachedGlassBackdrop extends GlassBackdrop {
 /// - [backdrop]: what glass with a read of its own ([GlassRead.own],
 ///   [GlassRead.lifted]) in its child reads: the live backdrop, or a cached
 ///   copy of the route below.
+///
+/// - [owned]: a plane whose owner declares what paints between it and its
+///   glass ([GlassPaintOrder]); it knows the glass layers below it and
+///   which of them one pass at the plane could draw ([RenderGlassPlane]).
+/// - [planeBreak]: keeps the glass in its child out of such a pass while
+///   active, for an owner that sometimes paints between.
 ///
 /// An app's [BackdropGroup] is a plane too: glass that reads its plane
 /// reads the nearest group's key.
@@ -93,6 +114,25 @@ abstract final class GlassPlaneScope {
     required GlassBackdrop backdrop,
     required Widget child,
   }) => _GlassBackdropScope(backdrop: backdrop, child: child);
+
+  /// A plane for the glass in [child] whose owner guarantees [paintOrder],
+  /// with a pass of [settings]; it merges nothing while not [open].
+  static Widget owned({
+    required LiquidGlassSettings settings,
+    required Widget child,
+    bool open = true,
+    GlassPaintOrder paintOrder = GlassPaintOrder.owned,
+  }) => _OwnedPlane(
+    settings: settings,
+    open: open,
+    paintOrder: paintOrder,
+    child: child,
+  );
+
+  /// Keeps the glass in [child] out of the pass of an owned plane above
+  /// while [active].
+  static Widget planeBreak({required bool active, required Widget child}) =>
+      _PlaneBreak(active: active, child: child);
 
   /// The cached copy glass with a read of its own above [context] paints
   /// over, or null for the live backdrop.
@@ -141,4 +181,44 @@ class _SharedRead extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_SharedRead oldWidget) => oldWidget.read != read;
+}
+
+class _OwnedPlane extends SingleChildRenderObjectWidget {
+  const _OwnedPlane({
+    required this.settings,
+    required this.open,
+    required this.paintOrder,
+    required super.child,
+  });
+
+  final LiquidGlassSettings settings;
+  final bool open;
+  final GlassPaintOrder paintOrder;
+
+  @override
+  RenderGlassPlane createRenderObject(BuildContext context) =>
+      RenderGlassPlane(settings: settings, open: open, paintOrder: paintOrder);
+
+  @override
+  void updateRenderObject(BuildContext context, RenderGlassPlane renderObject) {
+    renderObject.settings = settings;
+    renderObject.open = open;
+    renderObject.paintOrder = paintOrder;
+  }
+}
+
+class _PlaneBreak extends SingleChildRenderObjectWidget {
+  const _PlaneBreak({required this.active, required super.child});
+
+  final bool active;
+
+  @override
+  RenderGlassPlaneBreak createRenderObject(BuildContext context) =>
+      RenderGlassPlaneBreak(active: active);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderGlassPlaneBreak renderObject,
+  ) => renderObject.active = active;
 }

@@ -3,9 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_container.dart';
-import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Shows, over [child], how many glass layers the last frame drew, who
 /// draws them, and which neighbouring resting glass could share one
@@ -248,6 +246,7 @@ abstract final class _Frames {
 
   static void watch(_MorphGlassInspectorState state) {
     _states.add(state);
+    RenderGlassMember.followsRestEverywhere = true;
     if (GlassLayerOwners.owners == null) {
       _owners = Expando<RenderObject>();
       GlassLayerOwners.owners = _owners;
@@ -265,6 +264,7 @@ abstract final class _Frames {
 
   static void unwatch(_MorphGlassInspectorState state) {
     _states.remove(state);
+    if (_states.isEmpty) RenderGlassMember.followsRestEverywhere = false;
     if (_states.isEmpty && identical(GlassLayerOwners.owners, _owners)) {
       GlassLayerOwners.owners = null;
       _owners = null;
@@ -333,9 +333,9 @@ bool _meaningful(String name) =>
 MorphGlassCensus _takeCensus() {
   final root = WidgetsBinding.instance.rootElement;
   final labels = <RenderObject, String>{};
+  final elements = <RenderObject, Element>{};
   final layerOwners = <Layer, RenderObject>{};
   final named = <Element, String>{};
-  final hosts = <Element>[];
   void visit(Element element, List<String> chain, String role) {
     final widget = element.widget;
     final name = widget.runtimeType.toString();
@@ -347,6 +347,7 @@ MorphGlassCensus _takeCensus() {
     if (inner.isNotEmpty) named[element] = inner.last;
     if (element is RenderObjectElement) {
       final object = element.renderObject;
+      elements[object] = element;
       final tail = inner.length > 2 ? inner.sublist(inner.length - 2) : inner;
       labels[object] =
           '${tail.isEmpty ? object.runtimeType : tail.join(' > ')}'
@@ -356,7 +357,6 @@ MorphGlassCensus _takeCensus() {
       final own = object.layer;
       if (own != null) layerOwners[own] = object;
     }
-    if (debugMorphGlassHostOf(element) != null) hosts.add(element);
     element.visitChildren((Element child) => visit(child, inner, here));
   }
 
@@ -394,8 +394,22 @@ MorphGlassCensus _takeCensus() {
     filters: filters,
     captures: unkeyed + keys.length,
     owners: owners,
-    hints: _hints(hosts, named),
+    hints: _hints(_members(), elements, named),
   );
+}
+
+/// The glass layers on screen that report to a plane, in paint order.
+List<RenderGlassMember> _members() {
+  final members = <RenderGlassMember>[];
+  void visit(RenderObject node) {
+    if (node is RenderGlassMember) members.add(node);
+    node.visitChildren(visit);
+  }
+
+  for (final view in RendererBinding.instance.renderViews) {
+    visit(view);
+  }
+  return members;
 }
 
 String _nameOf(Element element, Map<Element, String> named) {
@@ -404,51 +418,64 @@ String _nameOf(Element element, Map<Element, String> named) {
   return context == null || context == own ? own : '$own in $context';
 }
 
-List<MorphGlassHint> _hints(List<Element> hosts, Map<Element, String> named) {
-  final planes = <(Element?, Object), List<Element>>{};
-  final kept = <(Element, Element), int>{};
-  for (final host in hosts) {
-    final state = debugMorphGlassHostOf(host);
-    if (state == null || state.joined || state.mode != MorphGlassMode.layer) {
-      continue;
+List<MorphGlassHint> _hints(
+  List<RenderGlassMember> members,
+  Map<RenderObject, Element> elements,
+  Map<Element, String> named,
+) {
+  final groups =
+      <
+        (
+          RenderObject?,
+          BackdropKey?,
+          LiquidGlassSettings,
+          LiquidGlassAppearance,
+        ),
+        List<RenderGlassMember>
+      >{};
+  final kept = <(RenderGlassPlane, RenderObject), int>{};
+  for (final member in members) {
+    final look = member.look;
+    if (look == null || !member.resting) continue;
+    switch (member.census) {
+      case GlassMemberCensus(split: GlassSplit.blocked, :final blocker?):
+        final plane = member.plane!;
+        kept[(plane, blocker)] = (kept[(plane, blocker)] ?? 0) + 1;
+      case GlassMemberCensus(split: GlassSplit.unowned):
+        final key = (
+          glassPlaneBlocker(member, null),
+          member.backdropKey,
+          look.settings,
+          look.appearance,
+        );
+        (groups[key] ??= []).add(member);
+      case _:
     }
-    final painter = state.painter;
-    if (painter.runtimeType != GlassBuiltInPainter) continue;
-    final look = morphGlassJoinLook(
-      painter as GlassBuiltInPainter,
-      state.frame,
-    );
-    if (look == null) continue;
-    final scope = host
-        .getElementForInheritedWidgetOfExactType<MorphGlassContainerScope>();
-    if (scope != null && (scope.widget as MorphGlassContainerScope).open) {
-      final blocker = morphGlassContainerBlocker(host, until: scope);
-      if (blocker != null) {
-        kept[(scope, blocker)] = (kept[(scope, blocker)] ?? 0) + 1;
-      }
-      continue;
-    }
-    final plane = (
-      morphGlassContainerBlocker(host),
-      (look.settings, look.appearance),
-    );
-    (planes[plane] ??= []).add(host);
   }
   final hints = <MorphGlassHint>[];
-  for (final MapEntry(key: (plane, _), value: group) in planes.entries) {
+  for (final MapEntry(key: (blocker, _, _, _), value: group)
+      in groups.entries) {
     if (group.length < 2) continue;
     final common = _commonAncestor(group);
-    if (identical(common, plane)) continue;
+    if (identical(common, blocker)) continue;
+    final element = elements[common];
     hints.add(
-      MorphGlassHint(layers: group.length, where: _nameOf(common, named)),
+      MorphGlassHint(
+        layers: group.length,
+        where: element == null
+            ? '${common.runtimeType}'
+            : _nameOf(element, named),
+      ),
     );
   }
-  for (final MapEntry(key: (scope, blocker), value: count) in kept.entries) {
+  for (final MapEntry(key: (plane, blocker), value: count) in kept.entries) {
     hints.add(
       MorphGlassHint(
         layers: count,
-        where: _containerName(scope, named),
-        keptOutBy: blocker.widget.runtimeType.toString(),
+        where: _planeName(elements[plane], named),
+        keptOutBy:
+            elements[blocker]?.widget.runtimeType.toString() ??
+            '${blocker.runtimeType}',
       ),
     );
   }
@@ -456,42 +483,39 @@ List<MorphGlassHint> _hints(List<Element> hosts, Map<Element, String> named) {
   return hints;
 }
 
-String _containerName(Element scope, Map<Element, String> named) {
-  Element? container;
+/// The widget that owns the plane of [plane]: the innermost one the
+/// inspector names above it, with the one it sits in.
+String _planeName(Element? plane, Map<Element, String> named) {
+  final name = plane == null ? null : named[plane];
+  if (plane == null || name == null) return 'a container';
+  Element? owner;
   Element? above;
-  scope.visitAncestorElements((Element element) {
-    if (container != null) {
+  plane.visitAncestorElements((Element element) {
+    if (owner != null) {
       above = element;
       return false;
     }
-    final widget = element.widget;
-    if (widget is MorphGlassContainer || widget is MorphGlassStage) {
-      container = element;
-    }
+    if (element.widget.runtimeType.toString() == name) owner = element;
     return true;
   });
-  final name = container?.widget.runtimeType.toString() ?? 'a container';
   final context = above == null ? null : named[above];
   return context == null ? name : '$name in $context';
 }
 
-Element _commonAncestor(List<Element> elements) {
-  List<Element> chain(Element element) {
-    final out = <Element>[element];
-    element.visitAncestorElements((Element a) {
-      out.add(a);
-      return true;
-    });
+RenderObject _commonAncestor(List<RenderObject> nodes) {
+  List<RenderObject> chain(RenderObject node) {
+    final out = <RenderObject>[node];
+    for (var parent = node.parent; parent != null; parent = parent.parent) {
+      out.add(parent);
+    }
     return out;
   }
 
-  final others = [
-    for (final element in elements.skip(1)) chain(element).toSet(),
-  ];
-  for (final candidate in chain(elements.first).skip(1)) {
-    if (others.every((Set<Element> s) => s.contains(candidate))) {
+  final others = [for (final node in nodes.skip(1)) chain(node).toSet()];
+  for (final candidate in chain(nodes.first).skip(1)) {
+    if (others.every((Set<RenderObject> s) => s.contains(candidate))) {
       return candidate;
     }
   }
-  return elements.first;
+  return nodes.first;
 }

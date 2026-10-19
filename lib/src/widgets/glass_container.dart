@@ -294,15 +294,23 @@ Widget _containerLayer(
         defaultAppearance: appearance,
         read: GlassRead.plane,
         solidBackdrop: solidBackdrop,
-        child: MorphGlassContainerScope(
-          link: link,
-          renderer: painter,
+        planePass: true,
+        child: GlassPlaneScope.owned(
           settings: settings,
-          open:
-              open &&
-              MorphGlassContainerGate.openAt(context) &&
-              (!sharpOnly || settings.effectiveFrost == 0),
-          child: child!,
+          open: open,
+          paintOrder: sharpOnly
+              ? GlassPaintOrder.outsideGlass
+              : GlassPaintOrder.owned,
+          child: MorphGlassContainerScope(
+            link: link,
+            renderer: painter,
+            settings: settings,
+            open:
+                open &&
+                MorphGlassContainerGate.openAt(context) &&
+                (!sharpOnly || settings.effectiveFrost == 0),
+            child: child!,
+          ),
         ),
       );
     },
