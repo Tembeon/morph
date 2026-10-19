@@ -703,7 +703,6 @@ class MorphMenuAppearance implements MorphAppearance
     double iconSize = MorphMenuTuning.rowIconSize,
     Color destructiveColor = const Color(0xFFFF383C),
     Color highlightColor = const Color(0x1F000000),
-    Color glowColor = const Color(0xFFFFFFFF),
     Color secondaryColor = const Color(0x993C3C43),
     Color disabledColor = const Color(0x4C3C3C43),
     Color separatorColor = const Color(0x14000000),
@@ -723,7 +722,6 @@ class MorphMenuAppearance implements MorphAppearance
     double? iconSize,
     Color? destructiveColor,
     Color? highlightColor,
-    Color? glowColor,
     Color? secondaryColor,
     Color? disabledColor,
     Color? separatorColor,
@@ -739,7 +737,6 @@ class MorphMenuAppearance implements MorphAppearance
   final Color disabledIconColor
   final Color glassColor
   final Color glassTint
-  final Color glowColor
   final Color highlightColor
   final Color iconColor
   final double iconSize
