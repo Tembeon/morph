@@ -553,7 +553,8 @@ Local patches (some commits include related package changes):
   uGlowShape; same declaration count, float index 65; the analytic
   uniforms move from 69 to 81). shaders/glass_glow.glsl applies the flex
   interaction's wash and color-dodge spot to the glass color of the lit
-  surface's rounded box, in every final-render variant, skipped while
+  surface's rounded box, in every final-render variant but the material
+  one (mixed appearances, where it spills on the Mali-G78), skipped while
   gain and wash are 0. LiquidGlassGlow (liquid_glass_glow.dart) packs it
   and is its CPU reference; LiquidGlassLayer.live(glowOf:) and
   RenderLiquidGlassLayer.glow carry it (a change rewrites the common

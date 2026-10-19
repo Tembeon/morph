@@ -1112,7 +1112,11 @@ void main() {
     // Under the content, over everything the glass shows, as the flex
     // interaction's glow matrices filter the glass behind the content.
     // Last, with the matte coordinate derived again, so no register holds
-    // it across the shading.
+    // it across the shading. The variant for mixed appearances leaves it
+    // out: there it spills to stack on the Mali-G78 wherever it goes, and
+    // the lit controls (tab bar, glass buttons, the open menu) never mix
+    // appearances in one layer.
+    #if !SHAPE_APPEARANCE
     if (uGlowSpot.w > 0.0 || uGlowShape.y > 0.0) {
         vec2 glowCoord = FlutterFragCoord().xy;
         finalColor = applyGlassGlow(
@@ -1126,6 +1130,7 @@ void main() {
             uGlowShape
         );
     }
+    #endif
     vec3 premultipliedColor = finalColor * visibleMaterialAlpha +
         uContourColor.rgb * externalContourAlpha;
 

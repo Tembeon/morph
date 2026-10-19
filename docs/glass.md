@@ -303,6 +303,11 @@ paint layer.
 - One glow per layer pass: the first lit surface of the layer's shapes
   (a control lights at most one). A fused body keeps the glow inside its
   lit member's box, so the menu's neck and button stay unlit.
+- The variant for mixed appearances (shapes of one layer that differ by
+  more than tint) compiles the glow out: there it spills to stack on the
+  Mali-G78 wherever it is placed (4 - 24 bytes). The lit controls never
+  mix appearances in a layer; an app layer that mixes clear and regular
+  `MorphGlassEffect` shapes shows no glow.
 - The glow is not structure: it enters `LiquidGlassLayer.live` through
   `glowOf` every frame and rebuilds nothing. A glowing host joins no glass
   container (`morphGlassJoinLook`): the container's pass carries no glow.
@@ -315,9 +320,12 @@ paint layer.
   at a six-sigma square (a step of `gain e^-4.5`: 0.9 level on the tab bar,
   1.6 on the menu, up to 3.2 on a small dark button) is gone. A glass that
   fades out while lit fades its glow with it.
-- Cost (malioc, Mali-G78 Vulkan): occupancy and registers unchanged; the
-  lit path +1 arithmetic cycle and +3 load/store cycles a fragment; the
-  material variant (mixed appearances) spills 12 bytes on it.
+- Cost (tool/audit/shader/offline.py, malioc Mali-G78): every final
+  variant keeps 64 work registers on Vulkan, 50 % occupancy and main's
+  spill (analytic 4, analytic_ios27 4, analytic_fused_tint_ios27 16 bytes,
+  the rest 0); the lit path costs about +1 arithmetic and +3 load/store
+  cycles a fragment, total arithmetic +0.75 - 1.1. `mediump` buys nothing
+  here: impellerc writes no RelaxedPrecision into the Vulkan stage.
 
 ## Shadows
 

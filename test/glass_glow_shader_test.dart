@@ -108,7 +108,11 @@ void main() {
         expect(core, contains('#define $name uSolidBackdropGlow[$i]'));
       }
       expect(core, contains('#include "glass_glow.glsl"'));
-      expect(core, contains('applyGlassGlow('));
+      final gate = core.indexOf('#if !SHAPE_APPEARANCE');
+      final call = core.indexOf('applyGlassGlow(');
+      expect(gate, greaterThan(0));
+      expect(call, greaterThan(gate));
+      expect(core.indexOf('#endif', gate), greaterThan(call));
       final variants = Directory(_shaders)
           .listSync()
           .whereType<File>()
