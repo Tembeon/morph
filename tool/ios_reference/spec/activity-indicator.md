@@ -6,9 +6,9 @@ device (2026-10-03, tuning + layers + screenshots light/dark); ported.
 ## Native
 
 `UIActivityIndicatorView`; tuning `_UIActivityIndicatorSettings`
-(`fullLoopDuration`) [tuning]. Public API (SDK 27.0): style (medium /
-large), `color`, `hidesWhenStopped`, `startAnimating`, `stopAnimating`,
-`animating`.
+(`fullLoopDuration`) [tuning]. Public API (SDK 27.1, unchanged since
+27.0): style (medium / large), `color`, `hidesWhenStopped`,
+`startAnimating`, `stopAnimating`, `animating`.
 
 ## Spec
 
@@ -30,8 +30,8 @@ large), `color`, `hidesWhenStopped`, `startAnimating`, `stopAnimating`,
 - stopAnimating with hidesWhenStopped: hidden in ONE frame (no fade);
   startAnimating: visible in one frame, frame 0. With hidesWhenStopped NO
   the stopped indicator stays visible (no row changes at the stop).
-- Ported: dark default 0x99EBEBF5 (disabled_test pins it); start/stop
-  are cuts.
+- Ported: dark default 0x99EBEBF5 (disabled_test pins the constant);
+  start/stop are cuts.
 
 ## Recapture
 
@@ -56,8 +56,15 @@ layer cannot replace the images, whose odd half steps sit between spokes.
 
 ## Open
 
-- Start/stop: measured (cuts, see Device).
+- Start/stop: measured (cuts, see Device); no test replays
+  `activity-startstop.jsonl`.
+- No source: the spoke width and inner / outer radii
+  (`MorphActivityIndicator.metrics`); the boxes 20 / 37 are in the device
+  rows.
+- No Increase Contrast table; the claim that UIKit keeps turning under
+  Reduce Motion has no read or recording.
 
 ## API gaps
 
-None of note.
+- A caption (SwiftUI `ProgressView("Loading")`) and SwiftUI's other
+  control sizes; the default label "In progress" is English only.

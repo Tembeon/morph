@@ -1,7 +1,9 @@
 # Tab bar passport (lens, look, glow, slow lift)
 
 Status: measured on device (lens, scrub, glow, look, colors); ported;
-replayed. Shared machinery: [lens-and-flex.md](lens-and-flex.md). Search tab:
+replayed (taps against simulator rows; scrubs, taps on the selected tab
+and the glow against device rows). Shared machinery:
+[lens-and-flex.md](lens-and-flex.md). Search tab:
 [search-tab-bar.md](search-tab-bar.md).
 
 ## Native
@@ -10,13 +12,15 @@ replayed. Shared machinery: [lens-and-flex.md](lens-and-flex.md). Search tab:
 `_UIBottomTabBarGroupView`, lens `_UILiquidLensView`, selection
 `_UITabSelectionView`, glows in `_UIFlexInteractionGlowContainerView`
 (`_UIFlexInteraction.BigGlow`, `.LittleGlow`).
-Public API (SDK 27.0): `tabs`, `setTabs:animated:`, `selectedTab`,
+Public API (SDK 27.1; full table in [api/tab-bar.md](api/tab-bar.md)):
+`tabs`, `setTabs:animated:`, `selectedTab`,
 `tabForIdentifier:`, `mode` (automatic / tabBar / tabSidebar), `sidebar`,
 `tabBarMinimizeBehavior` (automatic / never / onScrollDown / onScrollUp),
 `bottomAccessory` (`UITabAccessory`, animated), `prominentTabIdentifier`,
 `setTabBarHidden:animated:`; UITab `title`, `subtitle`, `image`,
 `badgeValue`, `identifier`, `hidden`, `hiddenByDefault`, `UITabGroup`;
-UITabBar `tintColor`, `leadingAccessoryView`, `trailingAccessoryView`.
+UITabBar `tintColor`, `unselectedItemTintColor` (`leadingAccessoryView` /
+`trailingAccessoryView` are tvOS only).
 
 ## Spec - motion
 
@@ -117,9 +121,12 @@ Scene `tabbar<N>` (N 2..5); env `PROBE_DARK`, `PROBE_TABLAYERS=1`,
 `MorphTabBar`, `MorphTabItem`, `MorphTabBarAppearance` (tab_bar.dart),
 `MorphLensTuning.tabBar`, `MorphTouchGlowMotion` + `MorphGlassGlow`
 (glass_glow.dart), touch_listener.dart (`delaysInScrollable`). Tests:
-lens_test (tab bar on the undeformed frame only), lens_scrub_test,
-tab_bar_glow_test (rms bound 0.03 / 0.012), tab_bar_slow_lift_test,
-controls_scroll_test, glyph_policy_test, glyph_scale_test.
+lens_test (simulator taps `ios27/lens/tabbar*`, tab bar on the undeformed
+frame only), lens_scrub_test (device scrubs and taps on the selected tab),
+tab_bar_glow_test (rms bound 0.03 / 0.012), tab_bar_slow_lift_test (sorts
+the device tap fixtures; native behaviour only, it does not run morph),
+disabled_test, tab_bar_api_test, controls_scroll_test, glyph_policy_test,
+glyph_scale_test.
 
 Labels under the swell: the whole bar scales by `grow` (1 -> 1.04) under a
 finger, and the lens's magnified copy sweeps through its magnification in
@@ -220,7 +227,8 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
 - `tabBarMinimizeBehavior` and `bottomAccessory`: ported from UIKit's
   code, partly device-confirmed; passport [tab-bar-minimize.md](tab-bar-minimize.md)
   (the probe sets it: `w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
-- `prominentTabIdentifier`, leading/trailing accessory views.
+- `prominentTabIdentifier` for an ordinary tab (with none set, UIKit
+  makes the activating search tab prominent: `MorphSearchTabBar`).
 - Sidebar mode (iPad), `setTabBarHidden:animated:`.
 
 ## Implementation notes (moved from CLAUDE.md)

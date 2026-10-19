@@ -1,72 +1,90 @@
 # Page control - API parity (UIKit / SwiftUI iOS 27 vs morph)
 
-Native: `UIPageControl`, `UIPageControlProgress`, `UIPageControlTimerProgress`; SwiftUI
-`TabView` + `.tabViewStyle(.page(indexDisplayMode:))`, `.indexViewStyle(.page(backgroundDisplayMode:))`.
-morph: `MorphPageControl`, `MorphPageControlBackground`, `MorphPageControlMotion`, `MorphPageControlStyle`,
-`MorphPageControlTuning`. Passport: [../page-control.md](../page-control.md).
+Native: `UIPageControl`, `UIPageControlProgress`, `UIPageControlTimerProgress`; SwiftUI `TabView` +
+`.tabViewStyle(.page(indexDisplayMode:))`, `.indexViewStyle(.page(backgroundDisplayMode:))`.
+morph (public): `MorphPageControl`, `MorphPageControlBackgroundStyle`, `MorphPageControlAppearance`.
+Internal: `MorphPageControlMotion`, `MorphPageControlTuning`. Passport: [../page-control.md](../page-control.md).
 
-SDK 27.0 check: no iOS 26 / 27 API on `UIPageControl*.h`; newest is `progress` (iOS 17). Liquid Glass
-changed the look (platter) only.
+SDK 27.1 check: no iOS 26 / 27 / 27.1 API on `UIPageControl.h` or `UIPageControlProgress.h`; newest is
+`progress` (iOS 17). Liquid Glass changed the look only.
 
 ## UIKit
-| UIKit API (type.member, availability) | meaning | morph equivalent | gap / mismatch | proposal |
+| UIKit API (availability) | meaning | morph equivalent | status | proposal |
 |---|---|---|---|---|
-| `UIPageControl.numberOfPages` (iOS 2+) | page count | `MorphPageControl.count` | name only | keep (Dart-natural; dartdoc names UIKit) |
-| `UIPageControl.currentPage` (iOS 2+) | current page | `MorphPageControl.page` | name only | keep |
-| `.valueChanged` | user stepped / scrubbed | `MorphPageControl.onChanged` | null disables (look unchanged, as measured) | keep |
-| `UIPageControl.hidesForSinglePage` (iOS 2+) | hide with one page | none (one dot draws) | missing | add `hidesForSinglePage = false` |
-| `UIPageControl.pageIndicatorTintColor` (iOS 6) | dot color | `MorphPageControlStyle.indicatorColor` | no widget-level override (progress/activity have one) | add `MorphPageControl.pageIndicatorColor`; rename style field (see Breaking) |
-| `UIPageControl.currentPageIndicatorTintColor` (iOS 6) | current dot color | `MorphPageControlStyle.currentIndicatorColor` | same | add `currentPageIndicatorColor` |
-| `UIPageControl.backgroundStyle` (iOS 14) | platter policy | `MorphPageControl.background` | property name differs | rename -> `backgroundStyle` (optional, see Breaking) |
-| `UIPageControl.BackgroundStyle.automatic` / `.prominent` / `.minimal` | cases | `MorphPageControlBackground.automatic` / `prominent` / `minimal` | none | keep |
-| `UIPageControl.direction` (iOS 16) | natural / leftToRight / rightToLeft / topToBottom / bottomToTop | none (horizontal, follows `Directionality`) | no vertical, no forced direction | add `direction` (`MorphPageControlDirection`, UIKit cases) |
-| `UIPageControl.allowsContinuousInteraction` (iOS 14) | scrub on/off | none (always on) | missing | add `allowsContinuousInteraction = true` |
-| `UIPageControl.interactionState` (iOS 14, readonly) | none / discrete / continuous | `MorphPageControlMotion.isScrubbing` (motion object) | not on the widget | skip (rare; motion exposes it) |
-| `UIPageControl.preferredIndicatorImage` (iOS 14) | custom dot for all pages | none | missing | add `indicatorBuilder` (Widget per page, current flag) |
-| `UIPageControl.setIndicatorImage(_:forPage:)` / `indicatorImage(forPage:)` (iOS 14) | per-page dot (Weather location arrow) | none | missing | same builder |
-| `UIPageControl.preferredCurrentPageIndicatorImage` / `setCurrentPageIndicatorImage(_:forPage:)` (iOS 16) | current-page image | none | missing | same builder (current flag) |
-| `UIPageControl.sizeForNumberOfPages(_:)` (iOS 2+) | layout size | `MorphPageControlTuning` constants | no helper | add static `MorphPageControl.sizeFor(int count)` |
-| `UIPageControl.progress` (iOS 17) | `UIPageControlProgress` | `MorphPageControl.progress` (double?) | value only | keep |
-| `UIPageControlProgress.currentProgress` (iOS 17) | 0..1 of current page | `MorphPageControl.progress` | none | keep |
-| `UIPageControlProgress.progressVisible` / delegate `initialProgressForPage`, `visibilityDidChange` | visibility policy | `progress == null` | app-driven | skip |
-| `UIPageControlTimerProgress(preferredDuration:)` (iOS 17) | auto-advance timer | none | missing | add `MorphPageControlTimer` (controller: `duration`, `durationForPage`, `resetsToInitialPageAfterEnd`, `isRunning`, `pause()`, `resume()`, `shouldAdvanceToPage`) |
-| `UIPageControlTimerProgress.setDuration(_:forPage:)` / `durationForPage` | per-page duration | none | missing | in the timer controller |
-| `UIPageControlTimerProgress.resetsToInitialPageAfterEnd` / `running` / `pauseTimer` / `resumeTimer` | loop and control | none | missing | in the timer controller |
-| `defersCurrentPageDisplay` / `updateCurrentPageDisplay` | deprecated | - | - | skip (deprecated) |
+| `numberOfPages` (iOS 2) | page count | `count` | covered | - |
+| `currentPage` (iOS 2) | current page, pinned to the range | `page` (clamped) | covered | - |
+| `.valueChanged` | user stepped or scrubbed | `onChanged` | covered | - |
+| `isEnabled` | disabled: looks the same | `onChanged == null` | covered | - |
+| `hidesForSinglePage` (iOS 2) | hide with one page | none (one dot draws) | gap | `hidesForSinglePage = false` |
+| `pageIndicatorTintColor` (iOS 6) | other dots | `MorphPageControlAppearance.pageIndicatorColor` | partial: only through a whole appearance, which drops the dark and high-contrast tables | widget-level `pageIndicatorColor` |
+| `currentPageIndicatorTintColor` (iOS 6) | current dot | `MorphPageControlAppearance.currentPageIndicatorColor` | partial (same) | widget-level `currentPageIndicatorColor` |
+| `backgroundStyle` (iOS 14) + `.automatic` / `.prominent` / `.minimal` | platter policy | `backgroundStyle`, `MorphPageControlBackgroundStyle` | covered (4) | - |
+| `direction` (iOS 16) | layout direction | none | gap | `MorphPageControlDirection` |
+| `.natural` | follow layout direction | follows `Directionality` | covered | - |
+| `.leftToRight` / `.rightToLeft` / `.topToBottom` / `.bottomToTop` | forced or vertical | none | gap (4) | with `direction` |
+| `interactionState` (iOS 14, readonly) | none / discrete / continuous | internal only | gap | expose only if a caller needs it |
+| `allowsContinuousInteraction` (iOS 14) | scrub on / off | always on | gap | add the flag |
+| `preferredIndicatorImage` (iOS 14) | custom dot | none | gap | `indicatorBuilder` |
+| `indicatorImage(forPage:)` / `setIndicatorImage(_:forPage:)` (iOS 14) | per-page dot | none | gap | same builder |
+| `preferredCurrentPageIndicatorImage` (iOS 16) | current-page image | none | gap | same builder (current flag) |
+| `currentPageIndicatorImage(forPage:)` / setter (iOS 16) | per-page current image | none | gap | same builder |
+| `sizeForNumberOfPages(_:)` (iOS 2) | size for a count | none | gap | static `MorphPageControl.sizeFor(int)` |
+| `progress` (iOS 17) | a `UIPageControlProgress` | `progress` (`double?`) | partial: a value, no object or delegate | keep the value |
+| `UIPageControlProgress.currentProgress` | 0..1 of the page | `progress` | covered | - |
+| `progressVisible` + delegate visibility | show or hide | `progress == null` | covered | - |
+| `UIPageControlTimerProgress(preferredDuration:)` (iOS 17) | auto-advance | none | gap | `MorphPageControlTimer` controller |
+| `setDuration(_:forPage:)` / `duration(forPage:)` | per-page duration | none | gap | in the controller |
+| `resetsToInitialPageAfterEnd` | loop | none | gap | in the controller |
+| `isRunning` / `pauseTimer()` / `resumeTimer()` | run control | none | gap | in the controller |
+| timer delegate `shouldAdvanceToPage`, `didChange` | veto, progress | none | gap | in the controller |
+| `defersCurrentPageDisplay` / `updateCurrentPageDisplay` | deprecated iOS 14 | - | n/a | - |
 
 ## SwiftUI
-| SwiftUI API (availability) | meaning | morph equivalent | gap / mismatch | proposal |
+| SwiftUI API (availability) | meaning | morph equivalent | status | proposal |
 |---|---|---|---|---|
-| `TabView` + `.tabViewStyle(.page)` (iOS 14) | pager with built-in dots | none (app wires `PageView` + `MorphPageControl`) | no linked pager | add optional `controller: PageController?` on `MorphPageControl` (page follows the scroll, taps animate the pager); low-med |
-| `PageTabViewStyle.IndexDisplayMode.automatic / .always / .never` | show dots | app decides | - | skip (widget presence) |
-| `PageIndexViewStyle.BackgroundDisplayMode.automatic / .interactive / .always / .never` (iOS 14) | platter | `MorphPageControlBackground` | SwiftUI `.interactive` = UIKit `.automatic`, `.always` = `.prominent`, `.never` = `.minimal` | keep UIKit names; note the mapping in dartdoc |
+| `TabView` + `.tabViewStyle(.page(indexDisplayMode:))` (iOS 14) | pager with dots | none (app wires `PageView` + `MorphPageControl`) | gap | optional `controller: PageController?` |
+| `.indexViewStyle(.page(backgroundDisplayMode:))` | platter | `backgroundStyle` | same as UIKit row: `.interactive` = `automatic`, `.always` = `prominent`, `.never` = `minimal` | name the mapping in the dartdoc |
+
+Count: 33 applicable, 11 covered, 3 partial, 19 gaps.
 
 ## Not relevant for Flutter
-- `UIAppearance` selectors on the tint colors (theme / `MorphWidgetsTheme` covers it).
-- Target-action, `NSCoding`, tvOS focus behaviour.
-- Accessibility adjustable trait: Flutter `Semantics` (morph: `semanticLabel`, `semanticValueFormatter`).
+- `UIAppearance` selectors (`MorphThemeData.appearances` carries a `MorphPageControlAppearance`), target-action, `NSCoding`, tvOS focus.
+- Accessibility adjustable trait: Flutter `Semantics` (`semanticLabel`, `semanticValueFormatter`).
 
 ## morph-only API
-- `MorphPageControl.semanticLabel`, `semanticValueFormatter` - keep (Semantics idiom).
-- `MorphPageControlStyle.platterColor`, `platterIndicatorColor` - keep (UIKit has no public platter color).
-- `MorphPageControlMotion`, `MorphPageControlTuning` - keep (measured motion).
+- `semanticLabel`, `semanticValueFormatter` (default English "page n of count").
+- `MorphPageControlAppearance.platterColor` / `platterIndicatorColor` (UIKit has no public platter color).
 
 ## Ranked gaps
 | # | gap | need | cost | proposal |
 |---|---|---|---|---|
-| 1 | `hidesForSinglePage` | med (dynamic page counts) | S | add bool |
-| 2 | widget-level dot colors (`pageIndicatorTintColor`, `currentPageIndicatorTintColor`) | med (dots over photos / onboarding) | S | add two `Color?` params |
-| 3 | custom indicator images per page / current page | med (Weather-style location dot, onboarding icons) | M | add `indicatorBuilder` |
-| 4 | timer progress (`UIPageControlTimerProgress`) | low-med (stories, carousels) | M (pc-timer fixture exists) | add `MorphPageControlTimer` |
-| 5 | `direction` incl. vertical | low-med (vertical pagers) | M (layout + scrub axis) | add `MorphPageControlDirection` |
-| 6 | link to a `PageController` | low-med (convenience) | S-M | add optional `controller` |
-| 7 | `allowsContinuousInteraction` | low | S | add bool |
-| 8 | `sizeForNumberOfPages` | low | S | add static helper |
+| 1 | `hidesForSinglePage` | M | S | add the flag |
+| 2 | widget-level dot colors | M | S | two `Color?` parameters |
+| 3 | many pages: dots that do not fit | M | M (measure first) | scroll and shrink the dots as UIKit does |
+| 4 | custom indicator images | M | M | `indicatorBuilder` |
+| 5 | timer progress | L-M | M (`ios27/page_control/pc-timer.jsonl` exists) | `MorphPageControlTimer` |
+| 6 | `direction` incl. vertical | L-M | M | `MorphPageControlDirection` |
+| 7 | link to a `PageController` | L-M | S-M | optional `controller` |
+| 8 | `allowsContinuousInteraction`, `sizeForNumberOfPages` | L | S | add both |
 
 ## Breaking changes before 1.0
-- `MorphPageControlStyle.indicatorColor` / `currentIndicatorColor` -> `pageIndicatorColor` /
-  `currentPageIndicatorColor` (UIKit's property names minus `Tint`), matching the widget-level overrides to add.
-- Optional: `MorphPageControl.background` -> `backgroundStyle` and `MorphPageControlBackground` ->
-  `MorphPageControlBackgroundStyle` (UIKit property and enum name). Cheap now; decide with the family-wide
-  `*Style` = color-table convention (the enum would then end in `Style` without being a color table).
-- `count` / `page`: keep (no change proposed).
+- Done: `indicatorColor` / `currentIndicatorColor` -> `pageIndicatorColor` / `currentPageIndicatorColor`;
+  `background` -> `backgroundStyle` with `MorphPageControlBackgroundStyle`.
+- `count` / `page`: kept (no change proposed).
+
+## Behaviour fidelity
+| dimension | grade | evidence | open items |
+|---|---|---|---|
+| api | missing | this page | `hidesForSinglePage`, dot colors on the widget, images, timer |
+| layout | unbacked | dots, pitch, height [layout]; test/indicators_test.dart pins morph's own constants | UIKit's 5-page control view is 126 pt wide, morph's 108.35; the platter's width is not recorded and `padding` 14 has no source |
+| states | replayed | disabled draws nothing different (`ios27-device/disabled/disabled.json`, test/disabled_test.dart); platter states replayed below | prominent / minimal platter look is a flat stand-in (optics) |
+| transitions | unbacked | platter in / out replayed on device rows (`pc-hold`, `pc-scrub`, rms < 0.03); progress width spring replayed on sim rows (`pc-timer`, rms < 0.25 pt) | a page change without progress snaps ("instant, as UIKit's is") with no recording of the dots; the progress fill fade spring is not compared |
+| boundaries | missing | empty and out-of-range counts (test/page_control_bounds_test.dart) | many pages (dots that do not fit) not implemented; a far scrub's irregular steps not reproduced |
+| configuration | missing | backgroundStyle cases, progress on / off | `direction`, images, `allowsContinuousInteraction` |
+| events | replayed | tap and scrub `valueChanged` sequences equal the recording (`pc-tap-right`, `pc-scrub`, device and sim) | - |
+| input | replayed | tap halves step on the lift; scrub to the nearest dot with 1.5 pt hysteresis (measured) | `scrubSlop` 10 has no source; it only agrees with one scrub recording |
+| mutation | unbacked | count change rebuilds the motion | count or page changes from code are not recorded |
+| accessibility | read | haptic on a scrub step and Increase Contrast dots read from UIKit (notes private; states.md); no Reduce Motion read; adjustable semantics, arrow keys | English default value string |
+| optics | approx | dot colors [layout, sim], high-contrast colors read from UIKit | the platter is a flat color on every renderer; the trade is not declared as NEAR / approximation |
+| platform | missing | RTL runs the pages from the right (not measured) | vertical direction |
+| performance | unbacked | host: a resting finger lets the ticker sleep (test/indicators_test.dart) | no device frame-time or energy run |

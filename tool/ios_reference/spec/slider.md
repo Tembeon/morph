@@ -5,7 +5,7 @@ replayed. Thumb = small lens: [lens-and-flex.md](lens-and-flex.md).
 
 ## Native
 
-`UISlider` (thumb `_UILiquidLensView`). Public API (SDK 27.0): `value`,
+`UISlider` (thumb `_UILiquidLensView`). Public API (SDK 27.1): `value`,
 `minimumValue`, `maximumValue`, `setValue:animated:`,
 `continuous`, `minimumValueImage`, `maximumValueImage`,
 `minimumTrackTintColor`, `maximumTrackTintColor`, `thumbTintColor`,
@@ -75,8 +75,9 @@ thumbless), `trackConfiguration` (`UISliderTrackConfiguration`:
   p + 0.099 s x release speed when that projection is 10 pt or more, else
   of p; p springs there on 1.0 / 0.4 s from the release speed, shown
   through the same curve; no glide. Detent haptic when the nearest inner
-  stop changes (not ported: the package has no haptics seam; apps would
-  watch the reported value). Device check: every off-stop device thumb of
+  stop changes: ported as `MorphHaptic.detent` (a selection click), the
+  end pattern as `MorphHaptic.edge` (a light impact), both approximations
+  (haptics.dart); `MorphThemeData.haptics` silences them. Device check: every off-stop device thumb of
   ticks5-video-dark and ticks5-drag (x - tx) inverted through u^5 lands on
   the 1/3 pt touch grid (median 0.002 / 0.008 pt; exponent 4.5 gives 0.065).
   Timing replay rms fill 1.77 / thumb 1.47 pt with the pan counting past
@@ -115,9 +116,13 @@ example/integration_test/slider_video_test.dart.
 
 ## morph
 
-`MorphSlider` (`ticks`, `keyboardStep`, `onChangeEnd`), `MorphSliderAppearance`,
+`MorphSlider` (`ticks`, `animated`, `min` / `max`, `keyboardStep`,
+`onChangeStart` / `onChangeEnd`), `MorphSliderAppearance`, internal
 `MorphSliderMotion` (slider.dart, slider_motion.dart). Tests:
-controls_test, controls_scroll_test (a drag taken over by the list returns
+controls_test (the device and simulator replays), flex_law_test,
+slider_set_value_test (native fill samples inline), slider_range_test,
+disabled_test, accessibility_test (end and detent moments),
+controls_scroll_test (a drag taken over by the list returns
 to its start value), slider_ticks_rest_test and
 slider_ticks_device_clock_test (a stepped thumb leans off its stop only
 while the finger is down - by the detent curve - and rests on the stop
@@ -139,6 +144,10 @@ lens-and-flex.md "Rest").
   (renderer issue, not package motion).
 - Owner report "native thumb reaches the end under the finger" did not
   reproduce with synthesized touches; a hand-recorded probe drag is next.
+- `MorphSliderMotion.thumbSlop` (8 pt outside the thumb still grabs it),
+  `MorphSlider.keyboardStep` (0.1) and `MorphSlider.height` (34) have no
+  measurement. The track-tap and thumb-tap fixtures (slider-w300-tap-track300,
+  -drag-ontrack, -tap-thumb, -taps-thumb) are loaded by no test.
 - Reduce Motion read from UIKit (notes private): the thumb never lifts ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)). End and detent haptics, Increase Contrast fill: states.md.
 
 ## API gaps

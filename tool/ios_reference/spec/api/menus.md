@@ -1,126 +1,209 @@
-# Menus - API parity (UIKit / SwiftUI iOS 27 vs morph)
+# Menus - API parity (UIKit / SwiftUI iOS 27.1 vs morph)
 
-Native: `UIMenu`, `UIMenuElement`, `UIMenuLeaf`, `UIAction`, `UIDeferredMenuElement`,
+Native: `UIMenu`, `UIMenuElement`, `UIMenuLeaf` (`UIAction`), `UIDeferredMenuElement`,
 `UIMenuDisplayPreferences`, `UIButton.menu` / `showsMenuAsPrimaryAction` /
-`changesSelectionAsPrimaryAction` / `preferredMenuElementOrder`, `UIContextMenuInteraction` (+ delegate),
-`UIContextMenuConfiguration`, `UITargetedPreview`, `UIPreviewParameters`; SwiftUI `Menu`, `menuOrder`,
+`changesSelectionAsPrimaryAction` / `preferredMenuElementOrder`, `UIBarButtonItem.menu`,
+`UIContextMenuInteraction` (+ delegate), `UIContextMenuConfiguration`, `UITargetedPreview`,
+`UIPreviewParameters`, `UIEditMenuInteraction`; SwiftUI `Menu`, `menuOrder`,
 `menuActionDismissBehavior`, `menuStyle`, `menuIndicator`, `contextMenu(menuItems:preview:)`,
-`contextMenu(forSelectionType:)`, `ControlGroup` / `controlGroupStyle`, `Picker` in menus, `Toggle`,
-`Section`, `Divider`, `Label`. morph: `MorphMenuButton`, `MorphMenuSource`, `MorphMenuTrigger`,
-`MorphMenuStyle`, `MorphMenuEntry` (`MorphMenuItem`, `MorphMenuSection`, `MorphSubmenu`,
-`MorphMenuDivider`, `MorphMenuDeferred`, `MorphMenuWidget`), `MorphMenuState`,
-`MorphMenuIconVisibility`, `MorphMenuElementSize`, `MorphMenuOrder`, `MorphContextMenuRegion`,
-`MorphSatellite`, layout / motion classes (`MorphMenuLayout`, `MorphMenuMetrics`, `MorphMenuPlaced`,
-`MorphMenuPlacedKind`, `MorphMenuTarget`, `MorphMenuTargetKind`, `MorphMenuMorphSpec`, `MorphMenuMotion`,
-`MorphMenuBlob`, `MorphMenuCard`, `MorphMenuProgress`, `MorphMenuTuning`); menus also on
-`MorphGlassButton.menu`, `MorphBarButton.menu`. No `showMorphMenu` in lib/foundation.dart (engine has
-only `showMorph` + `MorphTargetSpec.popover`). Passports: [../menu-api.md](../menu-api.md),
-[../menu-button.md](../menu-button.md), [../context-menu.md](../context-menu.md).
+`ControlGroup`, `Picker` in menus, `Toggle`, `Section`, `Divider`.
 
-## UIKit
-| UIKit API (type.member, availability) | meaning | morph equivalent | gap / mismatch | proposal |
+SDK: iPhoneOS27.1.sdk. 27.1 changes nothing in these headers or in SwiftUI's menu API. The iOS 27
+additions are `UIMenuElement.preferredImageVisibility`, `highlightStateUpdateHandler` and
+`UIContextMenuConfiguration.allowsTypeSelect`.
+
+morph (`lib/morph.dart`, names as in `test/api/public_api.txt`): `MorphMenuButton`,
+`MorphMenuSource`, `MorphMenuTrigger`, `MorphMenuAppearance`, the entries (`MorphMenuEntry`:
+`MorphMenuItem`, `MorphMenuSection`, `MorphSubmenu`, `MorphMenuDivider`, `MorphMenuDeferred`,
+`MorphMenuWidget`), `MorphMenuState`, `MorphMenuIconVisibility`, `MorphMenuElementSize`,
+`MorphMenuOrder`, `MorphContextMenuRegion`, `MorphSatellite`; menus also on
+`MorphGlassButton(menu:)` and `MorphBarButton(menu:)`. Internal: motion, tuning and layout
+(`MorphMenuMotion`, `MorphMenuTuning`, `MorphMenuLayout`, `MorphMenuMetrics`, ...), the sources'
+`tuning` and `onOpen`, and the region's `onOpen`, `open(context)`, `tagId`, `overlay`,
+`scrimMotion`. Passports: [../menu-api.md](../menu-api.md), [../menu-button.md](../menu-button.md),
+[../context-menu.md](../context-menu.md).
+
+## UIKit - menu content and button menus
+| UIKit API (availability) | meaning | morph equivalent | gap / mismatch | proposal |
 |---|---|---|---|---|
-| `UIMenuElement.title` (iOS 13) | row text | `MorphMenuItem.title`, `MorphSubmenu.title`, `MorphMenuSection.title` | none | keep |
-| `UIMenuElement.subtitle` (iOS 15) | second line | `MorphMenuItem.subtitle`, `MorphSubmenu.subtitle` | none | keep |
-| `UIMenuElement.image` (iOS 13) | row image | `MorphMenuItem.icon` / `MorphSubmenu.icon` (`IconData?`) | only font glyphs; no image / avatar / custom widget | see breaking (`Widget?`) or add `iconBuilder` |
-| `UIMenuElement.preferredImageVisibility .automatic/.visible/.hidden` (iOS 27, NEW) | show/hide row image | `MorphMenuItem.iconVisibility` (`MorphMenuIconVisibility`) | none on `MorphSubmenu` | keep; add to `MorphSubmenu` |
-| `UIMenuElement.highlightStateUpdateHandler` (iOS 27, NEW) | row highlighted under the finger | `MorphMenuItem.onHighlightChanged` | none | keep |
-| `UIMenuLeaf.selectedImage` (iOS 17) | image when `state == .on` | `MorphMenuItem.selectedIcon` | none | keep |
-| `UIMenuLeaf.discoverabilityTitle` (iOS 13) | text for the keyboard-shortcut HUD / hint | none | | skip (use `Semantics`) |
-| `UIMenuElement.Attributes.disabled` (iOS 13) | disabled row | `MorphMenuItem.enabled = false`, `MorphSubmenu.enabled` | none | keep |
-| `.destructive` (iOS 13) | red row | `MorphMenuItem.destructive`, `MorphSubmenu.destructive` | none | keep |
-| `.hidden` (iOS 13) | hidden row (kept for key commands) | `MorphMenuItem.hidden`, `MorphSubmenu.hidden` | none | keep |
-| `.keepsMenuPresented` (iOS 16) | row does not close the menu | `MorphMenuItem.keepsMenuOpen` | none (Flutter "open") | keep |
-| `UIMenuElement.State .off/.on/.mixed` (iOS 13) | checkmark / dash | `MorphMenuItem.state` (`MorphMenuState`) | none | keep |
-| `UIAction.identifier` (iOS 13) | stable identity | none on `MorphMenuItem` (`MorphMenuWidget.id`, `MorphMenuDeferred.id` exist) | live updates diff by position | add `MorphMenuItem.id` (keys rows across `updateVisibleMenu`-style rebuilds) |
-| `UIAction.handler` / `performWithSender` (iOS 13) | action | `MorphMenuItem.onSelected` | none | keep |
-| `UIMenuLeaf.repeatBehavior` (iOS 26) | key-repeat for key commands | none | | skip (hardware keyboard commands) |
-| `UIMenuLeaf.presentationSourceItem` (iOS 16) | the row as a source for a follow-up popover | none | | skip (low) |
-| `UIMenu(title:subtitle:image:identifier:options:children:)` (iOS 13+) | group | `MorphMenuSection` (inline) / `MorphSubmenu` (nested) | `.displayInline` split into two types: idiomatic sealed hierarchy | keep |
-| `UIMenu.Options.displayInline` (iOS 13) | inline section | `MorphMenuSection` | none | keep |
-| `UIMenu.Options.destructive` (iOS 13) | red group | `MorphSubmenu.destructive` | missing on `MorphMenuSection` | add (low) |
-| `UIMenu.Options.singleSelection` (iOS 15) | radio group | `MorphMenuSection.singleSelection`, `MorphSubmenu.singleSelection` | none | keep |
-| `UIMenu.Options.displayAsPalette` (iOS 17) | horizontal icon row | `MorphMenuSection.palette` | none | keep |
-| `UIMenu.preferredElementSize .small/.medium/.large/.automatic` (iOS 16/17) | row size | `elementSize` (`MorphMenuElementSize`, same case order) | none | keep |
-| `UIMenu.selectedElements` (iOS 15) | which children are on | none | state lives in the app (`MorphMenuItem.state`) | skip (Flutter idiom) |
-| `UIMenu.displayPreferences.maximumNumberOfTitleLines` (iOS 17.4) | title line cap | `MorphMenuSection.maxTitleLines` | missing on `MorphSubmenu` and on the root menu | add `maxTitleLines` to `MorphSubmenu` and the menu sources |
-| `UIMenu.menuByReplacingChildren` (iOS 13) | copy with children | none | | skip (rebuild const lists) |
-| `UIDeferredMenuElement(_:)` cached (iOS 14) | async rows with "Loading" | `MorphMenuDeferred(load, cache: true)` | none | keep |
-| `UIDeferredMenuElement.uncached(_:)` (iOS 15) | reload every open | `MorphMenuDeferred(cache: false)` | none | keep |
-| `UIDeferredMenuElement.identifier` (iOS 26) | identity of the deferred element | `MorphMenuDeferred.id` | none | keep |
-| `UIDeferredMenuElement.usingFocus(identifier:shouldCacheItems:)` (iOS 26) | focus-system provided items | none | | skip (focus responder chain) |
-| `UIButton.menu` + `showsMenuAsPrimaryAction = true` (iOS 14) | tap opens the menu | `MorphMenuButton(items:)`, `MorphMenuSource(trigger: MorphMenuTrigger.tap)`, `MorphGlassButton(menu:)`, `MorphBarButton(menu:)` | `items` vs `menu` naming split (see breaking) | keep concept |
-| `UIButton.menu` + primary action (long-press menu) (iOS 14) | tap = action, hold = menu | `MorphMenuSource(trigger: MorphMenuTrigger.hold, onTap:)` | hold timing is the round button's (declared) | keep |
-| `UIButton.changesSelectionAsPrimaryAction` (iOS 15) | pop-up button: title shows the chosen item | none | a common control ("Sort: Date") is missing | add `MorphPopUpButton<T>(value:, onChanged:, items:)` on `MorphMenuSource` with a single-selection section |
-| `UIButton.preferredMenuElementOrder` / `UIContextMenuConfiguration.preferredMenuElementOrder` (iOS 16) | `.automatic/.priority/.fixed` | `MorphMenuSource.order` / `MorphMenuButton.order` (`MorphMenuOrder`) | done: `MorphContextMenuRegion.order` (2026-10-14) | keep |
-| `UIControl.isContextMenuInteractionEnabled` (iOS 14) | menu on/off | `enabled` | none | keep |
-| `UIContextMenuInteraction(delegate:)` + `configurationForMenuAtLocation` (iOS 13) | hold-to-open context menu with UIMenu rows | `MorphContextMenuRegion(child:, menu: List<MorphMenuEntry>, accessory:)`: the button menu's card, rows, highlight, flex and slide-to-select | none (closed 2026-10-14) | keep |
-| `UIContextMenuConfiguration.previewProvider` (iOS 13) | a different view as the preview | `MorphContextMenuRegion.preview` (+ `previewSize`, `preferredContentSize`) | none (closed 2026-10-14) | keep |
-| `previewForHighlightingMenu` / `previewForDismissingMenu` + `UITargetedPreview` (iOS 13/16) | which view lifts and where it returns | the region's `child` and its `MorphTag` | can not lift a sub-part or return elsewhere | skip (low) |
-| `UIPreviewParameters.visiblePath` / `backgroundColor` / `shadowPath` (iOS 13/14) | preview shape and fill | none (child draws itself) | can not round a rectangular child while lifted | add `previewShape: ShapeBorder?` (low) |
-| `willPerformPreviewActionForMenu` + `UIContextMenuInteractionCommitStyle .dismiss/.pop` (iOS 13) | tap the preview to commit (pop into it) | `MorphContextMenuRegion.onPreviewTap` (dismiss style; the app pushes its page for pop) | `.pop` morph from preview to page | keep |
-| `willDisplayMenu` (iOS 13) | menu shows | `MorphContextMenuRegion.onOpen`, `MorphMenuSource.onOpen` (`ValueChanged<MorphFlight>`); region also `onHold`; `willEndMenu` = region `onClose` | none | keep |
-| `willEndFor configuration` (iOS 13) | menu closes | none (only via the `MorphFlight` events) | | add `onClose: VoidCallback?` (S) |
-| `updateVisibleMenu(_:)` (iOS 14) | change an open menu | rebuild with new `items` (the open menu follows the widget) | none | keep |
-| `dismissMenu()` (iOS 14) | close programmatically | `MorphContextMenuRegion.close(context)`, `MorphFlight.close()` from `onOpen` | none on `MorphMenuSource` | add `MorphMenuSource.close(context)` beside the existing `MorphMenuSource.open(context)` |
-| `menuAppearance .rich/.compact` (iOS 14) | modal with preview vs compact non-modal | rich = `MorphContextMenuRegion`; compact = `MorphMenuSource(trigger: hold)` | read-only in UIKit | skip |
-| `UIContextMenuConfiguration.badgeCount` (iOS 16) | count badge on the lifted multi-item preview | none | | skip (multi-item drag/selection only) |
-| `secondaryItemIdentifiers` (iOS 16) | multi-selection context menus | none | | skip (collection views) |
-| `allowsTypeSelect` (iOS 27, NEW) | type-to-select in the open menu (hardware keyboard) | none | | add later (low; keyboard focus already exists) |
+| `UIMenuElement.title` (13) | row text | `title` on item, submenu, section | none | keep |
+| `UIMenuElement.subtitle` (15) | second line | `subtitle` on item and submenu | none | keep |
+| `UIMenuElement.image` (13) | row image | `icon: Widget?` on item and submenu | none | keep |
+| `preferredImageVisibility` (27) | show / hide the image | `MorphMenuItem.iconVisibility` | missing on `MorphSubmenu` (a `UIMenu` is an element too) | add to `MorphSubmenu` |
+| `highlightStateUpdateHandler` (27) | row highlighted | `MorphMenuItem.onHighlightChanged` | none (timing unmeasured) | keep |
+| `UIMenuLeaf.selectedImage` (17) | image while on | `MorphMenuItem.selectedIcon` | none | keep |
+| attributes `.disabled` / `.destructive` / `.hidden` (13) | row look and presence | `enabled`, `destructive`, `hidden` on item and submenu | none | keep |
+| attributes `.keepsMenuPresented` (16) | row keeps the menu | `MorphMenuItem.keepsMenuOpen` | none | keep |
+| `state` `.off/.on/.mixed` (13) | check / dash | `MorphMenuItem.state` (`MorphMenuState`) | none | keep |
+| `UIAction.identifier` (13) | stable identity | none on item or submenu | a live rebuild diffs by position | add `id` |
+| `UIAction` handler (13) | action | `MorphMenuItem.onSelected` | none | keep |
+| `UIMenuLeaf.presentationSourceItem` (16) | row as a popover source | none | gap | after a general popover exists |
+| `UIMenu(title:subtitle:image:identifier:options:children:)` (13) | group | `MorphMenuSection` (inline) / `MorphSubmenu` (nested) | split into two types | keep |
+| `UIMenu.Options.displayInline` (13) | inline group | `MorphMenuSection` | none | keep |
+| `UIMenu.Options.destructive` (13) | red group | `MorphSubmenu.destructive` | missing on `MorphMenuSection` | add |
+| `UIMenu.Options.singleSelection` (15) | radio group | `singleSelection` on section and submenu | none | keep |
+| `UIMenu.Options.displayAsPalette` (17) | icon row | `MorphMenuSection.palette` | none | keep |
+| `UIMenu.preferredElementSize` (16; `.automatic` 17) | small / medium / large cells | `elementSize` (`MorphMenuElementSize`) | none | keep |
+| `displayPreferences.maximumNumberOfTitleLines` (17.4) | title line cap | `MorphMenuSection.maxTitleLines` | missing on `MorphSubmenu` and the root | add to submenu and sources |
+| `UIDeferredMenuElement(provider:)` (14) | lazy rows, cached | `MorphMenuDeferred(load)` | none | keep |
+| `.uncached` (15) | reload per opening | `MorphMenuDeferred(cache: false)` | none | keep |
+| `UIDeferredMenuElement.identifier` (26) | identity of the element | `MorphMenuDeferred.id` | none | keep |
+| `UIButton.menu` + `showsMenuAsPrimaryAction` (14) | tap opens the menu | `MorphMenuButton(menu:)`, `MorphMenuSource(menu:)`, `MorphGlassButton(menu:)` | none | keep |
+| `UIButton` primary action + `menu` (14) | tap acts, hold opens | `MorphMenuSource(trigger: hold, onTap:)`, `MorphGlassButton(onPressed:, menu:)` | none | keep |
+| `UIBarButtonItem.menu`, `(primaryAction:menu:)` (14 / 16) | bar item menu | `MorphBarButton(menu:)` (tap opens without `onPressed`) | none | keep |
+| `UIButton.changesSelectionAsPrimaryAction` (15) | pop-up button | none | gap | `MorphPopUpButton<T>` |
+| `preferredMenuElementOrder` (16) | `.automatic/.priority/.fixed` | `order` (`MorphMenuOrder`) on sources and region | none | keep |
+| `UIControl.isContextMenuInteractionEnabled` (14) | menu on / off | `enabled` | none | keep |
+| `contextMenuInteraction.dismissMenu()` on a control (14) | close from code | none (only `MorphMenuSource.open(context)`) | gap | `MorphMenuSource.close(context)` |
+| control `willDisplayMenuFor` / `willEndFor` (14) | menu shows / ends | none public (`onOpen` is `@internal`) | gap | `onOpen` / `onClose: VoidCallback?` on sources |
+| `updateVisibleMenu` (14) | change the open menu | rebuild with new `menu` | none | keep |
+| `UIControl.menuAttachmentPointForConfiguration` (14) | attach point | none | gap | skip (low) |
+
+## UIKit - context menu
+| UIKit API (availability) | meaning | morph equivalent | gap / mismatch | proposal |
+|---|---|---|---|---|
+| `UIContextMenuInteraction(delegate:)` + `configurationForMenuAtLocation` (13) | hold-to-open menu | `MorphContextMenuRegion(child:, menu:)` | none | keep |
+| `UIContextMenuConfiguration` action provider (13) | the rows | `menu` | suggested actions n/a | keep |
+| preview provider + `preferredContentSize` (13) | another view as the preview | `preview`, `previewSize` | none | keep |
+| `highlightPreviewForItemWithIdentifier` / `dismissalPreviewForItemWithIdentifier` + `UITargetedPreview` / `UIPreviewTarget` (16) | which view lifts, where it returns | the region's `child` (or `replica`) | no sub-part lift, no return elsewhere | skip (low) |
+| `UIPreviewParameters.visiblePath` / `shadowPath` / `backgroundColor` (13 / 14) | preview shape, shadow, fill | none: no preview platter | gap | measure the platter, then `previewShape` |
+| `willPerformPreviewActionForMenu` + commit style `.dismiss` (13) | tap commits | `onPreviewTap` | commit animation unmeasured | keep |
+| commit style `.pop` (13) | preview pops into its page | none | the app pushes its page | later |
+| `willDisplayMenu` (13) | menu shows | `onHold` (hold door only) | `onOpen` is `@internal`; a secondary click is not reported | `onOpen: VoidCallback?` |
+| `willEndFor` (13) | menu ends | `onClose` | none | keep |
+| `updateVisibleMenuWithBlock` (14) | change the open menu | rebuild | none | keep |
+| `dismissMenu` (13) | close from code | `MorphContextMenuRegion.close(context)` | none | keep |
+| `preferredMenuElementOrder` (16) | order | `order` | none | keep |
+| `allowsTypeSelect` (27) | type to select (hardware keyboard) | none | gap | later (low) |
+
+## UIKit - edit menu
+morph has no edit menu. Its text inputs (`MorphSearchField`, alert text fields) build `EditableText`
+without selection controls or a context menu builder, so a long press selects but shows no Copy /
+Paste menu. Flutter's `SystemContextMenu` shows UIKit's own edit menu on iOS 16+; morph does not wire it.
+
+| UIKit API (availability) | meaning | morph equivalent | gap | proposal |
+|---|---|---|---|---|
+| `UIEditMenuInteraction(delegate:)`, `presentEditMenu(with:)` (16) | show the edit menu at a point | none | gap | `SystemContextMenu` on iOS, a measured glass edit menu elsewhere |
+| `UIEditMenuConfiguration(identifier:sourcePoint:)`, `preferredArrowDirection` (16) | anchor | none | gap | with the above |
+| `dismissMenu`, `reloadVisibleMenu`, `updateVisibleMenuPosition(animated:)` (16) | control | none | gap | with the above |
+| delegate `menuFor(_:suggestedActions:)`, `targetRect(for:)`, `willPresentMenu`, `willDismissMenu` (16) | rows, anchor, events | none | gap | with the above |
+| `UITextView` / `UITextField` `editMenuForTextInRanges:suggestedActions:` (26) | customize the text edit menu | none | gap | `contextMenuBuilder` on morph text inputs |
 
 ## SwiftUI
 | SwiftUI API (availability) | meaning | morph equivalent | gap / mismatch | proposal |
 |---|---|---|---|---|
-| `Menu(content:label:)` (iOS 14) | button that opens a menu | `MorphMenuSource(child:, items:)` / `MorphMenuButton` | none | keep |
-| `Menu(content:label:primaryAction:)` (iOS 15) | tap = action, hold = menu | `MorphMenuSource(trigger: hold, onTap:)` | none | keep |
-| `menuOrder(.automatic/.priority/.fixed)` (iOS 16) | element order | `order: MorphMenuOrder` | none | keep |
-| `menuActionDismissBehavior(.automatic/.enabled/.disabled)` (iOS 16.4) | rows close the menu or not | `dismissOnSelect: bool?` (null = automatic) | bool? instead of an enum | keep |
-| `menuStyle(.button/.borderlessButton/...)` (iOS 14) | label look | `MorphMenuStyle` (colors, `buttonSize`) + `MorphMenuSource.look/shape/color` | concept differs (morph styles the menu, not the label) | keep |
-| `menuIndicator(.visible/.hidden)` (iOS 15) | chevron on the label | none | pairs with the pop-up button | add with `MorphPopUpButton` |
-| `contextMenu(menuItems:)` (iOS 13) | hold menu of rows | `MorphContextMenuRegion(menu:)` | none (closed 2026-10-14) | keep |
-| `contextMenu(menuItems:preview:)` (iOS 16) | custom preview | `MorphContextMenuRegion(menu:, preview:)` | none (closed 2026-10-14) | keep |
-| `contextMenu(forSelectionType:menu:primaryAction:)` (iOS 16) | List/Table selection menus | none | | skip (no morph List selection model) |
-| `Section(title)` / `Divider` (iOS 13) | inline group / separator | `MorphMenuSection(title:)` / `MorphMenuDivider` | none | keep |
-| nested `Menu` (iOS 14) | submenu | `MorphSubmenu` | none | keep |
-| `Toggle` in a menu (iOS 14) | checkmark row | `MorphMenuItem(state:)` | no bool convenience | keep (state + onSelected is enough) |
-| `Picker` `.inline` / `.menu` / `.palette` (iOS 14/17) | radio rows / radio submenu / icon row | `MorphMenuSection(singleSelection:)` / `MorphSubmenu(singleSelection:)` / `MorphMenuSection(palette:)` | no typed value helper | optional `MorphMenuSection.picker<T>(value:, onChanged:, options:)` factory (low) |
-| `ControlGroup` + `controlGroupStyle(.palette/.compactMenu/.menu)` (iOS 16/17) | small/medium cells, palette | `MorphMenuSection(elementSize: small/medium, palette:)` | none | keep |
-| `Button(role: .destructive)` in a menu | red row | `MorphMenuItem.destructive` | none | keep |
-| `Label(title, systemImage:)` / two-`Text` label (iOS 14/15) | title + icon / subtitle | `title`, `icon`, `subtitle` | none | keep |
-| `Slider` / `Stepper` in a menu (measured: become Decrement/Increment medium cells under a header) | value control in a menu | `MorphMenuWidget` (free-form) | native has no free-form row | add `MorphMenuStepperRow` for parity (low, see menu-api.md) |
-| `ShareLink` in a menu (iOS 16) | system share row | none | | skip (platform share sheet plugin) |
+| `Menu(content:label:)`, `Menu(_:systemImage:content:)` (14) | button that opens a menu | `MorphMenuSource`, `MorphMenuButton`, `MorphGlassButton(menu:)` | none | keep |
+| `Menu(content:label:primaryAction:)` (15) | tap acts, hold opens | `MorphMenuSource(trigger: hold, onTap:)` | none | keep |
+| `menuOrder` (16) | element order | `order` | none | keep |
+| `menuActionDismissBehavior` (16.4) | rows close the menu or not | `dismissOnSelect: bool?` | `bool?` for the enum | keep |
+| `menuStyle` (14) | label look | `MorphMenuSource.look/shape/color/rimColor`, `MorphMenuButton.size`, `MorphMenuAppearance` | no style enum | keep |
+| `menuIndicator` (15) | chevron on the label | none | gap | with `MorphPopUpButton` |
+| `contextMenu(menuItems:)` (13) | hold menu | `MorphContextMenuRegion(menu:)` | none | keep |
+| `contextMenu(menuItems:preview:)` (16) | custom preview | `MorphContextMenuRegion(menu:, preview:)` | none | keep |
+| `contextMenu(forSelectionType:menu:primaryAction:)` (16) | menus on a list selection | none | gap | after lists have selection |
+| `Section` / `Divider` (13) | inline group / break | `MorphMenuSection(title:)` / `MorphMenuDivider` | none | keep |
+| nested `Menu` (14) | submenu | `MorphSubmenu` | none | keep |
+| `Toggle` in a menu (14) | check row | `MorphMenuItem(state:)` | no bool helper | keep |
+| `Picker` `.inline` / `.menu` / `.palette` (14 / 17) | radio rows / submenu / icon row | `singleSelection` on section or submenu, `palette` | no typed value helper | optional `MorphMenuSection.picker<T>` |
+| `paletteSelectionEffect` (17) | look of the selected palette cell | fixed platter | gap | later (low) |
+| `ControlGroup` (15) + `controlGroupStyle` `.menu` / `.compactMenu` (16.4) / `.palette` (17) | cells, palette | `elementSize: small / medium`, `palette` | `.compactMenu` not mapped | keep |
+| `Button(role: .destructive)` | red row | `destructive` | none | keep |
+| `Label` / two-`Text` label (14 / 15) | title, image, subtitle | `title`, `icon`, `subtitle` | none | keep |
+| `Slider` / `Stepper` in a menu (Decrement / Increment cells, measured) | value control | `MorphMenuWidget` (free-form) | no parity row | optional `MorphMenuStepperRow` |
 
 ## Not relevant for Flutter
-- `UICommand`, `UIKeyCommand`, `UIMenuBuilder`, `UIMenu.Identifier` system menus, `UIMenuSystem`: main-menu / key-command plumbing of the responder chain.
-- `UIAction.sender`, target-action, `performWithSender:target:`: Dart closures.
-- `UIAction.captureTextFromCamera`: system Live Text action.
-- NSCoding initialisers (`initWithCoder:`), `UIContextMenuInteractionAnimating.addAnimations/addCompletion`: UIKit animation plumbing (Futures/flights cover it).
-- `UIContextMenuInteraction.locationInView:`: Flutter gesture details.
-- `LocalizedStringKey` overloads, `menuStyle` macOS variants, `contextMenu` on `TabContent`/table rows.
+- `UICommand`, `UIKeyCommand`, `UIMenuBuilder`, `UIMenuSystem`, `UIMainMenuSystem`, `UIContextMenuSystem` (26), `UIMenu.Identifier`: main-menu and key-command plumbing.
+- `discoverabilityTitle`, `repeatBehavior` (26), `keyboardShortcut`: hardware key commands.
+- `UIAction.sender`, target-action, `performWithSender:target:`, `captureTextFromCamera`: Dart closures; system Live Text.
+- `UIMenu.selectedElements`, `menuByReplacingChildren`, `UIDeferredMenuElement.usingFocus`: entries are immutable lists; no responder chain.
+- `badgeCount`, `secondaryItemIdentifiers`, suggested actions: multi-item drag and system-supplied rows.
+- `menuAppearance` (read-only rich / compact; rich = region, compact = `MorphMenuSource(trigger: hold)`), `locationInView`, animators (`addAnimations`, `addCompletion`, `previewViewController`), NSCoding.
+- `ShareLink`, `LocalizedStringKey` overloads, macOS menu styles, `contextMenu` on tab content and table rows.
 
 ## morph-only API
-- `MorphMenuWidget` (free-form row, no UIKit twin since UIKit 27 has no custom-view element) - keep, declared extension.
-- `MorphContextMenuRegion.accessory` (`MorphSatellite`, a reactions capsule above the preview; UIKit's accessory views are private), `lifts`, `holdDuration`, `opensOnSecondaryTap`, `replica`, `previewSize` - keep (message-bubble pattern beyond UIKit).
-- `MorphMenuSource.look`, `shape`, `color`, `rimColor`, `focusable`, `MorphMenuItem.iconColor`, static `MorphMenuSource.open` - keep.
-- `MorphMenuMotion`, `MorphMenuTuning`, `MorphMenuProgress`, `MorphMenuBlob`, `MorphMenuCard`, `MorphMenuMorphSpec` - pure measured motion, keep.
-- `MorphMenuLayout`, `MorphMenuMetrics`, `MorphMenuPlaced`, `MorphMenuPlacedKind`, `MorphMenuTarget`, `MorphMenuTargetKind` - layout internals exported; no use in example/ or outside lib. FLAG: hide before 1.0 unless a consumer needs them.
+- `MorphMenuWidget`: free-form row (UIKit 27 has no custom-view element).
+- `MorphContextMenuRegion.accessory` (`MorphSatellite`), `lifts`, `holdDuration`, `opensOnSecondaryTap`, `replica`, `maxScrimOpacity`, `scrimColor`, `onHold`.
+- `MorphContextMenuRegion` public `measured*` statics (`measuredHoldDuration`, `measuredCommitDuration`, `measuredHoldGrowth`, `measuredHoldGrowthPoints`, `measuredPreviewScale`, `measuredLiftPoints`, `measuredLiftScale`, `measuredMenuGap`, `measuredRetractScale`, `measuredDimOpacity`).
+- `MorphMenuSource.look`, `shape`, `color`, `rimColor`, `focusable`, `overlay`, static `open`; `MorphMenuItem.iconColor`; `MorphMenuButton.size`; `MorphMenuDeferred.loadingTitle`.
 
 ## Ranked gaps
+Done since the last page: context menu rows, custom preview and preview tap (2026-10-14); `icon` /
+`selectedIcon` as `Widget?`; `items` renamed `menu`; layout and motion types internal.
+
 | # | gap | need | cost | proposal |
 |---|---|---|---|---|
-| 1 | Context menu with standard rows (`UIContextMenuInteraction` + UIMenu, SwiftUI `contextMenu(menuItems:)`) | done | - | `MorphContextMenuRegion(menu:, order:, dismissOnSelect:, appearance:)` (2026-10-14) |
-| 2 | Pop-up button (`changesSelectionAsPrimaryAction`, `menuIndicator`) | high | M | `MorphPopUpButton<T>` over `MorphMenuSource`: shows the selected title + chevron, single-selection rows |
-| 3 | Row images beyond `IconData` (`UIMenuElement.image` any image) | med | S | `icon: Widget?` (breaking) or additive `iconBuilder` |
-| 4 | Custom preview + commit (`previewProvider`, `willPerformPreviewAction`, `contextMenu(preview:)`) | done | - | `preview:`, `previewSize:`, `onPreviewTap` (2026-10-14); `.pop` commit morph open |
-| 5 | Programmatic close + close callback (`dismissMenu`, `willEnd`) | med | S | `MorphMenuSource.close(context)`, `onClose` on sources (region done: `close(context)`, `onClose`) |
-| 6 | Stable row identity (`UIAction.identifier`) for live updates | low-med | S | `MorphMenuItem.id`, `MorphSubmenu.id` |
-| 7 | `maxTitleLines` / `iconVisibility` / `destructive` on every UIMenu level | low | S | add to `MorphSubmenu`, root (sources), `MorphMenuSection.destructive` |
-| 8 | `previewShape` (`UIPreviewParameters.visiblePath`) | low | S | add `previewShape: ShapeBorder?` |
-| 9 | `allowsTypeSelect` (27) | low | S | later |
-| 10 | Stepper/slider parity rows (`MorphMenuStepperRow`) | low | S | optional |
+| 1 | Button menu motion has no replay: open spring, kicks, placement, early touch and reopen captures exist, the test was removed in 98237e58 | H | S | port the removed replays onto `MorphMenuMotion`, fixtures unchanged |
+| 2 | Pop-up button (`changesSelectionAsPrimaryAction`, `menuIndicator`) | H | M | `MorphPopUpButton<T>` over `MorphMenuSource` |
+| 3 | No edit menu on text inputs (`UIEditMenuInteraction`) | H | M meas. | `SystemContextMenu` on iOS; measure the glass edit menu for other platforms |
+| 4 | No public open / close callbacks, no close from code on sources (`willDisplay`, `willEnd`, `dismissMenu`) | M | S | `onOpen` / `onClose: VoidCallback?` on sources and region; `MorphMenuSource.close(context)` |
+| 5 | Preview platter of the context menu (shadow; `UIPreviewParameters`) | M | M meas. | measure, then draw it; `previewShape` |
+| 6 | Highlight as one sliding platter (UIKit 0.12 s spring, simulator) | M | S-M meas. | confirm at 120 Hz, then port |
+| 7 | Stable row identity (`UIAction.identifier`) | L-M | S | `id` on item and submenu |
+| 8 | `maxTitleLines` / `iconVisibility` / `destructive` at every level | L | S | add to submenu, sources, section |
+| 9 | `.pop` commit | L | M meas. | later |
+| 10 | `allowsTypeSelect` (27), `paletteSelectionEffect`, stepper parity row | L | S | later |
 
-## Breaking changes before 1.0
-- `MorphMenuButton.items` / `MorphMenuSource.items` vs `MorphGlassButton.menu` / `MorphBarButton.menu` (both `List<MorphMenuEntry>`): one concept, two names. Proposal: `items` -> `menu` everywhere (UIKit `UIButton.menu`, `UIBarButtonItem.menu`); `MorphMenuSection.children` / `MorphSubmenu.children` stay (`UIMenu.children`).
-- `MorphMenuItem.icon` / `MorphSubmenu.icon` / `selectedIcon`: `IconData?` -> `Widget?` (Flutter `MenuItemButton.leadingIcon` idiom; images, avatars, tinted symbols). If kept as `IconData`, add `iconBuilder` instead and no break.
-- Hide `MorphMenuLayout`, `MorphMenuMetrics`, `MorphMenuPlaced`, `MorphMenuPlacedKind`, `MorphMenuTarget`, `MorphMenuTargetKind` from `lib/widgets.dart` (internal layout; unused outside lib/ and test/).
-- `MorphMenuItem.keepsMenuOpen` vs UIKit `keepsMenuPresented`: keep (Flutter word, documented mapping). `dismissOnSelect: bool?` vs SwiftUI `MenuActionDismissBehavior`: keep.
+## Proposals before 1.0
+- Done: `items` -> `menu` on every source; `icon` / `selectedIcon` are `Widget?`; layout and motion classes are internal.
+- Open: public `onOpen` / `onClose` as `VoidCallback?`. The flight-typed `onOpen` became `@internal` on 2026-10-19 and left no public `willDisplay`.
+- Open: the region's public `measured*` statics against the rule that tunings are internal. Keep `measuredHoldDuration` (default of `holdDuration`); make the rest `@internal` or document them as reference values.
+- Open (API review): `test/api/public_api.txt` lists no fields that `MorphMenuSource` and `MorphMenuButton` inherit from the private `_MorphMenuSourceWidget` (`menu`, `appearance`, `overlay`, `semanticLabel`, `enabled`, `order`, `dismissOnSelect`); the API test sees them only through the constructors.
+- Keep: `keepsMenuOpen` for `keepsMenuPresented`; `dismissOnSelect: bool?` for `MenuActionDismissBehavior`.
+
+## Behaviour fidelity
+Fixtures are under `test/fixtures/ios27-device/` unless named otherwise.
+
+### menu (button menus and menu content)
+| dimension | grade | evidence | open items |
+|---|---|---|---|
+| api | read | SDK 27.1 tables above | 8 gaps, 7 partial |
+| layout | measured | metrics replayed: `test/menu_api_test.dart` layout group vs `menu_api/layout.json`; submenu cards vs `mm-sub-*`; root placement captured in `menu/pos-*`, `bottom3`, `wide3`, `tl-items*`, `center-items*`, `ios27/menu/*` (menu-button.md "Spec - placement") | no test replays root placement (removed with menu_button_test); keyboard endpoints (menu-button.md "Keyboard changes after presentation") not replayed |
+| states | unbacked | disabled button replayed (`test/disabled_test.dart` vs `disabled/disabled.json`); row colors measured (`layout.json`) | highlight fill and glow color have no source (`lib/src/widgets/menu.dart:44`, `:45`, `:143`); no test compares row colors |
+| transitions | measured | open / close springs read from UIKit (liquidMorph) and fitted (menu-button.md "Spec - progress"); close replayed with a submenu stack (menu_api_test "the menu glass closes with its container" vs `menu_api/glass-close.json`); submenu open / back / deeper replayed (`mm-sub-tap/back/deeper`, `card-container.json`); fusion replayed (`test/menu_fusion_test.dart` vs `menu/fusion.json`) | open spring and `tapOpenDelay`, driven kicks, content unfold, `center3-closemidopen`, `retap-midopen`, `reopen2-*`: not replayed |
+| boundaries | unbacked | max height 520 replayed as a value (`layout.json`); scroll inside captured (`mm-tall-scroll.jsonl`, not replayed) | `maxTitleLines` heights (22 pt a line, declared not measured), Dynamic Type rows, submenu cards over the cap (cut, not scrolled) |
+| configuration | unbacked | sections, palettes, small / medium cells, selection column replayed (menu_api_test rich1 / rich2) | `MorphMenuOrder.priority` = `automatic`, image visibility automatic = visible, large / automatic as rows, selection-only title start: unmeasured; device "Ask Siri" footer not reproduced (declared) |
+| events | measured | action before close (`actionDelay` 0.016), kept-open action 0.02 (menu-api.md); card row action +0.019 replayed (menu_api_test vs `mm-sub-slide2`) | `onHighlightChanged` timing unmeasured; no public open / close callback |
+| input | missing | flex under a finger replayed at 0.09 - 0.17 pt (`test/menu_drag_out_test.dart` vs `menu/drag-out*.jsonl`); hold lag vs the bar item replayed (`test/bar_menu_tap_test.dart` vs `menu/navbar-tap.json`); tap slop from glass-button.md | UIKit slides one highlight platter on a 0.12 s spring (simulator), morph jumps; the device shows no tap highlight on rows, morph does; early touch (`early-outside-*`) not replayed |
+| mutation | unbacked | grow 0.565 / 0.84 and shrink 0.40 / 1.0 replayed (menu_api_test "live resize" vs `mm-resize.jsonl`) | deferred answer after a dismiss, empty answer (`test/menu_deferred_async_test.dart`) and a source removed under an open menu have no native capture |
+| accessibility | missing | roles menu / menuItem, checked state, keyboard (`test/menu_entries_test.dart`, `test/menu_host_test.dart`) | Dynamic Type row heights neither measured nor implemented (rows stay 42 pt); VoiceOver unmeasured; Reduce Motion pass pending (states.md) |
+| optics | unbacked | platter light / dark (menu-button.md "Platter color"); card tone, edge profile and material hand-off / copy replayed (`test/menu_glass_body_test.dart` vs `menu_api/card-tone.json`, `card-edge-profile.json`, `card-material-*.json`); silhouette vs film (menu_fusion_test) | card shadow fitted (`card-shadow-profile.json`, light only) but not replayed; root shadow (`menu.dart:37-38`), highlight and glow colors, glow size / opacity / fade (`lib/src/widgets/menu_motion.dart:72-74`): no source; light material too bright (glass-optics.md) |
+| platform | unbacked | arrow keys, Enter, Esc; RTL mirroring (menu_api_test "right to left") | RTL, iPad and pointer presentations not captured; `loadingTitle` default is English |
+| performance | measured | Pixel 6a menu frames and fusion served ahead (menu-button.md implementation notes, glass-renderer.md); host layout budget (`test/lifecycle_counts_test.dart`) | sliding highlight, composite-only frames (menu-button.md "Optimizations to adopt") |
+
+### context-menu
+| dimension | grade | evidence | open items |
+|---|---|---|---|
+| api | read | SDK 27.1 table above | 8 gaps, 1 partial |
+| layout | unbacked | lift, 16 pt gap and blob replayed (`test/morph_context_menu_test.dart`, `test/menu_context_motion_test.dart` vs `context_menu/holds.json`, `growth.json`, `preview.json`, `morph.json`); menu above the preview captured (`holds.json` ctx-hold-bottom) | the shift when the menu fits on neither side and the 12 pt margin (`MorphMenuTuning.contextMargin`, declared not measured) are unbacked; ctx-hold-bottom is not replayed |
+| states | replayed | dim 0.2 light / 0.48 dark (`dim.json`, 0.0014 / 0.0009 rms of alpha); open preview size (`preview.json`) | - |
+| transitions | missing | morph 0.284 / 0.81 open and close (< 0.008 of travel), preview resize, dim springs and delays, hold growth replayed | `.pop` commit missing; `onPreviewTap` commit and the custom preview crossfade unmeasured (crossfade declared approximation) |
+| boundaries | replayed | commit point 0.400 cancels / 0.433 opens (`holds.json`); growth on 60 x 40 to 300 x 200; preview scale knee | blob width cap measured at one menu height (208 pt) |
+| configuration | unbacked | with and without a custom preview; accessory (morph-only, declared approximation) | entry order of a menu above the preview unmeasured |
+| events | read | willDisplay at 0.768 - 0.797 s replayed (`holds.json`, `measuredHoldDuration`, 0.025 s); preview haptic at the hold read from UIKit (states.md) | willEnd timing captured, not replayed; no public willDisplay; `onHold` misses the secondary click |
+| input | unbacked | hold, commit and early release replayed; slide-to-select is the button menu's (read from UIKit, simulator) | scroll cancelling a hold and the secondary click unmeasured |
+| mutation | unbacked | morph behaviour tested (rebuilt rows, moving source, deleted hero) | no native capture of a source moved, resized or removed while open |
+| accessibility | unbacked | Reduce Motion: preview held at scale 1 (read from UIKit, states.md); long-press semantics action | VoiceOver unmeasured; the Reduce Motion fade not recorded |
+| optics | missing | dim alpha replayed | preview platter shadow missing; the preview is a copy without glass of its own (declared difference) |
+| platform | unbacked | secondary click opens | pointer (compact) and iPad presentations unmeasured |
+| performance | unbacked | host budget pinned (`lifecycle_counts_test` context-menu release and close) | no device frame-time or energy run |
+
+### edit-menu
+| dimension | grade | evidence | open items |
+|---|---|---|---|
+| all | missing | none | no native capture, no morph implementation; text inputs show no edit menu |
+
+### Catalog obligations
+| family / obligation | evidence | state |
+|---|---|---|
+| menu root-geometry | `menu/pos-*`, `bottom3`, `wide3`, `tl-items*`, `center-items*`, `ios27/menu/*`, `layout.json` | measured, not replayed |
+| menu submenu-return | menu_api_test vs `mm-sub-tap/back/deeper`, `card-container.json`; `test/menu_scroll_test.dart` | replayed |
+| menu disabled-hidden | `layout.json` (disabled, destructive, check, mixed), `disabled.json` | measured; disabled button replayed |
+| menu deferred-update | `mm-resize.jsonl` replayed; `mm-deferred.jsonl` captured | replayed for grow / shrink; dismiss-before-answer and empty answer unbacked |
+| menu hold-drag-release | `center3-hold700`, `center3-dragselect`, `drag-out*.jsonl` | flex replayed; hold and drag-select not replayed; highlight slide missing |
+| menu overflow-scroll | `layout.json` max height, `mm-tall-scroll.jsonl` | max height replayed; long text and large type unbacked |
+| menu rapid-reopen | `center3-closemidopen`, `retap-midopen`, `reopen2-*`, `early-outside-*` | measured, not replayed |
+| menu system-content | device footer 62 pt (menu-button.md); lab `systemFooter` (`example/test/lab_test.dart`) | detected; not reproduced (declared) |
+| context-menu preview-actions | region API | rows and custom preview covered; highlight / dismissal previews and suggested actions absent |
+| context-menu preview-commit | none | `.pop` missing; dismiss commit unbacked |
+| context-menu source-change | none | unbacked |
+| context-menu presentation-geometry | `holds.json`, `growth.json`, `preview.json`, `morph.json` | replayed below the preview; above captured, not replayed; shift unbacked |

@@ -9,7 +9,7 @@ sheet_drag_test, sheet_native_test, sheet_zoom_test, sheet_widget_test).
 ## Native
 
 `UISheetPresentationController` (`UIDropShadowView` frame sampled).
-Public API (SDK 27.0): `detents` (`mediumDetent`, `largeDetent`,
+Public API (SDK 27.1, unchanged from 27.0): `detents` (`mediumDetent`, `largeDetent`,
 `customDetentWithIdentifier:resolver:` getting a context with
 `maximumDetentValue`), `selectedDetentIdentifier`,
 `largestUndimmedDetentIdentifier`, `prefersGrabberVisible`,
@@ -167,10 +167,13 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
 ## Fixtures
 
 Device `ios27-device/sheet/sheet-{l,ml,sml,undim}.jsonl`,
-`ios27-device/sheet-drag/*` (26 drags/flicks, manifest has nominal speeds),
+`ios27-device/sheet-drag/*` (28 drags/flicks, 26 replayed: fd-1000 and
+lfd-800 sit on the decision boundary; manifest has nominal speeds),
 `ios27-device/zoom/{zoom,scrub}.json` (manifest.txt). Simulator
-`ios27/sheet`, `ios27/sheet-drag` (16). Device rows replay best UNSHIFTED,
-simulator +1/60. Film crop `references/alert-video/sheet-opening-*`.
+`ios27/sheet`, `ios27/sheet-drag` (17, 16 replayed: lfd-800 left out).
+sheet_drag_test reads device rows unshifted and simulator rows +1/60;
+sheet_test shifts every row by one display frame of its recording. Film
+crop `references/alert-video/sheet-opening-*`.
 
 ## Recapture
 
@@ -187,12 +190,14 @@ testSNZoomScrubTiming + MorphRecorder.
 
 ## morph
 
-sheet.dart (`showMorphSheet(from:)`, `MorphSheetRoute`, `MorphSheet.of`,
-`scrollControllerOf`, `MorphSheetAppearance`), sheet_motion.dart
-(`MorphSheetMotion`, `MorphSheetDetent` medium / large / height / fraction,
-`MorphSheetTuning`), zoom_motion.dart (`MorphZoomMotion`,
-`MorphZoomTuning`). NOTE: a sheet bug fix is in flight in the working tree
-(sheet.dart, sheet_zoom_test) - check before editing.
+Public (lib/morph.dart): sheet.dart (`showMorphSheet(from:)`,
+`MorphSheetRoute`, `MorphSheet.of`, `scrollControllerOf`,
+`MorphSheetAppearance`), sheet_motion.dart (`MorphSheetDetent` medium /
+large / height / fraction / custom / fitted). Internal: sheet_motion.dart
+(`MorphSheetMotion`, `MorphSheetTuning`), zoom_motion.dart
+(`MorphZoomMotion`, `MorphZoomTuning`), zoom_source.dart
+(`MorphZoomSource`). The zoom source is a `MorphSource` attached to a
+`MorphSourceLink`.
 
 A detent change hands the content's scope the new detent over the same
 content: only what reads the sheet through `MorphSheet.of` rebuilds
@@ -264,10 +269,11 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
   scene snzoom (grey page, magenta source, green sheet; chromatic-pixel
   bbox per frame). Two springs on one container is a native-fidelity
   exemption, so it lives in the widget layer, not in an engine flight
-  frame; the source is found and hidden through the engine's MorphTag
-  (tryCaptureRect each frame, hideForFlight / reveal deferred to
-  post-frame). The content subtree carries a GlobalKey so the hand-over
-  between the zoom layer and the sheet keeps its state.
+  frame; the source is found and hidden through the `MorphSource` its
+  `MorphSourceLink` is attached to, a MorphTag inside (tryCaptureRect
+  each frame, hideForFlight / reveal deferred to post-frame). The
+  content subtree carries a GlobalKey so the hand-over between the zoom
+  layer and the sheet keeps its state.
 - SCRUB detail (scrub.json): `MorphZoomTuning.scrubFrame` per point of
   travel since the drag began: top +1.115, sides in 0.275, bottom up 0.04;
   above the start it grows by at most 17 pt of travel; travel counts from

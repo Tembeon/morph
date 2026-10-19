@@ -5,7 +5,7 @@ Knob = small lens: [lens-and-flex.md](lens-and-flex.md).
 
 ## Native
 
-`UISwitch` (knob `_UILiquidLensView`). Public API (SDK 27.0): `on`,
+`UISwitch` (knob `_UILiquidLensView`). Public API (SDK 27.1): `on`,
 `setOn:animated:`, `onTintColor`, `thumbTintColor`, `onImage`, `offImage`,
 `title`, `style` / `preferredStyle` (`UISwitchStyle` automatic / checkbox /
 sliding).
@@ -58,9 +58,14 @@ Scenes `sw`, `swOn` (control at y 400, knob off 210 / on 232 on the sim
 
 ## morph
 
-`MorphSwitch`, `MorphSwitchAppearance`, `MorphSwitchMotion` (switch.dart,
-switch_motion.dart), small_lens.dart. Tests: switch_test, controls_test,
-controls_platform_test, release_bounds_test (replays release-outside.jsonl).
+`MorphSwitch`, `MorphSwitchAppearance`, internal `MorphSwitchMotion`
+(switch.dart, switch_motion.dart), small_lens.dart. Tests: switch_test
+(replays the simulator taps and the device captures: knob and lift),
+flex_law_test, release_bounds_test (replays release-outside.jsonl),
+disabled_test, accessibility_test, haptics_test, held_rest_test,
+controls_platform_test, controls_scroll_test. No test replays the track
+color springs or `colorDelay` (the simulator `switch-*-tap` rows carry
+the track color).
 
 Rest: settles once every spring's remaining swing (`MorphSpringState.reach`)
 is under `MorphRest` - 0.1 pt (0.3 device px at 3x, 0.26 at 2.625x), a scale
@@ -72,6 +77,10 @@ its knob's frames repaint the switch, not the page around it.
 ## Not reproduced / open
 
 - Reduce Motion read from UIKit (notes private): no lift, knob stays 37 x 24, a dragged knob is clamped without the rubber band; ported, device pass pending ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)). Increase Contrast table and toggle haptic: states.md.
+- On/Off Labels (iOS accessibility setting, `MediaQuery.onOffSwitchLabelsOf`
+  in Flutter) is not drawn.
+- `setOn:animated:` (programmatic) is not recorded; morph runs the tap
+  springs.
 
 ## API gaps
 

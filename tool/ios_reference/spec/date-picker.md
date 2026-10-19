@@ -9,11 +9,12 @@ its month and year groups; month/year landed in f2f0c4d).
 `UIDatePicker` compact style: labels `_UIDatePickerCompact*`, overlay
 `_UIDatePickerOverlayPlatterView`, `_UIDatePickerCalendarView`,
 `_UIDatePickerView` (wheels). No CASpringAnimation to read: springs are fits.
-Public API (SDK 27.0): `datePickerMode` (time / date / dateAndTime /
-countDownTimer / yearAndMonth), `preferredDatePickerStyle` (automatic /
-wheels / compact / inline), `date`, `setDate:animated:`, `minimumDate`,
-`maximumDate`, `locale`, `calendar`, `timeZone`, `minuteInterval`,
-`roundsToMinuteInterval`, `countDownDuration`.
+Public API (SDK 27.1, unchanged since 27.0): `datePickerMode` (time /
+date / dateAndTime / countDownTimer / yearAndMonth),
+`preferredDatePickerStyle` (automatic / wheels / compact / inline), `date`,
+`setDate:animated:`, `minimumDate`, `maximumDate`, `locale`, `calendar`,
+`timeZone`, `minuteInterval`, `roundsToMinuteInterval`,
+`countDownDuration`.
 
 ## Spec - compact labels [layout]
 
@@ -226,7 +227,7 @@ recording of every picture: no saveLayer inside a picture on flat or
 liquid); on flat none. The glass filter is the look of the overlay and
 stays; its cost (Canvas::saveLayer 14.85 ms inclusive per liquid frame
 over budget: the frost and shader inside the filter) is the renderer's,
-docs/performance.md section 4. control_matrix_test pins the walk: flat
+docs/performance.md section 4. example/test/control_matrix_test.dart pins the walk: flat
 draws no offscreen layer in the open-close, the glass tier only the one
 backdrop.
 
@@ -234,6 +235,14 @@ backdrop.
 
 - Perspective of the month/year wheel rows (above).
 - UIScrollView's exact paging curve.
+- No source: the look of a day outside the range (`unavailableDayOpacity`
+  0.35), the fill behind today (`todayFillColor`), the flat tier's overlay
+  shadow, the 1.2 cap on the overlay's text scale, the 200 ms AM/PM flip.
+- `minimumDate` later than `maximumDate`: UIKit's header says both are
+  ignored; morph clamps every value to `minimumDate`.
+- A month-title test in date_picker_test ("the title turns accent at the
+  tap, wheels turn the value") reads only the recording; the widget tests of
+  the month and year wheels check morph against the same values.
 
 ## API gaps
 

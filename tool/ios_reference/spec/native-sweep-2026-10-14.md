@@ -115,7 +115,7 @@ Severity: **UV** user-visible, **S** subtle, **API** API gap. Size: S/M/L.
   (released, settled) leaves it MINIMIZED.
 - morph (`MinimizeTabBarPage`, onScrollDown): the same 150 pt reverse drag
   expands it. morph's rule is the declared approximation "a 64 pt drag in
-  the expanding direction expands" (tab-bar-minimize.md "Not read").
+  the expanding direction expands" (tab-bar-minimize.md "Spec - trigger").
 - Evidence: `pairs/minimize-grid.png` (top native s1..s4, bottom morph).
 - Fix: drop the 64 pt reverse rule (expand at the top end, by tap, by
   pushing past the far end - the read rules), pending a device capture of
@@ -313,8 +313,8 @@ badge appear/leave animation; concentric corner API.
   ("stacked field"). Device timing pending.
 - 5: ported - the 64 pt reverse rule is gone (tab-bar-minimize.md).
   Device distances pending.
-- 6: ported - the minimized search circle (tab-bar-minimize.md, "Search
-  tab"). The search circle's tap pending.
+- 6: ported - the minimized search circle (tab-bar-minimize.md, "Spec -
+  search tab"). The search circle's tap pending.
 - 8: open - the probe takes `PROBE_BADGES`; the native look under a held
   lens is not captured yet (the simulator run was cut short).
 - 14: suggestions off; the empty return key is an engine limit
@@ -334,3 +334,27 @@ badge appear/leave animation; concentric corner API.
 - 15: `largeTitleDisplayMode` defaults to automatic on the scaffold;
   `navigationBarHidden` / `setNavigationBarHidden` added. Still open:
   `titleView`, title menu, centered groups.
+
+## Status against the public API of 2026-10-19
+
+Checked against `test/api/public_api.txt`; item numbers as above.
+
+- 15 navigation: closed - the full-width content back swipe is
+  `MorphNavigationStack.contentPopGestureEnabled` (default true); the edge
+  width is `MorphNavigationTuning.edgeWidth`. `MorphNavigationConfig`
+  still defaults `largeTitleDisplayMode` to `never` (the scaffold:
+  `automatic`).
+- 15 date picker: `firstDayOfWeek` is a `MorphDatePicker` parameter
+  (default Sunday, not from the locale); `inline` / `wheels` still assert
+  (`date_picker.dart:507`); `countDownTimer` / `yearAndMonth` absent.
+- 15 search: `MorphSearchToolbar.active` and `MorphNavigationSearch.active`
+  exist; scope bar, suggestions, tokens open.
+- Still open as listed: `MorphGlassContainer` spacing (parameters
+  `child`, `solidBackdrop`), button sizes / shape / activity indicator,
+  `titleView` / title menu / centered groups, zoom from a bar button and
+  its dismiss veto, scroll edge `automatic`, list swipe actions / styles /
+  edit mode.
+- Proposal names in item 2 (`MorphNavigationConfig.search`,
+  `MorphSearchTabBar.activatesSearch`) were not adopted: the stacked field
+  is `MorphNavigationScaffold.search` (`MorphNavigationSearch`) with
+  `MorphTabRole.search`.

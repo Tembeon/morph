@@ -1,8 +1,8 @@
 # Glass optics passport (magnification, shrink rim, platters, colors, frost)
 
-Status: measured on the device (dark reference PNGs, layer filters, film);
-implemented in the package renderer (`MorphGlassRenderer`); LIGHT reference
-set pending.
+Status: measured on the device (dark and light reference PNGs, layer
+filters, film); implemented in the package renderer (`GlassBuiltInPainter`,
+internal; the public `MorphGlassRenderer` only picks its tier).
 
 ## Native
 
@@ -36,7 +36,8 @@ its own brightness - no wash, no tint).
   untouched. Rim-line shrink (`backdropShrinkRim`): track end inside a held
   end segment 0.960 (ref 0.962), inside the switch knob 0.869 (ref 0.870),
   swollen tab bar end 10 px in (ref 11).
-- Lens refraction = UIKit displacement x 2 (18 lifted), dispersion -0.25.
+- Lens refraction = UIKit displacement x 2 (18 lifted), dispersion -0.25
+  (no measurement behind the dispersion).
 - Content copy under a lens: each item scaled about ITS OWN slot (labels
   stay still under a dragged lens), pre-grown by 1 + (1 / (1 - shrink) - 1)
   x visibility.
@@ -82,14 +83,20 @@ ExtrasUITests.testX3Shots.
 
 ## morph
 
-glass.dart (seam: `MorphGlassScope`, `MorphGlassPainter` buildSurface / buildFill
-/ buildLayer(spacing:, contentSlots:, outline:) / buildBody / buildGlow,
-`MorphGlassSurface`, `MorphGlassKind`, `MorphGlassOptics`), glass_outline.dart
-(`MorphGlassOutline`), glass_renderer.dart (`MorphGlassRenderer`,
-`liftedOptics`, `MorphGlassTier`, `MorphGlassMaterial`), glass_tier.dart
-(`GlassAdaptiveScope`, `MorphGlassDeviceClass`), glass_liquid*.dart,
-lib/src/glass/renderer (vendored whynotmake-it renderer, VENDORED + NOTICE).
-Tests: glass_renderer_test, lifted_lens_look_test.
+Public: `MorphGlassEffect` (glass_effect.dart), `MorphGlassStyle`,
+`MorphGlassContainer`, `MorphGlassRenderer` / `MorphGlassTier`
+(lib/src/theme/glass.dart, chosen by `MorphThemeData.glass`); the seam in
+`package:morph/glass_painter.dart`. lib/src/widgets: glass.dart (seam:
+`MorphGlassScope`, `MorphGlassPainter` buildSurface / buildFill /
+buildLayer(spacing:, contentSlots:, outline:) / buildBody / buildGlow,
+`MorphGlassSurface`, `MorphGlassKind`, `MorphGlassOptics`),
+glass_outline.dart (`MorphGlassOutline`), glass_renderer.dart
+(`GlassBuiltInPainter`, `liftedOptics`, `MorphGlassMaterial`),
+glass_tier.dart (`GlassAdaptiveScope`, `MorphGlassDeviceClass`),
+glass_liquid*.dart, lib/src/glass/renderer (vendored whynotmake-it
+renderer, VENDORED + NOTICE; face models in liquid_glass_color_model.dart).
+Tests: glass_renderer_test, lifted_lens_look_test, glass_effect_test,
+menu_glass_body_test (menu card face against card-tone.json).
 
 ## Native face transfer [device, 2026-10-13]
 
@@ -135,5 +142,10 @@ stripes, iPhone 16 Pro, iOS 27.0.1, light and dark, read at the panel's center
   246,246,252 vs 249,249,255 (3 under). A renderer light-material fit
   is open; the final look check belongs on the phone.
 - Popover arrow is drawn flat.
-- `UIGlassEffect.tintColor` / tinted glass and `interactive = false` as a
-  consumer API on arbitrary surfaces.
+- Not measured here, taken from the vendored renderer's own fits: the clear
+  face (`Ios27ClearLiquidGlassColorModel`), the tint tone of tinted glass
+  (`Ios27LiquidGlassColorModel.tintTone`), the rim (glint, dark contour,
+  inner bevel shadow, `GlassRim`), the 20 / 60 refraction bevel and the
+  1.5x optical corner normals. `MorphGlassEffect` (`style: clear`, `tint`)
+  and the clear and prominent buttons draw through them.
+- The regular face table above has no fixture or replay test.

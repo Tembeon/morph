@@ -1,7 +1,10 @@
 # Navigation pages passport (push, edge swipe, push zoom)
 
-Status: measured device; ported; replayed (navigation_motion_test,
-navigation_stack_test, push_zoom_test). Bars over the pages: [bars.md](bars.md).
+Status: measured device; ported; replayed (navigation_pop_motion_test,
+navigation_motion_test, navigation_card_test, push_zoom_test);
+navigation_stack_test and navigation_api_test pin behaviour without a
+fixture. Bars over the pages: [bars.md](bars.md). API parity:
+[api/navigation.md](api/navigation.md).
 Declarative stacks (`MorphNavigationStack.pages` + `MorphNavigationPage`,
 navigation_api_test) create the same `MorphNavigationRoute`s, so pushes,
 pops and zooms of a page list move exactly as imperative ones.
@@ -12,7 +15,8 @@ pops and zooms of a page list move exactly as imperative ones.
 `UIViewController.preferredTransition = .zoom(options:sourceViewProvider:)`
 (`UIViewControllerTransition`, `UIZoomTransitionOptions`:
 `interactiveDismissShouldBegin`, `alignmentRectProvider`, `dimmingColor`,
-`dimmingVisualEffect`; also `zoom(...sourceBarButtonItemProvider:)`).
+`dimmingVisualEffect`; also `zoom(...sourceBarButtonItemProvider:)`;
+unchanged in iPhoneOS27.1.sdk).
 Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
 
 ## Spec - push/pop and edge swipe
@@ -22,9 +26,9 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
 - Edge swipe 1:1; release on interactiveSpring 0.3/0.85 [tuning; device free
   fit 0.294 - 0.300 / 0.85].
 - Commit rule [UIKit reading, notes private; device, 2026-10-15]: predict
-  `progress + 0.35 * meanVelocity + 0.5 * 0.35² * meanAcceleration`;
+  `progress + 0.35 * meanVelocity + 0.5 * 0.35^2 * meanAcceleration`;
   pop when that exceeds `min(187.5 / width, 0.5)`. Velocities are in
-  widths/s, accelerations in widths/s², using the last three accepted
+  widths/s, accelerations in widths/s^2, using the last three accepted
   samples. Each acceleration differs from the previous one by at most 5.
   The pan speed mixes adjacent movement speeds with weights 0.2 / 0.8;
   lifting keeps the last movement speed, even after a hold. Statistics
@@ -41,8 +45,9 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
   fast inputs whose event/touch timestamps differ are not claimed as
   complete touch-stream reconstructions.
 - The former 0.3 distance / 1.06 widths/s flick approximation described
-  a limited recorded bracket, not a universal release rule. Their public
-  tuning constants remain for compatibility; routes use the predictor.
+  a limited recorded bracket, not a universal release rule.
+  `MorphNavigationTuning.popDistance` / `popVelocity` keep those values
+  and no route reads them; routes use the predictor.
   The release spring keeps 0.3 / 0.85 and carries the reconstructed pan
   speed into either return or completion. Its 33 recorded curves replay
   with onset fitted from delivered lift and one display-frame uncertainty
@@ -50,7 +55,8 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
   retained sample exposes the following frame early, then holds it).
   Geometry error outside that interval stays below 0.2 pt RMS. The legacy
   `cancelVelocityScale` (2.9) compensated for a 50 ms touch-window speed
-  estimate; it does not multiply the reconstructed speed.
+  estimate; it does not multiply the reconstructed speed. Only
+  navigation_motion_test's legacy settle replay still uses it.
 
 ## Spec - the card and the dim [simulator film and device, 2026-10-15]
 
@@ -85,7 +91,7 @@ a drag toward the leading side never claims the pointer; any horizontal
 drag, pan or scale recognizer deeper under the finger (scroll views,
 sliders, page views, draggable pieces, InteractiveViewer) wins the arena
 first and keeps the drag, at any offset. Device `pages-c0/c20/c25/c26/cslow`
-place the radial start at 29.67–30 pt after subtracting the recognizer's
+place the radial start at 29.67 - 30 pt after subtracting the recognizer's
 reported translation from the delivered touch travel. `pages-c29` begins;
 `pages-c30/c40/c50/c60` do not. Morph's 30 degree angle boundary is NEAR,
 fitted to the 29..30 degree bracket; other pointer kinds keep Flutter's pan
@@ -187,7 +193,9 @@ slides with it; morph fades the bar's one effect (bars.md, open).
 ## Fixtures
 
 Device `ios27-device/bars/push-pop.jsonl`, `pop-edge-*.jsonl`;
-`ios27-device/push_zoom/push_zoom.json`. Simulator `ios27/bars/pop-edge-*`.
+`ios27-device/navigation/release-decision.json` (33 releases, 6 fast
+speed checks); `ios27-device/push_zoom/push_zoom.json`. Simulator
+`ios27/bars/pop-edge-*`.
 
 ## Recapture
 
@@ -198,12 +206,18 @@ filmed with MorphRecorder (the zoom is invisible to layer sampling).
 
 ## morph
 
-navigation_motion.dart (`MorphNavigationTuning`), navigation_stack.dart
-(`MorphNavigationStack`, `MorphNavigationRoute(from:)`,
-`MorphNavigationScaffold`, `MorphNavigationConfig`, `pushMorphZoom`),
-push_zoom.dart, push_zoom_motion.dart (`MorphPushZoomMotion`,
-`MorphPushZoomTuning`). The stack's navigator sits under a
-NavigatorPopHandler (the enclosing route is doNotPop while it can pop).
+navigation_motion.dart (`MorphNavigationTuning`,
+`MorphNavigationPopMotion`), navigation_stack.dart
+(`MorphNavigationStack`, `MorphNavigationPage(from:)`,
+`MorphNavigationRoute(from:)`, `MorphNavigationScaffold`,
+`MorphNavigationConfig`), push_zoom.dart, push_zoom_motion.dart
+(`MorphPushZoomMotion`, `MorphPushZoomTuning`), zoom_source.dart
+(`MorphZoomSource`; the source is `MorphSource(link:)` in scope.dart),
+predictive_back.dart (Android predictive back drives the same
+interactive pop and zoom dismissal: an approximation, iOS has none;
+Pixel check tool/audit/foundation-5.2-2026-10-19/predictive-back.md).
+The stack's navigator sits under a NavigatorPopHandler (the enclosing
+route is doNotPop while it can pop).
 
 Bar item content and the inline title ride their scale, blur and
 presence through `morphVeiledGlyphs` (glyph_scale.dart): the glyph policy
@@ -239,23 +253,41 @@ bars no longer repaints with them. Host recorder, flat: push 6/5/75-97 ->
   not requested paths. Historical release captures without event-time
   speed/statistics do not isolate a new threshold or a returning-flick rule.
 - Exact push curve is a fit (no read value for v0).
+- Interrupted transitions (a push during a push, a swipe started during
+  a push, a pop during a push zoom) are not captured. morph starts a pop
+  during a push from the page's current place at the push speed, and
+  turns a push zoom around with its velocity.
+- Under Reduce Motion UIKit cross-fades the bar with the pages
+  (states.md); morph's bar items snap. The zoom's Reduce Motion
+  behaviour is not decoded; morph zooms unchanged.
+- A zoom source resolves once, at the push. UIKit asks its source
+  provider again during the transition, so a pop can return into
+  another or a rebuilt cell; morph dissolves when the first source is
+  gone.
 
 ## API gaps
+
+Full list and ranking: [api/navigation.md](api/navigation.md).
 
 - `alignmentRectProvider` (zoom into a sub-rect of the destination),
   `interactiveDismissShouldBegin`, custom `dimmingColor` /
   `dimmingVisualEffect`.
-- Zoom from a bar button item.
-- Other `preferredTransition`s (coverVertical, crossDissolve, flip, curl).
+- Zoom from a bar button item; a full-screen modal zoom outside a stack.
+- Other `preferredTransition`s (coverVertical, crossDissolve, flip, curl;
+  SwiftUI `.crossFade`, iOS 27).
+- State restoration: `MorphNavigationPage.restorationId` is accepted but
+  the stack's inner Navigator has no `restorationScopeId`.
 
 ## Implementation notes (morph side, moved from CLAUDE.md)
 
 - Release prediction and settle speed live in `MorphNavigationPopMotion`;
   spring parameters remain on `MorphNavigationTuning`. Edge-swipe ownership: see bars.md
   (NavigatorPopHandler, MorphNavigationRoute's edge gesture).
-- PUSH ZOOM API: `pushMorphZoom(context, from: tagId, builder:)` /
-  `MorphNavigationRoute(from:)` - the page grows out of the tag as
-  UIKit's `preferredTransition = .zoom` push. The route is non-opaque with a
+- PUSH ZOOM API: `MorphNavigationRoute(from: link)` /
+  `MorphNavigationPage(from: link)` with the source wrapped in
+  `MorphSource(link: link)` - the page grows out of the source as
+  UIKit's `preferredTransition = .zoom` push. The source resolves once,
+  at the push. The route is non-opaque with a
   zero transition (the motion finalizes the pop, as the sheet does); the
   page below does not parallax (canTransitionTo is false toward a zoom
   route); the stack's bars change as on any push. Pinned by push_zoom_test.
@@ -288,39 +320,7 @@ bars no longer repaints with them. Host recorder, flat: push 6/5/75-97 ->
   flicks show the page 2-3 frames behind the logged touches (synthesizer
   bursts - those two replays are loose); the edge drag from x 2 replays at
   9 pt rms.
-- PAGE SNAPSHOTS (option, off by default: `--dart-define=MORPH_NAV_SNAPSHOT=true`,
-  `MorphNavigationSnapshot` in lib/src/widgets/navigation_snapshot.dart):
-  on the slide path of `MorphNavigationRoute` (not the zoom, not reduced
-  motion) each page sits in a `SnapshotWidget` (permissive) inside the
-  slide's `Transform.translate`, so a frame of the slide moves an image
-  instead of re-rasterizing two full pages. The snapshot is allowed exactly
-  while the page's own animation or the secondary animation of the page
-  pushed over it is running or held by a finger (status forward / reverse,
-  so an edge drag counts), not on the web, and only under a
-  `MorphGlassRenderer` whose effective tier is flat; at rest the controller
-  is off and the page is live. FLAT TIER ONLY: on fake / liquid (and with
-  no renderer above the page) every page stays live. SnapshotWidget
-  renders the page through toImageSync in a pass of its own whose origin
-  is the page, while the renderer maps its shader-filter coordinates with
-  getTransformTo(null) (filter_pass_transform.dart), which includes the
-  slide's translate - backdrop shaders, glass containers and raster-phase
-  anchors inside a snapshot would shade offset by the captured slide
-  offset (a pushed page by about the full width, the page under a pop by
-  parallax x width). Snapshots on those tiers would need the renderer to
-  treat a snapshot as its own pass (as GlassCompositionProbe.seededPassOrigin
-  does) - not implemented. With the option on the widget is mounted for
-  the page's whole life and only its controller toggles (the tier is read
-  in didChangeDependencies), so page state never remounts. What freezes
-  while it moves: the page's scrolling, animations, text input and
-  anything under a backdrop filter (glass inside the page reads an empty
-  backdrop in the snapshot). The capture happens on the FIRST MOVING
-  FRAME, so whatever the page shows then stays for the whole slide:
-  content that settles in a post-frame callback, images still decoding,
-  and a tag a flight launched mid-slide hides keep their first-frame
-  state. Each snapshot adds an offscreen pass on that frame (a push or pop
-  takes two toImageSync calls, one per page) - a raster spike to look for
-  on the device. The bars are not part of the page and stay live. Pinned
-  by test/navigation_snapshot_test.dart; no device numbers yet - the
-  Redmi 6A pop raster measurement is pending.
+- Pages are never snapshotted during the slide: the snapshot option was
+  measured and rejected (docs/performance.md, "Navigation snapshots").
 
 - Reduce Motion, read from UIKit (notes private): pushes and pops without a finger cross-fade both pages over 0.5 s (UIView ease-in-out); an edge swipe keeps the slide. Ported (`MorphNavigationTuning.crossFadeDuration`); see states.md.

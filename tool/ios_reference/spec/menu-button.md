@@ -1,7 +1,13 @@
 # Menu button passport (glass button that becomes its menu)
 
 Status: measured device (layers, traces, film) + simulator; ported;
-replayed (menu_button_test, menu_fusion_test, menu_look_test).
+replayed in part: fusion (menu_fusion_test), flex under a finger
+(menu_drag_out_test), bar item tap and hold lags (bar_menu_tap_test),
+close with a submenu stack (menu_api_test). No test replays the open
+spring, the kicks, the placement, the early touch or the reopen captures
+under `ios27-device/menu/` and `ios27/menu/`: their replays lived in
+menu_button_test, removed in 98237e58 (2026-10-19). menu_look_test checks
+text style and glyph order, not native data.
 
 
 The context menu shares this implementation (context-menu.md, unified
@@ -15,7 +21,7 @@ also `UIBarButtonItem(menu:)`. Morph container = `AnimationKit` morph view
 (`MagicMorphView`-like SDF layer) holding the menu blob G and the button
 blob S, `KickView` translations, `_UIContextMenuView` content.
 Tuning `AnimationKit.MorphAnimationSettings.liquidMorph` [tuning].
-UIMenu API (SDK 27.0): `children`, `options` (displayInline, destructive,
+UIMenu API (SDK 27.0, unchanged in 27.1): `children`, `options` (displayInline, destructive,
 singleSelection, displayAsPalette), `preferredElementSize` (small / medium
 / large / automatic), `displayPreferences`, `selectedElements`, submenus;
 UIMenuElement `title`, `subtitle`, `image`, `preferredImageVisibility`,
@@ -99,22 +105,24 @@ keepsMenuPresented); `UIDeferredMenuElement`;
   (p always peaks ~0.167); on a row's spot -> action at opening +
   actionDelay, close at opening + 0.016 (quick double tap picks row 0 of a
   downward menu); finger still down at opening = menu finger (released
-  after: ordinary dismiss, device +0.028 s vs dismissDelay 0.04, the
-  early-outside-200 capture, not replayed). Replay 0.008 rms of progress.
+  after: ordinary dismiss, device +0.028 s vs the dismissDelay of the
+  time, 0.04 (0.059 since c4d14a7, menu-api.md "Close timing"), the
+  early-outside-200 capture, not replayed). Replay 0.008 rms of progress
+  (menu_button_test, removed in 98237e58; no test replays it now).
 
 ## Keyboard changes after presentation [device, 2026-10-18]
 
-Public UIButton.menu / showsMenuAsPrimaryAction probe, iPhone16Pro / iOS27.0.1, portrait402×874pt at3×, source `(161,406,80,48)`, safe area `(0,62,0,34)`, Dynamic Type L, Reduce Motion false. No phone settings changed. Evidence: `tool/audit/foundation-p2-2026-10-18/native-ime/` (repo root), `docs/architecture/menu-native-ime.md`.
+Public UIButton.menu / showsMenuAsPrimaryAction probe, iPhone 16 Pro / iOS 27.0.1, portrait 402 x 874 pt at 3x, source `(161,406,80,48)`, safe area `(0,62,0,34)`, Dynamic Type L, Reduce Motion false. No phone settings changed. Evidence: `tool/audit/foundation-p2-2026-10-18/native-ime/` (repo root), `docs/architecture/menu-native-ime.md`.
 
-Three short-menu controls and two repetitions of three ten-row-menu modes execute real keyboard show/hide through UITextField first-responder commands. Settled public XCUI row frames (1/2/3/10 for tall) remain exactly unchanged within each mode. Initial keyboard state changes tall placement: first row y410 without keyboard versus y≈135 with keyboard. Hiding afterward keeps y135. Showing afterward keeps y410 and last-row bottom830, while the keyboard notification top is573; the keyboard visibly covers lower rows. The notification rectangle `(0,573,402,301)` differs from XCUI keyboard element `(0,590,402,226)`.
+Three short-menu controls and two repetitions of three ten-row-menu modes execute real keyboard show/hide through UITextField first-responder commands. Settled public XCUI row frames (1/2/3/10 for tall) remain exactly unchanged within each mode. Initial keyboard state changes tall placement: first row y410 without keyboard versus y ~135 with keyboard. Hiding afterward keeps y135. Showing afterward keeps y410 and last-row bottom 830, while the keyboard notification top is 573; the keyboard visibly covers lower rows. The notification rectangle `(0,573,402,301)` differs from XCUI keyboard element `(0,590,402,226)`.
 
 Snapshots bracket the actual command/completed notification with positive timing margins. A corrupted interval is rejected by the analyzer. This establishes bounded endpoint placement, not transient trajectories, optical-body equality, dismissal/landing, context-menu behavior or Flutter parity. No tuning changes follow from these endpoint observations; active geometry/IME ownership integration remains open.
 
 ## Selection and fresh reopen after IME [device, 2026-10-18]
 
-Two serial ten-row none/show/hide repetitions on the same public probe yield six scenes, twelve openings and twelve selected callbacks. Each Native first / Native second selection closes the observed menu, updates count1/2 and leaves the same source hittable for reuse. Source frame/token stay fixed within each scene. Four observed row frames stay unchanged after the keyboard transition, but fresh reopen uses current IME state: first-row y410→135 for show, y135→410 for hide, y410→410 for control. One control reopen changes x by⅓pt; full reopen-frame equality is not claimed.
+Two serial ten-row none/show/hide repetitions on the same public probe yield six scenes, twelve openings and twelve selected callbacks. Each Native first / Native second selection closes the observed menu, updates count 1/2 and leaves the same source hittable for reuse. Source frame/token stay fixed within each scene. Four observed row frames stay unchanged after the keyboard transition, but fresh reopen uses current IME state: first-row y410 -> 135 for show, y135 -> 410 for hide, y410 -> 410 for control. One control reopen changes x by 1/3 pt; full reopen-frame equality is not claimed.
 
-Both show scenes record first responder at both actions/reopen and receive native through XCTest without retapping the editor. During XCTest typing, WillHide/DidHide occur with first responder retained; the typed AX keyboard exists offscreen (y891 in an874pt window). This proves input delivery, not sustained keyboard visibility. Snapshot/event ordering and a corrupted selection-time negative control pass their respective acceptance/rejection gates. Evidence: `tool/audit/foundation-p2-2026-10-18/native-ime-reopen/results.md`. Functional closed reuse does not prove optical morph landing, transient continuity, moving-source or context-menu policy. No motion tuning changes.
+Both show scenes record first responder at both actions/reopen and receive native through XCTest without retapping the editor. During XCTest typing, WillHide/DidHide occur with first responder retained; the typed AX keyboard exists offscreen (y891 in an 874 pt window). This proves input delivery, not sustained keyboard visibility. Snapshot/event ordering and a corrupted selection-time negative control pass their respective acceptance/rejection gates. Evidence: `tool/audit/foundation-p2-2026-10-18/native-ime-reopen/results.md`. Functional closed reuse does not prove optical morph landing, transient continuity, moving-source or context-menu policy. No motion tuning changes.
 
 ## Bar item menu as primary action [device, 2026-10-05]
 
@@ -133,8 +141,9 @@ of the morph container):
   within a frame, `holdDuration` shared. A release on the button after it
   leaves the menu open; a slide onto a row chooses it (action 0.012 s
   after the lift).
-- Geometry: the morph out of the bar capsule is the menu motion replayed
-  by navbar3-dismiss (menu_button_test; no source kick on the close).
+- Geometry: the morph out of the bar capsule is the menu motion of
+  navbar3-dismiss (no source kick on the close); its replay lived in
+  menu_button_test, removed in 98237e58.
 - morph: `MorphBarButton(menu:)` with null `onPressed` (bar_items.dart);
   the bar feeds the finger into the menu motion as MorphMenuButton does.
   Pinned by bar_menu_tap_test (also asserts the recorded differences).
@@ -166,13 +175,12 @@ Mechanism confirmed live on the device; the equations, the spec numbers
 and the 40-point in-bounds term are read from UIKit, notes private (kept
 outside the repository).
 
-- It is `_UIFlexInteraction` in its menu variant (`preferredVariant` 5,
-  spec `_UIFlexInteractionSpec.menu` = `MorphFlexSpec.menu`), attached by
-  UIKit to `_UIContextMenuListView` (in `interactions`, not a
+- It is UIKit's flex interaction (lens-and-flex.md) in its menu variant
+  (spec `_UIFlexInteractionSpec.menu` = `MorphFlexSpec.menu`), attached
+  by UIKit to `_UIContextMenuListView` (in `interactions`, not a
   `flexInteraction` property) because the list's glass is built
-  `flexible` with `_setFlexVariant:5`. The variant skips the velocity
-  integrator: every update-link frame runs
-  `-[_UIFlexInteraction updateWithInteractionPulse]`.
+  flexible. The variant skips the velocity integrator: it updates on
+  every update-link frame from the finger's translation and a pulse.
 - Inputs, from the touch-down point: t = translation, it = the location
   clamped into the list's bounds minus the touch-down point. W, H = list
   bounds.
@@ -318,7 +326,7 @@ menu_video_test, menu_anchor_video_test.
 menu_fusion.dart); the button's press and the open menu's flex run on the
 shared flex machine (flex_interaction.dart: `MorphFlexInteraction` lifts
 the button after `pressDelay` without the stretch, `menuTargets` and
-`MorphFlexPulse` are the menu variant); flies on the engine as a vessel flight. Shared host
+the stepped pulse channel, `MorphChannel.stepped`, are the menu variant); flies on the engine as a vessel flight. Shared host
 for bar menus: MorphMenuHost / MorphMenuLayer / MorphMenuFlightProgress.
 
 `MorphMenuSource` (menu.dart) turns any widget into this menu; the
@@ -471,15 +479,10 @@ cost per frame, the glass capture scales.
 
 ## API gaps
 
-The full menu API (submenus, sections, palettes, element sizes, selection,
-deferred and live content) is measured in [menu-api](menu-api.md).
+The menu content API (submenus, sections, palettes, element sizes,
+selection, deferred and live content) is measured and ported in
+[menu-api](menu-api.md); the API parity page is [api/menus](api/menus.md).
 
-
-- Submenus (`PROBE_SUBMENU` exists in the probe, not ported),
-  `displayInline` sections and separators, `displayAsPalette`,
-  `preferredElementSize` small/medium.
-- Checkmark state / `singleSelection`, subtitles, disabled / hidden items,
-  `keepsMenuPresented`, deferred elements.
 - Menu on a non-round glass button or a text button
   (`showsMenuAsPrimaryAction`): served by `MorphMenuSource` with the round
   button's numbers (see morph above); a recording would replace them.
@@ -526,10 +529,10 @@ deferred and live content) is measured in [menu-api](menu-api.md).
 - ALIGNMENT: H > W keeps the first row on G's TOP edge (screen top, both
   directions: up = far edge, down = near edge; filmed bottom10 and tl10) -
   a list at scroll offset 0; H <= W is CENTERED on the kicked G (center3,
-  bottom3). Pinned by the placement-invariant group in menu_button_test
-  (content attached to G in ten placements incl. clamped ones, the drop
-  starting inside the button, no jumps through open / close-mid-open /
-  reopen / close). Film harness: MenuAnchorUITests (testAnchorFilm /
+  bottom3). The placement-invariant group of menu_button_test that pinned
+  this (content attached to G in ten placements incl. clamped ones, the
+  drop starting inside the button, no jumps through open /
+  close-mid-open / reopen / close) was removed in 98237e58. Film harness: MenuAnchorUITests (testAnchorFilm /
   testAnchorTall set PROBE_TRACK to match nothing - the layer log cost a
   third of the frames) + example/integration_test/menu_anchor_video_test.dart.
 - EARLY TOUCH plumbing: the widget hears the early touch through a GLOBAL
@@ -538,7 +541,8 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   opening.
 - Flies on the engine: a `MorphFlight` on `MorphTargetSpec.vessel` with
   the measured progress spring and a zero scrim, so overlay choice,
-  Esc/back, focus, events (`onOpen:` hands out each flight) and the
+  Esc/back, focus, events (the `@internal` `onOpen` hands out each
+  flight; the public API has no open callback) and the
   dissolve of a removed button come from the engine; uses an ambient
   MorphScope or brings its own.
 - ONE CLOCK: the menu draws from its own closed-form progress spring

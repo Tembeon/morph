@@ -51,7 +51,9 @@ grouped style), cells configured with `UIListContentConfiguration`
 ## Fixtures
 
 `test/fixtures/ios27/list/list-tree-{light,dark}.txt` (manifest.txt),
-screenshots `references/list/native-list-{light,dark}.png`.
+screenshots `references/list/native-list-{light,dark}.png`. No test loads
+the trees: test/list_test.dart asserts positions transcribed from them.
+The highlight timing runs (sim) are not kept as fixtures.
 
 ## Recapture
 
@@ -127,6 +129,8 @@ section does not repaint its rows).
 - Chevron glyph: a stroked polyline fitted to the 3x screenshot (2 pt
   stroke), not the SF Symbol.
 - Card inset on other screen widths (only 402 pt read), Dynamic Type.
+- Increase Contrast: no high-contrast table; the info button's label
+  "More info" is English only.
 
 ## API gaps
 

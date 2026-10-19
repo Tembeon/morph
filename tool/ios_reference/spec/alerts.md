@@ -1,13 +1,14 @@
 # Alerts and action sheets passport
 
 Status: measured simulator (iPhone 18 Pro Max 440 x 956) + device
-(springs, lift, lean; iPhone 16 Pro) + film; ported; replayed (alert_test).
+(springs, lift, lean; iPhone 16 Pro) + film; ported; replayed (alert_test,
+disabled_test).
 
 ## Native
 
 `UIAlertController` (`_UIAlertControllerPhoneTVMacView` = platter),
 `_UIPopoverView` for an action sheet with a source.
-Public API (SDK 27.0): `alertControllerWithTitle:message:preferredStyle:`
+Public API (SDK 27.1, unchanged from 27.0): `alertControllerWithTitle:message:preferredStyle:`
 (alert / actionSheet), `addAction:` (`UIAlertAction` title, style
 default / cancel / destructive, `enabled`, handler), `preferredAction`,
 `addTextFieldWithConfigurationHandler:`, `textFields`, `severity`
@@ -75,8 +76,9 @@ default / cancel / destructive, `enabled`, handler), `preferredAction`,
 
 ## Fixtures
 
-Device `ios27-device/alert/` (present-dismiss, press, tap, slide, lean,
-ash-press, ash-tap-out). Simulator `ios27/alert/` incl. placements.json.
+Device `ios27-device/alert/` (alert- and actionsheet-present-dismiss,
+press, tap, slide, lean, ash-press, ash-tap-out; manifest.json).
+Simulator `ios27/alert/` incl. placements.json (15 cases).
 Film crops `references/alert-video/`.
 
 ## Recapture
@@ -89,11 +91,13 @@ testX3AlertVideo. Older scene `w2alert`.
 
 ## morph
 
-alert.dart (`showMorphAlert`, `showMorphActionSheet(anchor:/anchorRect:)`,
-`MorphAlertRoute`, `MorphAlertAction`, `MorphAlertActionStyle`,
-`MorphAlertTextField`, `MorphAlertAppearance`), alert_motion.dart
+Public (lib/morph.dart): alert.dart (`showMorphAlert`,
+`showMorphActionSheet(anchor:/anchorRect:)`, `MorphAlertAction`,
+`MorphAlertActionStyle`, `MorphAlertTextField`, `MorphAlertAppearance`).
+Internal: alert.dart (`MorphAlertRoute`), alert_motion.dart
 (`MorphAlertMotion`, `MorphAlertTuning`, `MorphPopoverMotion`,
-`MorphPopoverTuning`, `morphPlacePopover`).
+`MorphPopoverTuning`, `MorphPopoverPlacement`,
+`MorphPopoverArrowDirection`, `morphPlacePopover`).
 
 Dismissal (lifecycle.md): the build that stops the card taking touches
 hands back the card built before, so the card does not rebuild; host

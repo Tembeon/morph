@@ -145,8 +145,9 @@ glass material (opacity, rim), the alert title and message.
 
 ## Haptics [read from UIKit, notes private]
 
-`MorphWidgetsTheme.haptics` (null / true plays, false silences); mapping
-onto `HapticFeedback` declared on the field. Switch: light impact when a
+`MorphThemeData.haptics` (true, the default, plays; false silences); the
+mapping onto `HapticFeedback` is declared on the internal `MorphHaptic`
+(lib/src/widgets/haptics.dart). Switch: light impact when a
 touch changes the shown state (tap, drag commit / uncommit). Slider: end
 pattern when a drag reaches an end, detent on a stepped slider's new
 inner stop. Page control: selection on a scrub to another page. Date
@@ -175,5 +176,6 @@ mappings.
       a disabled preferred action keeps semibold but loses the accent fill.
 - [x] All state changes instant (no animation); disabled controls ignore
       touches entirely, except the tab bar's press swell.
-- [x] Gallery: the Glass renderer page's disabled toggle and the light
-      references (`references/light/`) for the light audit.
+- [x] Gallery: the shared Disabled setting
+      (example/lib/gallery/glass_settings.dart) and the light references
+      (`references/light/`) for the light audit.

@@ -6,8 +6,9 @@ Status: measured device (120 Hz) + simulator; ported; replayed
 ## Native
 
 `UIPageControl` (platter = `UIVisualEffectView`), `UIPageControlProgress`,
-`UIPageControlTimerProgress`. Public API (SDK 27.0): `numberOfPages`,
-`currentPage`, `hidesForSinglePage`, `pageIndicatorTintColor`,
+`UIPageControlTimerProgress`. Public API (SDK 27.1, unchanged since
+27.0): `numberOfPages`, `currentPage`, `hidesForSinglePage`,
+`pageIndicatorTintColor`,
 `currentPageIndicatorTintColor`, `backgroundStyle` (automatic / prominent /
 minimal), `direction` (natural / LTR / RTL / topToBottom / bottomToTop),
 `interactionState`, `allowsContinuousInteraction`,
@@ -39,7 +40,9 @@ pause/resume).
 ## Fixtures
 
 Device `ios27-device/page_control/pc-{tap-right,hold,scrub}.jsonl`;
-simulator `ios27/page_control/` (+ pc-timer).
+simulator `ios27/page_control/` (+ pc-timer). indicators_test replays the
+taps, the scrub and the platter (device and simulator) and the timer's
+indicator widths (simulator); the timer's fill fade is not compared.
 
 ## Recapture
 
@@ -55,7 +58,17 @@ page_control.dart (`MorphPageControl`, `MorphPageControlMotion`,
 
 ## Not reproduced / open
 
-- A long scrub far past the dots steps irregularly in UIKit (pc-scrub-far).
+- A long scrub far past the dots steps irregularly in UIKit (pc-scrub-far,
+  a raw recording; no fixture).
+- Width: UIKit's 5-page control view is 126 wide (device manifest);
+  morph's control and platter are 5 x 9.67 + 4 x 8 + 2 x 14 = 108.35. The
+  platter's own width is not recorded. `MorphPageControlTuning.padding`
+  (14) and `scrubSlop` (10) have no measurement.
+- A page change without progress: morph snaps the dots; no recording of the
+  dots at a page change exists.
+- The platter is a flat color (`platterColor`) on every renderer, not
+  UIKit's material; the trade is not measured or declared.
+- Many pages: dots that do not fit the width are not handled (unmeasured).
 
 ## API gaps
 

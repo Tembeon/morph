@@ -5,7 +5,7 @@ Shared machinery: [lens-and-flex.md](lens-and-flex.md).
 
 ## Native
 
-`UISegmentedControl` (lens = `_UILiquidLensView`). Public API (SDK 27.0):
+`UISegmentedControl` (lens = `_UILiquidLensView`). Public API (SDK 27.1):
 `initWithItems:`, `initWithFrame:actions:`, insert/remove segment
 (title / image / action, animated), `setTitle/Image/Action/Width/
 ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
@@ -51,7 +51,8 @@ ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
   0.392/0.863 fails the device tap replay at unchanged tolerances.
 - Text: segments 13 regular, selected 13 medium (wght 510; UIKit also uses
   GRAD 466/448 `.SFUI-RegularG3`, not reproduced - width unaffected).
-  Labels follow text scale up to 1.4, sized by the wider of both styles.
+  Labels follow text scale up to 1.4 (no source), sized by the wider of
+  both styles.
 - Look: track is a PLAIN fill (tertiary fill, not glass); resting lens is
   an opaque platter; lifted lens is clear glass, magnification 0 (held label
   0.996, in place), shrink 0.20 with rim profile (see glass-optics).
@@ -84,12 +85,20 @@ ProbeUITests.testLens / testRecapLens.
 
 ## morph
 
-`MorphSegmentedControl` (+`MorphSegmentedControlAppearance`), segmented_control.dart,
-lens_motion.dart (`MorphLensTuning.segmented`). Tests: lens_test (sim 60 Hz
-and device 120 Hz), lens_scrub_test, lens_widgets_test,
-lifted_lens_look_test, controls_scroll_test (the control owns a touch
-after 150 ms or a horizontal drag past slop), release_bounds_test (replays
-release-outside.jsonl).
+`MorphSegmentedControl`, `MorphSegment`, `MorphSegmentedControlAppearance`
+(segmented_control.dart), internal lens_motion.dart
+(`MorphLensTuning.segmented`) and highlight_motion.dart
+(`MorphSegmentHighlightMotion`). Tests: lens_test (taps, sim 60 Hz and
+device 120 Hz), lens_scrub_test (tap on the selected segment),
+lens_widgets_test, highlight_motion_test, segmented_api_test,
+disabled_test, accessibility_test, controls_platform_test,
+controls_scroll_test (the control owns a touch after 150 ms or a
+horizontal drag past slop), release_bounds_test (replays
+release-outside.jsonl). No test loads the press-and-drag captures
+(`segmented-seg5-dragslow-from-selected`, `-seg5-release-choice-rubberband`,
+`-seg5-scrub-offset-overrun-back`, `-seg2-hold1200`, simulator and
+device): `pressDelay`, the follow spring and the rubber band are
+measured, not replayed.
 
 Repaints: the control is a repaint boundary, so its lens no longer
 repaints the page around it, and on the flat tier (and without a painter)
@@ -101,6 +110,8 @@ keeps them in its picture.
 ## Not reproduced / open
 
 - GRAD axis of the label font.
+- `proportionalWidth` is not compared with the device `segContent` /
+  `segContent4` rows (see api/segmented-control.md).
 - Reduce Motion read from UIKit (notes private): sliding selection disabled, the selection appears on the new segment; ported as a jump, the fade (if any) is for the device ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)). No haptics on iPhone. Increase Contrast table: states.md.
 
 ## API gaps (UIKit has, morph lacks)

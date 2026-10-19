@@ -44,8 +44,11 @@ testX3Video (film), testX3Timing (`tm-tab-in/out-<gap>` via twoTaps,
 ## morph
 
 `MorphSearchTabBar` (search_tab_bar.dart), `MorphSearchTuning`
-(search_motion.dart). Test: search_test. Film side:
-example/integration_test/search_date_scenes.dart.
+(search_motion.dart). Tests: search_test (the glass morph against the
+simulator film `ios27/search/tab-search-video.json`, start time fitted;
+the focus rise and fall against device rows `tab-search-focus.jsonl`
+and `vid-tab.jsonl`), press_keyboard_test, tab_bar_minimize_test. Film
+side: example/integration_test/search_date_scenes.dart.
 
 Per-frame work (lifecycle.md, 2026-10-14): the bar is a repaint boundary
 (the page under it no longer repaints with the morph); the close button

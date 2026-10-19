@@ -2,95 +2,95 @@
 
 Native: `UIDatePicker`, `UICalendarView` (+ `UICalendarSelectionSingleDate` / `MultiDate` / `WeekOfYear`,
 `UICalendarViewDecoration`); SwiftUI `DatePicker`, `DatePickerComponents`, `datePickerStyle(_:)`,
-`MultiDatePicker`. morph: `MorphDatePicker`, `MorphDatePickerMode`, `MorphDatePickerStyle`,
-`MorphDatePickerMotion`, `MorphDatePickerPlacement`, `MorphDatePickerTuning`, `morphPlaceDatePicker`.
-Passport: [../date-picker.md](../date-picker.md).
+`MultiDatePicker`. morph (public, `lib/morph.dart`): `MorphDatePicker`, `MorphDatePickerMode`,
+`MorphDatePickerStyle`, `MorphDatePickerAppearance`, `MorphDatePickerLocalizations`. Internal:
+`MorphDatePickerMotion`, `MorphDatePickerTuning`, `MorphDatePickerPlacement`, `morphPlaceDatePicker`,
+`morphFloorToMinuteInterval`. Passport: [../date-picker.md](../date-picker.md).
 
-SDK 27.0 check: `UIDatePicker.h`, `UICalendarView*.h` and the SwiftUI `DatePicker` family carry NO
-iOS 26 / 27 API. The Liquid Glass change is visual only (glass overlay platter); the API is legacy.
+SDK 27.1 check: `UIDatePicker.h`, `UICalendarView*.h` and the SwiftUI `DatePicker` family carry no
+iOS 26 / 27 / 27.1 API (newest: `UIDatePickerModeYearAndMonth`, iOS 17.4). Liquid Glass changed the
+look only (glass overlay platter).
 
-Naming note: morph uses `Morph<X>Style` for the color table of every control. UIKit's `UIDatePickerStyle`
-is a presentation enum (compact / inline / wheels), so it cannot take that name; see Breaking changes.
+Naming: morph follows option (b) of the naming rule. `MorphDatePickerStyle` is the presentation enum
+(UIKit `UIDatePickerStyle`), `MorphDatePickerAppearance` the look table.
 
 ## UIKit
-| UIKit API (type.member, availability) | meaning | morph equivalent | gap / mismatch | proposal |
+| UIKit API (availability) | meaning | morph equivalent | status | proposal |
 |---|---|---|---|---|
-| `UIDatePicker.date` (iOS 2+) | the picked moment | `MorphDatePicker.value` | none | keep |
-| `UIControl.Event.valueChanged` | user picked | `MorphDatePicker.onChanged` | null disables (Flutter idiom) | keep |
-| `UIControl.isEnabled` | disabled look (capsules removed) | `onChanged == null` | measured, ported | keep |
-| `UIDatePicker.datePickerMode` (iOS 2+) | what is picked | `MorphDatePicker.mode` | default differs: UIKit `.dateAndTime`, morph `date` | keep (morph default is the common case; document) |
-| `UIDatePickerMode.time` / `.date` / `.dateAndTime` | modes | `MorphDatePickerMode.time` / `date` / `dateAndTime` | none | keep |
-| `UIDatePickerMode.countDownTimer` (iOS 2+) | hours + minutes duration wheels | none | missing | add `MorphDatePickerMode.countDownTimer` + `countDownDuration` |
-| `UIDatePickerMode.yearAndMonth` (iOS 17.4) | month + year wheels only | none (the wheels exist inside the calendar overlay) | missing as a mode | add `MorphDatePickerMode.yearAndMonth` (reuse `_MonthYearWheels`) |
-| `UIDatePicker.preferredDatePickerStyle` (iOS 13.4) | compact / inline / wheels / automatic | none (compact only) | missing | add `MorphDatePicker.variant` (`MorphDatePickerVariant`) |
-| `UIDatePickerStyle.compact` (iOS 13.4) | labels that open an overlay | `MorphDatePicker` (always) | none | keep as default |
-| `UIDatePickerStyle.inline` (iOS 14) | calendar in place (date), wheels/field for time | none (calendar drawn only in the overlay) | missing | add `MorphDatePickerVariant.inline` |
-| `UIDatePickerStyle.wheels` (iOS 13.4) | wheels in place | none (time wheels only in the overlay) | missing; no date wheels at all | add `MorphDatePickerVariant.wheels` (date wheels need a measurement) |
-| `UIDatePickerStyle.automatic` | platform picks (compact on iPhone) | none | resolves to compact | add as `automatic` = compact, or skip (one platform) |
-| `UIDatePicker.datePickerStyle` (readonly, iOS 13.4) | resolved style | none | - | skip (no automatic resolution needed) |
-| `UIDatePicker.minimumDate` / `maximumDate` (iOS 2+) | range | `MorphDatePicker.firstDate` / `lastDate` | name differs from UIKit AND `CupertinoDatePicker` (`minimumDate` / `maximumDate`); matches Material `showDatePicker` | rename -> `minimumDate` / `maximumDate` |
-| `UIDatePicker.minuteInterval` (iOS 2+) | minute wheel step 1..30 | none | missing | add `minuteInterval` (int, divides 60) |
-| `UIDatePicker.roundsToMinuteInterval` (iOS 15) | round `date` to the interval | none | missing | add `roundsToMinuteInterval = true` with `minuteInterval` |
-| `UIDatePicker.countDownDuration` (iOS 2+) | seconds for countDownTimer | none | missing | add `countDownDuration` (`Duration`) with the mode |
-| `UIDatePicker.setDate(_:animated:)` (iOS 2+) | programmatic change, wheels spin | none (a new `value` jumps) | no animated external change | add `animateValueChanges` or animate when the overlay is open; low |
-| `UIDatePicker.locale` (iOS 2+) | language, 12/24h, week start, formats | `dateFormatter`, `timeFormatter`, `localize`, `calendarTitleFormatter`, `daySemanticFormatter`, `numberFormatter`, `use24HourFormat`, `firstDayOfWeek` | one concept spread over 8 params; default English | reshape -> one `MorphDatePickerLocalizations` (see Breaking) |
-| `UIDatePicker.calendar` (iOS 2+) | non-Gregorian calendars, firstWeekday | `firstDayOfWeek` only | Gregorian only | keep `firstDayOfWeek`; skip other calendars (Dart `DateTime` is Gregorian) |
-| `UIDatePicker.timeZone` (iOS 2+) | zone of displayed date | none (`DateTime` local or UTC) | - | skip (Dart `DateTime` carries local/UTC; document `value.isUtc` is kept) |
-| `UICalendarView` (iOS 16) | standalone inline calendar | none | missing | covered by `MorphDatePickerVariant.inline`; skip a separate widget |
-| `UICalendarView.availableDateRange` (iOS 16) | range | `firstDate` / `lastDate` | same concept | keep (renamed per above) |
-| `UICalendarView.visibleDateComponents` + `setVisibleDateComponents(_:animated:)` (iOS 16) | shown month, programmatic paging | none | missing | add with inline (`displayedMonth` + `onDisplayedMonthChanged`); low |
-| `UICalendarViewDelegate.decorationFor(dateComponents)` + `UICalendarViewDecoration` (default / image / customView, size small/medium/large) (iOS 16) | marks under days (event dots) | none | missing | add `dayDecorationBuilder` (Widget? per day) with inline; low-med |
-| `UICalendarSelectionSingleDate` (iOS 16) | single selection, `canSelectDate` | `value` + `firstDate`/`lastDate` | no per-day predicate | add `selectableDayPredicate` (name from Material); low |
-| `UICalendarSelectionMultiDate` (iOS 16) | multiple days | none | missing | add later as `MorphMultiDatePicker`; low |
-| `UICalendarSelectionWeekOfYear` (iOS 18) | week selection | none | missing | skip (rare) |
-| `UICalendarView.fontDesign` (iOS 16) | rounded / serif digits | none | - | skip (typography via theme) |
-| `UICalendarView.wantsDateDecorations`, `reloadDecorations` | decoration refresh | none | - | skip (rebuild) |
+| `date` (iOS 2) | the picked moment | `value` | covered | - |
+| `UIControl.Event.valueChanged` | user picked | `onChanged` | covered | - |
+| `isEnabled` | disabled look (capsules removed) | `onChanged == null` | covered | - |
+| `datePickerMode` (iOS 2) | what is picked | `mode` | covered; default `date` (UIKit `.dateAndTime`) | document the default in the dartdoc |
+| `.time` / `.date` / `.dateAndTime` | modes | `MorphDatePickerMode.time` / `date` / `dateAndTime` | covered | - |
+| `.countDownTimer` (iOS 2) | hours + minutes duration wheels | none | gap | `MorphDatePickerMode.countDownTimer` + `countDownDuration` (measure first) |
+| `.yearAndMonth` (iOS 17.4) | month + year wheels only | none (the wheels exist inside the calendar overlay) | gap | `MorphDatePickerMode.yearAndMonth` over the month/year wheels |
+| `preferredDatePickerStyle` (iOS 13.4) | compact / inline / wheels / automatic | `style` | partial: only `compact` draws, others assert | draw `inline`, then `wheels` |
+| `.compact` (iOS 13.4) | labels that open an overlay | `MorphDatePickerStyle.compact` | covered | - |
+| `.inline` (iOS 14) | calendar in place | `MorphDatePickerStyle.inline` (reserved) | gap | in-place calendar host |
+| `.wheels` (iOS 13.4) | wheels in place | `MorphDatePickerStyle.wheels` (reserved) | gap; no date wheels exist | measure the date wheels first |
+| `.automatic` | resolves to compact on iPhone | none | gap (low) | add as an alias of `compact` or leave out |
+| `minimumDate` / `maximumDate` (iOS 2) | range; both ignored when min > max | `minimumDate` / `maximumDate` | covered; min > max differs (see fidelity) | follow the header: ignore both |
+| `minuteInterval` (iOS 2) | minute step 1..30, divides 60 | `minuteInterval` (asserted) | covered | - |
+| `roundsToMinuteInterval` (iOS 15) | floor the date to the interval | always on | partial: cannot be turned off | add `roundsToMinuteInterval = true` |
+| `countDownDuration` (iOS 2) | seconds for countDownTimer | none | gap | with the mode (`Duration`) |
+| `setDate(_:animated:)` (iOS 2) | programmatic change, wheels spin | none (a new `value` jumps) | gap | animate a new `value` while the overlay is open |
+| `locale` (iOS 2) | language, 12/24 h, formats | `localizations` (6 formatter callbacks), `use24HourFormat` | partial: English defaults, nothing read from `Localizations` | default from the app's `Localizations` |
+| `calendar` (iOS 2) | non-Gregorian calendars, first weekday | `firstDayOfWeek` | partial: Gregorian only | keep; document |
+| `timeZone` (iOS 2) | zone of the shown date | - | n/a | Dart `DateTime` is local or UTC |
+| `datePickerStyle` (readonly, iOS 13.4) | resolved style | - | n/a | no idiom resolution |
+| `UICalendarView` (iOS 16) and its selections, decorations, `visibleDateComponents` | standalone calendar | none | not counted (separate view) | covered by `inline` later; `dayDecorationBuilder`, `selectableDayPredicate` with it |
 
 ## SwiftUI
-| SwiftUI API (availability) | meaning | morph equivalent | gap / mismatch | proposal |
+| SwiftUI API (availability) | meaning | morph equivalent | status | proposal |
 |---|---|---|---|---|
-| `DatePicker(_:selection:in:displayedComponents:)` (iOS 13) | picker with a leading label | `MorphDatePicker` (no visible label; `semanticLabel`) | SwiftUI draws the title row | skip (put the picker in `MorphListRow.trailing`) |
-| `DatePickerComponents.date` / `.hourAndMinute` (iOS 13) | option set | `MorphDatePickerMode` | same as UIKit mode row | keep |
-| `in: ClosedRange / PartialRangeFrom / PartialRangeThrough<Date>` | range | `firstDate` / `lastDate` | same as UIKit min/max row | rename (above) |
-| `datePickerStyle(.compact / .graphical / .wheel / .automatic)` (iOS 13/14) | presentation | none | `.graphical` = UIKit inline; names differ (`.wheel` vs `.wheels`) | add `MorphDatePickerVariant` with UIKit case names (`compact`, `inline`, `wheels`) |
-| `.field` / `.stepperField` | macOS only | - | - | skip (unavailable on iOS) |
-| `MultiDatePicker(selection:in:)` (iOS 16) | set of `DateComponents` | none | missing | same as UIKit multi row |
-| `.environment(\.locale / \.calendar / \.timeZone)` | locale | formatter callbacks | same as UIKit locale row | reshape (see Breaking) |
+| `DatePicker(_:selection:in:displayedComponents:)` (iOS 13) | picker with a leading title row | `MorphDatePicker` + `semanticLabel` | partial: no visible title | put the picker in `MorphListRow.trailing` |
+| `DatePickerComponents.date` / `.hourAndMinute` | option set | `mode` | same as UIKit mode rows | - |
+| `in:` ranges | range | `minimumDate` / `maximumDate` | same as UIKit rows | - |
+| `datePickerStyle(.compact / .graphical / .wheel / .automatic)` | presentation | `style` | same as UIKit style rows (`.graphical` = `inline`) | - |
+| `.field` / `.stepperField` | macOS only | - | n/a | - |
+| `MultiDatePicker(selection:in:)` (iOS 16) | set of days | none | gap | later `MorphMultiDatePicker` |
+| `.environment(\.locale / \.calendar / \.timeZone)` | locale | `localizations` | same as UIKit locale row | - |
+
+Count (UIKit + SwiftUI-only members, `UICalendarView` excluded): 24 applicable, 11 covered, 5 partial, 8 gaps.
 
 ## Not relevant for Flutter
-- `UIDatePicker` `NSCoding`, `UIAppearance` tint proxies, `UIControl` target-action plumbing (onChanged covers it).
-- `datePickerStyle` resolution traits (Mac Catalyst / iPad idiom).
-- `UICalendarSelection.updateSelectableDates()` (Flutter rebuilds).
-- Accessibility traits and adjustable actions: Flutter `Semantics` (morph already labels days and wheels).
+- `NSCoding`, `UIAppearance` proxies (`MorphThemeData.appearances` carries a `MorphDatePickerAppearance`), target-action plumbing.
+- Style resolution traits (Mac Catalyst, iPad idiom); `UICalendarSelection.updateSelectableDates()` (Flutter rebuilds).
 
 ## morph-only API
-- `MorphDatePicker.today` (tint date override; Material calls it `currentDate`) - keep (tests and demos need it).
-- `MorphDatePicker.use24HourFormat` - keep (CupertinoDatePicker has `use24hFormat`; UIKit derives it from locale); fold into localizations object if that lands.
-- `MorphDatePickerMotion`, `MorphDatePickerTuning`, `MorphDatePickerPlacement`, `morphPlaceDatePicker` - keep (measured motion, package convention).
-- `MorphDatePickerStyle` color table (17 colors + 2 opacities) - keep.
+- `today` (the day tinted as today; Material `currentDate`), `use24HourFormat` (null follows `MediaQuery.alwaysUse24HourFormat`).
+- `MorphDatePickerAppearance` (17 colors, 2 opacities, light / dark / high-contrast tables).
 
 ## Ranked gaps
 | # | gap | need | cost | proposal |
 |---|---|---|---|---|
-| 1 | `minuteInterval` + `roundsToMinuteInterval` | high (booking, alarms, reminders) | S | add both on `MorphDatePicker` |
-| 2 | inline style (calendar in place, UICalendarView / `.graphical`) | high (forms, booking screens) | M (calendar exists; needs in-place host, size, no overlay motion) | add `MorphDatePickerVariant.inline` |
-| 3 | locale: defaults are English; 8 separate params | high for non-English apps | M | `MorphDatePickerLocalizations` (one object, optional default from `Localizations`) |
-| 4 | `countDownTimer` mode + `countDownDuration` | med (timers) | M (new wheels: hours / min with fixed labels; needs a measurement) | add mode |
-| 5 | wheels style in place (date and time) | med | M-L (date wheels unmeasured) | add `MorphDatePickerVariant.wheels` |
-| 6 | `yearAndMonth` mode | med (card expiry, reports) | S-M (wheels exist) | add mode |
-| 7 | day decorations / selectable predicate | low-med | S-M | add with inline |
-| 8 | multi-date selection | low | M | later `MorphMultiDatePicker` |
-| 9 | animated external `value` change | low | S | add |
+| 1 | inline style (calendar in place) | H | M | draw `MorphDatePickerStyle.inline` |
+| 2 | locale defaults are English; nothing read from `Localizations` | H | M | default `MorphDatePickerLocalizations` from the app's locale |
+| 3 | `countDownTimer` + `countDownDuration` | M | M (measure first) | add the mode |
+| 4 | wheels style in place (date wheels) | M | M-L (measure first) | draw `MorphDatePickerStyle.wheels` |
+| 5 | `yearAndMonth` mode | M | S-M | reuse the month/year wheels |
+| 6 | `roundsToMinuteInterval = false` | L | S | add the flag |
+| 7 | animated external `value` change | L | S | animate while open |
+| 8 | day decorations, selectable predicate, multi-date | L | S-M | with inline |
 
 ## Breaking changes before 1.0
-- `MorphDatePicker.firstDate` / `lastDate` -> `minimumDate` / `maximumDate`: UIKit's names, and Flutter's
-  own `CupertinoDatePicker` uses them; iOS developers and Cupertino users both expect them.
-- `dateFormatter`, `timeFormatter`, `localize`, `calendarTitleFormatter`, `daySemanticFormatter`,
-  `numberFormatter` (and possibly `use24HourFormat`, `firstDayOfWeek`) -> one `localizations:
-  MorphDatePickerLocalizations?` object (UIKit's single `locale` concept), so a 1.0 addition of a field
-  (count-down labels, month-year mode) is not another constructor parameter on every call site.
-- Reserve the presentation enum name now: `MorphDatePickerVariant { compact, inline, wheels }` (UIKit case
-  names) with `MorphDatePicker.variant = compact`, since `MorphDatePickerStyle` is taken by the color table.
-  Coordinator: align the word (`Variant` / `Presentation`) with the other families (progress has
-  `MorphProgressViewStyle` as the shape enum, the opposite convention).
-- `MorphDatePickerMode` default `date` vs UIKit `.dateAndTime`: keep, but document the difference.
+- Done: `firstDate` / `lastDate` -> `minimumDate` / `maximumDate`; the six formatters -> `MorphDatePickerLocalizations`; the presentation enum is `MorphDatePickerStyle { compact, inline, wheels }` with `style`; `minuteInterval`.
+- Open: decide whether `use24HourFormat` and `firstDayOfWeek` move into `MorphDatePickerLocalizations` (UIKit derives both from `locale` / `calendar`).
+- Open: `minimumDate` later than `maximumDate` should ignore both, as UIKit's header states.
+
+## Behaviour fidelity
+| dimension | grade | evidence | open items |
+|---|---|---|---|
+| api | missing | this page | inline / wheels styles, countDownTimer, yearAndMonth |
+| layout | replayed | passport "Spec - compact labels", "overlay", "calendar", "month and year wheels", "time wheels"; `ios27/date_picker/placements.json`, `date-low.jsonl`; test/date_picker_test.dart (placement, 16 pt margin, six-week rows, time and 12-hour wheel rows, month/year wheel rows within 0.5 - 0.8 pt) | inline / wheels layouts; RTL placement is mirrored, not measured |
+| states | unbacked | disabled labels replayed (`ios27-device/disabled/disabled.json`, test/disabled_test.dart); chosen-day and today colors [film] | `unavailableDayOpacity` 0.35 unmeasured; `todayFillColor` has no source |
+| transitions | approx | open / close / turnaround / reopen / switch replayed on device rows (`vid-date`, `tm-openclose-*`, `tm-closeopen-*`, `vid-both`; scale rms < 0.015 - 0.02); year picker fades and chevron replayed (`my-*`, `myrev-*`, `my31`, `mypage`; rms < 0.035); label dim replayed (sim `date-open`) | month page turn is a 0.3 s sine ease, 2.5 pt tolerance (UIScrollView curve differs, declared); AM/PM flip 200 ms unmeasured; Reduce Motion picker switch not ported |
+| boundaries | unbacked | minute floor read from UIKit (notes private; test/date_picker_interval_test.dart); month-end clamp on device (`my31`); six-week months [device] | min > max clamps to `minimumDate` (UIKit ignores both); time wheels at a boundary day and the disabled-day look unmeasured |
+| configuration | missing | date / time / dateAndTime, 12 and 24 h measured on device | inline, wheels, countDownTimer, yearAndMonth |
+| events | measured | wheel-rest `valueChanged` rows in `my31` / `mypage`; widget tests assert the same values | time-wheel `valueChanged` timing (0.2 - 0.36 s after the lift) not compared |
+| input | measured | quick succession, tap outside while opening, label tap while closing (device rows, filler-stroke taps): replayed | wheel deceleration (64 pt drag = two rows) measured, not replayed; Escape / Space / Enter have no native twin |
+| mutation | unbacked | test/date_picker_updates_test.dart (behaviour contracts only) | external `value` change while open and min / max change while open have no recording; `setDate(animated:)` missing |
+| accessibility | unbacked | Reduce Motion fade, Increase Contrast tables and wheel haptic read from UIKit (notes private; states.md) | overlay text scale capped at 1.2 without a source; Dynamic Type of the labels unmeasured; English defaults |
+| optics | approx | platter color light / dark [device]; NEAR raster and fade trades declared in `MorphDatePicker` | month/year wheel perspective not reproduced; flat-tier shadow (blur 20, offset 6, 0x24000000) has no source |
+| platform | unbacked | margins 16 / 20 by screen width [device + sim] | RTL placement inferred; Gregorian only |
+| performance | measured | passport "Performance trade" sections (Pixel 6a matrix runs); test/glyph_strikes_test.dart, test/glyph_scale_date_test.dart, example/test/control_matrix_test.dart | - |

@@ -10,7 +10,8 @@ timing) + film light/dark; ported; replayed (search_test). Tab bar search:
 `UISearchTextField`, glass `GlassInteractionView`, keyboard
 `UIKeyboardItemContainerView`. Tuning: SwiftUI
 `GlassContainerSearchTransitionPTSettings` [tuning].
-Public API (SDK 27.0): `searchResultsController`, `searchResultsUpdater`,
+Public API (SDK 27.1; full table in [api/search.md](api/search.md)):
+`searchResultsController`, `searchResultsUpdater`,
 `active`, `obscuresBackgroundDuringPresentation`,
 `hidesNavigationBarDuringPresentation`, `automaticallyShowsCancelButton`,
 `automaticallyShowsSearchResultsController`, `showsSearchResultsController`,
@@ -81,8 +82,8 @@ Scene `x3search`, `PROBE_SEARCH=tab` (UISearchTab without
   the large title and wraps its body in `MorphStackedSearchHost`),
   `MorphSearchTuning.stacked*`, `MorphSearchField.height` / `glass`,
   `MorphSearchFieldAppearance.stackedFillColor`. Test:
-  search_stacked_test. Approximations (declared): the field turns to
-  glass at p = 0.5 (one frame; UIKit's crossfade not read); the close
+  search_stacked_test (no fixture). Approximations (declared): the field
+  turns to glass at p = 0.5 (one frame; UIKit's crossfade not read); the close
   button slides 40 points with alpha = p, no lag; the content under a
   presented field is covered by the page background (UIKit blurs it
   with the edge effect); a scrolled stacked field scrolls away (UIKit's
@@ -107,7 +108,8 @@ Scene `x3search`, `PROBE_SEARCH=tab` (UISearchTab without
 
 Device `ios27-device/search/` (search-toolbar, search-tap, search-hold);
 simulator `ios27/search/` (search-close, search-hold, search-toolbar,
-search-toolbar-items). Film crops `references/search-video/`.
+search-toolbar-items; search_test loads all but search-close). Film crops
+`references/search-video/`.
 
 ## Recapture
 
@@ -154,8 +156,8 @@ starts it.
 - Search in the navigation bar: the bottom toolbar placement and the
   stacked one (`MorphNavigationSearch`) exist; integrated (inline in the
   bar), integratedButton and the pinned stacked field do not.
-- Ending a search from code: `MorphSearchToolbar.active` and
-  `MorphNavigationSearch.active` (2026-10-14).
+- Ending a search from code: `active` on `MorphSearchToolbar`,
+  `MorphNavigationSearch` and `MorphSearchTabBar`.
 - Scope bar, search tokens, suggestions, results controller semantics,
   bookmark / results list buttons.
 

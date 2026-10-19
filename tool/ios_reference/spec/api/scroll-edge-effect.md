@@ -1,65 +1,90 @@
-# Scroll edge effect - API parity (UIKit / SwiftUI iOS 27 vs morph)
+# Scroll edge effect - API parity (UIKit / SwiftUI iOS 27.1 vs morph)
 
 Native: `UIScrollEdgeEffect` (`style`, `isHidden`), `UIScrollEdgeEffect.Style` (`.automatic`, `.soft`, `.hard`),
 `UIScrollView.topEdgeEffect` / `leftEdgeEffect` / `bottomEdgeEffect` / `rightEdgeEffect`,
 `UIScrollEdgeElementContainerInteraction` (`scrollView`, `edge`); SwiftUI `ScrollEdgeEffectStyle`,
 `scrollEdgeEffectStyle(_:for:)`, `scrollEdgeEffectHidden(_:for:)`, `safeAreaBar(edge:alignment:spacing:content:)`.
-All iOS 26 (NEW with Liquid Glass); nothing added in iOS 27.
-morph: `MorphScrollEdgeEffect` (`extent`, `edge`, `style`, `active`, `theme`, `opacity`, `bandExtent`),
-`MorphScrollEdgeEffectStyle` (`soft`, `hard`), `MorphScrollEdgeEffectThemeData`;
-`MorphNavigationBar.edgeEffect` / `edgeEffectTheme` / `scrolledUnder`, `MorphNavigationConfig.edgeEffect`,
-`MorphWidgetsTheme.scrollEdgeEffect`.
+All iOS 26; nothing added or changed in iOS 27.0 or 27.1.
+morph (`package:morph/morph.dart`): `MorphScrollEdgeEffect` (`extent`, `edge`, `style`, `scrolledUnder`,
+`appearance`, `opacity`, static `bandExtent`), `MorphScrollEdgeEffectStyle` (`soft`, `hard`),
+`MorphScrollEdgeEffectAppearance` (`light`, `dark`, `resolve`, `hardColorMatrix`); hosts
+`MorphNavigationBar.edgeEffect` / `edgeEffectAppearance` / `scrolledUnder`, `MorphNavigationConfig.edgeEffect` /
+`scrolledUnder`, `MorphNavigationScaffold.edgeEffect`; theme entry `MorphThemeData.appearances`.
 Passport: [../bars.md](../bars.md) ("Spec - inline title, large title, edge effect"), cost in
 [../glass-renderer.md](../glass-renderer.md) ("Small blurs").
 
-Model difference: UIKit owns the effect per scroll view and per edge, and shows it
-automatically while content lies under a bar (or under an element registered with
-`UIScrollEdgeElementContainerInteraction`). morph's effect is a standalone overlay the app (or
-`MorphNavigationBar`) places with an explicit `extent` and an explicit `active` flag.
+Model difference: UIKit owns the effect per scroll view and per edge and shows it while content lies
+under a bar or under an element registered with `UIScrollEdgeElementContainerInteraction`.
+`MorphNavigationScaffold` derives `scrolledUnder` from its scroll controller the same way; a standalone
+`MorphScrollEdgeEffect` takes an explicit `extent` and `scrolledUnder` from the app.
 
 ## UIKit
-| UIKit API (type.member, availability) | meaning | morph equivalent | gap / mismatch | proposal |
+| UIKit API (type.member, availability) | meaning | morph equivalent | status | gap / proposal |
 |---|---|---|---|---|
-| `UIScrollEdgeEffect.Style.soft` iOS 26 (NEW) | light blur band past the bar + dissolving fade | `MorphScrollEdgeEffectStyle.soft` | none (measured: `softBlurRadius` 1.5, `softOverhang` 40, `softFadeStart` 0.3407) | keep |
-| `UIScrollEdgeEffect.Style.hard` iOS 26 (NEW) | "thin film": saturated blur, uniform fade, hairline | `MorphScrollEdgeEffectStyle.hard` | none (`hardSaturation` 1.25, `hardBrightness` 0.03, `separatorColor`) | keep |
-| `UIScrollEdgeEffect.Style.automatic` iOS 26 (NEW), the default | system picks (hard under a nav bar, none under a floating toolbar per bars.md) | none; `MorphScrollEdgeEffect.style` defaults to `soft`, `MorphNavigationBar.edgeEffect` to `hard` | defaults differ per widget instead of one `automatic` | add `MorphScrollEdgeEffectStyle.automatic` resolved by the host (nav bar -> hard, toolbar -> none, standalone -> soft) and make it every default |
-| `UIScrollEdgeEffect.isHidden` iOS 26 (NEW) | turn the edge's effect off | `MorphNavigationBar.edgeEffect: null`; standalone: do not build it | different shape (nullable style vs bool) | keep nullable style on hosts; add `hidden` only if the automatic host lands |
-| `UIScrollView.topEdgeEffect` / `bottomEdgeEffect` iOS 26 (NEW) | per-edge effect owned by the scroll view | `MorphScrollEdgeEffect.edge` = `AxisDirection.up` / `.down` | the effect is not tied to a scroll view; `active` must be computed by the app | add `MorphScrollEdgeEffect.automatic(controller:)` (or a `ScrollNotification` listener) that derives `active` from the scroll position |
-| `UIScrollView.leftEdgeEffect` / `rightEdgeEffect` iOS 26 (NEW) | side edges (sidebars, horizontal scroll) | none: `edge` takes any `AxisDirection` but `.left` / `.right` paint as the bottom edge | silent misbehaviour | assert `edge` is vertical now; add horizontal edges later (low) |
-| (automatic presence while content is under the bar) | effect follows content offset, switches in one frame | `MorphScrollEdgeEffect.active`, `MorphNavigationBar.scrolledUnder` (fade on crit 0.35) | two names for one concept | rename `active` -> `scrolledUnder` (see Breaking) |
-| `UIScrollEdgeElementContainerInteraction` (`scrollView`, `edge`) iOS 26 (NEW) | registers a custom bar/view so the edge effect shapes under it | `MorphScrollEdgeEffect.extent` (app passes the bar's far edge) | no measuring of the custom bar | add a `MorphScrollEdgeBar` host that measures its child and places the effect (also covers SwiftUI `safeAreaBar`) |
-| per-page effect sliding with its page on push/pop | effect belongs to each page's scroll view | one effect in the bar, cross-faded (`MorphScrollEdgeEffect.opacity`) | declared deviation in bars.md | keep (documented) |
+| `UIScrollEdgeEffect.Style.soft` iOS 26 | light blur band past the bar, dissolving fade | `MorphScrollEdgeEffectStyle.soft` | covered | - |
+| `UIScrollEdgeEffect.Style.hard` iOS 26 | thin film: saturated blur, uniform fade, hairline | `MorphScrollEdgeEffectStyle.hard` | covered | - |
+| `UIScrollEdgeEffect.Style.automatic` iOS 26, the default | hard under a nav bar, none under a floating toolbar or tab bar (bars.md) | none; defaults `soft` standalone, `hard` in the nav hosts | gap | `MorphScrollEdgeEffectStyle.automatic`, resolved by the host, every default |
+| `UIScrollEdgeEffect.style` iOS 26 | the edge's style | `MorphScrollEdgeEffect.style`, `MorphNavigationBar.edgeEffect` | covered | - |
+| `UIScrollEdgeEffect.isHidden` iOS 26 | turn the edge off | `edgeEffect: null` on hosts; standalone: do not build it | partial | keep nullable style |
+| `UIScrollView.topEdgeEffect` iOS 26 | per-edge effect owned by the scroll view | `MorphNavigationScaffold` (automatic presence); standalone `edge: AxisDirection.up` with manual `scrolledUnder` | partial | scroll-coupled standalone (gap 2) |
+| `UIScrollView.bottomEdgeEffect` iOS 26 | bottom edge | `edge: AxisDirection.down`, drawn with the top's values | partial | bottom law [sim, bars.md]: hard radius 2 + (h - 54) / 88 clamped to 2 - 2.5, soft +30 - 40 |
+| `UIScrollView.leftEdgeEffect` / `rightEdgeEffect` iOS 26 | side edges | none (assertion) | gap (2 members) | later (low) |
+| `UIScrollEdgeElementContainerInteraction` (`scrollView`, `edge`) iOS 26 | registers a custom bar so the effect shapes under it | `extent` passed by hand | gap | `MorphScrollEdgeBar` measuring its child; top hard band max(h, 62) [sim] |
+| per-page effect sliding with its page on push / pop | effect belongs to each page's scroll view | one effect in the bar, cross-faded through `opacity` | approx | declared deviation (bars.md) |
 
 ## SwiftUI
-| SwiftUI API (availability) | meaning | morph equivalent | gap / mismatch | proposal |
+| SwiftUI API (availability) | meaning | morph equivalent | status | gap / proposal |
 |---|---|---|---|---|
-| `ScrollEdgeEffectStyle.automatic/.hard/.soft` iOS 26 (NEW) | same as UIKit | `MorphScrollEdgeEffectStyle` | missing `automatic` (UIKit row 3) | same as UIKit |
-| `scrollEdgeEffectStyle(_:for: Edge.Set)` iOS 26 (NEW), nil = automatic | style per edge set, ambient to the scroll view | `MorphNavigationBar.edgeEffect`, `MorphNavigationConfig.edgeEffect` (top only) | no bottom-edge config on `MorphToolbar` | add `MorphToolbar.edgeEffect` (default automatic = none) |
-| `scrollEdgeEffectHidden(_:for:)` iOS 26 (NEW) | hide per edge | `edgeEffect: null` | same as UIKit `isHidden` row | keep |
-| `safeAreaBar(edge:alignment:spacing:content:)` iOS 26 (NEW) | custom bar inset into the safe area; scroll edge effect extends under it | none | gap: a custom top/bottom bar gets no effect unless the app places `MorphScrollEdgeEffect` with a hand-measured `extent` | add `MorphScrollEdgeBar` (same proposal as `UIScrollEdgeElementContainerInteraction`) |
+| `ScrollEdgeEffectStyle.hard` / `.soft` iOS 26 | as UIKit | `MorphScrollEdgeEffectStyle` | covered (2 members) | - |
+| `ScrollEdgeEffectStyle.automatic` iOS 26 | as UIKit | none | gap | as UIKit |
+| `scrollEdgeEffectStyle(_:for: Edge.Set)` iOS 26, nil = automatic | style per edge set, ambient to the scroll view | `edgeEffect` on `MorphNavigationBar` / `MorphNavigationConfig` / `MorphNavigationScaffold` (top only) | partial | `MorphToolbar.edgeEffect` (default automatic = none) |
+| `scrollEdgeEffectHidden(_:for:)` iOS 26 | hide per edge | `edgeEffect: null` | partial | keep |
+| `safeAreaBar(edge: VerticalEdge, ...)` iOS 26 | custom bar inset into the safe area, effect under it | none | gap | `MorphScrollEdgeBar` |
+| `safeAreaBar(edge: HorizontalEdge, ...)` iOS 26 | side bar variant | none | gap | with horizontal edges |
+
+Counts (n/a excluded): 17 applicable, 5 covered, 5 partial, 7 gaps.
 
 ## Not relevant for Flutter
-- `UIScrollView` content inset adjustment / `contentInsetAdjustmentBehavior` around bars: Flutter `MediaQuery.padding` and slivers.
+- `UIScrollView` content inset adjustment around bars: Flutter `MediaQuery.padding` and slivers.
 - tvOS / visionOS availability.
-- The private `UIKit.ScrollEdgeEffectView` / `PocketSettings`: ported as `MorphScrollEdgeEffectThemeData` values (passport).
+- The private `UIKit.ScrollEdgeEffectView` / `PocketSettings`: ported as `MorphScrollEdgeEffectAppearance` values (bars.md).
 
 ## morph-only API
-- `MorphScrollEdgeEffectThemeData` (`backgroundColor`, `fadeOpacity`, `separatorColor`, `softBlurRadius`, `hardBlurRadius`, `softOverhang`, `softFadeStart`, `hardSaturation`, `hardBrightness`, `hardColorMatrix`, `light` / `dark`): keep (native look is not configurable; this exposes the measured values). `backgroundColor` is needed because Flutter cannot read "what lies behind the scroll view" - keep.
-- `MorphScrollEdgeEffect.opacity` (fade without an `Opacity` layer): keep.
-- `MorphScrollEdgeEffect.bandExtent` (static helper): keep.
-- Flat tier draws fade + hairline only (no blur): keep, declared trade.
+- `MorphScrollEdgeEffectAppearance` (`backgroundColor`, `fadeOpacity`, `separatorColor`, `softBlurRadius`, `hardBlurRadius`, `softOverhang`, `softFadeStart`, `hardSaturation`, `hardBrightness`, `hardColorMatrix`): exposes the measured values; `backgroundColor` stands in for what lies behind the scroll view.
+- `MorphScrollEdgeEffect.opacity`: a host-driven fade without an opacity layer above the blur.
+- `MorphScrollEdgeEffect.bandExtent`: static helper.
+- Flat tier: fade and hairline only, no blur (declared trade).
 
 ## Ranked gaps
 | # | gap | need | cost | proposal |
 |---|---|---|---|---|
-| 1 | No custom-bar host (`safeAreaBar`, `UIScrollEdgeElementContainerInteraction`): the app must measure `extent` itself | high (any custom header / bottom bar over a list) | M | `MorphScrollEdgeBar({edge, child, style})` measuring the child, insetting `MediaQuery.padding`, placing the effect |
-| 2 | `active` is manual; UIKit derives it from the scroll position | high | S-M | `MorphScrollEdgeEffect` driven by a `ScrollController` / `ScrollNotification` (reuse the nav bar's `scrolledUnder` fade, crit 0.35) |
-| 3 | No `automatic` style; defaults differ (`soft` standalone, `hard` in the nav bar) | med | S | add `MorphScrollEdgeEffectStyle.automatic`, resolved per host |
-| 4 | Bottom edge on `MorphToolbar` not configurable | low-med | S | `MorphToolbar.edgeEffect` (default none, as native under a floating toolbar) |
-| 5 | Left / right edges accepted but drawn as bottom | low | S (assert) / M (support) | assert vertical now |
+| 1 | No custom-bar host (`safeAreaBar`, `UIScrollEdgeElementContainerInteraction`) | high | M | `MorphScrollEdgeBar({edge, child, style})` measuring the child and placing the effect |
+| 2 | Standalone `scrolledUnder` is manual | high | S-M | drive it from a `ScrollController` or `MorphContentScroll`, with the nav bar's 0.35 s fade |
+| 3 | No `automatic` style; defaults differ per widget | med | S | `MorphScrollEdgeEffectStyle.automatic` |
+| 4 | Bottom edge drawn with top values | low-med | S meas. | confirm the [sim] bottom law on the device, then port it |
+| 5 | `MorphToolbar` has no edge configuration | low | S | `MorphToolbar.edgeEffect` (default none, as native) |
+| 6 | Left / right edges | low | M | later |
 
 ## Breaking changes before 1.0
-- `MorphScrollEdgeEffect.active` -> `scrolledUnder` (same concept as `MorphNavigationBar.scrolledUnder`).
-- `MorphScrollEdgeEffect.style` default `soft` -> `automatic` (once added); `MorphNavigationBar.edgeEffect` default `hard` -> `automatic` (resolves to hard, no visual change).
-- `MorphScrollEdgeEffectThemeData` -> follow the package look-table rule from cross-cutting.md (it is the only `*ThemeData`; every other look table is `*Style`), and `MorphScrollEdgeEffect.theme` / `MorphNavigationBar.edgeEffectTheme` -> the same parameter name every other control uses for its look table.
-- `MorphScrollEdgeEffect.edge` -> a vertical-only type (`VerticalDirection` or `AxisDirection` with an assert) until horizontal edges exist.
+- Done: `active` -> `scrolledUnder`; `MorphScrollEdgeEffectThemeData` -> `MorphScrollEdgeEffectAppearance`, `theme` -> `appearance`, `edgeEffectTheme` -> `edgeEffectAppearance`; `edge` asserts a vertical direction.
+- Open: `MorphScrollEdgeEffect.style` default `soft` -> `automatic` once added; nav host defaults `hard` -> `automatic` (resolves to hard, no visual change).
+
+## Behaviour fidelity
+
+Family `scroll-edge` (`UIScrollEdgeEffect`):
+
+| dimension | grade | evidence | open items |
+|---|---|---|---|
+| api | missing | tables above | automatic, custom-bar host, side edges |
+| layout | unbacked | top band replayed: test/scroll_edge_effect_test.dart 'soft: ...' and 'the band ends at the bar ...' vs test/fixtures/ios27-device/bars/scroll-edge.json (hard = bar, soft = bar + 40) | `edge: down` draws the top's radius and overhang, undeclared; the `hardBlurRadius` dartdoc reads as if no bottom band were drawn |
+| states | replayed | hard light, soft light, automatic dark (fade 0.6) vs the same fixture | dark separator and dark blur not asserted |
+| transitions | replayed | fade on the 0.35 s critically damped spring: test/navigation_motion_test.dart vs ios27/bars/title-*.jsonl and ios27-device/bars/title-*.jsonl (edge opacity rms < 0.12) | per-page slide on push / pop: declared deviation |
+| boundaries | replayed | the replay switches where the recorded offset crosses morph's large title height (`_crossings`) | standalone effect: app decides |
+| configuration | missing | soft / hard x light / dark covered | `automatic`; bottom law; toolbar host |
+| events | n/a | no callbacks | - |
+| input | n/a | the effect takes no input; hosts animate only while scrolling (`isScrollingNotifier`) | - |
+| mutation | n/a | - | - |
+| accessibility | missing | - | Increase Contrast / Reduce Transparency behaviour of the effect unmeasured |
+| optics | approx | blur radii, saturation matrix (2e-3), fade alpha, separator alpha, fade start replayed vs the device layers; blur raised to Impeller's half resolution, NEAR (scroll_edge_effect.dart dartdoc, test/blur_reach_test.dart) | Pixel energy of the raise pending (bars.md) |
+| platform | approx | flat tier: fade and hairline only (test/scroll_edge_effect_test.dart 'flat edges keep their fade ...') | horizontal edges assert |
+| performance | measured | Pixel 6a: the band blurs a copy around it, 7.6 -> 2.8 ms GPU a scrolling frame (glass-renderer.md "Small blurs", bars.md) | the half-resolution raise: Pixel GPU and energy pending |

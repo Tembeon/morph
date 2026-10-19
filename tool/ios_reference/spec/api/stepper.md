@@ -1,68 +1,86 @@
 # Stepper - API parity (UIKit / SwiftUI iOS 27 vs morph)
 
-Native: `UIStepper` (UIControl), SwiftUI `Stepper`. morph: `MorphStepper`, `MorphStepperStyle`
-(`MorphWidgetsTheme.stepper`). Passport: [../stepper.md](../stepper.md).
+Native: `UIStepper` (UIControl; on iOS 27 it hosts a SwiftUI stepper), SwiftUI `Stepper`. morph:
+`MorphStepper`, `MorphStepperAppearance` (explicit, or from `MorphThemeData.appearances`). Passport:
+[../stepper.md](../stepper.md).
 
-SDK 27.0 adds NOTHING to `UIStepper.h` after iOS 6 (no iOS 26/27 API). SwiftUI `Stepper` has no iOS 26/27
-additions (newest: `format:` initializers, iOS 16).
+SDK 27.1 (iPhoneOS27.1.sdk): `UIStepper.h` declares nothing after iOS 6. SwiftUI `Stepper` adds nothing after
+iOS 16 (`format:` initializers). 27.1 changes nothing here.
 
 ## UIKit
 | UIKit API (type.member, availability) | meaning | morph equivalent | gap / mismatch | proposal |
 |---|---|---|---|---|
-| `value` (iOS 5, double, clamped) | current value | `MorphStepper.value` | - | keep |
-| `minimumValue` (default 0) / `maximumValue` (default 100) | range | `MorphStepper.min` (0) / `.max` (100) | same defaults; Flutter/SwiftUI-style names | keep |
-| `stepValue` (default 1) | step | `MorphStepper.step` (1) | - | keep |
-| `.valueChanged` event | value changed | `MorphStepper.onChanged` (`ValueChanged<double>?`) | - | keep |
+| `value` (iOS 5, clamped) | current value | `MorphStepper.value` | - | keep |
+| `minimumValue` (0) / `maximumValue` (100) | range | `min` (0) / `max` (100) | - | keep |
+| `stepValue` (1) | step | `step` (1) | - | keep |
+| `.valueChanged` | value changed | `onChanged` | - | keep |
 | `isEnabled` (UIControl) | disabled; draws nothing different on iOS 27 | `onChanged: null` (pixel-identical, measured) | - | keep |
-| `isContinuous` (default YES) | NO = one valueChanged when the hold ends | none (always continuous) | the app cannot defer an expensive update to the end of a hold | add `onChangeStart` / `onChangeEnd` instead (SwiftUI `onEditingChanged`); skip `isContinuous` |
-| `autorepeat` (default YES) | press-and-hold repeats (0.5 s, measured) | always on (`MorphStepper.repeatInterval`) | cannot turn off | add `autorepeat` (bool, true); S |
-| `wraps` (default NO) | max + step wraps to min and back | none (clamps) | missing; limit glyph dimming must not apply when wrapping (check on device) | add `wraps` (bool, false) |
-| `tintColor` (UIView) | glyph tint (effect on the iOS 27 stepper not checked) | `MorphStepper.foregroundColor`, `MorphStepperStyle.foregroundColor` | - | keep |
-| `setIncrementImage(_:for:)` / `setDecrementImage(_:for:)` (iOS 6) | custom plus/minus glyphs per state | none (drawn minus / plus) | missing | add `incrementIcon` / `decrementIcon` (Widget); low |
-| `setBackgroundImage(_:for:)` / `setDividerImage(_:forLeftSegmentState:rightSegmentState:)` (iOS 6) | skin by images | `MorphStepperStyle.backgroundColor`, `.dividerColor`, `.dividerHeight` | images vs colors | skip images; colors cover the native look |
-| `accessibilityIncrement` / `Decrement`, element labels | VoiceOver | two buttons `decrementLabel` / `incrementLabel` + `semanticValueFormatter` | - | keep |
+| `isContinuous` (YES) | NO = one event when the hold ends | always continuous | no deferred update | `onChangeStart` / `onChangeEnd` |
+| `autorepeat` (YES) | hold repeats | always on (`MorphStepper.repeatInterval` 0.5 s) | cannot turn off | add `autorepeat` |
+| `wraps` (NO) | max + step wraps to min | clamps | missing; limit glyph while wrapping unmeasured | add `wraps` after a capture |
+| `tintColor` (UIView) | glyph tint (effect on iOS 27 not checked) | `foregroundColor` (widget, appearance) | `MorphThemeData.tint` not read | check on a device |
+| `setIncrementImage` / `setDecrementImage` (iOS 6) | custom glyphs | none | missing | `incrementIcon` / `decrementIcon` (Widget) |
+| `setBackgroundImage(_:for:)` (iOS 6) | fill skin | `backgroundColor` (widget, appearance) | colors only | keep |
+| `setDividerImage(...)` (iOS 6) | divider skin | `dividerColor`, `dividerHeight` (appearance) | colors only | keep |
+| `accessibilityIncrement` / `Decrement`, element labels | VoiceOver | two buttons `decrementLabel` / `incrementLabel` + `semanticFormatterCallback` | English default labels; native structure not recorded | localization hook |
 
 ## SwiftUI
 | SwiftUI API (availability) | meaning | morph equivalent | gap / mismatch | proposal |
 |---|---|---|---|---|
-| `Stepper(value:in:step:label:onEditingChanged:)` (iOS 13) | bounded value stepper + label row | `MorphStepper(value, min, max, step)` | no label row | skip (row layout is the app's / `MorphListRow`) |
-| `onEditingChanged: (Bool) -> Void` (iOS 13) | begin / end of a press (incl. repeats) | none | same as UIKit `isContinuous` row | add `onChangeStart` / `onChangeEnd` |
-| `Stepper(label:onIncrement:onDecrement:onEditingChanged:)` (iOS 13) | unbounded / custom stepping, nil disables a half | none (value-based only) | cannot step non-numeric things (e.g. dates, enum cases) or disable one half freely | add `MorphStepper.custom({onIncrement, onDecrement})` (VoidCallback?, null disables that half); med |
-| `Stepper(value:step:format:label:)` (iOS 16) | value text formatted in the label | `semanticValueFormatter` (semantics only) | visible value text is the app's | keep |
-| `.disabled(_:)` / `.controlSize(_:)` | disable / size | `onChanged: null` / fixed `MorphStepper.size` 94 x 32 | - | keep |
+| `Stepper(value:in:step:label:onEditingChanged:)` (iOS 13) | bounded stepper + label row | `MorphStepper(value, min, max, step)` | no label row | skip (row layout is the app's) |
+| `onEditingChanged:` (iOS 13) | begin / end of a press | none | missing | `onChangeStart` / `onChangeEnd` |
+| `Stepper(label:onIncrement:onDecrement:onEditingChanged:)` (iOS 13) | custom stepping, nil disables a half | none | cannot step non-numeric values | `MorphStepper.custom({onIncrement, onDecrement})` |
+| `Stepper(value:step:format:label:)` (iOS 16) | formatted value text | `semanticFormatterCallback` (semantics only) | visible text is the app's | keep |
+| `.disabled(_:)` | disable | `onChanged: null` | - | keep |
+| `.controlSize(_:)` | size | fixed `MorphStepper.size` 94 x 32 | effect not measured | measure first |
 
 ## Not relevant for Flutter
 - `NSCoding`, `UIAppearance` proxies, per-`UIControlState` image variants.
-- target-action plumbing; accessibility selectors (Semantics covers them).
+- Target-action plumbing and accessibility selectors (Semantics covers them).
 
 ## morph-only API
-- `MorphStepper.backgroundColor` (widget-level fill override) - keep (UIKit uses background images).
-- `MorphStepperStyle.limitForegroundColor`, `.pressedOverlay`, `.pressedReplacesFill`, `.dividerHeight` - keep
-  (measured look).
-- `MorphStepper.size`, `MorphStepper.repeatInterval` - keep (measured constants).
-- `MorphStepper.decrementLabel` / `incrementLabel` default to English 'Decrement' / 'Increment' - flag: should
-  come from a localization source (`WidgetsLocalizations` has no such strings; consider null = no default label
-  plus a doc note, or an app-provided localization).
+- `MorphStepper.backgroundColor` / `foregroundColor` (widget overrides).
+- `MorphStepperAppearance.limitForegroundColor`, `.pressedOverlay`, `.pressedReplacesFill`, `.dividerHeight`
+  (measured on the device).
+- `MorphStepper.size`, `MorphStepper.repeatInterval` (measured; their dartdoc gives no source).
+- No contrast tables (`lightHighContrast` / `darkHighContrast`), unlike the switch, slider and segmented control.
 
 ## Flutter convention
-- Flutter has no Cupertino or Material stepper. morph's `value` / `onChanged` (null disables) / `min` / `max` /
-  `step` match Flutter `Slider` naming (`min`/`max`) and SwiftUI (`in:` / `step:`); keep them.
-- Same family convention as slider: add `onChangeStart` / `onChangeEnd` to both so a dev learns one pair.
-- `semanticValueFormatter` (stepper) vs Material Slider's `semanticFormatterCallback`: pick ONE name for slider
-  and stepper (`semanticFormatterCallback` is the Flutter one).
+- Flutter has no Cupertino or Material stepper. `value`, `onChanged` (null disables), `min`, `max`, `step`
+  match the slider and SwiftUI. `semanticFormatterCallback` is Material Slider's name.
+- One begin / end pair across slider and stepper: the slider has `onChangeStart` / `onChangeEnd`, the stepper
+  should take the same names.
 
 ## Ranked gaps
 | # | gap | need | cost | proposal |
 |---|---|---|---|---|
-| 1 | begin/end of a press (`isContinuous = NO` / `onEditingChanged`) | med | S | `onChangeStart` / `onChangeEnd` |
-| 2 | custom stepping (`onIncrement` / `onDecrement`) | med | S-M | `MorphStepper.custom` |
-| 3 | `wraps` | low-med | S (+ device check of the limit glyph when wrapping) | add `wraps` |
-| 4 | `autorepeat = NO` | low | S | add `autorepeat` |
-| 5 | custom increment/decrement glyphs | low | S | `incrementIcon` / `decrementIcon` |
-| 6 | English default semantic labels | low | S | localization hook |
+| 1 | begin / end of a press (`isContinuous = NO`, `onEditingChanged`) | M | S | `onChangeStart` / `onChangeEnd` |
+| 2 | custom stepping (`onIncrement` / `onDecrement`) | M | S-M | `MorphStepper.custom` |
+| 3 | glyphs drawn 16 pt long; the device draws a 14 x 2 minus and a 13.33 plus | M | S | draw the measured glyphs |
+| 4 | `wraps` | L-M | S meas. | add after a capture of the limit glyph |
+| 5 | Increase Contrast colors | L-M | S meas. | capture, then tables |
+| 6 | `autorepeat = NO` | L | S | add |
+| 7 | custom glyph images | L | S | `incrementIcon` / `decrementIcon` |
+| 8 | English default semantic labels | L | S | localization hook |
 
 ## Breaking changes before 1.0
-- `semanticValueFormatter` -> `semanticFormatterCallback` (Flutter Slider name), if the slider adds a formatter;
-  otherwise none.
-- Optional: `decrementLabel` / `incrementLabel` from non-null English defaults to nullable (localization); a
-  behaviour change, decide before 1.0.
+- Done: `MorphStepperStyle` -> `MorphStepperAppearance`, `semanticValueFormatter` -> `semanticFormatterCallback`.
+- Open: `decrementLabel` / `incrementLabel` from non-null English defaults to nullable (localized). Decide
+  before 1.0.
+
+## Behaviour fidelity
+| dimension | grade | evidence | open items |
+|---|---|---|---|
+| api | missing | this page, SDK 27.1 | `wraps`, `autorepeat`, `isContinuous`, custom stepping, glyph images |
+| layout | unbacked | 94 x 32 and divider 1 x 24 measured (stepper.md Device, controls manifest scene st5) | minus / plus drawn as 2 pt round-capped strokes 16 pt long (stepper.dart:530-540); device: 14 x 2 minus, 13.33 plus; no test compares geometry |
+| states | measured | limit glyph color replayed from disabled.json (test/disabled_test.dart); pressed overlay and dark fill replacement checked against the measured constants | light pressed residual of 2 levels unexplained (declared) |
+| transitions | measured | no motion; highlight on the first frame, gone after the lift (stepper.md Device) | test/controls_test.dart asserts the passport timings; ios27-device/controls/stepper-*.jsonl are not loaded by any test |
+| boundaries | measured | clamps at min / max, repeat stops at the max, limit glyph dims (controls_test, disabled_test) | wrap missing |
+| configuration | missing | - | `wraps`, `autorepeat = NO`, `isContinuous = NO` |
+| events | measured | commit on release, repeats every 0.5 s without acceleration, no step on a release after repeats (controls_test against stepper.md numbers) | stepper-plus-hold2500.jsonl not replayed |
+| input | measured | press-slide moves the highlight without a step, leaving the bounds cancels (controls_test, controls_scroll_test) | stepper-minus-press-slide.jsonl not replayed |
+| mutation | unbacked | rejected steps restart from the parent value (test/other_controls_controlled_test.dart) | no native recording |
+| accessibility | unbacked | two buttons with the value (controls_platform_test); no Reduce Motion read (no motion) | native VoiceOver structure unrecorded; English labels; no contrast tables |
+| optics | measured | device fills, divider, pressed black 8 percent, light and dark (stepper.md Device), pixel-checked in disabled_test | glyph shapes (layout row) |
+| platform | measured | minus stays left in RTL [sim] | arrow keys and Space / Enter have no iOS source |
+| performance | unbacked | no motion; host counts pinned in test/lifecycle_counts_test.dart (scene stepper-touch) | not in any device bench scene |

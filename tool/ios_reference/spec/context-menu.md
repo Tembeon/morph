@@ -164,12 +164,17 @@ MorphContextMenuRegion(
   dismissOnSelect: null,          // menuActionDismissBehavior
   appearance: ...,                // MorphMenuAppearance
   onPreviewTap: ...,              // willPerformPreviewAction (commit)
-  onOpen: ..., onClose: ...,      // willDisplay / willEnd
-  // kept: child, replica, holdDuration, lifts, enabled, opensOnSecondaryTap, tagId,
-  // scrim and shadow settings, overlay, semanticLabel, onHold
+  onClose: ...,                   // willEnd
+  // kept: child, replica, previewSize, holdDuration, lifts, enabled,
+  // opensOnSecondaryTap, maxScrimOpacity, scrimColor, semanticLabel, onHold
 )
-MorphContextMenuRegion.open(context); MorphContextMenuRegion.close(context);
+MorphContextMenuRegion.close(context);
 ```
+
+Since 2026-10-19 `onOpen` (willDisplay, hands out the flight),
+`MorphContextMenuRegion.open(context)`, `tagId`, `overlay` and `scrimMotion`
+are `@internal`: the public API has no willDisplay callback and no open
+from code.
 
 How it works:
 - The region keeps its gesture (hold growth, commit point, preview haptic, secondary click,
@@ -202,19 +207,20 @@ deprecation): `below: MorphSatellite(...)` -> `menu: [MorphMenuItem(...)]` (free
 content -> `MorphMenuWidget`); `above:` -> `accessory:`; `width` -> the menu's own width
 (`MorphMenuTuning.menuWidth`); `gap` and `alignment` -> the menu layout (16 pt,
 attachment edge); `margin` -> the menu's safe-area rules; `motion` -> the context morph
-spec; `onOpen` keeps handing out the flight; new `preview`, `onPreviewTap`, `onClose`,
-`order`, `dismissOnSelect`, `appearance`, `close`.
+spec; `onOpen` keeps handing out the flight (`@internal` since 2026-10-19); new
+`preview`, `onPreviewTap`, `onClose`, `order`, `dismissOnSelect`, `appearance`, `close`.
 
 Tests and passports: morph_context_menu_test keeps every device group (morph.json,
 preview.json, growth.json, holds.json, dim.json), re-targeted from the vessel column to
 the controller's card and the preview layer, with the same tolerances; the satellite
 live-column tests become accessory tests; new tests for slide-to-select, row haptics and
-keyboard in the context menu (reuse menu_button_test helpers); context_menu_text_style_test
+keyboard in the context menu; context_menu_text_style_test
 stays for the preview copies; lifecycle_counts_test gets the context release budget of the
-button menu; haptics_test, accessibility_test (role menu), presentation_boundary_test,
+button menu; haptics_test, accessibility_test (role menu),
 glass_carry_test, controls_scroll_test, overlay_text_style_test, menu_host_test and the
-gallery (example/lib/gallery/menu_page.dart, integration control_matrix,
-backdrop_overlay_test) follow the API. Passports: this file ("Not reproduced": app-built
+gallery (example/lib/gallery/menu_page.dart, example/test/control_matrix_test.dart)
+follow the API (menu_button_test, presentation_boundary_test and
+backdrop_overlay_test were removed in 98237e58). Passports: this file ("Not reproduced": app-built
 satellites goes), menu-api.md and api/menus.md (the `UIContextMenuInteraction`,
 `previewProvider` and `contextMenu(menuItems:preview:)` gaps close), docs/widgets.md.
 
@@ -250,6 +256,13 @@ and (4).
   `onPreviewTap`, `onClose`, `close(context)`, `order`,
   `dismissOnSelect`, `appearance`; `updateVisibleMenu` is a rebuild with
   new entries.
+- Open again since 2026-10-19: `willDisplayMenu` (`onOpen` is
+  `@internal`; `onHold` covers the hold door only) and opening from code
+  (`open(context)` is `@internal`).
+- Not implemented: the preview platter (its shadow fading in, above;
+  shape and fill through `UIPreviewParameters`), highlight / dismissal previews
+  (`UITargetedPreview` of another view), `allowsTypeSelect` (27).
+  Full table: [api/menus](api/menus.md).
 
 ## Implementation notes (morph side)
 

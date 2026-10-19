@@ -5,10 +5,10 @@ ported (indicators_test).
 
 ## Native
 
-`UIProgressView`. Public API (SDK 27.0): `progressViewStyle` (default /
-bar), `progress`, `setProgress:animated:`, `progressTintColor`,
-`trackTintColor`, `progressImage`, `trackImage`, `observedProgress`
-(NSProgress).
+`UIProgressView`. Public API (SDK 27.1, unchanged since 27.0):
+`progressViewStyle` (default / bar), `progress`, `setProgress:animated:`,
+`progressTintColor`, `trackTintColor`, `progressImage`, `trackImage`,
+`observedProgress` (NSProgress).
 
 ## Spec [sim]
 
@@ -55,7 +55,11 @@ progress.dart (`MorphProgressView`, `MorphProgressMotion`,
 
 ## Open
 
-- Bar style geometry; Reduce Motion (plan in states.md). Increase Contrast table: states.md.
+- Bar style: the device rows (ids 5 - 8) give its 2.67 pt height; the
+  look of its track is not recorded (morph draws none), and its fill is not
+  replayed.
+- Reduce Motion (plan in states.md): morph drops the animation under it;
+  no UIKit read or recording backs that. Increase Contrast table: states.md.
 
 ## API gaps
 

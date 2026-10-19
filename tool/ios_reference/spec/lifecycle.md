@@ -182,7 +182,7 @@ Flat tier; liquid where different. After the fixes below.
 
 Perf fixture (test/fixtures/perf/counts.json): lens-held/flat 97 -> 78 frames (the same
 work over fewer frames; builds 0.2 -> 0.3 and paints 10.3 -> 10.6 a frame are the
-average over the shorter window). Host goldens of the example (control_goldens_test) are
+average over the shorter window). Host goldens of the example (`example/test/control_goldens_test.dart`) are
 unchanged: every fix above keeps pixels.
 
 ### Open (touch)
@@ -235,7 +235,7 @@ unchanged: every fix above keeps pixels.
    (fade, rise, unblur: 0.45 s in, 0.7 s out), not the edge effect, which is its own
    repaint boundary and fades by layer updates without a paint. The title's transform
    repainted the bar and the overlay above it every frame. Since 2026-10-14 the title
-   paints in a layer of its own (`MORPH_TITLE_LAYER=false` for an A/B): the tail is 1
+   paints in a layer of its own (`--dart-define=MORPH_TITLE_LAYER=false` for an A/B): the tail is 1
    paint per frame (scroll-300 1709 -> 577 paints, scroll-top 2383 -> 654), and the
    scroll frames paint 22-27 instead of 49-54. The tail's length is the spring's; UIKit
    runs the same animation on the render server, outside these counts.

@@ -1,178 +1,252 @@
-# Bars - API parity (UIKit / SwiftUI iOS 27 vs morph)
+# Bars - API parity (UIKit / SwiftUI iOS 27.1 vs morph)
 
-Native: `UIBarButtonItem`, `UIBarButtonItem.Badge`, `UIBarButtonItemGroup`, `UINavigationItem`,
-`UINavigationBar`, `UIToolbar`, `UIViewController.toolbarItems`, `UIBarMinimization`; SwiftUI
-`toolbar`, `ToolbarItem(placement:)`, `ToolbarItemGroup`, `ToolbarSpacer`, `DefaultToolbarItem`,
-`sharedBackgroundVisibility`, `navigationTitle` / `navigationSubtitle`, `toolbarTitleDisplayMode`,
-`toolbarRole`, `toolbarTitleMenu`, `toolbarVisibility`, `toolbarMinimizationBehavior`,
-`visibilityPriority`. morph: `MorphBarButton`, `MorphBarButtonGroup`, `MorphBarStyle`,
-`MorphBarMetrics`, `MorphBarMenuTuning`, `MorphBarMotion`, `MorphBarTransitionSpec`,
-`MorphBarCapsuleFrame` / `MorphBarCapsuleLayout` / `MorphBarItemFrame` / `MorphBarItemLayout`,
-`MorphNavigationBar`, `MorphNavigationBarMetrics`, `MorphLargeTitle`,
-`MorphLargeTitleScrollPhysics`, `MorphToolbar`, `MorphToolbarMetrics`, plus the bar fields of
-`MorphNavigationScaffold` / `MorphNavigationConfig`. Passport: [../bars.md](../bars.md),
-[../navigation-pages.md](../navigation-pages.md).
+Catalog families: `navigation-bar`, `toolbar`. Native: `UIBarButtonItem`, `UIBarButtonItem.Badge`,
+`UIBarButtonItemGroup`, `UINavigationItem`, `UINavigationBar`, `UIToolbar`,
+`UIViewController.toolbarItems`, `UIBarMinimization`; SwiftUI `toolbar`, `ToolbarItem(placement:)`,
+`ToolbarItemGroup`, `ToolbarSpacer`, `DefaultToolbarItem`, `sharedBackgroundVisibility`,
+`navigationTitle` / `navigationSubtitle`, `toolbarTitleDisplayMode`, `toolbarRole`,
+`toolbarTitleMenu`, `toolbarVisibility`, `toolbarMinimizationBehavior`, `visibilityPriority`.
 
-Sources: iPhoneOS27.0.sdk `UIBarButtonItem.h`, `UIBarButtonItemBadge.h`, `UIBarButtonItemGroup.h`,
-`UINavigationItem.h`, `UINavigationBar.h`, `UIToolbar.h`, `UIBarMinimization.h`,
-`UIBarAppearance.h`, UIKit and SwiftUI `.swiftinterface`. LG = new with Liquid Glass (iOS 26/27).
+morph (`lib/morph.dart`): `MorphBarButton` (+ `.back`), `MorphBarButtonGroup`, `MorphBarButtonStyle`,
+`MorphBadge`, `MorphBarAppearance`, `MorphNavigationBar`, `MorphLargeTitle`,
+`MorphLargeTitleDisplayMode`, `MorphBackButtonDisplayMode`, `MorphNavigationBarHiding`,
+`MorphToolbar`, and the bar fields of `MorphNavigationScaffold`, `MorphNavigationConfig`,
+`MorphNavigationStack`. Internal (`@internal`, not for apps): `MorphBarMetrics`,
+`MorphNavigationBarMetrics`, `MorphToolbarMetrics`, `MorphBarMenuTuning`, `MorphBarMotion`,
+`MorphBarTransitionSpec`, the capsule and item layouts, `MorphNavigationTitleMotion`,
+`MorphLargeTitleScrollPhysics`. Passports: [../bars.md](../bars.md),
+[../navigation-pages.md](../navigation-pages.md). Scroll edge effect:
+[scroll-edge-effect.md](scroll-edge-effect.md); search placements: [search.md](search.md).
 
-## UIKit
+Sources: iPhoneOS27.1.sdk UIKit headers (`UIBarButtonItem.h`, `UIBarButtonItemBadge.h`,
+`UIBarButtonItemGroup.h`, `UINavigationItem.h`, `UINavigationBar.h`, `UIToolbar.h`,
+`UIBarMinimization.h`, `UIBarAppearance.h`, `UIViewController.h`, `UIVerticalBarEdge.h`) and
+SwiftUI `arm64e-apple-ios.swiftinterface`. LG = new with Liquid Glass (iOS 26/27). Status: covered
+(same meaning), partial (narrower), gap. A row is one member or one overload family; n/a members
+are listed below the tables, not counted.
+
+## New in 27.1
+
+27.1 adds the vertical bar: `UIBarButtonItem.axisBehavior` (`.horizontalOnly`,
+`.verticalPreferred`), `UINavigationItem.verticalBarCompressionBehavior` (`.prefersBarItems`,
+`.prefersTabBar`), `UIViewController.preferredVerticalBarBehavior`,
+`childForPreferredVerticalBarBehavior`, `setNeedsUpdateOfVerticalBarConfiguration`,
+`UITraitCollection.verticalBarEdge`; SwiftUI `axisBehavior(_:)`, `toolbarVerticalBehavior(_:)`,
+`toolbarVerticalCompressionBehavior(_:)`. On hardware without a vertical bar the edge is
+`.unspecified` and bars stay horizontal. morph has no vertical bar; the members are n/a until a
+device with one is measured. Nothing else in these families changed between 27.0 and 27.1.
+
+## UIKit - navigation bar family
 
 ### UIBarButtonItem
 
-| UIKit API (type.member, availability) | meaning | morph equivalent | gap / mismatch | proposal |
+| UIKit API (availability) | meaning | morph equivalent | status | note / proposal |
 |---|---|---|---|---|
-| `UIBarButtonItem.init(title:/image:/primaryAction:/menu:)`, iOS 2+/14+ | item with text or image | `MorphBarButton(label:, icon:)` | icon is a Widget (stronger than UIImage); a button cannot carry both label and icon (UIKit `init(title:image:...)` shows image in bar, title in overflow) | keep |
-| `.style` `.plain` / `.prominent` (prominent iOS 26, LG; `.done` deprecated -> `.prominent`) | tinted glass item | `MorphBarButtonGroup.prominent` (bool, per capsule) | UIKit sets style per item, morph per group; bool instead of enum | rename -> `MorphBarButtonGroup.style: MorphBarButtonStyle.plain/.prominent` (optional, see Breaking) |
-| `.tintColor`, iOS 5+ | item color; on a prominent item tints the glass | none per item (`MorphBarStyle.prominentColor` / `foregroundColor` per bar) | no per-item / per-group tint | add `MorphBarButtonGroup.tintColor` (Color?) |
-| `.isEnabled` (UIBarItem), iOS 2+ | disabled look, no action | `MorphBarButton.enabled` | - | keep |
-| `.primaryAction` / target-action, iOS 14+ | tap action | `MorphBarButton.onPressed` | Flutter idiom | keep |
-| `.menu`, iOS 14+ | menu; tap opens when no primary action, long press otherwise | `MorphBarButton.menu` (List<MorphMenuEntry>) | matches measured behaviour | keep |
-| `.preferredMenuElementOrder`, iOS 16+ | menu row order | none on bar button (`MorphMenuOrder` exists for `MorphMenuButton`) | not forwarded | add `MorphBarButton.menuOrder` |
-| `.changesSelectionAsPrimaryAction`, `.isSelected`, iOS 15+ | toggle / pull-down selection item | none | no selected look | add `MorphBarButton.selected` (bool) |
-| `.isHidden`, iOS 16+ | hide without removing | none | declarative: omit the button | skip (omit from list; id keeps the morph) |
-| `.width`, `.possibleTitles`, legacy | fixed item width | none (`MorphBarMetrics.minButtonWidth`) | - | skip (metrics cover it) |
-| `.customView`, iOS 2+ | arbitrary view | `MorphBarButton.icon` (any Widget, sized `iconSize`) | label must be String | keep; consider `child` later |
-| `.badge` / `UIBarButtonItem.Badge.count/.string/.indicator`, `foregroundColor`, `backgroundColor`, `font`, iOS 26 (LG) | badge on a bar item | none | missing; common (inbox, cart) | add `MorphBarButton.badge: MorphBarBadge?` with `.count(int)`, `.string(String)`, `.indicator()`, colors |
-| `.hidesSharedBackground`, iOS 26 (LG) | item drawn without glass capsule | none | missing (title-like or avatar items) | add `MorphBarButtonGroup.hidesSharedBackground` (bool) |
-| `.sharesBackground`, iOS 26 (LG) | item may not join neighbours' capsule | separate `MorphBarButtonGroup` | covered by grouping model | keep |
-| `.identifier`, iOS 26 (LG) | matches items across transitions | `MorphBarButton.id` (required), `MorphBarButtonGroup.id` | morph requires id; UIKit heuristics when nil | keep (Dart `id`) |
-| `UIBarButtonItem.flexibleSpace()` / `.flexibleSpace` system item, iOS 14+ | pushes items apart | `MorphToolbar.leading` / `.trailing` split | one flexible space only; no centered toolbar items | add `MorphToolbar.center` (List<MorphBarButtonGroup>) |
-| `.fixedSpace(_:)`, `.fixedSpace()` (no width, iOS 26 LG), `UIBarButtonItemGroup.fixedSpace()` iOS 26 | split capsules | separate groups (`MorphBarMetrics.groupGap` 12) | covered | keep |
-| `UIBarButtonItem.SystemItem` (`.done`, `.cancel`, `.add`, `.close`, `.search`, `.trash`, ...), iOS 2+ | localized title / SF symbol presets | none | apps pass label / icon | skip (no SF Symbols; app supplies icon); maybe later `MorphBarButton.close(...)` |
-| `.visibilityPriority` (`.standard/.low/.high`), iOS 27 (LG) | which items survive when space is short | none | no overflow at all | add later with overflow (low) |
-| `.isPaddingRemoved`, iOS 27 (LG) | no standard padding around item | none (`MorphBarMetrics.labelPadding/iconPadding` per bar) | - | skip (low) |
-| `.menuRepresentation`, iOS 16+ | how item shows in overflow menu | none | needs overflow | skip until overflow |
-| `.isSymbolAnimationEnabled`, `addSymbolEffect`, `setSymbolImage(_:contentTransition:)`, iOS 17+ | SF Symbol effects | none | no SF Symbols in Flutter | skip (app animates its icon Widget) |
-| `creatingFixedGroup` / `creatingMovableGroup` / `creatingOptionalGroup`, iOS 16+ | customizable iPad toolbars | none | - | skip (iPad customization) |
-| `UIBarButtonItem.back` look (system back item) | chevron + previous title | `MorphBarButton.back(label:)` | - | keep |
+| `init(title:/image:/primaryAction:/menu:)`, iOS 2+/14+/16+ | item with text or image | `MorphBarButton(id:, label:, icon:)` | partial | a button with both shows its label; which one UIKit shows in the bar is not measured |
+| `style` `.plain` / `.prominent` (iOS 26, LG; `.done` deprecated) | tinted glass item | `MorphBarButtonGroup.style: MorphBarButtonStyle` | covered | per group; plain and prominent items cannot share a capsule |
+| `tintColor` | item color; tints a prominent item's glass | `MorphTheme` tint -> `MorphBarAppearance.prominentColor` (per bar) | gap | add `MorphBarButtonGroup.tintColor` |
+| `isEnabled` | disabled look, no action | `MorphBarButton.enabled` | covered | device colors replayed |
+| `primaryAction`, target-action | tap action | `onPressed` | covered | - |
+| `menu` | tap opens without a primary action, long press otherwise | `MorphBarButton.menu` | covered | timing measured (menu-button.md) |
+| `preferredMenuElementOrder`, iOS 16 | menu row order | none (`MorphMenuOrder` exists on `MorphMenuButton`) | gap | add `MorphBarButton.menuOrder` |
+| `changesSelectionAsPrimaryAction`, `isSelected`, iOS 15 | toggle item | none | gap | add `MorphBarButton.selected`; measure the look |
+| `customView` | arbitrary view | `icon` (any Widget in the icon box) | partial | no free-size child |
+| `badge` (`.count`, `.string`, `.indicator`), `Badge.foregroundColor` / `backgroundColor`, iOS 26 (LG) | badge on an item | `MorphBadge.count` / `.string` / `.indicator`, colors | covered | placement read from UIKit; static (no fade); count without locale grouping |
+| `Badge.font`, iOS 26 | badge font | none | gap | low |
+| `hidesSharedBackground`, iOS 26 (LG) | item without a glass capsule | none | gap | add `MorphBarButtonGroup.hidesSharedBackground` |
+| `sharesBackground`, iOS 26 (LG) | item keeps its own capsule | separate `MorphBarButtonGroup` | covered | - |
+| `identifier`, iOS 26 (LG) | matches items across transitions | `MorphBarButton.id` (required), `MorphBarButtonGroup.id` | covered | groups without id pair by nearest center, as measured |
+| `SystemItem` (`.done`, `.close`, `.add`, `.search`, ...) | localized title / symbol presets | `MorphBarButton.back` only | gap | low; no SF Symbols |
+| `visibilityPriority`, iOS 27.0 (LG) | which items survive when space is short | none | gap | needs overflow |
+| `isPaddingRemoved`, iOS 27.0 (LG) | no standard padding | none | gap | low |
+| `menuRepresentation`, iOS 16 | form in the overflow menu | none | gap | needs overflow |
 
 ### UIBarButtonItemGroup
 
-| UIKit API | meaning | morph equivalent | gap / mismatch | proposal |
+| UIKit API | meaning | morph equivalent | status | note / proposal |
 |---|---|---|---|---|
-| `init(barButtonItems:representativeItem:)`, iOS 9+ | items sharing one capsule | `MorphBarButtonGroup(buttons)` | - | keep |
-| `.representativeItem`, `.isDisplayingRepresentativeItem` | collapsed form when space short | none | no compaction | skip (iPad / narrow; low) |
-| `.isHidden`, iOS 16+ | hide group | none | omit group | skip (declarative) |
-| `.alwaysAvailable`, iOS 16+ | never collapses into overflow | none | needs overflow | skip |
-| `.menuRepresentation`, iOS 16+ | overflow form | none | needs overflow | skip |
+| `init(barButtonItems:representativeItem:)`, iOS 9 | items sharing one capsule | `MorphBarButtonGroup(buttons, id:, style:)` | partial | no representative (collapsed) item |
+| `alwaysAvailable`, iOS 16 | never collapses into overflow | none | gap | needs overflow |
 
 ### UINavigationItem
 
-| UIKit API | meaning | morph equivalent | gap / mismatch | proposal |
+| UIKit API | meaning | morph equivalent | status | note / proposal |
 |---|---|---|---|---|
-| `.title`, iOS 2+ | inline / large title | `MorphNavigationScaffold.title`, `MorphNavigationConfig.title`, `MorphNavigationBar.title` | String only | keep |
-| `.attributedTitle`, iOS 26 (LG) | styled title | none | - | skip (low; `titleView` covers custom looks) |
-| `.titleView`, iOS 2+ | custom center view | none | missing (segmented control in bar is common) | add `MorphNavigationScaffold.titleView` / `MorphNavigationBar.titleView` (Widget?) |
-| `.subtitle`, `.attributedSubtitle`, `.subtitleView`, iOS 26 (LG) | second line under inline title | none | missing, new LG pattern | add `subtitle` (String?) on scaffold, config, bar (needs device metrics) |
-| `.largeTitle`, `.largeSubtitle`, `.largeAttributedSubtitle`, `.largeSubtitleView`, iOS 26 (LG) | text of the large title area distinct from inline | `MorphLargeTitle(title)`; no subtitle | no large subtitle; large text always = title | add `largeSubtitle`; `MorphLargeTitle(title, subtitle:)` |
-| `.largeTitleDisplayMode` `.automatic/.always/.never/.inline` (inline iOS 17) | per-page large title | `MorphNavigationScaffold.largeTitleDisplayMode` (automatic / always / never; default automatic as UIKit, 2026-10-14) | no `.inline` | done; `.inline` open |
-| `.prompt`, legacy | text above title | none | rarely used in LG | skip |
-| `.backBarButtonItem`, legacy | custom back item of next page | none | - | skip (backButtonTitle + backButtonDisplayMode cover it) |
-| `.backButtonTitle`, iOS 11+ | label of the NEXT page's back button | `MorphNavigationScaffold.backTitle`, `MorphNavigationConfig.backTitle` | same semantics, different name | rename -> `backButtonTitle` |
-| `.backButtonDisplayMode` `.default/.generic/.minimal`, iOS 14+ | full title / "Back" / chevron only | none | missing; minimal is common in LG | add `backButtonDisplayMode: MorphBackButtonDisplayMode.standard/.generic/.minimal` |
-| `.hidesBackButton`, `setHidesBackButton(_:animated:)` | hide back | implicit: non-null `leading` replaces back | no hide without replacing | add `hidesBackButton` |
-| `.leftItemsSupplementBackButton`, iOS 5+ | leading items next to back | none (leading replaces back) | missing | covered by `leading` list + back (see leadingItemGroups) |
-| `.backAction`, iOS 16+ | custom back action | Flutter `PopScope` (route `popGestureEnabled` honours it) | - | skip (Flutter idiom) |
-| `.leftBarButtonItems` / `.rightBarButtonItems`, `set...(animated:)` | items per side | `leading` / `trailing` | animated always (ids drive it); `MorphNavigationBar.animate` exists | keep |
-| `.leadingItemGroups` / `.trailingItemGroups`, iOS 16+ | groups per side | `leading` (ONE group?) / `trailing` (List) | leading is a single group, UIKit a list | reshape -> `leading: List<MorphBarButtonGroup>` (Breaking) |
-| `.centerItemGroups`, iOS 16+ | center groups (browser/editor style) | none | - | skip for phones (low) |
-| `.style` `.navigator/.browser/.editor`, iOS 16+ | title placement / center items | none | phone layout only navigator | skip (low; iPad) |
-| `.customizationIdentifier`, iOS 16+ | user customization | none | - | skip (iPad) |
-| `.pinnedTrailingGroup`, iOS 16+; SwiftUI `.topBarPinnedTrailing` iOS 27 (LG) | trailing group that never overflows | none | needs overflow | skip until overflow (low) |
-| `.additionalOverflowItems`, `.overflowPresentationSource`, iOS 16+ | overflow "..." menu | none | missing overflow | add later `MorphNavigationBar` overflow (low/med) |
-| `.titleMenuProvider`, iOS 16+ | menu under the title | none | missing | add `titleMenu: List<MorphMenuEntry>?` (reuse menu machinery) |
-| `.renameDelegate`, `.documentProperties`, iOS 16+ | document rename / header | none | - | skip (document apps) |
-| `.searchController`, `.preferredSearchBarPlacement` (`.automatic/.integrated/.stacked/.integratedCentered/.integratedButton`; integrated* iOS 26 LG), `.searchBarPlacement`, `.searchBarPlacementBarButtonItem` (iOS 26), `.searchBarPlacementAllowsToolbarIntegration` / `AllowsExternalIntegration` (iOS 26), `.hidesSearchBarWhenScrolling` | search in bars | `MorphSearchToolbar`, `MorphSearchField`, `MorphSearchTabBar` (bottom only) | no nav bar placements (stacked / integrated / button) | add `MorphNavigationScaffold.search` with `MorphSearchBarPlacement` (see search.md family) |
-| `.standardAppearance` / `.scrollEdgeAppearance` / `.compactAppearance` / `.compactScrollEdgeAppearance` | bar background per state | `MorphBarStyle`, `MorphNavigationBar.edgeEffect` (`MorphScrollEdgeEffectStyle`), `scrolledUnder` | LG bars have no fill; scroll edge effect replaces appearances | keep |
-| `.navigationBarMinimization` (`UIBarMinimization`: `minimizationBehavior` `.automatic/.never/.onScrollDown/.onScrollUp`, `safeAreaAdjustment`, `restorationBehavior` `.atScrollEdge`), iOS 27 (LG) | bar shrinks on scroll | none | missing, needs measurement | add `MorphNavigationScaffold.minimization` later (low/med, measure first) |
+| `title` | inline / large title | `title` on scaffold, config, bar | covered | - |
+| `attributedTitle`, iOS 26 (LG) | styled title | none | gap | low |
+| `titleView` | custom center view | none | gap | add `titleView: Widget?`, placed by the measured title room rule |
+| `subtitle`, iOS 26 (LG) | line under the inline title | `subtitle` on scaffold, config, bar | covered | fonts read from UIKit; line gap not read |
+| `attributedSubtitle`, `subtitleView`, iOS 26 (LG) | styled / custom subtitle | none | gap | low |
+| `largeTitle`, iOS 26 (LG) | large text distinct from `title` | none (the large title shows `title`) | gap | add `largeTitle: String?` |
+| `largeSubtitle`, iOS 26 (LG) | line under the large title | `MorphNavigationScaffold.largeSubtitle`, `MorphLargeTitle(subtitle:)` | covered | layout read from UIKit, not recorded |
+| `largeAttributedSubtitle`, `largeSubtitleView`, iOS 26 (LG) | styled / custom large subtitle | none | gap | low |
+| `largeTitleDisplayMode` `.automatic` / `.always` / `.never` / `.inline` (iOS 17) | per-page large title | `MorphLargeTitleDisplayMode` automatic / always / never | partial | no `.inline` |
+| `prompt` | text above the title | none | gap | low |
+| `backBarButtonItem` | custom back item of the next page | none | gap | low |
+| `backButtonTitle`, iOS 11 | label of the next page's back button | `backButtonTitle` | covered | - |
+| `backButtonDisplayMode` `.default` / `.generic` / `.minimal`, iOS 14 | full title / "Back" / chevron | `MorphBackButtonDisplayMode` standard / generic / minimal | partial | `.default` shortening to "Back", then the chevron, when space runs out is not reproduced |
+| `hidesBackButton`, `setHidesBackButton(_:animated:)` | hide back | `hidesBackButton` | covered | - |
+| `leftItemsSupplementBackButton`, iOS 5 | leading items beside the back button | none: leading groups replace the back button | gap | add `leadingItemsSupplementBackButton` |
+| `backAction`, iOS 16 | custom back action | back calls `maybePop`; `PopScope` on the page | covered | Flutter idiom |
+| `leftBarButtonItems` / `rightBarButtonItems`, `leadingItemGroups` / `trailingItemGroups` (iOS 16) | items per side | `leading` / `trailing` (`List<MorphBarButtonGroup>`) | covered | changes always animate |
+| `centerItemGroups`, `style` navigator / browser / editor, iOS 16 | centered groups, leading title | none | gap | low on phones |
+| `pinnedTrailingGroup`, `additionalOverflowItems`, iOS 16 | overflow menu | none | gap | no overflow |
+| `titleMenuProvider`, iOS 16 | menu from the title | none | gap | add `titleMenu: List<MorphMenuEntry>?` |
+| `searchController`, `preferredSearchBarPlacement` (`.integrated`, `.integratedCentered`, `.integratedButton` iOS 26; `.stacked`) | search in the bars | `MorphNavigationScaffold.search` (`MorphNavigationSearch`, stacked), `MorphSearchToolbar` | partial | no integrated / button placement in the nav bar (search.md) |
+| `hidesSearchBarWhenScrolling` | stacked field scrolls away | stacked field always scrolls away | partial | `false` (pinned field) not reproduced |
+| `searchBarPlacementAllowsToolbarIntegration` / `AllowsExternalIntegration`, `searchBarPlacementBarButtonItem`, iOS 26 | where the integrated search may go | none | gap | search family |
+| `standardAppearance` / `scrollEdgeAppearance` / `compactAppearance` / `compactScrollEdgeAppearance` | bar look per state | `MorphBarAppearance`, `edgeEffect` | covered | LG bars have no fill |
+| `navigationBarMinimization` (`UIBarMinimization`: behavior, safeAreaAdjustment, restorationBehavior), iOS 27.0 (LG) | bar shrinks on scroll | none | gap | measure first |
 
-### UINavigationBar / UIToolbar / UIViewController
+### UINavigationBar
 
-| UIKit API | meaning | morph equivalent | gap / mismatch | proposal |
+| UIKit API | meaning | morph equivalent | status | note / proposal |
 |---|---|---|---|---|
-| `UINavigationBar.prefersLargeTitles`, iOS 11+ | stack-wide default for `.automatic` | `MorphNavigationStack.prefersLargeTitles` | - | done |
-| `UINavigationBar.items`, `pushItem/popItem`, `setItems(_:animated:)` | standalone bar stack | `MorphNavigationBar` (stateless input) + `MorphNavigationConfig` | declarative | keep |
-| `UINavigationBar.tintColor` | bar tint | `MorphBarStyle.foregroundColor` / `prominentColor` | - | keep |
-| `UIBarAppearance.overrideUserInterfaceStyle`, iOS 27 (LG) | force light/dark bar | `MorphBarStyle.light` / `.dark` passed as `style` | covered | keep |
-| `UINavigationBar.preferredBehavioralStyle`, `currentNSToolbarSection` | Mac / Catalyst | - | - | skip |
-| `UIToolbar.items`, `setItems(_:animated:)` | toolbar items | `MorphToolbar.leading` / `trailing` | always animated | keep |
-| `UIViewController.toolbarItems`, `setToolbarItems(_:animated:)` | per-page toolbar | `MorphNavigationScaffold.toolbarLeading/toolbarTrailing`, `MorphNavigationConfig.toolbarLeading/toolbarTrailing` | two lists = one flexible space | keep (+ `toolbarCenter`, see ranked) |
-| `UINavigationController.isToolbarHidden` / `setToolbarHidden(_:animated:)` | toolbar visibility | `MorphNavigationConfig.hasToolbar` (derived) | no explicit hide | keep (declarative) |
+| `prefersLargeTitles`, iOS 11 | stack default for `.automatic` | `MorphNavigationStack.prefersLargeTitles` | covered | - |
+| `items`, `pushItem` / `popItem`, `setItems(_:animated:)` | standalone bar | `MorphNavigationBar` + `MorphNavigationConfig` | covered | declarative |
+| `tintColor` | bar tint | `MorphBarAppearance.foregroundColor` / `prominentColor`, `MorphTheme` tint | covered | - |
+| `titleTextAttributes`, `largeTitleTextAttributes` | title font and color | `MorphBarAppearance.titleColor` / `subtitleColor` | partial | colors only |
+| `backIndicatorImage`, `backIndicatorTransitionMaskImage` | custom chevron | none | gap | low |
+| `UIBarAppearance.overrideUserInterfaceStyle`, iOS 27.0 (LG) | force light / dark bar | `appearance: MorphBarAppearance.light` / `.dark` | covered | - |
 
-## SwiftUI
+## UIKit - toolbar family
 
-| SwiftUI API | meaning | morph equivalent | gap / mismatch | proposal |
+| UIKit API | meaning | morph equivalent | status | note / proposal |
 |---|---|---|---|---|
-| `ToolbarItem(placement:)` `.topBarLeading/.topBarTrailing` (iOS 14), `.navigation/.primaryAction/.cancellationAction/.confirmationAction` | side of nav bar | `leading` / `trailing` | semantic placements map to sides | keep |
-| `.principal`, `.title` / `.largeTitle` / `.subtitle` / `.largeSubtitle` (iOS 26 LG) | custom views in the title slots | none | same as UIKit `titleView` / subtitle rows | add (see UIKit titleView / subtitle) |
-| `.bottomBar` (iOS 14), `.status` | toolbar; status = center | `toolbarLeading` / `toolbarTrailing` | no center | add `toolbarCenter` |
-| `.topBarPinnedTrailing`, iOS 27 (LG) | same as UIKit `pinnedTrailingGroup` | none | - | skip until overflow |
-| `.keyboard` | keyboard accessory bar | none | - | skip (separate widget) |
-| `ToolbarItemGroup` | several items, one capsule | `MorphBarButtonGroup` | - | keep |
-| `ToolbarSpacer(.fixed / .flexible, placement:)`, iOS 26 (LG) | split capsules / push apart | groups / leading-trailing split | flexible only once | keep; center list covers the rest |
-| `ToolbarContent.sharedBackgroundVisibility(_:)`, iOS 26 (LG) | same as `hidesSharedBackground` | none | - | add (same row) |
-| `.badge(_:)` on toolbar item content, iOS 26 | same as `UIBarButtonItem.badge` | none | - | add (same row) |
-| `ToolbarContent.visibilityPriority(_:)` (`ToolbarItemVisibilityPriority`), iOS 27 (LG) | same as UIKit row | none | - | skip until overflow |
-| `DefaultToolbarItem(kind: .search, placement:)`, `searchToolbarBehavior(.minimize)`, iOS 26 (LG) | search in toolbar, minimized to a button | `MorphSearchToolbar` | check minimize-to-button in search family | see search.md |
-| `navigationTitle(_:)`, `navigationTitle(Binding<String>)` (renamable, iOS 16) | title | `title` | - | keep |
-| `navigationSubtitle(_:)`, iOS 26 (LG) | same as UIKit `subtitle` | none | - | add |
-| `toolbarTitleDisplayMode(.automatic/.large/.inlineLarge/.inline)`, iOS 17 | large title modes; inlineLarge = large title text sitting in the bar | `MorphNavigationScaffold.largeTitle` bool | see UIKit row | enum incl. `inlineLarge` only if measured |
-| `toolbarRole(.automatic/.navigationStack/.browser/.editor)`, iOS 16 | same as `UINavigationItem.style` | none | - | skip (low) |
-| `toolbarTitleMenu { }`, iOS 16 | same as `titleMenuProvider` | none | - | add `titleMenu` |
-| `toolbarVisibility(_:for:)`, iOS 18; `navigationBarHidden` | hide nav bar / bottom bar | `MorphNavigationScaffold.navigationBarHidden`; toolbar implicit | - | done (nav bar) |
-| `toolbarBackgroundVisibility(_:for:)` iOS 18, `scrollEdgeEffectStyle(_:for:)` iOS 26 (LG) | bar background / edge effect | `edgeEffect: MorphScrollEdgeEffectStyle?` | - | keep |
-| `toolbarForegroundStyle(_:for:)` | bar foreground color | `MorphBarStyle.foregroundColor` | - | keep |
-| `toolbarMinimizationBehavior` / `toolbarMinimizationRestoration` / `toolbarMinimizationSafeAreaAdjustment`, iOS 27 (LG) | same as `UIBarMinimization` | none | - | same as UIKit row |
-| `matchedTransitionSource(id:in:)` on `ToolbarContent`, iOS 26 (LG) | zoom from a toolbar item | none | see navigation.md (zoom from bar item) | add there |
-| `toolbarItemHidden(_:)` | hide item | omit | declarative | skip |
+| `UIToolbar.items`, `setItems(_:animated:)` | toolbar items | `MorphToolbar(leading:, trailing:)` | covered | changes replay the measured `setToolbarItems` motion |
+| `UIViewController.toolbarItems`, `setToolbarItems(_:animated:)` | per-page toolbar | `toolbarLeading` / `toolbarTrailing` on scaffold, config | partial | on a push UIKit swaps items (scale, blur, fade); morph morphs the shared toolbar instead (bars.md, not ported) |
+| `UINavigationController.isToolbarHidden`, `setToolbarHidden(_:animated:)` | toolbar visibility | derived from non-empty lists (`MorphNavigationConfig.hasToolbar`) | covered | declarative |
+| `UIBarButtonItem.flexibleSpace()` | pushes items apart | the leading / trailing split | partial | one flexible space; no centered items |
+| `fixedSpace(_:)`, `fixedSpace()` (iOS 26), `UIBarButtonItemGroup.fixedSpace()` (iOS 26) | split capsules | separate groups | covered | - |
+| `UIToolbar.standardAppearance` / `compactAppearance` / `scrollEdgeAppearance`, `tintColor` | toolbar look | `MorphToolbar.appearance` | covered | - |
 
-## Not relevant for Flutter
+## SwiftUI - navigation bar family
 
-- `UIBarItem` title text attributes / `setTitleTextAttributes`, `setBackgroundImage(...barMetrics:)`, position adjustments, `UIBarButtonItemAppearance`: legacy appearance proxies; `MorphBarStyle` + `MorphBarMetrics` replace them.
+| SwiftUI API | meaning | morph equivalent | status | note / proposal |
+|---|---|---|---|---|
+| `navigationTitle(_:)` | title | `title` | covered | - |
+| `navigationSubtitle(_:)`, iOS 26 (LG) | subtitle | `subtitle` | covered | - |
+| `ToolbarItem(placement:)` `.topBarLeading` / `.topBarTrailing` / `.navigation` / `.primaryAction` / `.cancellationAction` / `.confirmationAction` | side of the nav bar | `leading` / `trailing` | covered | semantic placements map to sides |
+| `.principal`, `.title`, `.largeTitle`, `.subtitle`, `.largeSubtitle` placements (iOS 26 for the last three) | custom views in the title slots | none | gap | same as `titleView` / `subtitleView` |
+| `ToolbarItemGroup` | several items, one capsule | `MorphBarButtonGroup` | covered | - |
+| `sharedBackgroundVisibility(_:)`, iOS 26 (LG) | same as `hidesSharedBackground` | none | gap | - |
+| `.badge(_:)` on toolbar content, iOS 26 (LG) | same as `UIBarButtonItem.badge` | `MorphBarButton.badge` | covered | - |
+| `.secondaryAction` placement, `visibilityPriority(_:)` (27.0), `.topBarPinnedTrailing` (27.0) | overflow and pinning | none | gap | needs overflow |
+| `contentMarginsRemoved(_:)`, iOS 27.0 (LG) | same as `isPaddingRemoved` | none | gap | low |
+| `toolbarTitleDisplayMode(.automatic / .large / .inlineLarge / .inline)`, iOS 17 | large title modes | `largeTitleDisplayMode` (`.inline` = `never`, `.large` = `always`) | partial | no `.inlineLarge` (UIKit `.inline`) |
+| `toolbarRole(_:)`, iOS 16 | same as `UINavigationItem.style` | none | gap | low |
+| `toolbarTitleMenu { }`, iOS 16 | same as `titleMenuProvider` | none | gap | - |
+| `toolbarVisibility(_:for: .navigationBar)`, iOS 18 | hide the nav bar | `navigationBarHidden`, `MorphNavigationScaffold.setNavigationBarHidden` | covered | - |
+| `toolbarBackgroundVisibility(_:for:)` iOS 18, `scrollEdgeEffectStyle(_:for:)` iOS 26 (LG) | bar background / edge effect | `edgeEffect: MorphScrollEdgeEffectStyle?` | covered | - |
+| `toolbarForegroundStyle(_:for:)` | bar foreground color | `MorphBarAppearance.foregroundColor` | covered | - |
+| `navigationBarBackButtonHidden(_:)` | hide back | `hidesBackButton` | covered | - |
+| `toolbarMinimizationBehavior` / `Restoration` / `SafeAreaAdjustment`, iOS 27.0 (LG) | same as `UIBarMinimization` | none | gap | measure first |
+
+## SwiftUI - toolbar family
+
+| SwiftUI API | meaning | morph equivalent | status | note / proposal |
+|---|---|---|---|---|
+| `.bottomBar` placement | toolbar items | `toolbarLeading` / `toolbarTrailing`, `MorphToolbar` | covered | - |
+| `.status` placement | centered toolbar item | none | gap | add `MorphToolbar.center` |
+| `ToolbarSpacer(.fixed / .flexible, placement:)`, iOS 26 (LG) | split capsules / push apart | groups; one leading / trailing split | partial | one flexible space only |
+| `ToolbarItemGroup` in the bottom bar | one capsule | `MorphBarButtonGroup` | covered | - |
+| `DefaultToolbarItem(kind: .search)`, `searchToolbarBehavior(.minimize)`, iOS 26 (LG) | search in the toolbar | `MorphSearchToolbar` | partial | search.md |
+| `toolbarVisibility(_:for: .bottomBar)` | hide the toolbar | empty toolbar lists | covered | declarative |
+| `.keyboard` placement | keyboard accessory bar | none | gap | low; a separate widget |
+| `toolbarMinimizationBehavior(_:for: .bottomBar)`, iOS 27.0 (LG) | toolbar shrinks on scroll (UIKit exposes minimization only on `UINavigationItem`) | none | gap | measure first |
+
+## Counts
+
+| family | applicable | covered | partial | gap |
+|---|---|---|---|---|
+| navigation-bar | 68 | 28 | 9 | 31 |
+| toolbar | 14 | 7 | 4 | 3 |
+
+## Not relevant for Flutter (not counted)
+
+- Legacy appearance: `UIBarItem` title text attributes, `setBackgroundImage(_:for:barMetrics:)`, position adjustments, `UIBarButtonItemAppearance`, `barStyle`, `isTranslucent`, `barTintColor`, `width`, `possibleTitles`; `MorphBarAppearance` replaces them.
 - `NSCoding` initializers, `UIBarPositioning`, `UINavigationBarDelegate` / `UIToolbarDelegate`: UIKit plumbing.
-- `NSToolbar` bridging, `UINavigationBarNSToolbarSection`, `preferredBehavioralStyle`: Mac Catalyst only.
-- `UIBarButtonItem.SystemItem.pageCurl`, `.writingTools`: legacy / system feature.
-- `landscapeImagePhone`, `largeContentSizeImage`: Flutter Semantics and MediaQuery text scale cover accessibility; `MorphBarMetrics.maxTextScale` caps bar text.
-- `UIBarButtonItemGroup` customization (movable / optional groups): iPad user customization.
+- `NSToolbar` bridging, `preferredBehavioralStyle`, `currentNSToolbarSection`: Mac Catalyst.
+- `SystemItem.pageCurl`, `.writingTools`: legacy / system feature.
+- `isHidden` on items and groups, SwiftUI `toolbarItemHidden`: declarative, omit the button (its id keeps the morph).
+- Symbol effects (`isSymbolAnimationEnabled`, `addSymbolEffect`, `setSymbolImage(_:contentTransition:)`): no SF Symbols; the app animates its icon widget.
+- `landscapeImagePhone`, `largeContentSizeImage`: Flutter semantics and text scale; the Large Content Viewer is an accessibility gap (Behaviour fidelity).
+- iPad customization: `creatingFixedGroup` / `creatingMovableGroup` / `creatingOptionalGroup`, `customizationIdentifier`.
+- Document apps: `renameDelegate`, `documentProperties`, `navigationTitle(Binding<String>)` renaming.
+- The iOS 27.1 vertical bar members (section above).
 
 ## morph-only API
 
-- `MorphBarMetrics` (`navigation`, `toolbar`), `MorphNavigationBarMetrics`, `MorphToolbarMetrics`: measured geometry - keep.
-- `MorphBarStyle` (light / dark tables, disabled colors): keep (replaces appearances).
-- `MorphBarMenuTuning` (`recognition`, `open`, `menu`): keep.
-- `MorphBarMotion`, `MorphBarTransitionSpec`, `MorphBarCapsuleFrame`, `MorphBarCapsuleLayout`, `MorphBarItemFrame`, `MorphBarItemLayout`: pure motion and its frames - keep exported for custom painters/tests, but flag: an app developer never needs them; consider moving to `foundation`-level or an `advanced` export.
-- `MorphLargeTitle` + `MorphLargeTitleScrollPhysics`: building blocks of the scaffold's large title - keep.
-- `MorphNavigationBar.titleVisible`, `.scrolledUnder`, `.animate`, `.sideInset`: standalone-bar inputs - keep.
-- `MorphNavigationBar.titleExitShift`, `MorphNavigationBar.drift`: stack internals on a public widget - flag (hide).
-- `MorphToolbar.sideInset` / `bottomInset` / `keyboardInset`: keep.
+- `MorphNavigationBar` standalone inputs `titleVisible`, `scrolledUnder`, `animate`, `sideInset`; `MorphNavigationBar.heightFor`: keep.
+- `MorphLargeTitle` + `extentFor`: building block of the scaffold's large title; keep.
+- `MorphToolbar.sideInset` / `bottomInset` / `keyboardInset`, `extent`, `extentFor`, `capsuleHeight`: keep. Their defaults name internal metrics classes an app cannot read.
+- `MorphNavigationBarHiding` and `MorphNavigationConfig.barHiding`: the constructor is private, so an app can only pass one it got from the stack; flag (make `barHiding` internal).
 
 ## Ranked gaps
 
-| # | gap | need | cost | proposal |
-|---|---|---|---|---|
-| 1 | Bar item badge (`UIBarButtonItem.badge`, iOS 26) | high | S/M | add `MorphBarButton.badge: MorphBarBadge?` (`.count`, `.string`, `.indicator`, colors); measure badge geometry on device |
-| 2 | Subtitle / large subtitle (iOS 26) | high | M | add `subtitle`, `largeSubtitle` to scaffold, config, `MorphNavigationBar`, `MorphLargeTitle`; measure layout and title motion |
-| 3 | `backButtonDisplayMode` (minimal / generic) + `hidesBackButton` | high | S | add `MorphBackButtonDisplayMode.standard/.generic/.minimal` and `hidesBackButton` on scaffold / config |
-| 4 | `titleView` (custom center widget, e.g. segmented control) | med/high | M | add `titleView: Widget?`; title motion rides the same swap |
-| 5 | Per-item tint and `hidesSharedBackground` | med | S/M | add `MorphBarButtonGroup.tintColor`, `MorphBarButtonGroup.hidesSharedBackground` |
-| 6 | Multiple leading groups (leadingItemGroups) incl. back + items | med | M | `leading: List<MorphBarButtonGroup>`, back button prepended unless hidden |
-| 7 | Centered toolbar items (flexible space both sides, `.status`) | med | M | add `MorphToolbar.center`, `toolbarCenter` |
-| 8 | `largeTitleDisplayMode` enum + `prefersLargeTitles` | med | S | `MorphLargeTitleDisplayMode.automatic/.always/.never/.inline`, stack default |
-| 9 | Title menu (`titleMenuProvider` / `toolbarTitleMenu`) | med | M | add `titleMenu: List<MorphMenuEntry>?` reusing the menu host |
-| 10 | Search placements in the nav bar (integrated / stacked / button) | med | L | coordinate with search family |
-| 11 | Selected / toggle bar item | low/med | S | add `MorphBarButton.selected` |
-| 12 | ~~Hide nav bar per page~~ done: `navigationBarHidden` | - | - | - |
-| 13 | Bar minimization (iOS 27 `UIBarMinimization`) | low/med | L | measure first; add `minimization` later |
-| 14 | Overflow / `visibilityPriority` / `pinnedTrailingGroup` / `additionalOverflowItems` | low | L | defer (narrow-width and iPad) |
-| 15 | `preferredMenuElementOrder` on bar menus | low | S | add `MorphBarButton.menuOrder` |
+| # | gap | kind | need | cost | proposal |
+|---|---|---|---|---|---|
+| 1 | Overflow when items do not fit (`visibilityPriority`, `pinnedTrailingGroup`, `additionalOverflowItems`, `.secondaryAction`); groups overlap today | behaviour | M | L meas. | overflow group born in place (bars.md, navseg set b page 4), then the API |
+| 2 | `titleView` / `.principal` | api | M-H | M | `titleView: Widget?` on scaffold, config, bar |
+| 3 | Back title shortening (`.default` mode: title, "Back", chevron) | behaviour | M | S-M meas. | measure the widths, then shorten in `_leadingOf` |
+| 4 | Side inset 20 on a 440 point screen (measured, morph keeps 16) | look | M | S | width-dependent default |
+| 5 | Bar under Reduce Motion: UIKit cross-fades it with the pages (states.md), morph snaps the items | a11y | M | S | fade the bar on the cross-fade progress |
+| 6 | Title menu (`titleMenuProvider`, `toolbarTitleMenu`) | api | M | M | `titleMenu: List<MorphMenuEntry>?` over the bar menu machinery |
+| 7 | Per-item tint and `hidesSharedBackground` / `sharedBackgroundVisibility` | api | M | S-M | `MorphBarButtonGroup.tintColor`, `.hidesSharedBackground` |
+| 8 | Back button beside leading items (`leftItemsSupplementBackButton`) | api | M | S | `leadingItemsSupplementBackButton` |
+| 9 | Toolbar item swap on a push (measured on the simulator, not ported) | behaviour | M | M | port the scale / blur / fade swap for toolbars that change with the page |
+| 10 | Bar minimization (`UIBarMinimization`, iOS 27) | api | M | L meas. | measure, then `minimization` on scaffold |
+| 11 | Centered toolbar items (`.status`, flexible spaces on both sides) | api | M | M | `MorphToolbar.center`, `toolbarCenter` |
+| 12 | Large Content Viewer for bar items at accessibility text sizes (bars cap text at 1.25) | a11y | M | M meas. | measure UIKit, then a long-press HUD |
+| 13 | Search placements in the nav bar (integrated, button) | api | M | L | search family |
+| 14 | `largeTitleDisplayMode.inline` / `.inlineLarge` | api | L-M | S meas. | add after a capture |
+| 15 | Selected / toggle bar item | api | L-M | S meas. | `MorphBarButton.selected` |
+| 16 | Badge motion (fade in / out, follows the bar's update) | look | L-M | S meas. | measure, then animate on the bar spring |
+| 17 | `preferredMenuElementOrder` on bar menus | api | L | S | `MorphBarButton.menuOrder` |
+| 18 | `largeTitle` text, attributed / view subtitles, `prompt`, `backBarButtonItem` | api | L | S-M | add `largeTitle` first |
+| 19 | Translation kick and bridge layer of `GlassContainerToolbarPTSettings` (read, unported) | behaviour | L-M | M | replay against navsegb births once ported |
 
 ## Breaking changes before 1.0
 
-- `MorphNavigationScaffold.largeTitle` (bool) -> `largeTitleDisplayMode: MorphLargeTitleDisplayMode` (UIKit `largeTitleDisplayMode`, SwiftUI `toolbarTitleDisplayMode`; room for `.inline` / `.automatic`).
-- `MorphNavigationScaffold.backTitle`, `MorphNavigationConfig.backTitle` -> `backButtonTitle` (same semantics as `UINavigationItem.backButtonTitle`, set on the page below).
-- `MorphNavigationStack.backLabel`, `MorphNavigationScaffold.backLabel` -> `backButtonSemanticLabel` (it is the spoken label, easily confused with `backTitle`).
-- `MorphNavigationBar.leading`, `MorphNavigationScaffold.leading`, `MorphNavigationConfig.leading` (single `MorphBarButtonGroup?`) -> `List<MorphBarButtonGroup>` like `trailing` and `leadingItemGroups`; the back button no longer disappears when leading items exist (opt out via `hidesBackButton`).
-- `MorphBarButtonGroup.prominent` (bool) -> `style: MorphBarButtonStyle.plain/.prominent` (mirror `UIBarButtonItem.Style`; optional, low value alone - do it together with `tintColor`).
-- `MorphNavigationBar.drift` exposes `MorphNavigationBarDrift`, which `lib/widgets.dart` does not export (public parameter of an unexported type); hide `drift` and `titleExitShift` behind the stack (internal constructor or `@internal`) or export the type.
+Done: `largeTitleDisplayMode` enum, `backButtonTitle`, `backButtonSemanticLabel`, `leading` as a
+list, `MorphBarButtonGroup.style`, `MorphNavigationBar.drift` / `titleExitShift` internal.
+
+Open:
+- `MorphNavigationConfig.barHiding` and `MorphNavigationBarHiding` -> `@internal` (apps cannot construct one).
+- `leading` replacing the back button: keep, and add `leadingItemsSupplementBackButton` before apps depend on the replace-only rule.
+
+## Behaviour fidelity
+
+### navigation-bar
+
+| dimension | grade | evidence | open items |
+|---|---|---|---|
+| layout | read | metrics [layout, device] bars.md "Spec - metrics"; title room replayed within 0.5 pt (test/navigation_title_layout_test.dart, test/fixtures/ios27-device/navigation/title-room.json); large title snap (test/navigation_motion_test.dart, `title-drag-partial*`) | subtitle fonts, large subtitle layout and badge placement read from UIKit, not recorded; `largeSubtitleHeight` formula unchecked; title drop threshold unmeasured; side inset 20 on 440 pt not applied |
+| states | replayed | disabled colors vs device peaks (test/disabled_test.dart, test/fixtures/ios27-device/disabled/disabled.json); held capsule lift (test/navigation_motion_test.dart, `bars/item-hold.jsonl`) | selected state has no API; how UIKit tints a fused prominent + plain capsule is unmeasured |
+| transitions | approx | push / pop per side and births replayed (test/bar_segment_test.dart, test/bar_survivor_test.dart, `bars/navseg*`, `navsegb*`); drift (test/navigation_motion_test.dart, `pop-edge-drift-*`); inline title and edge effect fades (`title-*`, simulator and device) | scroll edge effect fades in the bar where UIKit slides it with each page (declared); newborn's late start not reproduced; the `translationKick` (kickFactor 6) and `bridgeLayer` springs in test/fixtures/ios27-device/bars/tuning.txt are read by no morph class (inference: the kick is the survivor's swing bars.md lists as not reproduced); `transition.delayFactor` 0.33 is replaced by fitted delays; the inline title's fade duration does not scale with scroll speed (`titleTransition` maxScrollVelocity / min- and maxDurationFactor in tuning.txt; morph uses the two fitted springs); edge-swipe commit bar delay 0.027 s not replayed; bar hiding during search is a simulator fit of a bar without items (APPROXIMATION in `MorphNavigationBarHiding`) |
+| boundaries | missing | too-large groups (`oversizedInPlace`, replayed); title truncation and drop (title-room.json) | no overflow: items that do not fit overlap; back title never shortens |
+| configuration | read | `largeTitleDisplayMode.automatic` resolution, back display modes, prominent style follow the SDK header semantics (test/navigation_api_test.dart); edge effect styles vs device layers (test/scroll_edge_effect_test.dart) | combinations not recorded |
+| events | measured | bar menu tap / hold timing [device] (menu-button.md "Bar item menu as primary action"); back menu recognition 0.4 s, open 0.595 s (bars.md "Spec - back menu") | test/back_menu_test.dart pins the constants, no replay |
+| input | measured | press lift replayed (`item-hold.jsonl`); back menu hold outcomes [device, 7 holds]; second pointer (test/bar_items_test.dart) | back menu timing not replayed |
+| mutation | unbacked | object lifecycle per change (bars.md "Spec - object lifecycle"; test/bar_lifecycle_test.dart) | an id that returns while leaving revives its capsule (lib/src/widgets/bar_motion.dart:538), not measured against UIKit |
+| accessibility | missing | semantics and back menu long press (test/navigation_bar_test.dart, test/back_menu_test.dart); RTL mirror | Large Content Viewer missing; text scale cap 1.25 borrowed from the tab bar (lib/src/widgets/bar_items.dart:301); bar snaps under Reduce Motion where UIKit cross-fades it; Increase Contrast for bars unmeasured |
+| optics | approx | edge effect filters vs device layers (test/scroll_edge_effect_test.dart, `bars/scroll-edge.json`); capsule glass from the renderer (glass-optics.md) | flat-tier edge effect and the half-resolution raise are declared NEAR; flat capsule shadow 6 and rim 0.5 not measured (lib/src/widgets/bar_items.dart:2565, 2571) |
+| platform | missing | RTL (test/navigation_bar_test.dart); Android glyph raster (bars.md "Android rendering cost") | 440 pt side inset; landscape (compact height) bar unmeasured; RTL not recorded natively |
+| performance | measured | Pixel 6a nested push / pop / enter p95 within 16.67 ms, energy per variant (docs/performance.md, tool/ios_reference/perf/2026-10-13-bench-nav-tip) | a new page's first layout over budget 1.2 - 1.3 percent |
+
+### toolbar
+
+| dimension | grade | evidence | open items |
+|---|---|---|---|
+| layout | replayed | 28 pt insets [tuning + device]; capsule rects replayed (test/bar_motion_test.dart, `bars/toolbar-swap.jsonl`) | compact height insets (tuning 24 / 38) not applied |
+| states | replayed | disabled toolbar items (test/disabled_test.dart) | - |
+| transitions | missing | `setToolbarItems` replayed (test/bar_motion_test.dart, test/bar_segment_test.dart `navseg-toolbar`, test/bar_survivor_test.dart `navsegb-toolbar*`) | the item swap with a push is not ported |
+| boundaries | missing | oversized group in place (replayed) | no overflow |
+| configuration | replayed | sides filling / emptying in place (test/bar_segment_test.dart) | - |
+| events | measured | shared with bar items | - |
+| input | measured | items stay put during an edge swipe [sim] (bars.md "Not reproduced / open") | not on the device |
+| mutation | unbacked | flip-flop test (test/bar_items_test.dart) | revive rule as for the nav bar |
+| accessibility | missing | as navigation-bar | as navigation-bar |
+| optics | approx | no edge effect under a floating toolbar, as UIKit (bars.md); renderer glass | as navigation-bar |
+| platform | missing | keyboard inset 8 (tuning `phoneKeyboard`) | compact height layout |
+| performance | measured | toolbar morph in example/lib/perf/navigation_stage_bench.dart (docs/performance.md) | - |

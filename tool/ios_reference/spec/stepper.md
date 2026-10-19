@@ -1,12 +1,12 @@
 # Stepper passport
 
 Status: measured on the simulator and CONFIRMED on the device (2026-10-03,
-light + dark); ported. Device colors differ from the morph style (see
-Device).
+light + dark); ported with the device colors (see Device). Only the
+disabled look is replayed; no test loads the stepper gesture recordings.
 
 ## Native
 
-`UIStepper`. Public API (SDK 27.0): `value`, `minimumValue` (0),
+`UIStepper`. Public API (SDK 27.1): `value`, `minimumValue` (0),
 `maximumValue` (100), `stepValue` (1), `continuous` (YES), `autorepeat`
 (YES), `wraps` (NO), background / divider / increment / decrement images
 per state.
@@ -19,8 +19,9 @@ per state.
 - Sliding moves the highlight and the repeat to the other half; leaving the
   control cancels.
 - Minus stays left in RTL.
-- Track is a plain tertiary fill (not glass); morph style background
-  0x1F767680, pressed overlay 0x14000000, divider 0x4C3C3C43.
+- Track is a plain fill (not glass), pressed overlay 0x14000000, divider
+  0x4C3C3C43; the fill colors are in Device (the simulator rows show the
+  same light fill).
 
 ## Disabled [device, light + dark, 2026-10-03]
 
@@ -76,12 +77,20 @@ then devicectl copy Documents).
 ## morph
 
 `MorphStepper`, `MorphStepperAppearance` (stepper.dart); repeat on the motion
-clock (timeDilation-aware). Tests: controls_test.
+clock (timeDilation-aware). Tests: controls_test (commit, repeat, slide and
+leave against the numbers above; the `stepper-*.jsonl` files are loaded by
+no test), disabled_test (limit glyph from disabled.json, pressed colors),
+controls_platform_test, controls_scroll_test,
+other_controls_controlled_test.
 
 ## Open
 
 - Reduce Motion: nothing moves; UIKit reads no flag here. No haptics (read from UIKit, notes private).
 - The 2-level light pressed residual.
+- Glyphs: morph draws minus and plus as 2 pt round-capped strokes 16 pt
+  long (stepper.dart `_StepperPainter`), not the measured 14 x 2 minus
+  and 13.33 plus.
+- No Increase Contrast table.
 
 ## API gaps
 

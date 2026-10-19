@@ -1,7 +1,10 @@
 # Glass button passport
 
-Status: measured device + simulator; ported; device-identical.
-Flex spec: [lens-and-flex.md](lens-and-flex.md).
+Status: measured device + simulator; ported. The lift by size replays
+against the simulator captures, the drag-off against simulator and device;
+the device hold and tap captures are not replayed yet.
+Flex spec: [lens-and-flex.md](lens-and-flex.md). API parity:
+[api/buttons.md](api/buttons.md).
 
 ## Native
 
@@ -49,7 +52,12 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
   and drops it when the scroll takes the touch, with no activation.
 - Glow: overlay 1 - exp(-t / 0.023 s) on press, little glow at the touch
   point to 0.3; on release both fade and the little glow scales 1 -> 4 on
-  0.5/1.0.
+  0.5/1.0. No source is recorded for the rise, the 66 pt little glow
+  (`littleGlowSize`) or the fall spring; the captures log the glow
+  container's frame, not its opacity. The tab bar's measured glow
+  (tab-bar.md: rise 0.1 s critical after 0.042 s, 93 pt spot, fall 0.5 s
+  after 0.02 s, x4) differs in rise, delay and size; whether a button
+  glows the same is open.
 - `.glass()` and `.prominentGlass()` move identically.
 - Text: title 17 regular.
 - Reused by: bar capsules (recorded 1 + 16/w), search field (lift only,
@@ -67,7 +75,8 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
   the enabled body is the tint itself, 0x0091FF dark / 0,134,251 light);
   the title turns tertiaryLabel too (peak dark 121, light 159).
 - No opacity on the control. One frame, no animation, both ways.
-- Touch on a disabled button: capture prepared (testDisabledTouch), not run.
+- Touch on a disabled button: no reaction to a 0.8 s hold (no scale, no
+  event, no animation) [device, testDisabledTouch; states.md].
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
 - Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `disabledForegroundColor` / `disabledTintColor`;
   glass untouched; a hold shows no reaction.
@@ -91,17 +100,22 @@ Scenes `gb<W>x<H>`, `gbp<W>x<H>` (prominent); `PROBE_TINT`. Device plan
 ## morph
 
 `MorphGlassButton`, `MorphGlassButton.prominent(tint:)` (tint defaults to the
-accent, `MorphGlassButtonAppearance.prominentColor` / `MorphWidgetsTheme.tint`),
+accent, `MorphThemeData.tint`, else `MorphGlassButtonAppearance.prominentColor`),
 `.clear` and `.prominentClear` (the liquid tier's fitted clear material; the
 press is the regular button's - UIKit's clear configurations carry style
 behaviors (colors, material, corner style) but no press of their own [read
 from UIKit, notes private]; flat stand-in `clearFillColor` is an
-approximation) (`padding`, `minSize`), `MorphGlassButtonAppearance`,
-`MorphGlassButtonMotion` (`reducedMotion`) (glass_button.dart) on
-`MorphFlexInteraction` (flex_interaction.dart, `glows: true`). Tests:
-controls_test (hold and drag-off replays, simulator and device),
-flex_interaction_test, release_bounds_test (replays release-outside.jsonl
-through the widget).
+approximation) (`padding`, `minSize`, `menu`, `enabled`),
+`MorphGlassButtonAppearance`; internal `MorphGlassButtonMotion`
+(`reducedMotion`) (glass_button.dart) on `MorphFlexInteraction`
+(flex_interaction.dart, `glows: true`). Tests: controls_test (lift by size
+against the simulator hold800 captures; drag-off against simulator and
+device), flex_interaction_test, release_bounds_test (replays
+release-outside.jsonl through the widget), disabled_test (replays
+disabled.json), glass_button_variants_test (clear, prominent, glow white
+levels), menu_source_test (button menus), controls_scroll_test (scroll
+competition, behaviour only), controls_platform_test (keyboard, Reduce
+Motion).
 
 Rest: settles once every spring's remaining swing (`MorphSpringState.reach`)
 is under `MorphRest` - 0.1 pt (0.3 device px at 3x, 0.26 at 2.625x), a scale
@@ -114,6 +128,12 @@ the lift.
 ## Not reproduced / open
 
 - Reduce Motion: no read of the flag found in the flex interaction (Swift); morph keeps its approximation, device pass pending ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)).
+- Not replayed: the device hold800 captures (7 files), button-glass-44x44-taps
+  and tracking/scroll-delay.jsonl (controls_scroll_test checks the
+  behaviour only).
+- Not measured: the default insets 20 x 11, `minSize` 44 x 44 and the
+  22 pt glyph (glass_button.dart); release bounds below and left; a
+  glass <-> prominent configuration switch; the selected state.
 
 ## API gaps
 
@@ -127,6 +147,7 @@ the lift.
   clear buttons are not recorded: capture `clearGlass` /
   `prominentClearGlass` scenes to confirm.
 - `buttonSize` presets and `cornerStyle` (morph: capsule only, padding).
-- Subtitle, image placement, activity indicator, selection toggling.
-- `menu` / `showsMenuAsPrimaryAction` on an arbitrary glass button (morph
-  has MorphMenuButton for the round 48 pt case only).
+- Subtitle, activity indicator, selection toggling, role.
+- `menu` / `showsMenuAsPrimaryAction` exist (`MorphGlassButton.menu`);
+  `preferredMenuElementOrder` and the menu-open event are not on the
+  button. Ranked list: [api/buttons.md](api/buttons.md).

@@ -1,4 +1,4 @@
-# Glass renderer passport (MorphGlassRenderer, tiers, adaptive policy, outline as truth)
+# Glass renderer passport (GlassBuiltInPainter, tiers, adaptive policy, outline as truth)
 
 Status: implemented in the package (owner decision 2026-10-03: the old
 "no shader in the package" rule is CANCELLED); optics measured on the
@@ -42,16 +42,13 @@ measurements.
   carries the painter it resolves at its source; an overlay above the
   installing MorphGlassScope otherwise draws the flat fallback. `MorphGlassScope`
   is an InheritedTheme and the package carries the source's
-  InheritedThemes (`MorphThemeCarrier`): engine flights (`showMorph*`,
-  `showMorphRoute`, `MorphAnchor`, the context menu) wrap the whole
-  shuttle and the settled route page, so a glass control used as a
-  `MorphTag` source draws its ghost, and the dialog or sheet content
-  draws its glass, with the source painter, following a tier switch one
-  frame late; alerts, action sheets, sheets (and their content) and the
+  InheritedThemes (`MorphThemeCarrier`): engine flights (`showMorph`,
+  the context menu) wrap the whole shuttle, so the flight's content draws
+  its glass with the source painter, following a tier switch one frame
+  late; alerts, action sheets, sheets (and their content) and the
   date picker overlay capture from the presenting context; the zoom
   replica from its source tag. Menus and bar button menus also pass
-  `MorphMenuHost.menuGlass` (test/glass_carry_test.dart,
-  test/flight_theme_carry_test.dart). Closed 2026-10-05: no residual.
+  `MorphMenuHost.menuGlass` (test/glass_carry_test.dart). No residual.
 - Flutter GPU data passes (geometry, field, material) run with blending
   disabled: impeller's ColorAttachmentDescriptor default, unchanged by
   flutter_gpu unless setColorBlendEnable is called (Flutter 3.47.2).
@@ -64,10 +61,15 @@ measurements.
   assets (pubspec `flutter: shaders:`); hook/build.dart builds its Flutter
   GPU bundle (morph_glass.shaderbundle.json -> build/shaderbundles/, an
   asset dir analysis ignores until the hook writes it).
-- ONE public entry: `MorphGlassRenderer` (glass_renderer.dart), a
-  MorphGlassPainter with `tier` (`MorphGlassTier` flat / fake / liquid)
-  and the liquid settings (`MorphGlassMaterial`, blur, refraction, light,
-  tint, frostControls); `liftedOptics` per control; `precache()`.
+- Public entry: `MorphThemeData.glass` takes a `MorphGlassRenderer`
+  (`.adaptive()` or `.tier(MorphGlassTier)`, lib/src/theme/glass.dart);
+  `MorphTheme` installs `GlassAdaptiveScope`, which installs the internal
+  painter `GlassBuiltInPainter` (glass_renderer.dart: `tier`
+  (`MorphGlassTier` flat / fake / liquid) and the liquid settings
+  `MorphGlassMaterial`, blur, refraction, light, tint, frostControls;
+  `liftedOptics` per control; `precache()`, public as
+  `MorphTheme.precacheGlass`). A custom painter goes through
+  `MorphGlassScope` (`package:morph/glass_painter.dart`).
 - WEB: the liquid capability sits behind a conditional import
   (glass_liquid.dart -> _native / _web; the web stub never touches
   Flutter GPU, `liquidAvailable` false, liquid draws fake glass); the
@@ -205,7 +207,7 @@ Installs the renderer at ONE tier for the session (owner decision
 2026-10-05: the glass never switches tier while the app runs). An
 explicit `tier` wins; else `GlassAdaptiveScope.tierFor(deviceClass,
 best)`, a pure function, decides once the liquid capability resolves
-(`MorphGlassRenderer.precache` before `runApp` makes that the first
+(`MorphTheme.precacheGlass` before `runApp` makes that the first
 frame; without it the first frames draw the fake glass fallback):
 
 - `skia` (a native runtime without Impeller: Android before API 29, or
@@ -463,8 +465,7 @@ reference. Contact sheets (liquid | fake | frosted | flat):
   own `BackdropGroup` - free by default, correct where the app asks.
   (D) status quo (72 / 43 max channel in the repro).
   DECIDED (owner, 2026-10-05): C. The package groups nothing on its own;
-  the recipe lives in GlassAdaptiveScope's dartdoc (pointed to from
-  MorphGlassRenderer's): a section whose glass paints after other content
+  the recipe lives in `MorphTheme`'s dartdoc: a section whose glass paints after other content
   (a card over a list, a second control row over content painted after
   the first) goes in `BackdropGroup(child: section)`, which gives it a
   copy taken where it paints, for one more full-screen readback per
@@ -493,7 +494,7 @@ reference. Contact sheets (liquid | fake | frosted | flat):
 ## The surfaces channel (2026-10-05, glass_channel.dart)
 
 - Every painter call of a control goes through a `MorphGlassHost`
-  (layer / surface / fill / body). With `MorphGlassRenderer` itself the
+  (layer / surface / fill / body). With `GlassBuiltInPainter` itself the
   host builds its tree once per STRUCTURE (`structureOf`: tier, surface
   roles and counts, visible, glows, platters, lifted lenses, fused
   outline kind) over a `MorphGlassChannel`; every frame that keeps the
@@ -594,7 +595,7 @@ container is content above its glass.
 
 - A host joins (`MorphGlassContainerLink.admit`, decided in the host's
   structure, so a change rebuilds its tree once) only when: the painter is
-  `MorphGlassRenderer` itself on liquid or fake; the control declares
+  `GlassBuiltInPainter` itself on liquid or fake; the control declares
   itself still (`MorphGlassLayer.still`, the glass button's
   `MorphGlassButtonMotion.isSettled`: no lift, lean, glow or scale in
   motion); its glass is separate body glass (no fused body, no floating
@@ -902,7 +903,7 @@ pixels; base vs base 0).
 
 ## First use: pipeline warm-up (2026-10-05, glass_warm_up.dart)
 
-`MorphGlassRenderer.precache()` (morphPrecacheLiquidGlass), after the
+`MorphTheme.precacheGlass()` (`GlassBuiltInPainter.precache`, morphPrecacheLiquidGlass), after the
 liquid capability resolved, draws every pipeline the first glass frame
 needs, offscreen:
 
@@ -1621,7 +1622,7 @@ Consolidations (landed):
   `MorphTagVisibility` right under its opacity (exactly 1 or 0), the reach
   check passes the opacity while the tag shows and depends on the tag, so
   a tag hiding for its flight sends its glass into its own layer in the
-  same frame (test/glass_container_tag_test.dart). The resting menu button
+  same frame (no test covers it). The resting menu button
   tells when it is still (no menu presented, not landing, motion settled).
 - Gallery: the menu page's buttons and the sheet page's whole list in one
   container each.
@@ -2436,13 +2437,13 @@ perf/contact.py lays several tiers' shots side by side.
 Energy: perf/energy_android.sh runs audit APKs under a Perfetto power
 trace, perf/energy.py splits the rails by scene (see "Energy: ADPF and
 the fusion workers"); `AUDIT_IDLE_S` and `FUSION_PREFETCH` on the audit.
-Glass inspector: `MorphGlassInspector` (public, debug and profile) is the
-census for app developers - filters, captures, owners and container hints
+Glass inspector: `MorphGlassInspector` (internal, debug and profile) is the
+census for the gallery and tests - filters, captures, owners and container hints
 of the last frame on screen, `MorphGlassInspector.census()` in tests; the
 gallery's Glass renderer page toggles it. A release build removes it (the
 macOS release App binary holds none of its strings).
 Gallery: the root installs `GlassAdaptiveScope` with the session's
-`MorphGlassRenderer` (GalleryGlassSettings / GalleryGlassScope,
+`GlassBuiltInPainter` (GalleryGlassSettings / GalleryGlassScope,
 glass_settings.dart, tier null = auto, in GalleryApp's State); the Glass
 renderer page edits them and shows the tier being drawn.
 
@@ -2742,7 +2743,10 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
   origin were right for bar geometry ("Small blurs").
 
 - Dark lifted slider thumb look (slider.md).
-- Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).
+- Popover arrow drawn flat (glass-optics.md).
+- The liquid tier's rim, 20 / 60 refraction bevel, 1.5x optical corner,
+  clear face and tint tone are the upstream presets' fits, not recorded
+  on our devices (glass-optics.md "Open / gaps").
 - Backdrop groups: two resting body glass surfaces with content painted
   between them - the later one reads the root copy without that content
   unless the app gives the later section its own BackdropGroup (option
@@ -3126,7 +3130,7 @@ the same shader (box-filter coverage of the band) and draws the shadow as
 the shaded fill under a Gaussian blur layer of the mask blur's sigma 6
 (exact Gaussian of the exact shape; the neck cover would shadow gaps that
 have not closed). The renderer's flat body has no shadow. Until the shader
-loads (MorphGlassRenderer.precache loads it when enabled) bodies fill the
+loads (GlassBuiltInPainter.precache loads it when enabled) bodies fill the
 traced path.
 
 Host fidelity (test/flat_shader_body_test.dart, Skia, 16 rows of 2 - 4
@@ -3174,7 +3178,7 @@ coverage outside the glass shape, `clamp(0.5 + sd * device px per pt)` of
 `sdfSquircle` (the exact rounded superellipse the liquid tier draws). The
 clip path is built only when the old path draws. Skia (whose blur differs),
 ovals, rounded rectangles, unblurred shadows and an unloaded shader keep the
-clip path; `MorphGlassRenderer.precache` loads the shader when enabled,
+clip path; `GlassBuiltInPainter.precache` loads the shader when enabled,
 and a shadow that attaches while it has not loaded starts the load itself
 and repaints once it is ready (test/glass_shadow_shader_load_test.dart), so
 an app that skips precache still draws shader shadows.

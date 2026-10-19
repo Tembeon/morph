@@ -8,7 +8,7 @@ menu_motion.dart), replayed by test/menu_api_test.dart. Extends
 [menu-button](menu-button.md) (the button-to-menu liquid morph, placement,
 triggers); this page covers what lives INSIDE the menu.
 
-## Native API surface (SDK 27.0)
+## Native API surface (SDK 27.0, unchanged in 27.1)
 
 UIKit (`UIMenu.h`, `UIMenuElement.h`, `UIMenuLeaf.h`, `UIAction.h`,
 `UIDeferredMenuElement.h`, `UIMenuDisplayPreferences.h`,
@@ -254,7 +254,10 @@ Submenu material correction [device rows + film, 2026-10-04]:
   second header keeps a one-gray-level residual. card-tone.json records
   the fitted transfer, baseline backdrop inference and actual phone values.
   The property changes transmitted luminance, retaining the same regular
-  renderer material, emission, glints and contour.
+  renderer material, emission, glints and contour. Production value
+  since the Clear face refit (glass-optics.md "Native face transfer"):
+  `MorphMenuTuning.cardTransmissionGamma` 1.14 over the measured large
+  dark face (55.7 against the native 57, 68.1 against 68).
 - Whole-stack close transfers the cards' glass to the common morph field at
   closeKickDelay, 12 ms after the logical close. Native mm-sub-tap retains
   root rows at +7.588 ms, then makes their list alpha 0 and hides the original
@@ -340,39 +343,43 @@ Live updates [rows + shots]:
   (`menuActionDismissBehavior(.disabled)`, Count 0 -> 2); a Toggle row
   dismisses.
 
-## Proposed morph API (Dart, Morph* names)
+## morph API (lib/morph.dart; test/api/public_api.txt is the reference)
 
 ```dart
 sealed class MorphMenuEntry {}
 class MorphMenuItem extends MorphMenuEntry      // UIAction / SwiftUI Button
-  (title, {subtitle, icon, selectedIcon, iconVisibility, enabled = true,
+  ({required title, subtitle, Widget? icon, Widget? selectedIcon, iconColor,
+   iconVisibility = MorphMenuIconVisibility.automatic, enabled = true,
    destructive = false, hidden = false, keepsMenuOpen = false,
    state = MorphMenuState.off /* on, mixed */, onSelected,
    onHighlightChanged});
 class MorphMenuSection extends MorphMenuEntry    // UIMenu displayInline
-  ({title, children, singleSelection = false,
+  ({required children, title, singleSelection = false,
     elementSize = MorphMenuElementSize.large /* small, medium, automatic */,
     palette = false, maxTitleLines});
 class MorphSubmenu extends MorphMenuEntry        // UIMenu (nested)
-  (title, {subtitle, icon, children, destructive, enabled, singleSelection,
-   elementSize});
+  ({required title, required children, subtitle, Widget? icon,
+   destructive = false, enabled = true, hidden = false,
+   singleSelection = false, elementSize = MorphMenuElementSize.large});
 class MorphMenuDivider extends MorphMenuEntry;   // SwiftUI Divider
 class MorphMenuDeferred extends MorphMenuEntry   // UIDeferredMenuElement
-  (Future<List<MorphMenuEntry>> Function() load, {cache = true});
+  (Future<List<MorphMenuEntry>> Function() load,
+   {cache = true, id, loadingTitle = 'Loading...'});
 class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
-  (WidgetBuilder builder, {interactive = true, keepsMenuOpen = true});
+  ({required WidgetBuilder builder, double? height, Object? id});
 ```
 
-- `MorphMenuButton(entries:, order: MorphMenuOrder.automatic / priority /
-  fixed, dismissOnSelect, onOpen, controller)`; a
-  `MorphMenuController.update(entries)` = `updateVisibleMenu` (resize on
-  the measured springs); selection state comes from the app's state (as in
-  SwiftUI): the menu rebuilds in place.
+- `MorphMenuButton(menu:, order: MorphMenuOrder.automatic / priority /
+  fixed, dismissOnSelect:)`, `MorphMenuSource(menu:, child:, trigger:)`,
+  `MorphGlassButton(menu:)`, `MorphBarButton(menu:)`. No public controller:
+  a rebuild with new entries is `updateVisibleMenu` (resize on the measured
+  springs); selection state comes from the app's state (as in SwiftUI): the
+  menu rebuilds in place.
 - `MorphMenuWidget` is morph's extension for the owner's free-form rows
-  (sliders, steppers, custom controls): laid out at the menu width minus the
-  row insets, measured like any row (MorphContentMeasure), keepsMenuOpen by
-  default; native has no equivalent, so its look is the app's, the motion is
-  the menu's (resize on 0.565 / 0.84 grow, 0.40 / 1.0 shrink).
+  (sliders, steppers, custom controls): laid out at the menu width minus
+  16 pt a side, measured after its first layout unless `height` is given;
+  native has no equivalent, so its look is the app's, the motion is the
+  menu's (resize on 0.565 / 0.84 grow, 0.40 / 1.0 shrink).
 - The SwiftUI Slider / Stepper conversion (Decrement / Increment medium cells
   under a header) can be offered as `MorphMenuStepperRow` for native parity.
 
@@ -381,10 +388,12 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
 - [x] Entry model (sealed MorphMenuEntry: MorphMenuItem, MorphMenuSection,
       MorphSubmenu, MorphMenuDivider, MorphMenuDeferred, MorphMenuWidget);
       `MorphMenuItem` keeps title, icon, destructive, onSelected and adds
-      iconColor (morph's, for palettes of colors). `MorphMenuButton.items`
-      kept its name (passport proposed `entries`), plus `order` and
-      `dismissOnSelect`. No `MorphMenuController`: the button is
-      declarative, a rebuild with new entries is the update.
+      iconColor (morph's, for palettes of colors). The entries go in
+      `menu:` on every source (`MorphMenuButton`, `MorphMenuSource`,
+      `MorphGlassButton`, `MorphBarButton`), plus `order` and
+      `dismissOnSelect`. No public controller (the internal
+      `MorphMenuController` hosts a source): the button is declarative,
+      a rebuild with new entries is the update.
 - [x] Layout table: `MorphMenuMetrics` / `MorphMenuLayout.build`, replayed
       against the rich1 / rich2 / sub / deferred dumps (positions to 0.02
       pt). Read from the dumps beyond this page: a header that opens a
@@ -639,7 +648,9 @@ Opening timing, close residual and root rows [device fits + films, 2026-10-05]:
 - tapOpenDelay 0.05 -> 0.089 (e57255f): the menu replay solves the open
   start on the open spring from the recorded glass scale; in all 17 device
   captures it lies 0.069-0.140 s after the tap's release (mean 0.0893,
-  median 0.085). menu_button_test pins the mean.
+  median 0.085). menu_button_test pinned the mean; it was removed in
+  98237e58 and no test pins the mean against the captures now
+  (bar_menu_tap_test pins only the bar item's +0.013 s over it).
 - Open-phase widths, robust estimator (bright-face bbox, min channel >=
   246, 0.2/99.8 percentiles) fitted with the open curve per gesture: native
   starts 0.140 / 0.0735 (run 10), 0.114 / 0.084 (run 11), 0.1155 / 0.0745

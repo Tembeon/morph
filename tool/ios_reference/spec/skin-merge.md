@@ -21,7 +21,7 @@ rendered by `CASDFLayer` + `CASDFElementLayer` (smoothness == spacing).
   middle of a facing gap ~k/4.
 - Compare at the field's 0.40 level (Apple's tint fill sits ~0.4 pt outside
   the SDF zero).
-- SwiftUI default spacing 8 (`MorphSkinStyle.subtle`). Bars use 12 (see
+- SwiftUI default spacing 8. Bars use 12 (see
   bars.md). Menu container: smoothness 0 + Gaussian-blurred field (see
   menu-button.md).
 - Births (`glassEffectID` per-frame rects): born at 0.2 of size at the final
@@ -46,10 +46,15 @@ x 300, rows y = 150 + 80 i for gaps [40,30,20,15,10,6,3,0,-5].
 
 ## morph
 
-lib/src/liquid_field.dart (`liquidMergeWidth`, `_FieldSampler`,
-clustering), lib/src/skin.dart (`MorphSkin`, `MorphPiece`,
-`MorphPieceChannel.birthScale/birthSpring`). Tests: liquid_apple_merge_test,
-liquid_regression_test, liquid_geometry_golden_test, liquid_fuzz_test.
+lib/src/liquid_field.dart (`LiquidField`, `liquidMergeWidth`,
+`liquidSmin`, `MorphMass`, `_FieldSampler`, clustering);
+lib/src/widgets/glass_outline.dart (`morphGlassContainerOutline`: the
+fused outline of `MorphGlassPainter.buildLayer(spacing:)`, used by the bar
+capsules; the tracer samples `LiquidField`). No public widget fuses:
+`MorphGlassContainer` has no spacing. The `glassEffectID` birth law above
+has no implementation (bars use their own birth law, bars.md). Tests:
+liquid_apple_merge_test, liquid_regression_test,
+liquid_geometry_golden_test, liquid_fuzz_test.
 
 ## Open
 
