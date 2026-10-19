@@ -8,8 +8,10 @@ import 'dart:ui' as ui;
 import 'package:flutter_test/flutter_test.dart';
 // The oracle pins the renderer's geometry path.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/pass/glass_frost.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer, debugMorphShaderFrost;
+    show RenderLiquidGlassLayer;
 
 import '../integration_test/support/shader_harness.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';

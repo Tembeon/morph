@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
 import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
@@ -119,11 +120,11 @@ Future<void> morphWarmLiquidPipelines(
     // The analytic variants are warmed only where layers use them; one
     // that does not load is left out rather than failing the warm-up.
     if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
-      await RenderLiquidGlassLayer.precacheAnalyticShaders();
+      await GlassFinalPass.precacheAnalyticShaders();
       for (final variant in LiquidShaderVariant.values) {
         if (!variant.analyticGeometry) continue;
         final key = ShaderKeys.finalRender(variant);
-        if (RenderLiquidGlassLayer.analyticProgram(key) case final program?) {
+        if (GlassFinalPass.analyticProgram(key) case final program?) {
           programs.add(program);
           variants.add(variant);
         }

@@ -235,7 +235,7 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
 
     void visitRender(RenderObject object) {
       if (object is RenderLiquidGlassLayer) {
-        blurSigmas.add(object.blurPassSigma);
+        blurSigmas.add(object.frost.passSigma);
         if (object.debugFilterBounds case final r?) {
           bounds.add([r.left, r.top, r.width, r.height]);
         }

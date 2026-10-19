@@ -11,7 +11,7 @@ void main() {
     'lib/src/glass/renderer/shaders/liquid_glass_final_render_core.glsl',
   ).readAsStringSync();
   final layer = File(
-    'lib/src/glass/renderer/rendering/liquid_glass_layer.dart',
+    'lib/src/glass/renderer/pass/final_pass.dart',
   ).readAsStringSync();
 
   double shaderConstant(String name) {

@@ -547,7 +547,7 @@ class _BenchState extends State<_Bench> {
         layers.add({
           'local_rect': [local.left, local.top, local.width, local.height],
           'screen_rect': [global.left, global.top, global.width, global.height],
-          'sigma': object.blurPassSigma,
+          'sigma': object.frost.passSigma,
           'grouped': object.backdropKey != null,
           'has_field': object.field != null,
           'mixed_appearance': object.debugUsesShapeAppearances,
