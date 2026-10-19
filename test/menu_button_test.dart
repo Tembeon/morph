@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/scope.dart';
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_outline.dart';

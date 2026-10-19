@@ -2,11 +2,11 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/widgets/flex_interaction.dart';
-import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/motion/flex_interaction.dart';
+import 'package:morph/src/motion/flex_spec.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
-import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/src/widgets/timeline.dart';
+import 'package:morph/src/motion/spring_state.dart';
+import 'package:morph/src/motion/timeline.dart';
 
 const _eps = 1e-12;
 

@@ -3,14 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring_state.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/theme/theme.dart';
 

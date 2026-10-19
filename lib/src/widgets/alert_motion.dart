@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/spring_state.dart';
 
 /// The measured tuning and geometry of an iOS 27 alert
 /// (UIAlertController with the alert style).

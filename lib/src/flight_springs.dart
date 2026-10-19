@@ -1,4 +1,4 @@
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring.dart';
 
 /// A morph's motion profile: an open and a close [MorphSpring].
 ///

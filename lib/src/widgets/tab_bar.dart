@@ -9,7 +9,7 @@ import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/badge.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
-import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/motion/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';

@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/channel.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/channel.dart';
 
 /// The deformation tuning of a glass surface that responds to touch.
 ///

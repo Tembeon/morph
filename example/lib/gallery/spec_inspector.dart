@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 // ignore: implementation_imports
-import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/motion/flex_spec.dart';
 
 /// Shows the deformation and lift UIKit derives for a surface size.
 class SpecInspectorPage extends StatefulWidget {

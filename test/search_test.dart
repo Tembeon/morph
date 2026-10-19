@@ -7,7 +7,7 @@ import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/search_motion.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring_state.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/morph.dart';
 import 'support/motion_at.dart';

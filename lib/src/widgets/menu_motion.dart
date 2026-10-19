@@ -3,16 +3,16 @@ import 'dart:math' as math;
 import 'package:flutter/painting.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/motion/motion.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/channel.dart';
-import 'package:morph/src/widgets/flex_interaction.dart';
-import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/channel.dart';
+import 'package:morph/src/motion/flex_interaction.dart';
+import 'package:morph/src/motion/flex_spec.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_morph_spec.dart';
-import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/src/widgets/timeline.dart';
+import 'package:morph/src/motion/spring_state.dart';
+import 'package:morph/src/motion/timeline.dart';
 
 /// The tuning of a glass button's menu, as measured on iOS 27.
 ///

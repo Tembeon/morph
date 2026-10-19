@@ -16,7 +16,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring_state.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/theme/theme.dart';

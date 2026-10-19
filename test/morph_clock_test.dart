@@ -2,8 +2,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/clock.dart';
-import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring_state.dart';
+import 'package:morph/src/motion/spring.dart';
 
 class _Host extends StatefulWidget {
   const _Host({required this.stamps, required this.advances, super.key});

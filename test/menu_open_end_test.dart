@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring_state.dart';
 
 const _titles = [
   'Copy',

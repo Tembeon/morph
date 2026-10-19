@@ -227,7 +227,7 @@ SIMD/FFI rewrites are likewise not credited with a gain without AOT evidence. Fl
 
 **21. Frame scheduling: retain the existing sleeping clock, measure actual cadence.**
 
-**3.47.2: yes for demand-driven scheduling/TickerMode; partial for refresh-rate control. Gain: H energy when a frame is avoided, no new win from already completed sleep fixes. Fidelity: high if active motion is throttled. Effort: S checks, M host integration. Applies to** `lib/src/widgets/clock.dart:65`, `lib/src/widgets/activity_indicator.dart:188`, `lib/src/widgets/glass_tier.dart:276`, and `lib/src/widgets/flex_integrator.dart`.
+**3.47.2: yes for demand-driven scheduling/TickerMode; partial for refresh-rate control. Gain: H energy when a frame is avoided, no new win from already completed sleep fixes. Fidelity: high if active motion is throttled. Effort: S checks, M host integration. Applies to** `lib/src/widgets/clock.dart:65`, `lib/src/widgets/activity_indicator.dart:188`, `lib/src/widgets/glass_tier.dart:276`, and `lib/src/motion/flex_integrator.dart`.
 
 An active, unmuted ticker schedules frame callbacks (`F/src/scheduler/ticker.dart:270`, `:289`); muting cancels scheduled ticking (`:119`). Scheduler frame requests are coalesced (`F/src/scheduler/binding.dart:946`). iOS display links start paused, resume on demand and can pause after vsync (`E/shell/platform/darwin/ios/framework/Source/VSyncClient.swift:65`, `:112`, `:199`). Android's waiter posts a Choreographer callback when asked (`E/shell/platform/android/io/flutter/view/VsyncWaiter.java:118`). A persistent-frame callback registration is not by itself a request for continuous frames.
 

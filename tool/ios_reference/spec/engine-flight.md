@@ -52,7 +52,7 @@ same close frames (fit error > 0.015).
 
 ## morph
 
-All internal (lib/morph.dart exports none): lib/src/spring.dart
+All internal (lib/morph.dart exports none): lib/src/motion/spring.dart
 (`MorphSpring`), lib/src/motion.dart (`MorphMotion.liquid`, `glacial`,
 `instant`), lib/src/controller.dart (`MorphController`, handoff latch),
 lib/src/flight.dart and lib/src/show.dart (the vessel flight,

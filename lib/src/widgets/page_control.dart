@@ -3,12 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/motion/motion.dart';
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/haptics.dart';
-import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/src/widgets/timeline.dart';
+import 'package:morph/src/motion/spring_state.dart';
+import 'package:morph/src/motion/timeline.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/theme/theme.dart';
 

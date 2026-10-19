@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/spring_state.dart';
 
 /// One animatable value of a UIKit surface: what UIKit keeps for every
 /// channel a flex or a lens drives (a scale, a drift, the menu's pulse).

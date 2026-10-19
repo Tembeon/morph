@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/src/widgets/bar_items.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring_state.dart';
 
 class _Recorder extends MorphGlassPainter {
   List<MorphGlassSurface> surfaces = [];

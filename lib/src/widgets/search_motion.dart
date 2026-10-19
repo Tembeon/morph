@@ -2,11 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/flex_interaction.dart';
-import 'package:morph/src/widgets/flex_spec.dart';
-import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/src/widgets/timeline.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/flex_interaction.dart';
+import 'package:morph/src/motion/flex_spec.dart';
+import 'package:morph/src/motion/spring_state.dart';
+import 'package:morph/src/motion/timeline.dart';
 
 /// The measured tuning and geometry of the iOS 27 search field: a
 /// UISearchController placed in the bottom toolbar, and the tab bar's

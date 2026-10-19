@@ -130,7 +130,7 @@ sy, lifted, lpp, p_driftX, f_driftX, f_scaleX, vi_x, vi_vx, vi_ax),
 lib/src/widgets: spring_state.dart, timeline.dart, clock.dart,
 flex_integrator.dart (MorphFlexIntegrator, MorphSubClock), flex_spec.dart,
 lens_motion.dart, lens_driver.dart, small_lens.dart,
-lib/src/spring.dart. Tests: lens_test, lens_scrub_test, switch_test,
+lib/src/motion/spring.dart. Tests: lens_test, lens_scrub_test, switch_test,
 controls_test, timeline_test, spec_test.
 
 Rest: settles once every spring's remaining swing (`MorphSpringState.reach`)

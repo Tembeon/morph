@@ -1,4 +1,4 @@
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring.dart';
 
 /// The tuning of UIKit's morph between a control and the surface it opens,
 /// such as a button turning into its menu.

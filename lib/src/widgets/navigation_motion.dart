@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/animation.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/spring_state.dart';
 
 /// The motion of a navigation bar's inline title and its scroll edge
 /// effect as content scrolls under the bar.

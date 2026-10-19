@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/spring_state.dart';
 
 /// The measured tuning and geometry of the iOS 27 compact date picker
 /// (UIDatePicker with the compact style) and the overlay it opens.

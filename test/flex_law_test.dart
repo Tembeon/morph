@@ -4,8 +4,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/widgets/flex_interaction.dart';
-import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/motion/flex_interaction.dart';
+import 'package:morph/src/motion/flex_spec.dart';
 import 'package:morph/src/widgets/slider_motion.dart';
 
 import 'support/slider_feed.dart';

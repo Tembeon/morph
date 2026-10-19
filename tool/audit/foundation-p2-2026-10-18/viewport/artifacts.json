@@ -52,7 +52,7 @@
   "coreUnchangedSha256": {
     "lib/src/widgets/clock.dart": "7fca061614977b27b587c2ef9f6e2ac80aa32546dec42c7fac509b6e875955df",
     "lib/src/widgets/menu_motion.dart": "f658d8059ab126bd16a3dac5f4d0919eade6290fd78b407aaaf058dcc652965d",
-    "lib/src/widgets/timeline.dart": "4e9bacbd7b4f0604e701fb2dddfb128d375a9e11769202d54434c773714a62be",
+    "lib/src/motion/timeline.dart": "4e9bacbd7b4f0604e701fb2dddfb128d375a9e11769202d54434c773714a62be",
     "example/lib/proto/motion_clock_probe.dart": "617fff189d11e35d64e40ce28768fad8136d9d7e98f0acb649fe7ccb66efbaa6",
     "example/lib/proto/menu_transfer_probe.dart": "fe77babdb54e646995a217898d81ef001a1c0de4e8627c653d59f501ad0aafb5",
     "pubspec.yaml": "5fd0db5a45e37ba6c0983bf602299069daa36069ab7ed643cc5e9d48c4ad3eb0",

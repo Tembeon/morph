@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
-import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/motion/flex_spec.dart';
 import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
@@ -27,7 +27,7 @@ import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring.dart';
 
 /// A block standing above a context menu's preview, as UIKit's
 /// accessory views do - a reactions capsule over a message bubble -

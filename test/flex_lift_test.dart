@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/motion/flex_spec.dart';
 
 void main() {
   test('the lift grows the long side by the lift points', () {

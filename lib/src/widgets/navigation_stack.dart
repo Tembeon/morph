@@ -24,7 +24,7 @@ import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/predictive_back.dart';
 import 'package:morph/src/widgets/push_zoom.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
 import 'package:morph/src/widgets/search_stacked.dart';
 import 'package:morph/src/widgets/scroll_indicator.dart';

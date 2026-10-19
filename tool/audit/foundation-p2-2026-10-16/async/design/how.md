@@ -37,7 +37,7 @@ An outstanding request needs identity tied to the route and its ownership/naviga
 # Where
 
 - `lib/src/widgets/menu_motion.dart:15` admission installer; `:2462` explicit close; `:2756` advance; `:2901` driven kick integration; `:3046` request before mutation; `:3051` close internals.
-- `lib/src/widgets/timeline.dart` deadline-preserving synchronous event drain.
+- `lib/src/motion/timeline.dart` deadline-preserving synchronous event drain.
 - `example/lib/proto/menu_transfer_probe.dart` unique lease and clock mapping.
 - `example/lib/proto/menu_route_probe.dart:211` admission installation; `:324` host drain; `:470` route pop after local-history handling.
 - `example/lib/proto/motion_clock_probe.dart:63` latest sampled time; `:205` resume anchor. A fresh async approval timestamp is not automatically represented by `clock.time` when settled. `resumeAt` only adds elapsed doze time directly; ordinary idle time requires an explicit clock/motion policy.

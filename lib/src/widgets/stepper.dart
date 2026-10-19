@@ -6,7 +6,7 @@ import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/press.dart';
-import 'package:morph/src/widgets/timeline.dart';
+import 'package:morph/src/motion/timeline.dart';
 import 'package:morph/src/theme/theme.dart';
 
 /// The look of a [MorphStepper].

@@ -1,12 +1,12 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:morph/src/gesture.dart';
+import 'package:morph/src/motion/rubberband.dart';
 import 'package:morph/src/motion/motion.dart';
 import 'package:morph/src/widgets/small_lens.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/src/widgets/timeline.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/spring_state.dart';
+import 'package:morph/src/motion/timeline.dart';
 
 /// The motion of an iOS 27 slider: value, thumb lens and track stretch.
 ///

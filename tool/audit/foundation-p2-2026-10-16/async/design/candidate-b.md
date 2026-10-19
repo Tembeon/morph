@@ -163,7 +163,7 @@ Programmatic `Navigator.pop` bypasses `willPop`/PopScope by SDK design. On actua
 
 ## Module map and depth
 
-- `lib/src/widgets/timeline.dart`: deadline-preserving yield, no SDK knowledge.
+- `lib/src/motion/timeline.dart`: deadline-preserving yield, no SDK knowledge.
 - `lib/src/widgets/menu_motion.dart`: close-request effect and resolve at a monotonic integration boundary, no futures or route types.
 - `example/lib/proto/menu_route_probe.dart`: one driver plus route-owned permission state; all SDK policy and race handling live together.
 

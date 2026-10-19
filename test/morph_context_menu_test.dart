@@ -16,7 +16,7 @@ import 'support/painted_colors.dart';
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/flight_springs.dart';
 import 'package:morph/src/scope.dart';
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 
 /// Rows of a device-sized menu: one free-form row filling a menu [height]

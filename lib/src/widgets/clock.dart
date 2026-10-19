@@ -6,9 +6,9 @@ import 'dart:typed_data';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/widgets/spring_state.dart' show MorphRest;
-import 'package:morph/src/widgets/pointer_clock_stub.dart'
-    if (dart.library.ffi) 'package:morph/src/widgets/pointer_clock_io.dart';
+import 'package:morph/src/motion/spring_state.dart' show MorphRest;
+import 'package:morph/src/motion/pointer_clock_stub.dart'
+    if (dart.library.ffi) 'package:morph/src/motion/pointer_clock_io.dart';
 
 /// Receives every pointer stamp: the event and the motion time it got.
 ///

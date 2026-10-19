@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/widgets/flex_integrator.dart';
-import 'package:morph/src/widgets/timeline.dart';
+import 'package:morph/src/motion/flex_integrator.dart';
+import 'package:morph/src/motion/timeline.dart';
 
 void main() {
   group('MorphTimeline', () {

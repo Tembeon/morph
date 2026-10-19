@@ -1,6 +1,6 @@
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/src/widgets/timeline.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/spring_state.dart';
+import 'package:morph/src/motion/timeline.dart';
 
 /// When a [MorphTabBar] minimizes to its selected tab while the content
 /// under it scrolls (UIKit `UITabBarController.MinimizeBehavior`, SwiftUI

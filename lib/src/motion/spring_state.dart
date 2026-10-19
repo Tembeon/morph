@@ -3,7 +3,7 @@ import 'dart:ui' show Rect;
 
 import 'package:flutter/physics.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/spring.dart';
+import 'package:morph/src/motion/spring.dart';
 
 /// The visible rest of a motion: how close every part must stay to its
 /// target before the motion stops ticking and snaps onto it.

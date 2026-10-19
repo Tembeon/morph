@@ -29,7 +29,7 @@
   },
   "unchangedCoreSha256": {
     "lib/src/widgets/menu_motion.dart": "f658d8059ab126bd16a3dac5f4d0919eade6290fd78b407aaaf058dcc652965d",
-    "lib/src/widgets/timeline.dart": "4e9bacbd7b4f0604e701fb2dddfb128d375a9e11769202d54434c773714a62be",
+    "lib/src/motion/timeline.dart": "4e9bacbd7b4f0604e701fb2dddfb128d375a9e11769202d54434c773714a62be",
     "example/lib/proto/motion_clock_probe.dart": "237d402bdf949230eeef81e518b4d99c3de55f17213ba515723f7018b89be5bd"
   },
   "sha256": {

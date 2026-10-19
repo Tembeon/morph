@@ -2,11 +2,11 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:meta/meta.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/channel.dart';
-import 'package:morph/src/widgets/flex_spec.dart';
-import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/src/widgets/timeline.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/channel.dart';
+import 'package:morph/src/motion/flex_spec.dart';
+import 'package:morph/src/motion/spring_state.dart';
+import 'package:morph/src/motion/timeline.dart';
 
 /// The four channels a flex deforms a surface by: the scale of its width
 /// and height and the drift of its center.

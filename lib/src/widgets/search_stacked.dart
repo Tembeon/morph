@@ -8,7 +8,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/search_field.dart';
 import 'package:morph/src/widgets/search_motion.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring_state.dart';
 
 /// The search of a [MorphNavigationScaffold] page: a search field stacked
 /// under the large title (UIKit `UINavigationItem.searchController` with

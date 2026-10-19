@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/channel.dart';
-import 'package:morph/src/widgets/flex_spec.dart';
-import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/motion/spring.dart';
+import 'package:morph/src/motion/channel.dart';
+import 'package:morph/src/motion/flex_spec.dart';
+import 'package:morph/src/motion/spring_state.dart';
 
 /// The open menu's driftY channel returning from a lift, as an iPhone 16
 /// Pro (iOS 27.0.1) published it every 33.339 ms: progress toward the new
