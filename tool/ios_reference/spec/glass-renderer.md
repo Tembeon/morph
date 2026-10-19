@@ -58,10 +58,14 @@ measurements.
 
 - whynotmake-it's `liquid_glass_renderer` (Apache-2.0, upstream 3cec75ed)
   lives at lib/src/glass/renderer (LICENSE, NOTICE, VENDORED lists every
-  local patch; analyzed with the package's lints). Shaders are package
-  assets (pubspec `flutter: shaders:`); hook/build.dart builds its Flutter
-  GPU bundle (morph_glass.shaderbundle.json -> build/shaderbundles/, an
-  asset dir analysis ignores until the hook writes it).
+  local patch; analyzed with the package's lints). hook/build.dart writes
+  build/shaderbundles/ (an asset dir analysis ignores until the hook
+  writes it): the Flutter GPU bundle (morph_glass.shaderbundle.json) and
+  the final pass, compiled with impellerc --iplr once per
+  LiquidShaderVariant (liquid_shader_variants.dart: the one table the
+  defines, the asset keys, the warm-up and offline.py derive from) for the
+  target's runtime stages. The other runtime shaders (glass shadow,
+  glyphs, flat bodies) stay pubspec `flutter: shaders:`.
 - Public entry: `MorphThemeData.glass` takes a `MorphGlassRenderer`
   (`.adaptive()` or `.tier(MorphGlassTier)`, lib/src/theme/glass.dart);
   `MorphTheme` installs `GlassAdaptiveScope`, which installs the internal
@@ -75,10 +79,10 @@ measurements.
   (glass_liquid.dart -> _native / _web; the web stub never touches
   Flutter GPU, `liquidAvailable` false, liquid draws flat glass); the
   layers themselves live in glass_liquid_draw.dart, shared by both, and
-  the web never builds them; the three final-render
-  .frag files compile to an empty stub under SKIA_GRAPHICS_BACKEND ("Only
-  simple shader sampling is supported"), so the web builds with nothing
-  removed.
+  the web never builds them, and the hook compiles no final pass for it
+  (SkSL cannot express its sampling: "Only simple shader sampling is
+  supported"). The final pass's Skia stage is an empty stub that only the
+  host tests' flutter_tester loads.
 - Package tests set the renderer's `isLocalTest` (root-package asset keys).
 
 ## Upstream sync (2026-10-07)

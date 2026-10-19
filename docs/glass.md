@@ -363,5 +363,11 @@ translucent body (GlassShadow, MorphGlassBodyShadow).
   must stay. Flutter 3.47.2 does not request data assets from hooks, so a
   data-asset-only bundle silently loses liquid glass on the device.
   Verify packaging on a native device.
+- The final pass is no pubspec shader: the hook compiles it with
+  impellerc --iplr once per variant of the one table
+  (lib/src/glass/renderer/liquid_shader_variants.dart) into
+  `build/shaderbundles/<name>.iplr`, for the target's runtime stages; an
+  edit to any file under shaders/ reruns it. Its Skia stage is an empty
+  stub only the host tests load.
 - The web build compiles: the liquid tier sits behind a conditional
-  import, and its final-render shaders compile to stubs under Skia.
+  import, and the hook compiles no final pass for the web.

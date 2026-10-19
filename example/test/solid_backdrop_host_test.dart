@@ -437,7 +437,7 @@ void main() {
         ShaderKeys.gpuGeometryShaderBundle,
       );
       try {
-        await morphWarmLiquidPipelines(geometry, ShaderKeys.liquidGlassRenders);
+        await morphWarmLiquidPipelines(geometry);
       } finally {
         geometry.dispose();
       }

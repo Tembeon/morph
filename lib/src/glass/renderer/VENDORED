@@ -575,3 +575,12 @@ Local patches (some commits include related package changes):
   a LiquidGlassLayer paints its child with no glass (morph builds liquid
   layers only once the liquid tier is available, which caches the
   renderer). The 3cec75e fake patches above went with the fake layer.
+- 2026-10-19 final pass built by the hook, as upstream b5f5df0 does:
+  hook/build.dart compiles shaders/liquid_glass_final_render.frag with
+  impellerc --iplr once per LiquidShaderVariant
+  (liquid_shader_variants.dart, defining WITH_<switch> for each switch on)
+  into build/shaderbundles/<name>.iplr, for the target OS's runtime stages
+  (iOS Metal; macOS Skia stub, Metal and Vulkan for the host tests;
+  others Skia stub, GLES, GLES 3 and Vulkan). The 13 wrapper .frag files
+  and their pubspec entries are gone; ShaderKeys.finalRender, the layer's
+  shader lists and morphWarmLiquidPipelines derive from the table.

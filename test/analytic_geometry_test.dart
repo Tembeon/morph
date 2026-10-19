@@ -6,6 +6,7 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
+import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
@@ -237,15 +238,14 @@ void main() {
       }
       final fused = _analyticLines(tint: true, fused: true).join('\n');
       expect(fused, contains('fusedDistance'));
-      for (final variant in ['', '_ios27', '_tint', '_tint_ios27']) {
-        final plain = File(
-          '${_shaders}liquid_glass_final_render_analytic$variant.frag',
-        ).readAsStringSync();
-        expect(plain, isNot(contains('ANALYTIC_FUSED')));
-        final merged = File(
-          '${_shaders}liquid_glass_final_render_analytic_fused$variant.frag',
-        ).readAsStringSync();
-        expect(merged, contains('#define ANALYTIC_FUSED 1'));
+      for (final variant in LiquidShaderVariant.values) {
+        expect(
+          variant.defines.contains('WITH_ANALYTIC_FUSED'),
+          ShaderKeys.liquidGlassAnalyticFusedRenders.contains(
+            ShaderKeys.finalRender(variant),
+          ),
+          reason: variant.name,
+        );
       }
     });
   });

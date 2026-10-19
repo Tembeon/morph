@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
 import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
+import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
@@ -42,7 +43,6 @@ const List<double> _frostSigmas = [1, 2, 8, 14];
 @internal
 Future<void> morphWarmLiquidPipelines(
   FlutterGpuGeometryRenderer geometry,
-  List<String> finalShaderKeys,
 ) async {
   final images = <ui.Image>[];
   try {
@@ -90,44 +90,42 @@ Future<void> morphWarmLiquidPipelines(
     images.add(tint);
     FlutterGpuGeometryRenderer.flushPendingSubmissions();
 
-    final programs = [
-      ...await Future.wait(finalShaderKeys.map(ui.FragmentProgram.fromAsset)),
+    final variants = [
+      for (final variant in LiquidShaderVariant.values)
+        if (!variant.analyticGeometry) variant,
     ];
-    final warmedKeys = [...finalShaderKeys];
+    final programs = [
+      ...await Future.wait([
+        for (final variant in variants)
+          ui.FragmentProgram.fromAsset(ShaderKeys.finalRender(variant)),
+      ]),
+    ];
     // The analytic variants are warmed only where layers use them; one
     // that does not load is left out rather than failing the warm-up.
     if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
       await RenderLiquidGlassLayer.precacheAnalyticShaders();
-      for (final key in [
-        ...ShaderKeys.liquidGlassAnalyticRenders,
-        ...ShaderKeys.liquidGlassAnalyticFusedRenders,
-      ]) {
+      for (final variant in LiquidShaderVariant.values) {
+        if (!variant.analyticGeometry) continue;
+        final key = ShaderKeys.finalRender(variant);
         if (RenderLiquidGlassLayer.analyticProgram(key) case final program?) {
           programs.add(program);
-          warmedKeys.add(key);
+          variants.add(variant);
         }
       }
     }
-    final analyticKeys = {
-      ...ShaderKeys.liquidGlassAnalyticRenders,
-      ...ShaderKeys.liquidGlassAnalyticFusedRenders,
-    };
     final filters = <ui.ImageFilter>[];
-    final tintKeys = {
-      ShaderKeys.liquidGlassTintRender,
-      ShaderKeys.liquidGlassTintIos27Render,
-    };
     final solids = <ui.FragmentShader>[];
     for (final (index, program) in programs.indexed) {
-      final key = warmedKeys[index];
+      final variant = variants[index];
       void bind(ui.FragmentShader shader) {
         shader.setImageSampler(0, matte, filterQuality: FilterQuality.low);
         // The analytic variants read no matte and no material map.
-        if (!analyticKeys.contains(key)) shader.setImageSampler(1, matte);
-        if (key == ShaderKeys.liquidGlassMaterialRender) {
+        if (variant.analyticGeometry) return;
+        shader.setImageSampler(1, matte);
+        if (variant.shapeAppearance) {
           shader.setImageSampler(2, material);
           shader.setImageSampler(3, material, filterQuality: FilterQuality.low);
-        } else if (tintKeys.contains(key)) {
+        } else if (variant.shapeTint) {
           shader.setImageSampler(2, tint, filterQuality: FilterQuality.low);
         }
       }
