@@ -59,6 +59,31 @@ void main() {
     },
   );
 
+  testWidgets('a minimum later than the maximum leaves the time free, as '
+      'UIDatePicker ignores both', (tester) async {
+    final changes = <DateTime>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: MorphDatePicker(
+            value: DateTime(2026, 10, 3, 7, 41),
+            minimumDate: DateTime(2026, 10, 3, 17, 30),
+            maximumDate: DateTime(2026, 10, 3, 9),
+            mode: MorphDatePickerMode.time,
+            use24HourFormat: true,
+            onChanged: changes.add,
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MorphDatePicker));
+    await tester.pumpAndSettle();
+    expect(_wheel(tester, 'Hour').properties.value, '07');
+    _wheel(tester, 'Hour').properties.onDecrease!();
+    await tester.pumpAndSettle();
+    expect(changes, [DateTime(2026, 10, 3, 6, 41)]);
+  });
+
   testWidgets('C4 rejected time wheel returns to the parent value', (
     tester,
   ) async {

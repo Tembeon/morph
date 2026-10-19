@@ -538,7 +538,8 @@ class MorphDatePicker extends StatefulWidget {
 
   /// The earliest moment that can be picked; null for no limit. The
   /// calendar disables earlier days and the time wheels honor the time
-  /// on the boundary day.
+  /// on the boundary day. Later than [maximumDate], both are ignored, as
+  /// UIKit ignores them.
   final DateTime? minimumDate;
 
   /// The latest moment that can be picked; null for no limit. The time
@@ -921,6 +922,18 @@ class _OverlayView extends StatefulWidget {
   State<_OverlayView> createState() => _OverlayViewState();
 }
 
+extension on MorphDatePicker {
+  bool get _boundsHold {
+    final first = minimumDate;
+    final last = maximumDate;
+    return first == null || last == null || !last.isBefore(first);
+  }
+
+  DateTime? get _minimum => _boundsHold ? minimumDate : null;
+
+  DateTime? get _maximum => _boundsHold ? maximumDate : null;
+}
+
 class _OverlayViewState extends State<_OverlayView>
     with
         SingleTickerProviderStateMixin<_OverlayView>,
@@ -1076,9 +1089,8 @@ class _OverlayViewState extends State<_OverlayView>
   }
 
   DateTime _bounded(DateTime value) {
-    final first = _picker.minimumDate;
-    final last = _picker.maximumDate;
-    if (first != null && last != null && last.isBefore(first)) return first;
+    final first = _picker._minimum;
+    final last = _picker._maximum;
     if (first != null && value.isBefore(first)) return first;
     if (last != null && value.isAfter(last)) return last;
     return value;
@@ -1139,12 +1151,7 @@ class _OverlayViewState extends State<_OverlayView>
       wake();
       return;
     }
-    if (!_canTurnMonth(
-      _month,
-      direction,
-      _picker.minimumDate,
-      _picker.maximumDate,
-    )) {
+    if (!_canTurnMonth(_month, direction, _picker._minimum, _picker._maximum)) {
       return;
     }
     setState(() {
@@ -1173,8 +1180,8 @@ class _OverlayViewState extends State<_OverlayView>
       v.hour,
       v.minute,
     );
-    final first = _picker.minimumDate;
-    final last = _picker.maximumDate;
+    final first = _picker._minimum;
+    final last = _picker._maximum;
     if (first != null && next.isBefore(_dateOnly(first))) {
       next = DateTime(first.year, first.month, first.day, v.hour, v.minute);
     }
@@ -1212,8 +1219,8 @@ class _OverlayViewState extends State<_OverlayView>
     Widget contentFor(_Part part) => part == _Part.time
         ? _TimeWheels(
             value: _value,
-            firstDate: _picker.minimumDate,
-            lastDate: _picker.maximumDate,
+            firstDate: _picker._minimum,
+            lastDate: _picker._maximum,
             localize: _picker.localizations.localize,
             numberFormatter: _picker.localizations.numberFormatter,
             minuteInterval: _picker.minuteInterval,
@@ -1235,8 +1242,8 @@ class _OverlayViewState extends State<_OverlayView>
             numberFormatter: _picker.localizations.numberFormatter,
             titleFormatter: _picker.localizations.calendarTitleFormatter,
             dayFormatter: _picker.localizations.daySemanticFormatter,
-            firstDate: _picker.minimumDate,
-            lastDate: _picker.maximumDate,
+            firstDate: _picker._minimum,
+            lastDate: _picker._maximum,
             today: _picker.today ?? _dateOnly(DateTime.now()),
             style: style,
             onPick: _pick,
@@ -2647,7 +2654,6 @@ class _TimeWheelsState extends State<_TimeWheels> {
   DateTime _bounded(DateTime value) {
     final first = widget.firstDate;
     final last = widget.lastDate;
-    if (first != null && last != null && last.isBefore(first)) return first;
     if (first != null && value.isBefore(first)) return first;
     if (last != null && value.isAfter(last)) return last;
     return value;
