@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 /// The text of the measured controls: the sizes and weights UIKit draws
@@ -214,6 +215,109 @@ abstract final class MorphTypography {
     null || '.AppleSystemUIFont' || 'CupertinoSystemText' => true,
     _ => false,
   };
+}
+
+/// Sizes a text label as UIKit sizes a `UILabel`: its lines' height
+/// before rounding, rounded up to the device pixel.
+///
+/// The text engine rounds each line to a whole point instead (20 for a
+/// 17 pt SF Pro line, where UIKit lays out 20.33 at 3x; list-tree
+/// fixtures and the alert view dumps), on the device as on the host, so
+/// a stack of labels drifts a third of a point per such line against
+/// UIKit. Wrap each label whose height places what follows it. The
+/// difference lies below the text: the text itself does not move.
+///
+/// A child that is not a paragraph of lines of one height (a row of
+/// widgets, a paragraph with mixed line heights) keeps its own height.
+@internal
+class MorphLabelHeight extends SingleChildRenderObjectWidget {
+  /// Sizes [child] as tall as a `UILabel` with its text.
+  const MorphLabelHeight({required super.child, super.key});
+
+  static double _pixelRatio(BuildContext context) =>
+      MediaQuery.maybeDevicePixelRatioOf(context) ??
+      View.maybeOf(context)?.devicePixelRatio ??
+      1;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderLabelHeight(_pixelRatio(context));
+
+  @override
+  void updateRenderObject(BuildContext context, RenderObject renderObject) {
+    (renderObject as _RenderLabelHeight).pixelRatio = _pixelRatio(context);
+  }
+}
+
+class _RenderLabelHeight extends RenderProxyBox {
+  _RenderLabelHeight(this._pixelRatio);
+
+  /// The engine reports line heights in single precision: a line of
+  /// exactly 47 pixels can come back a millionth of a pixel over.
+  static const double _pixelTolerance = 1e-3;
+
+  double get pixelRatio => _pixelRatio;
+  double _pixelRatio;
+  set pixelRatio(double value) {
+    if (value == _pixelRatio) return;
+    _pixelRatio = value;
+    markNeedsLayout();
+  }
+
+  /// The unrounded line height of the paragraph found by the last layout.
+  double? _line;
+
+  double _height(double height) {
+    final line = _line;
+    if (line == null) return height;
+    final rounded = line.roundToDouble();
+    if (rounded <= 0) return height;
+    final lines = (height / rounded).round();
+    if (lines < 1 || (lines * rounded - height).abs() > 0.01) return height;
+    return (lines * line * _pixelRatio - _pixelTolerance).ceilToDouble() /
+        _pixelRatio;
+  }
+
+  static RenderParagraph? _paragraph(RenderBox child) {
+    RenderObject? box = child;
+    while (box is RenderProxyBox) {
+      box = box.child;
+    }
+    return box is RenderParagraph && box.size == child.size ? box : null;
+  }
+
+  @override
+  double computeMinIntrinsicHeight(double width) =>
+      _height(super.computeMinIntrinsicHeight(width));
+
+  @override
+  double computeMaxIntrinsicHeight(double width) =>
+      _height(super.computeMaxIntrinsicHeight(width));
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    final child = this.child;
+    if (child == null) return constraints.smallest;
+    final size = child.getDryLayout(constraints);
+    return constraints.constrain(Size(size.width, _height(size.height)));
+  }
+
+  @override
+  void performLayout() {
+    final child = this.child;
+    if (child == null) {
+      _line = null;
+      size = constraints.smallest;
+      return;
+    }
+    child.layout(constraints, parentUsesSize: true);
+    _line = _paragraph(
+      child,
+    )?.getFullHeightForCaret(const TextPosition(offset: 0));
+    size = constraints.constrain(
+      Size(child.size.width, _height(child.size.height)),
+    );
+  }
 }
 
 const List<(double, double)> _trackingTable = [
