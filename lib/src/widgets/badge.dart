@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/theme/theme.dart';
 import 'package:morph/src/widgets/typography.dart';
 
 /// A badge on a bar button or a tab: a count, a short text or a dot
@@ -49,7 +50,8 @@ class MorphBadge {
   /// The color of the text; null is white.
   final Color? foregroundColor;
 
-  /// The fill of the badge; null is systemRed.
+  /// The fill of the badge; null is systemRed in the brightness and
+  /// contrast the badge draws in.
   final Color? backgroundColor;
 
   /// Whether the badge draws anything.
@@ -61,9 +63,6 @@ class MorphBadge {
 
   /// The label of the badge, or null for a dot.
   String? get label => count?.toString() ?? text;
-
-  /// The default fill: systemRed.
-  static const Color defaultBackgroundColor = Color(0xFFFF3B30);
 
   /// The default text color.
   static const Color defaultForegroundColor = Color(0xFFFFFFFF);
@@ -218,7 +217,12 @@ class MorphBadged extends StatelessWidget {
     if (badge == null || !badge.visible) return child;
     final label = badge.label;
     final size = MorphBadgeMetrics.sizeOf(label);
-    final fill = badge.backgroundColor ?? MorphBadge.defaultBackgroundColor;
+    final fill =
+        badge.backgroundColor ??
+        _systemRed(
+          morphBrightnessOf(context),
+          highContrast: morphHighContrastOf(context),
+        );
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     final Widget mark = Container(
       width: size.width,
@@ -272,3 +276,13 @@ class MorphBadged extends StatelessWidget {
     );
   }
 }
+
+// iOS 27 systemRed and its Increase Contrast values, read from UIKit's
+// color tables (states.md).
+Color _systemRed(Brightness brightness, {required bool highContrast}) =>
+    switch ((brightness, highContrast)) {
+      (Brightness.light, false) => const Color(0xFFFF383C),
+      (Brightness.light, true) => const Color(0xFFE9152D),
+      (Brightness.dark, false) => const Color(0xFFFF4245),
+      (Brightness.dark, true) => const Color(0xFFFF6165),
+    };

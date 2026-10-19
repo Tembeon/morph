@@ -154,7 +154,6 @@ class MorphBadge
   })
   final Color? backgroundColor
   final int? count
-  static const Color defaultBackgroundColor
   static const Color defaultForegroundColor
   final Color? foregroundColor
   String? get label
