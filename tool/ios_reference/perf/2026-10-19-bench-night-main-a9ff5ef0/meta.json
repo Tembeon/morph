@@ -1,0 +1,42 @@
+{
+ "sdk": "stable",
+ "sha": "a9ff5ef0",
+ "source": "/Volumes/Dev/projects/morph",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-19 02:27:04.138367",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8"
+   },
+   "thermal_before": [
+    0,
+    31.432453
+   ],
+   "thermal_after": [
+    0,
+    33.280304
+   ]
+  },
+  "audit-flat": {
+   "args": {
+    "GALLERY_GLASS": "flat",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8"
+   },
+   "thermal_before": [
+    0,
+    33.074257
+   ],
+   "thermal_after": [
+    0,
+    32.65345
+   ]
+  }
+ }
+}
