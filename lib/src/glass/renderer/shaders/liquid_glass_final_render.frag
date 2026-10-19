@@ -37,6 +37,11 @@
 #else
 #define ANALYTIC_FUSED 0
 #endif
+#ifdef WITH_FROST
+#define FROST 1
+#else
+#define FROST 0
+#endif
 #if !DIRECT_MODEL && !IOS27_MODELS
 #error "no color model: compile through hook/build.dart"
 #endif

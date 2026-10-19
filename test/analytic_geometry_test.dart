@@ -390,7 +390,7 @@ void main() {
   });
 
   test('the analytic shaders stay out of the liquid program list', () {
-    expect(ShaderKeys.liquidGlassRenders, hasLength(5));
+    expect(ShaderKeys.liquidGlassRenders, hasLength(9));
     for (final key in ShaderKeys.liquidGlassAnalyticRenders) {
       expect(ShaderKeys.liquidGlassRenders, isNot(contains(key)));
     }

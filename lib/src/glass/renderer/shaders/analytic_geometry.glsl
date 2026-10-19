@@ -102,7 +102,7 @@ float analyticFlatDepth() {
     return max(
         max(uAnalyticOptics.x, glintWidth * kGlintBleedReach),
         max(
-            abs(uContourOffset) + uEdgeWidth + 0.5,
+            uEdgeWidth + 0.5,
             max(uBevelShadowDepth, 0.001) * 1.0001 +
                 max(uBevelShadowOffset, 0.0)
         )

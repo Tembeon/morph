@@ -109,17 +109,18 @@ void main() {
         expect(core, contains('#define $name uSolidBackdropGlow[$i]'));
       }
       expect(core, contains('#include "glass_glow.glsl"'));
-      final gate = core.indexOf('#if !SHAPE_APPEARANCE');
+      // Every variant lights the glow, the mixed-appearance one included.
+      final gate = core.indexOf('if (uGlowSpot.w > 0.0 || uGlowShape.y > 0.0)');
       final call = core.indexOf('applyGlassGlow(');
       expect(gate, greaterThan(0));
       expect(call, greaterThan(gate));
-      expect(core.indexOf('#endif', gate), greaterThan(call));
+      expect(core.lastIndexOf('#if', call), lessThan(gate));
       // Every variant compiles the one entry, which includes the core.
       expect(
         File('${_shaders}liquid_glass_final_render.frag').readAsStringSync(),
         contains('#include "liquid_glass_final_render_core.glsl"'),
       );
-      expect(LiquidShaderVariant.values, hasLength(13));
+      expect(LiquidShaderVariant.values, hasLength(17));
     });
 
     test('carry a glow in the matte space of the layer', () {

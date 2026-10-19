@@ -225,6 +225,17 @@ no behaviour or pixel change: every rename keeps what the old name did.
     glass there).
   The consolidated fake layer, its surface shader and its warm-up scene
   are removed from the package and its shader assets.
+- The liquid tier's final pass is compiled by the package's build hook
+  from one table of variants (lib/src/glass/renderer/
+  liquid_shader_variants.dart) for the target's runtime stages, with no
+  pubspec shader entries. On a Mali-G78 (tool/audit/2026-10-19-shader-diet,
+  Vulkan): no variant spills to stack; the one-appearance and tint-only variants
+  come unfrosted too, at 32 work registers (full thread occupancy) for
+  glass without the shader frost; the shader frost reads its taps
+  unmirrored wherever all of them lie inside the backdrop, about a third
+  less arithmetic on frosted pixels, within one channel step; a layer that
+  mixes appearances lights its touch glow. Every other pixel is unchanged
+  on the host's Impeller; device frame time is not measured yet.
 - BREAKING: navigation leading items are `List<MorphBarButtonGroup>`;
   they still replace the back button, as UIKit's `leftBarButtonItems`
   do while `leftItemsSupplementBackButton` is off.

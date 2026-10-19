@@ -145,6 +145,13 @@ Future<void> morphWarmLiquidPipelines(
       solids.add(solid);
       final filter = morphGlassShaderFilter(shader);
       filters.add(filter);
+      // A frosted one-appearance or tint-only variant draws only frost the
+      // pass blurs itself, never over a blur pass.
+      if (variant.frost &&
+          !variant.shapeAppearance &&
+          !variant.analyticGeometry) {
+        continue;
+      }
       for (final sigma in _frostSigmas) {
         filters.add(
           ui.ImageFilter.compose(

@@ -17,6 +17,8 @@ import 'package:morph/src/glass/renderer/internal/glass_warm_up.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/shaders.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
@@ -444,16 +446,16 @@ void main() {
     });
     debugPrint = previous;
     expect(reports, isEmpty);
-    // Every matte and analytic variant: once as a filter, alone and over
-    // each of the four frost sigmas, and once as a solid paint; then the
-    // four plain blurs.
-    final variants =
-        ShaderKeys.liquidGlassRenders.length +
-        ShaderKeys.liquidGlassAnalyticRenders.length +
-        ShaderKeys.liquidGlassAnalyticFusedRenders.length;
+    // Every matte and analytic variant: once as a filter, alone and, unless
+    // it blurs its frost itself only, over each of the four frost sigmas,
+    // and once as a solid paint; then the four plain blurs.
+    final variants = LiquidShaderVariant.values;
+    final frostOnly = variants.where(
+      (v) => v.frost && !v.shapeAppearance && !v.analyticGeometry,
+    );
     expect(debugMorphLiquidWarmUpDraws, (
-      filters: variants * 5 + 4,
-      solidPaints: variants,
+      filters: variants.length * 5 - frostOnly.length * 4 + 4,
+      solidPaints: variants.length,
     ));
 
     // The layers mounted after it draw both paths as before.

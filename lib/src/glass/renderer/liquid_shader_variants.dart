@@ -7,9 +7,12 @@ import 'package:meta/meta.dart';
 /// keys, the warm-up and tool/audit/shader/offline.py derive from it.
 ///
 /// Each variant compiles only what its layers can meet, which keeps it
-/// inside the Mali-G78's register budget. The matte variants are declared
-/// in the order a layer binds them, the separate-shape and the fused
-/// analytic variants in the order of the layer's analytic sets.
+/// inside the Mali-G78's register budget: the one-appearance and tint-only
+/// matte variants come with and without the frost the pass blurs itself
+/// (its unrolled taps hold any variant at 64 work registers, half thread
+/// occupancy; without them these four fit 32). The separate-shape and the
+/// fused analytic variants are declared in the order of the layer's
+/// analytic sets.
 ///
 /// Pure Dart: the build hook imports it.
 @internal
@@ -29,6 +32,19 @@ enum LiquidShaderVariant {
 
   /// Shapes that differ only by tint, an iOS 27 color model.
   tintIos27(shapeTint: true, ios27Models: true),
+
+  /// [direct] without the frost: no frost, or one the softening kernel or
+  /// a blur pass draws.
+  directUnfrosted(directModel: true, frost: false),
+
+  /// [ios27] without the frost.
+  ios27Unfrosted(ios27Models: true, frost: false),
+
+  /// [tint] without the frost.
+  tintUnfrosted(shapeTint: true, directModel: true, frost: false),
+
+  /// [tintIos27] without the frost.
+  tintIos27Unfrosted(shapeTint: true, ios27Models: true, frost: false),
 
   /// [direct] with up to eight separate shapes evaluated in the pass
   /// instead of read from a geometry matte.
@@ -75,6 +91,7 @@ enum LiquidShaderVariant {
     this.ios27Models = false,
     this.analyticGeometry = false,
     this.fused = false,
+    this.frost = true,
   });
 
   /// Whether every shape carries its own appearance, read from a material
@@ -98,6 +115,10 @@ enum LiquidShaderVariant {
   /// (ANALYTIC_FUSED).
   final bool fused;
 
+  /// Whether the pass blurs the frost itself (FROST): 24 taps for a frost
+  /// above the softening kernel's and up to the blur pass's.
+  final bool frost;
+
   /// The compiled file's name without its extension.
   String get fileName => [
     'liquid_glass_final_render',
@@ -106,6 +127,7 @@ enum LiquidShaderVariant {
     if (shapeAppearance) '_material',
     if (shapeTint) '_tint',
     if (ios27Models && !directModel) '_ios27',
+    if (!frost) '_unfrosted',
   ].join();
 
   /// The preprocessor names the variant compiles with: `WITH_<switch>` for
@@ -118,5 +140,6 @@ enum LiquidShaderVariant {
     if (ios27Models) 'WITH_IOS27_MODELS',
     if (analyticGeometry) 'WITH_ANALYTIC_GEOMETRY',
     if (fused) 'WITH_ANALYTIC_FUSED',
+    if (frost) 'WITH_FROST',
   ];
 }
