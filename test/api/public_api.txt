@@ -445,6 +445,7 @@ class MorphGlassButton extends StatefulWidget
     MorphGlassButtonAppearance? appearance,
     List<MorphMenuEntry>? menu,
     bool enabled = true,
+    String? semanticLabel,
     Key? key,
   })
   const MorphGlassButton.clear({
@@ -455,6 +456,7 @@ class MorphGlassButton extends StatefulWidget
     MorphGlassButtonAppearance? appearance,
     List<MorphMenuEntry>? menu,
     bool enabled = true,
+    String? semanticLabel,
     Key? key,
   })
   const MorphGlassButton.prominent({
@@ -466,6 +468,7 @@ class MorphGlassButton extends StatefulWidget
     MorphGlassButtonAppearance? appearance,
     List<MorphMenuEntry>? menu,
     bool enabled = true,
+    String? semanticLabel,
     Key? key,
   })
   const MorphGlassButton.prominentClear({
@@ -477,6 +480,7 @@ class MorphGlassButton extends StatefulWidget
     MorphGlassButtonAppearance? appearance,
     List<MorphMenuEntry>? menu,
     bool enabled = true,
+    String? semanticLabel,
     Key? key,
   })
   final MorphGlassButtonAppearance? appearance
@@ -487,6 +491,7 @@ class MorphGlassButton extends StatefulWidget
   final void Function()? onPressed
   final EdgeInsetsGeometry padding
   final bool prominent
+  final String? semanticLabel
   final MorphGlassStyle style
   final Color? tint
   overrides: createState

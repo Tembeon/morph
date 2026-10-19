@@ -378,6 +378,7 @@ class MorphGlassButton extends StatefulWidget {
     this.appearance,
     this.menu,
     this.enabled = true,
+    this.semanticLabel,
     super.key,
   }) : tint = null,
        prominent = false,
@@ -396,6 +397,7 @@ class MorphGlassButton extends StatefulWidget {
     this.appearance,
     this.menu,
     this.enabled = true,
+    this.semanticLabel,
     super.key,
   }) : prominent = true,
        style = MorphGlassStyle.regular;
@@ -413,6 +415,7 @@ class MorphGlassButton extends StatefulWidget {
     this.appearance,
     this.menu,
     this.enabled = true,
+    this.semanticLabel,
     super.key,
   }) : tint = null,
        prominent = false,
@@ -432,12 +435,18 @@ class MorphGlassButton extends StatefulWidget {
     this.appearance,
     this.menu,
     this.enabled = true,
+    this.semanticLabel,
     super.key,
   }) : prominent = true,
        style = MorphGlassStyle.clear;
 
   /// The label of the button.
   final Widget child;
+
+  /// The label screen readers announce (`accessibilityLabel`); give one to
+  /// a button whose [child] is only an icon. Null lets the [child]'s text
+  /// speak.
+  final String? semanticLabel;
 
   /// Called when the button is tapped; null disables a button without a
   /// [menu].
@@ -616,6 +625,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
           trigger: hold ? .hold : .tap,
           onTap: _press,
           enabled: enabled,
+          semanticLabel: widget.semanticLabel,
           color: color,
           rimColor: rim,
           look: content,
@@ -643,6 +653,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
         semantics: SemanticsProperties(
           button: true,
           enabled: _enabled,
+          label: widget.semanticLabel,
           onTap: _enabled ? _press : null,
         ),
         behavior: HitTestBehavior.opaque,

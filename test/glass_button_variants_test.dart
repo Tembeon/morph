@@ -118,4 +118,33 @@ void main() {
       closeTo(1 / 3, 1e-9),
     );
   });
+
+  for (final (name, menu) in [
+    ('a button', null),
+    ('a menu button', const <MorphMenuEntry>[MorphMenuItem(title: 'Copy')]),
+  ]) {
+    testWidgets('$name with only an icon announces its semantic label', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: MorphGlassButton(
+              onPressed: () {},
+              menu: menu,
+              semanticLabel: 'Share',
+              child: const SizedBox.square(dimension: 20),
+            ),
+          ),
+        ),
+      );
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('Share')),
+        isSemantics(label: 'Share', isButton: true, hasTapAction: true),
+      );
+      handle.dispose();
+    });
+  }
 }
