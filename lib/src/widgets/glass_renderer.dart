@@ -295,9 +295,18 @@ class GlassBuiltInPainter extends MorphGlassPainter {
   /// How far a floating surface has turned from its resting platter into
   /// glass, 0 to 1 over the first quarter of its lift; 1 for every other
   /// surface.
-  static double glassness(MorphGlassSurface surface) => floats(surface.kind)
-      ? (surface.lift / MorphGlassDefaults.glassLiftSpan).clamp(0.0, 1.0)
-      : 1.0;
+  ///
+  /// A lift up to [restingLift] is still the platter, so the glass starts
+  /// where the lifted look does and both flip in the same frame: a lift
+  /// that has just begun when a frame samples it no longer rebuilds the
+  /// surface twice. The glass it skips is at most 2 % of its blend
+  /// (0.005 over the 0.25 span), for the first ~4 ms of a lift and the
+  /// last frames of a landing: invisible, NEAR.
+  static double glassness(MorphGlassSurface surface) {
+    if (!floats(surface.kind)) return 1;
+    if (surface.lift <= restingLift) return 0;
+    return (surface.lift / MorphGlassDefaults.glassLiftSpan).clamp(0.0, 1.0);
+  }
 
   bool get _exact => runtimeType == GlassBuiltInPainter;
 
