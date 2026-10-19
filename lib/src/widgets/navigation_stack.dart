@@ -32,8 +32,7 @@ import 'package:flutter/rendering.dart'
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart' show PredictiveBackEvent;
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/glass_composition_probe.dart'
-    show readsBackdrop;
+import 'package:morph/src/glass/renderer/renderer.dart' show readsBackdrop;
 import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/bar_items.dart';

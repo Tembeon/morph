@@ -31,6 +31,8 @@ export 'package:morph/src/glass/renderer/internal/content_snapshot.dart'
     show GlassContentGlyphs, GlassContentSnapshot, GlassContentSource;
 export 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart'
     show FlutterGpuGeometryRenderer;
+export 'package:morph/src/glass/renderer/internal/glass_composition_probe.dart'
+    show readsBackdrop;
 export 'package:morph/src/glass/renderer/internal/glass_defaults.dart'
     show MorphGlassDefaults;
 export 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart'
