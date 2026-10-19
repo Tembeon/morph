@@ -1,0 +1,11 @@
+10d4696e  runs 5  fixed-perf False  2026-10-19 22:12
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/m/sheet/open-close     589   1.6   2.9   6.4  10.7   7.6   0.3    2   696  raster-cpu:1 raster-wait:1 bad raster: SurfaceFrame::Encode 8.3, waitForBufferRelease 5.0, QueueSubmit 3.6
+audit/liquid/m/sheet/buttons-open-  588   2.1   4.2   6.3  10.0  12.8   0.5    6   897  raster-wait:2 ui-layout:1 bad raster: SurfaceFrame::Encode 9.7, QueueSubmit 9.0, CreateGlyphAtlas 0.5
+nav/nav-navigation-steady-liquid    450   2.0   3.7   8.9  10.9   4.9   0.0    0   682    [power_mw 795->682]
+nav/nav-navigation-toolbar-liquid   293   4.2   7.9   8.1  10.0   4.8   1.4    7   534  ui-build:3 ui-layout:1 bad ui: build 8.5, layout 5.5, compositing 2.4  [ui 5.465->7.909, gpu 4.144->4.765, over_pct 0->1.4, power_mw 653->534]
+nav/nav-navigation-enter-liquid     293   5.1   8.5   8.4  11.4   7.9   0.3    7   587  ui-layout:1 bad ui: layout 10.2, build 7.8, paint 2.4  [gpu 5.642->7.856, power_mw 700->587]
+nav/nav-navigation-nested-push-liq  294   6.6  12.8   8.2  12.3   9.1   2.4   10   605  ui-build:4 ui-layout:3 bad ui: layout 10.9, build 6.1, paint 3.8  [ui 10.68->12.75, gpu 6.831->9.105, power_mw 711->605]
+nav/nav-navigation-nested-pop-liqu  278   6.6  13.2   8.5  13.6   7.1   2.5   12   551  ui-layout:3 ui-paint:2 raster-cpu:2 bad ui: layout 13.8, paint 7.5, build 4.7  [ui 8.576->13.22, raster 10.98->13.56, gpu 5.442->7.135, over_pct 1.3->2.5, power_mw 715->551]
