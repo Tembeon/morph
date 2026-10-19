@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/zoom_motion.dart';
+import 'support/motion_at.dart';
 
 final _sourceLink = MorphSourceLink();
 
@@ -109,7 +110,7 @@ void main() {
         for (final f in frames) {
           final t = (f['t']! as num).toDouble();
           motion.advance(t);
-          final r = motion.rect(t, source, sheet);
+          final r = motion.at(t).rect(source, sheet);
           final m = _rect(f['rect']! as List<Object?>);
           edges +=
               (math.pow(r.left - m.left, 2) +
@@ -118,8 +119,8 @@ void main() {
                       math.pow(r.bottom - m.bottom, 2))
                   .toDouble() /
               4;
-          fades += math.pow(motion.fade(t) - (f['fade']! as num), 2);
-          dims += math.pow(motion.dimming(t) - (f['dim']! as num), 2);
+          fades += math.pow(motion.at(t).fade - (f['fade']! as num), 2);
+          dims += math.pow(motion.at(t).dimming - (f['dim']! as num), 2);
           n++;
         }
         expect(n, greaterThan(20));
@@ -137,13 +138,13 @@ void main() {
     final motion = MorphZoomMotion();
     motion.open(0);
     motion.advance(0.12);
-    final before = motion.rect(0.12, source, sheet);
+    final before = motion.at(0.12).rect(source, sheet);
     motion.close(0.12);
-    final after = motion.rect(0.12, source, sheet);
+    final after = motion.at(0.12).rect(source, sheet);
     expect(after, before);
     motion.advance(0.121);
     expect(
-      (motion.rect(0.121, source, sheet).center - before.center).distance,
+      (motion.at(0.121).rect(source, sheet).center - before.center).distance,
       lessThan(2),
     );
     motion.advance(3);

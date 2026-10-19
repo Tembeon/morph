@@ -306,14 +306,12 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
         _layout(size);
         final motion = _motion!;
         final open = _sync.read()!;
-        double t() => motion.time;
-        Rect rect() => motion.isOpen ? Offset.zero & size : motion.rect(t());
+        Rect rect() => motion.isOpen ? Offset.zero & size : motion.rect;
         double radius() => motion.isOpen
             ? 0.0
             : math.max(
                 0.0,
                 motion.radius(
-                  t(),
                   _source.radius(motion.source.size),
                   displayRadius,
                 ),
@@ -334,7 +332,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
                       0,
                       motion.isOpen
                           ? 0
-                          : tuning.dimmingOpacity * motion.dimming(t()),
+                          : tuning.dimmingOpacity * motion.dimming,
                     ),
                   ),
                 ),
@@ -346,15 +344,13 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
                 child: MorphLiveOpacity(
                   live: frames,
                   opacityOf: () => _source.opacity(
-                    motion.source == motion.page
-                        ? motion.fade(t())
-                        : motion.reach(t()),
+                    motion.source == motion.page ? motion.fade : motion.reach,
                     closing: !motion.isOpening,
                   ),
                   child: MorphLiveTemplate(
                     live: frames,
                     template: () {
-                      final dim = motion.dimming(t());
+                      final dim = motion.dimming;
                       return DecoratedBox(
                         decoration: ShapeDecoration(
                           shape: RoundedRectangleBorder(
@@ -480,8 +476,7 @@ class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
   // The fade spring is critically damped and only nears 1, so an open page
   // counts as fully faded in: the source's replica leaves and the content
   // paints without an opacity layer.
-  double get _fade =>
-      widget.motion.isOpen ? 1.0 : widget.motion.fade(widget.motion.time);
+  double get _fade => widget.motion.isOpen ? 1.0 : widget.motion.fade;
 
   bool get _closing => !widget.motion.isOpening;
 
@@ -513,9 +508,7 @@ class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
           live: frames,
           alignment: Alignment.topCenter,
           matrixOf: () {
-            final scale = motion.isOpen
-                ? 1.0
-                : motion.contentScale(motion.time);
+            final scale = motion.isOpen ? 1.0 : motion.contentScale;
             return Matrix4.diagonal3Values(scale, scale, 1);
           },
           child: IgnorePointer(

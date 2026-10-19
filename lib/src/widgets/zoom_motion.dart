@@ -205,22 +205,31 @@ class MorphZoomMotion {
     }
   }
 
-  /// The progress of the container's center at time [t].
-  double centerProgress(double t) => _center.value(t);
+  /// The progress of the container's center.
+  double get centerProgress => _centerProgressAt(_now);
 
-  /// The progress of the container's size at time [t].
-  double sizeProgress(double t) => _size.value(t);
+  double _centerProgressAt(double t) => _center.value(t);
 
-  /// The opacity of the destination's content at time [t]; the source's
+  /// The progress of the container's size.
+  double get sizeProgress => _sizeProgressAt(_now);
+
+  double _sizeProgressAt(double t) => _size.value(t);
+
+  /// The opacity of the destination's content; the source's
   /// look shows at one minus it.
-  double fade(double t) => _fade.value(t).clamp(0.0, 1.0);
+  double get fade => _fade.value(_now).clamp(0.0, 1.0);
 
-  /// The fraction of the destination's dimming at time [t].
-  double dimming(double t) => _dim.value(t).clamp(0.0, 1.0);
+  /// The fraction of the destination's dimming.
+  double get dimming => _dimmingAt(_now);
 
-  /// The container's frame at time [t] between [source] and
+  double _dimmingAt(double t) => _dim.value(t).clamp(0.0, 1.0);
+
+  /// The container's frame between [source] and
   /// [destination].
-  Rect rect(double t, Rect source, Rect destination) {
+  Rect rect(Rect source, Rect destination) =>
+      _rectAt(_now, source, destination);
+
+  Rect _rectAt(double t, Rect source, Rect destination) {
     final c = _center.value(t);
     final s = _size.value(t);
     final center = Offset.lerp(source.center, destination.center, c)!;

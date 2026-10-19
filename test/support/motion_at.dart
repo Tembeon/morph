@@ -1,5 +1,7 @@
 import 'package:morph/src/widgets/alert_motion.dart';
+import 'package:morph/src/widgets/push_zoom_motion.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
+import 'package:morph/src/widgets/zoom_motion.dart';
 
 /// Replays read a motion at their rows' time stamps: [at] advances the
 /// motion to [t] and returns it for the read.
@@ -24,6 +26,24 @@ extension MorphPopoverMotionAt on MorphPopoverMotion {
 extension MorphSheetMotionAt on MorphSheetMotion {
   /// Advances to [t] and returns this motion.
   MorphSheetMotion at(double t) {
+    advance(t);
+    return this;
+  }
+}
+
+/// See [MorphAlertMotionAt].
+extension MorphZoomMotionAt on MorphZoomMotion {
+  /// Advances to [t] and returns this motion.
+  MorphZoomMotion at(double t) {
+    advance(t);
+    return this;
+  }
+}
+
+/// See [MorphAlertMotionAt].
+extension MorphPushZoomMotionAt on MorphPushZoomMotion {
+  /// Advances to [t] and returns this motion.
+  MorphPushZoomMotion at(double t) {
     advance(t);
     return this;
   }

@@ -403,6 +403,7 @@ class MorphPageControlMotion {
     }
     return w;
   }
+
   /// The center of indicator [index] from the start of the dots.
   double center(int index) {
     if (index < 0 || index >= count) return 0;

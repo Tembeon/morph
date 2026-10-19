@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
+import 'support/motion_at.dart';
 
 final _cardLink = MorphSourceLink();
 
@@ -88,12 +89,12 @@ void main() {
           final t = (f['t']! as num).toDouble();
           if (t < 0) continue;
           motion.advance(t);
-          pairs.add((motion.rect(t), _rect(f['rect']! as List<Object?>)));
+          pairs.add((motion.at(t).rect, _rect(f['rect']! as List<Object?>)));
           final fade = f['fade'] as num?;
           if (fade != null) {
             fadeError = math.max(
               fadeError,
-              (motion.fade(t) - fade.toDouble()).abs(),
+              (motion.at(t).fade - fade.toDouble()).abs(),
             );
           }
         }
@@ -146,7 +147,7 @@ void main() {
             if (dismissed) motion.close(lift, _card);
           }
           motion.advance(t);
-          final r = motion.rect(t);
+          final r = motion.at(t).rect;
           final want = f['rect']! as List<Object?>;
           final got = [r.left, r.top, r.right, r.bottom];
           for (var i = 0; i < 4; i++) {
@@ -176,21 +177,22 @@ void main() {
     test('a pop mid-open turns around with the velocity it had', () {
       final motion = MorphPushZoomMotion();
       motion.open(0, _card, _page);
-      motion.advance(0.08);
-      final before = motion.rect(0.08);
-      final ahead = motion.rect(0.081);
+      final opening = MorphPushZoomMotion();
+      opening.open(0, _card, _page);
+      final ahead = opening.at(0.081).rect;
+      final before = motion.at(0.08).rect;
       motion.close(0.08, _card);
-      expect(motion.rect(0.08), before);
-      final after = motion.rect(0.081);
+      expect(motion.rect, before);
+      final after = motion.at(0.081).rect;
       expect((after.width - ahead.width).abs(), lessThan(0.5));
     });
 
     test('the corner radius runs from the source to the display', () {
       final motion = MorphPushZoomMotion();
       motion.open(0, _card, _page);
-      expect(motion.radius(0, 16, 62), closeTo(16, 1e-9));
+      expect(motion.at(0).radius(16, 62), closeTo(16, 1e-9));
       motion.advance(3);
-      expect(motion.radius(3, 16, 62), closeTo(62, 0.1));
+      expect(motion.at(3).radius(16, 62), closeTo(62, 0.1));
       expect(motion.isOpen, isTrue);
     });
 
@@ -201,7 +203,7 @@ void main() {
       motion.close(2, _card);
       motion.advance(4);
       expect(motion.isClosed, isTrue);
-      final r = motion.rect(4);
+      final r = motion.at(4).rect;
       expect(r.left, closeTo(_card.left, 0.1));
       expect(r.height, closeTo(_card.height, 0.1));
     });

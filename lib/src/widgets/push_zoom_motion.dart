@@ -389,18 +389,22 @@ class MorphPushZoomMotion {
     }
   }
 
-  /// The container's frame at time [t].
-  Rect rect(double t) => Rect.fromCenter(
+  /// The container's frame.
+  Rect get rect => _rectAt(_now);
+
+  Rect _rectAt(double t) => Rect.fromCenter(
     center: Offset(_cx.value(t), _cy.value(t)),
     width: math.max(0, _w.value(t)),
     height: math.max(0, _h.value(t)),
   );
 
   /// How far the container's frame has come from the source toward the
-  /// page at time [t]: the mean of its width's and its height's share, 0
+  /// page: the mean of its width's and its height's share, 0
   /// at the source and 1 at the page.
-  double reach(double t) {
-    final r = rect(t);
+  double get reach => _reachAt(_now);
+
+  double _reachAt(double t) {
+    final r = _rectAt(t);
     double share(double v, double a, double b) =>
         (b - a).abs() < 1e-6 ? 1 : ((v - a) / (b - a)).clamp(0.0, 1.0);
     return (share(r.width, _source.width, _page.width) +
@@ -408,23 +412,30 @@ class MorphPushZoomMotion {
         2;
   }
 
-  /// The container's corner radius at time [t], from the source's
+  /// The container's corner radius, from the source's
   /// [sourceRadius] to the display's [pageRadius] by [reach] (device: 0.6
   /// points off along four pushes).
-  double radius(double t, double sourceRadius, double pageRadius) =>
-      lerpDouble(sourceRadius, pageRadius, reach(t))!;
+  double radius(double sourceRadius, double pageRadius) =>
+      _radiusAt(_now, sourceRadius, pageRadius);
 
-  /// The uniform scale the page's content is drawn at in the container at
-  /// time [t]: the container's width over the page's.
-  double contentScale(double t) =>
-      _page.width <= 0 ? 1 : rect(t).width / _page.width;
+  double _radiusAt(double t, double sourceRadius, double pageRadius) =>
+      lerpDouble(sourceRadius, pageRadius, _reachAt(t))!;
 
-  /// The opacity of the page's content at time [t]; the source's look
+  /// The uniform scale the page's content is drawn at in the container:
+  /// the container's width over the page's.
+  double get contentScale => _contentScaleAt(_now);
+
+  double _contentScaleAt(double t) =>
+      _page.width <= 0 ? 1 : _rectAt(t).width / _page.width;
+
+  /// The opacity of the page's content; the source's look
   /// shows at one minus it.
-  double fade(double t) => _fade.value(t).clamp(0.0, 1.0);
+  double get fade => _fade.value(_now).clamp(0.0, 1.0);
 
-  /// The fraction of the dimming and of the shadow at time [t].
-  double dimming(double t) => _dim.value(t).clamp(0.0, 1.0);
+  /// The fraction of the dimming and of the shadow.
+  double get dimming => _dimmingAt(_now);
+
+  double _dimmingAt(double t) => _dim.value(t).clamp(0.0, 1.0);
 
   /// Whether what remains of the motion is invisible ([MorphRest], NEAR):
   /// the frame's center and size swing less than [MorphRest.length], the

@@ -1276,14 +1276,13 @@ extension on _SheetViewState {
     if (cached != null && cached.size == size) return cached;
     final zoom = _zoom!;
     final motion = _motion!;
-    final t = motion.time;
     final frame = _frame(size);
     final natural = motion.visibleRect(size.height);
     final destination = _zoomTarget ?? natural;
     final source = _source.capture(context) ?? destination;
     zoom.travel = MorphRest.travel(source, destination);
-    final rect = zoom.rect(t, source, destination);
-    final progress = zoom.sizeProgress(t);
+    final rect = zoom.rect(source, destination);
+    final progress = zoom.sizeProgress;
     final p = progress.clamp(0.0, 1.0);
     final from = _source.radius(source.size);
     Radius corner(double to) =>
@@ -1305,11 +1304,11 @@ extension on _SheetViewState {
       fit:
           frame.scale *
           MorphZoomMotion.contentScale(rect, _zoomContent ?? natural.size),
-      dimOpacity: frame.dimOpacity * zoom.dimming(t),
+      dimOpacity: frame.dimOpacity * zoom.dimming,
       opacity: opacity,
       sourceSize: source.size,
       height: frame.height,
-      fade: zoom.fade(t),
+      fade: zoom.fade,
       closing: closing,
       lost: _source.isLost,
     );
