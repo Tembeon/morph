@@ -227,9 +227,11 @@ class MorphSheetRoute<T> extends PopupRoute<T>
     super.settings,
   });
 
-  /// Called with the detent the sheet settles toward when it changes:
-  /// by a drag, a tap on the grabber or [MorphSheet.animateTo] (UIKit's
-  /// `sheetPresentationControllerDidChangeSelectedDetentIdentifier`).
+  /// Called with the detent the sheet settles toward when the user changes
+  /// it, by a drag or a tap on the grabber; [MorphSheet.animateTo] does not
+  /// call it (UIKit's
+  /// `sheetPresentationControllerDidChangeSelectedDetentIdentifier`, not
+  /// called for a programmatic change).
   final ValueChanged<MorphSheetDetent>? onDetentChanged;
 
   /// Called when the user tries to dismiss a sheet that may not be
@@ -595,9 +597,14 @@ class _SheetViewState extends State<_SheetView>
     final i = detents.indexOf(detent);
     final motion = _motion;
     if (i < 0 || motion == null) return;
+    _userDetent = false;
     motion.animateTo(clock, _sortedIndex(i));
+    _userDetent = true;
     wake();
   }
+
+  // UIKit reports a detent the user picks, not one set from code.
+  bool _userDetent = true;
 
   List<int> _order = const [];
 
@@ -711,7 +718,7 @@ class _SheetViewState extends State<_SheetView>
       created.onDetentChanged = (int sorted) {
         if (!mounted) return;
         setState(() => _index = _order[sorted]);
-        _route.onDetentChanged?.call(detent);
+        if (_userDetent) _route.onDetentChanged?.call(detent);
       };
       created.onDismissAttempt = _attempted;
       created.onDismiss = () {

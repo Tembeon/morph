@@ -32,7 +32,8 @@ Future<void> _settle(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('reports detent changes', (tester) async {
+  testWidgets('reports the detents the user picks, not the ones set from '
+      'code', (tester) async {
     final changes = <MorphSheetDetent>[];
     await tester.pumpWidget(
       _app(
@@ -51,10 +52,14 @@ void main() {
       tester.element(find.byKey(_contentKey)),
     ).animateTo(MorphSheetDetent.large);
     await _settle(tester);
-    expect(changes, [MorphSheetDetent.large]);
+    expect(changes, isEmpty);
+    expect(
+      MorphSheet.of(tester.element(find.byKey(_contentKey))).detent,
+      MorphSheetDetent.large,
+    );
     await tester.drag(find.text('sheet'), const Offset(0, 250));
     await _settle(tester);
-    expect(changes, [MorphSheetDetent.large, MorphSheetDetent.medium]);
+    expect(changes, [MorphSheetDetent.medium]);
   });
 
   testWidgets('a sheet that may not leave reports the attempt', (tester) async {
