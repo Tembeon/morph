@@ -37,14 +37,6 @@ const _title = 'Title';
 /// recorded single line.
 const _message = 'A message.';
 
-/// Every popover fixture rests at the same content rect. The alert's
-/// header constants give the content 207.99 points against UIKit's
-/// 208.33, and the engine rounds each text line box to whole points (the
-/// 20.33 point title line lays out 20 tall).
-const _popoverSkip =
-    'content top 0.72 pt low, height 0.71 pt short (355.39 / 207.62 vs '
-    'UIKit 354.67 / 208.33): max 0.72, rms 0.51 vs 0.5 pt';
-
 /// The probe's source button: 120 x 48, centered across the window, its
 /// center 600 points from the top (Extras.swift, PROBE_BTN_Y unset).
 Rect _source(Size screen) => Rect.fromCenter(
@@ -245,5 +237,5 @@ void main() {
         );
       });
     }
-  }, skip: _popoverSkip);
+  });
 }

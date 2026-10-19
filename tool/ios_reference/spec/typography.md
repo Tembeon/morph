@@ -42,6 +42,21 @@ tracking from the `trak` table, wght medium 510 / semibold 590.
   (every overlay of the widget layer in a bare WidgetsApp whose ambient
   style is that fallback).
 
+- Label height: a UILabel is its font's line height rounded up to the
+  device pixel (17 pt SF Pro 20.287 -> 20.33, 15 pt 17.9 -> 18, 13 pt
+  15.514 -> 15.67 at 3x; fonts-device dumps, list and alert view dumps).
+  Flutter's text engine (SkParagraph) rounds every line to a whole
+  logical point on every platform (20, 18, 16), so a stack of labels
+  drifts against UIKit. `MorphLabelHeight` (typography.dart, internal)
+  sizes a label from the engine's unrounded line height rounded up to
+  the pixel; the text itself does not move. Used by list rows, headers
+  and footers and the alert's title and message, where replays measure
+  what sits below the label (list_layout_replay_test,
+  alert_layout_replay_test). Not applied where a label sits in a fixed
+  box (date picker, search, segments, bar buttons, large title) or where
+  no replay proves it (menu row subtitle 0.33 pt high on the device,
+  nav bar title + subtitle, badge pill).
+
 - Text under an ANIMATING transform (glass-renderer.md "One glyph
   policy", 2026-10-12): at rest every label is drawn exactly as above
   (resolve, layout, raster). While its screen scale moves, one policy

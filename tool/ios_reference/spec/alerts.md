@@ -25,7 +25,12 @@ default / cancel / destructive, `enabled`, handler), `preferredAction`,
 - Layout [layout]: 320 wide, radius 34, centered in the safe area +
   keyboard, text inset 30, header top 22; title 17 semibold (alone: 17
   regular), message 15 regular secondaryLabel, 7.33 between, 4.33 / 3.67
-  below; buttons 48 capsules (tertiarySystemFill) 16 inset, 8 apart;
+  below; labels as tall as a UILabel (20.33 / 18 at 3x, the line height
+  rounded up to the pixel; `MorphLabelHeight`), so a title and a message
+  make a 72 pt header [device view dumps x4disalert: title label 313 in
+  a platter at 291, message 340.67, header scroll view to 363; row alert
+  title 218 in 196, text field 280]; a lone title or message (3.67 below)
+  has no capture; buttons 48 capsules (tertiarySystemFill) 16 inset, 8 apart;
   exactly two actions in a row with cancel FIRST, otherwise a column with
   cancel LAST; preferred = accent fill + white semibold; actions 17 medium;
   text field 290 x 48 capsule.
@@ -138,6 +143,15 @@ m/alert/open-close 18.9 percent strike frames, 6.8 - 7.1 ms
 UpdateAtlasBitmap in frames over budget (bench-matrix-night).
 
 ## Not reproduced / open
+
+- The action sheet popover's content rests 0.37 pt short of UIKit's
+  208.33 (test/alert_layout_replay_test.dart, 5 captures, within 0.5):
+  its header is 72 as the alert's (device tree w2alert), so UIKit adds
+  0.33 below it that the alert (264 with three actions) does not have;
+  the popover's 0.001 rest scale takes the other 0.04. Source unread.
+- A row alert with a text field lays out 212 pt against UIKit's 216
+  (dump-dis-alertrow: field cell 280-328, collection view to 332, first
+  button at 348): morph puts the buttons 16 under the field, UIKit 20.
 
 - The source button's tint dimming while the popover is up.
 - 0.7 s first popover present latency on the simulator.

@@ -61,21 +61,42 @@ abstract final class MorphAlertTuning {
   /// The corner radius of an alert's platter.
   static const double cornerRadius = 34;
 
-  /// The space between the top of an alert and its first text line.
+  /// The space between the top of an alert and its first text label.
+  ///
+  /// UIKit's view dumps of iOS 27 alerts on the device (scene x4disalert,
+  /// tool/ios_reference/references/disabled/dumps): the title `UILabel`
+  /// rests 22 points under the platter's top in a column alert (313 in a
+  /// platter at 291) and in a row alert with a text field (218 in 196).
   static const double headerTop = 22;
 
   /// The horizontal space between an alert's edge and its text.
   static const double textInset = 30;
 
-  /// The space between the title and the message.
-  static const double titleGap = 7.33;
+  /// The space between the title and the message labels.
+  ///
+  /// UIKit's view dumps (see [headerTop]): the message `UILabel` starts at
+  /// 340.67 under a title label of 20.33 points ending at 333.33 (22
+  /// pixels at 3x; 245.67 under 238.33 in the row alert). The labels are
+  /// as tall as UIKit makes them (`MorphLabelHeight`).
+  static const double titleGap = 22 / 3;
 
   /// The space below the header text when both a title and a message
   /// show.
-  static const double headerBottom = 4.33;
+  ///
+  /// UIKit's view dumps (see [headerTop]): the header scroll view ends at
+  /// 363 under a message label ending at 358.67 (13 pixels at 3x), so a
+  /// title and a one-line message make a 72 point header, as the
+  /// recorded platters (264 points with three actions) and the action
+  /// sheet popover's header (floored to 72 in the device tree of scene
+  /// w2alert) hold.
+  static const double headerBottom = 13 / 3;
 
   /// The space below the header text when only one line of text shows.
-  static const double singleHeaderBottom = 3.67;
+  ///
+  /// Carried from the first port (11 pixels at 3x): no committed capture
+  /// holds an alert with a title or a message alone, so the 46 point
+  /// header it gives under a 20.33 point label is not replayed.
+  static const double singleHeaderBottom = 11 / 3;
 
   /// The space around the stack of buttons.
   static const double buttonInset = 16;
@@ -87,7 +108,11 @@ abstract final class MorphAlertTuning {
   static const double buttonGap = 8;
 
   /// The space between the header and a text field.
-  static const double fieldTop = 16.33;
+  ///
+  /// UIKit's view dumps (see [headerTop]): the row alert's text field
+  /// cell starts at 280 under a message label ending at 263.67 (49 pixels
+  /// at 3x).
+  static const double fieldTop = 49 / 3;
 
   /// The horizontal space between an alert's edge and a text field.
   static const double fieldInset = 15;
