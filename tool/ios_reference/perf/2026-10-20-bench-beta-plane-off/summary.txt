@@ -1,0 +1,11 @@
+da7cb8b4  runs 5  fixed-perf False  2026-10-20 01:33
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/m/sheet/open-close     586   1.7   3.4   4.6   6.4   8.0   0.0    4   693  
+audit/liquid/m/sheet/buttons-open-  590   2.0   3.9   5.4   9.0  12.0   0.3    5   834  ui-layout:1 gpu:1 bad ui: layout 8.7, paint 5.9, compositing 5.5
+nav/nav-navigation-steady-liquid    451   2.6   3.9   8.3  10.6   5.3   0.0    2   659    [raster 11.77->10.59, power_mw 795->659]
+nav/nav-navigation-toolbar-liquid   295   4.4   8.0   7.6   9.6   4.9   0.7    8   485  raster-sched:1 ui-build:1 bad raster: AndroidExternalViewEmbedder2::SubmitFlutterView 8.1, SurfaceFrame::Encode 3.6, QueueSubmit 1.8  [ui 5.465->8.038, gpu 4.144->4.946, power_mw 653->485]
+nav/nav-navigation-enter-liquid     292   4.8   7.4   8.0  10.4   8.3   1.4    3   547  ui-layout:4 bad ui: layout 11.6, build 4.8, paint 3.2  [ui 8.39->7.449, raster 12.14->10.36, gpu 5.642->8.321, power_mw 700->547]
+nav/nav-navigation-nested-push-liq  292   5.4   9.2   7.1  10.6   9.3   2.7    9   576  ui-layout:4 ui-build:4 bad ui: layout 14.1, build 5.2, paint 3.9  [ui 10.68->9.226, gpu 6.831->9.265, power_mw 711->576]
+nav/nav-navigation-nested-pop-liqu  291   5.4   8.3   7.7  11.1   7.0   1.7    4   542  ui-layout:5 bad ui: layout 16.5, build 5.9, paint 4.1  [gpu 5.442->6.957, power_mw 715->542]
