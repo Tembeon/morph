@@ -33,7 +33,11 @@ default / cancel / destructive, `enabled`, handler), `preferredAction`,
   has no capture; buttons 48 capsules (tertiarySystemFill) 16 inset, 8 apart;
   exactly two actions in a row with cancel FIRST, otherwise a column with
   cancel LAST; preferred = accent fill + white semibold; actions 17 medium;
-  text field 290 x 48 capsule.
+  text field 290 x 48 capsule, 16.33 under the message, the buttons 20
+  under it (4 + the 16 inset), so the row alert is 216 [dump-dis-alertrow:
+  field cell 280-328, collection view to 332, first button at 348;
+  test/alert_layout_replay_test.dart]; several fields sit 8 apart (no
+  capture).
 - Touch: lifts the WHOLE platter with the glass-button model at the
   alert's size (forSize: lift 4 -> 1.0125; 0.09 - 0.25 pt rms); a dragging
   finger stretches and shifts it by the same flex at that size (threshold
@@ -150,9 +154,6 @@ UpdateAtlasBitmap in frames over budget (bench-matrix-night).
   its header is 72 as the alert's (device tree w2alert), so UIKit adds
   0.33 below it that the alert (264 with three actions) does not have;
   the popover's 0.001 rest scale takes the other 0.04. Source unread.
-- A row alert with a text field lays out 212 pt against UIKit's 216
-  (dump-dis-alertrow: field cell 280-328, collection view to 332, first
-  button at 348): morph puts the buttons 16 under the field, UIKit 20.
 
 - The source button's tint dimming while the popover is up.
 - 0.7 s first popover present latency on the simulator.
