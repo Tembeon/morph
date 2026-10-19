@@ -280,6 +280,15 @@ rest. Qualification: tool/audit/claude-navigation-options-report.md.
   The law has two implementations; the host oracles pin them together
   (analytic A/B against the matte; a fine-grid CPU field at 1/8 step,
   mean < 0.75 per channel). Change both or neither.
+- The matte such a body rests on in `changes` (or draws with analytic
+  geometry off) is encoded by the same law per pixel
+  (gpu/geometry_fused_fragment.glsl; fused_optics.glsl holds the optics
+  both passes share), never from the 4 pt sampled field, so a rest frame
+  matches the moving ones up to the matte's quantization.
+- A matte under a uniform scale of its pass (0.5 to 2, no material map;
+  a held tab bar's swell) is encoded at the pass's pixels, its texels
+  centered on them (`glassMatteDensity`), so its nearest samples repeat
+  no texel.
 - The body shadow is the plain union of the boxes clipped outside a
   neck-covering path (fidelity NEAR).
 - Menus (blurred SDF), bodies of 5+ boxes and mixed appearances keep the

@@ -575,3 +575,16 @@ Local patches (some commits include related package changes):
   a LiquidGlassLayer paints its child with no glass (morph builds liquid
   layers only once the liquid tier is available, which caches the
   renderer). The 3cec75e fake patches above went with the fake layer.
+- 2026-10-19 exact rest mattes: a GlassBoxField body's matte is encoded
+  by the container's merge law per pixel in a geometry pass of its own
+  (gpu/geometry_fused_fragment.glsl, bundle entry GeometryFusedFragment),
+  not from its 4 pt sampled field, whose bilinear interpolation bent rest
+  necks into steps; fusedBox, fusedTurn, fusedOptics and the one-pixel
+  gradient moved from analytic_geometry.glsl into fused_optics.glsl,
+  shared by both passes (the analytic variants compile to the same
+  SPIR-V counts). The CPU no longer fuses a resting body's field. A
+  matte whose pass maps its layer by a uniform scale within [0.5, 2] and
+  writes no material map is encoded at glassMatteDensity texels per
+  device pixel over a rect snapped to the pass's pixel grid, its encoded
+  distances still in layer device pixels; it is encoded again when the
+  scale or the pass phase moves.
