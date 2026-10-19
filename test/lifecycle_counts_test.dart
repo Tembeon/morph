@@ -418,9 +418,10 @@ const _ceilings = <String, _Ceiling>{
     layouts: 0,
     paints: 0,
   ),
+  // Gain 1: the slot is 12 pt past the 270 pt drag; lens rests per axis.
   'tabbar-touch/flat drag-lens-home-to-profile': (
     first: 0,
-    ms: 2192,
+    ms: 2256,
     builds: 0,
     layouts: 2,
     paints: 99,
@@ -495,9 +496,10 @@ const _ceilings = <String, _Ceiling>{
     layouts: 0,
     paints: 0,
   ),
+  // Gain 1: the slot is 12 pt past the 270 pt drag; lens rests per axis.
   'tabbar-touch/liquid drag-lens-home-to-profile': (
     first: 0,
-    ms: 2192,
+    ms: 2256,
     builds: 0,
     layouts: 3,
     paints: 106,

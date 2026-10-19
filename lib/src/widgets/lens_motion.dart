@@ -496,24 +496,27 @@ class MorphLensMotion
 
   /// Whether what remains of the motion is invisible: nothing pending and
   /// every spring's remaining swing below [MorphRest] (NEAR, invisible;
-  /// [settle] snaps the rest). A finger held still counts: the lens rests
-  /// lifted under it until the finger moves or lifts.
+  /// [settle] snaps the rest), a scale's over the lens's extent along its
+  /// own axis: its lifted width across the track, which holds while it
+  /// lands, and its height as it stands. A finger held still counts: the
+  /// lens rests lifted under it until the finger moves or lifts.
   @override
   bool get isSettled {
     if (!_timeline.isEmpty || (_pointer?.unfollowed ?? false)) return false;
     const length = MorphRest.length;
     final lifted = math.max(tuning.liftWidth, tuning.liftHeight);
-    final scale = MorphRest.scale(_restWidth + tuning.liftWidth);
+    final scaleX = MorphRest.scale(_restWidth + tuning.liftWidth);
+    final scaleY = MorphRest.scale(size.height);
     return _travel.isWithin(_now, length) &&
         _width.isWithin(_now, length) &&
         _lift.isWithin(_now, length / math.max(lifted, 1)) &&
         _chrome.isSettled(_now) &&
         _drift.isWithin(_now, length) &&
         _drift.target.abs() < length &&
-        _scaleX.isWithin(_now, scale) &&
-        (_scaleX.target - 1).abs() < scale &&
-        _scaleY.isWithin(_now, scale) &&
-        (_scaleY.target - 1).abs() < scale;
+        _scaleX.isWithin(_now, scaleX) &&
+        (_scaleX.target - 1).abs() < scaleX &&
+        _scaleY.isWithin(_now, scaleY) &&
+        (_scaleY.target - 1).abs() < scaleY;
   }
 
   /// Puts a settled lens exactly onto its slot, flat and undeformed.
