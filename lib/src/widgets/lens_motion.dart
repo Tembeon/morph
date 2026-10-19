@@ -44,6 +44,7 @@ class MorphLensTuning {
     this.chromeGrowth = 0,
     this.chromeSpring = const MorphSpring(0.356, 0.593),
     this.chromeLag = 0.02,
+    this.chromeReleaseLag = 0.02,
     this.reducedMotionTravelSpring,
   });
 
@@ -162,8 +163,32 @@ class MorphLensTuning {
   /// The spring of the control's press growth.
   final MorphSpring chromeSpring;
 
-  /// Seconds the press growth lags behind the finger.
+  /// Seconds between a touch and the start of the control's press growth,
+  /// counted from the touch's own time stamp.
+  ///
+  /// The tab bar's 0.045 is the median of 26 device taps (iPhone 16 Pro,
+  /// `ios27-device/lens/tabbar{2,3,4,5}-taps`, the steps of
+  /// [chromeSpring] to and from [chromeGrowth] fitted to the bar's swell,
+  /// 38.8 - 54.3 ms): the bar swells on the frame its lens starts (each
+  /// tap 4.5 ms before to 1 ms after its lens's lift start), after UIKit's
+  /// delivery and its main-thread setup of the lift ([startDelay]).
   final double chromeLag;
+
+  /// Seconds between the release of a touch and the return of the press
+  /// growth, counted from the release's own time stamp; the growth never
+  /// returns before it starts.
+  ///
+  /// The tab bar's 0.022 is the median of the same 26 taps (15.8 - 36.3
+  /// ms): a release sets nothing up, so the bar follows UIKit's delivery
+  /// and begin frame, as the segmented control's travel does
+  /// ([releaseDelay]). One lag at both ends fits a tap only with its swell
+  /// shrunk to 42 - 80 percent of the held one (34.3 ms, median of the
+  /// 26); at the held size it leaves the growth 1.11 pt rms from the
+  /// device's, against 0.28 here (medians). A release that lands a lens
+  /// held 0.3 - 1 s comes 26 - 42 ms after its stamp on the device (5
+  /// holds); that is not modelled, and neither is a touch shorter than the
+  /// two lags apart, which here does not swell the bar.
+  final double chromeReleaseLag;
 
   /// The spring that carries the lens between slots, and after a dragging
   /// finger, for Reduce Motion; null when the selection does not travel
@@ -210,6 +235,8 @@ class MorphLensTuning {
     startDelay: 0.045,
     dragGain: 1.013,
     chromeGrowth: 14.6,
+    chromeLag: 0.045,
+    chromeReleaseLag: 0.022,
     reducedMotionTravelSpring: MorphSpring(0.2, 0.9),
   );
 }
@@ -473,7 +500,7 @@ class MorphLensMotion
       final inert = _Pointer(offset: 0, pressedSelected: false, downX: x);
       inert.inert = true;
       _pointer = inert;
-      _chromeTo(t + tuning.chromeLag, 1);
+      _pressChrome(t, inert);
       return;
     }
     final onSelected = index == _selected && _slides;
@@ -483,7 +510,7 @@ class MorphLensMotion
       downX: x,
     );
     _pointer = pointer;
-    _chromeTo(t + tuning.chromeLag, 1);
+    _pressChrome(t, pointer);
     if (onSelected) {
       _flagOn(t);
       final liftAt = t + tuning.pressDelay;
@@ -514,7 +541,7 @@ class MorphLensMotion
     final pointer = _pointer;
     _pointer = null;
     if (pointer == null) return;
-    _chromeTo(t + tuning.chromeLag, 0);
+    _releaseChrome(t, pointer);
     if (pointer.inert) return;
     final under = slotAt(x);
     final index = _selectable(under) ? under : _selected;
@@ -544,7 +571,7 @@ class MorphLensMotion
     _pointer = null;
     if (pointer == null) return;
     pointer.cancelled = true;
-    _chromeTo(t + tuning.chromeLag, 0);
+    _releaseChrome(t, pointer);
     if (!pointer.pressedSelected) return;
     final slot = _slots[_selected];
     _travelTo(t, slot);
@@ -708,6 +735,14 @@ class MorphLensMotion
     _flex.reset(_previousVisible ?? center);
   }
 
+  void _pressChrome(double t, _Pointer pointer) {
+    pointer.swellsAt = t + tuning.chromeLag;
+    _chromeTo(pointer.swellsAt, 1);
+  }
+
+  void _releaseChrome(double t, _Pointer pointer) =>
+      _chromeTo(math.max(t + tuning.chromeReleaseLag, pointer.swellsAt), 0);
+
   void _chromeTo(double t, double target) {
     if (tuning.chromeGrowth == 0) return;
     _timeline.at(t, (s) => _chrome.retarget(s, reducedMotion ? 0 : target));
@@ -738,6 +773,7 @@ class _Pointer {
   bool inert = false;
   double x;
   double unliftNotBefore = 0;
+  double swellsAt = 0;
 
   // A move the lens has not followed yet: the next frame follows it.
   bool unfollowed = false;

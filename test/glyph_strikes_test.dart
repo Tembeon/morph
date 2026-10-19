@@ -335,11 +335,21 @@ void main() {
   // / 12 ms the tap averages 48.3 strike frames against 46.1 at the former
   // 20 ms (base itself 38 - 51), on a 120 Hz grid 67 against 70, and the
   // Pixel 6a A/B of main 6289129a measures no glyph atlas or raster cost.
+  //
+  // The ceilings also follow the bar's swell, which starts with the lens
+  // and returns 22 ms after the release (the device's, chromeLag and
+  // chromeReleaseLag), so a 60 ms tap swells the bar about 40 percent
+  // less than one lag of 20 ms at both ends did. Over 10 seeds x touch
+  // phases 0 / 4 / 8 / 12 ms, paired against that lag: at 60 Hz tap flat
+  // 5.7 -> 5.8, drag flat 6.9 -> 7.6, tap liquid 47.2 -> 50.9, drag
+  // liquid 40.7 -> 45.0 (means; last-run keys of the liquid tap median
+  // 25 -> 25.5, max 71 -> 85); at 120 Hz 7.0 -> 5.5, 8.8 -> 8.9, 70.7 ->
+  // 70.0, 83.5 -> 82.2. No device A/B yet.
   const ceilings = {
-    ('tap', MorphGlassTier.flat): (4, 30),
-    ('drag', MorphGlassTier.flat): (6, 30),
-    ('tap', MorphGlassTier.liquid): (50, 37),
-    ('drag', MorphGlassTier.liquid): (37, 30),
+    ('tap', MorphGlassTier.flat): (5, 30),
+    ('drag', MorphGlassTier.flat): (7, 30),
+    ('tap', MorphGlassTier.liquid): (53, 62),
+    ('drag', MorphGlassTier.liquid): (43, 30),
   };
   for (final MapEntry(key: (cell, tier), value: (ceiling, lastRun))
       in ceilings.entries) {

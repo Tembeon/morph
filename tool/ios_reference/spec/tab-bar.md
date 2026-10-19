@@ -46,9 +46,18 @@ UITabBar `tintColor`, `unselectedItemTintColor` (`leadingAccessoryView` /
   finger [device]. Codename One's 0.196/0.903 and "remaining < 3.5 pt"
   rule are contradicted by our data.
 - Whole bar swells by `chromeGrowth` 14.6 px about its center while
-  pressed (chrome spring 0.356/0.593, lag 20 ms). On-screen scrub gain
-  1.055 - 1.064 = dragGain x swell. The "lens drifts outward while held"
-  is the swell.
+  pressed (chrome spring 0.356/0.593). The swell starts `chromeLag` 45 ms
+  after the touch's stamp, on the frame the lens starts [device, 26 taps
+  `tabbar{2,3,4,5}-taps`, swell `w / (bw sx)` of the lens rows, the
+  spring's steps to and from the growth fitted per tap: 38.8 - 54.3 ms,
+  median 44.75, 4.5 ms before to 1 ms after the lens's lift start], and
+  returns `chromeReleaseLag` 22 ms after the release's stamp [15.8 - 36.3
+  ms, median 21.6: delivery and begin frame only], never before it
+  starts. One lag at both ends fits only with a tap's swell shrunk to
+  42 - 80 percent of the held one (34.3 ms, median); at the held growth
+  it leaves 1.11 pt rms of growth vs 0.28 (medians; the former 20 ms
+  1.25). On-screen scrub gain 1.055 - 1.064 = dragGain x swell. The
+  "lens drifts outward while held" is the swell.
 - Tap on the selected item: lifts in place, lands no earlier than
   `pressHang` 0.25 s after the touch (or `releaseDelay` after a longer hold).
 - Lens lift +16 x +16; flex presentation spring 0.5/0.73.
@@ -137,7 +146,11 @@ tab_bar_device_replay_test (79 device taps at their logged stamps: onset
 median within half a frame of `startDelay`, every onset within the
 14.6 ms delivery spread, size rms < 2.5 pt, median center rms < 1.5 pt;
 aligned to each lift start: center < 1.5, size < 2.5; the slow lift
-stays skipped), tab_bar_glow_test (rms bound 0.03 / 0.012), tab_bar_slow_lift_test (sorts
+stays skipped; the bar swell of the 26 taps that log `sx`: press and
+release onsets median within half a frame of `chromeLag` /
+`chromeReleaseLag`, each within the delivery spread and within a frame
+of its lens's start, growth rms median < 0.35 pt; aligned to each
+tap's onsets < 0.2 pt, the 1 s hold < 0.65), tab_bar_glow_test (rms bound 0.03 / 0.012), tab_bar_slow_lift_test (sorts
 the device tap fixtures; native behaviour only, it does not run morph),
 disabled_test, tab_bar_api_test, controls_scroll_test, glyph_policy_test,
 glyph_scale_test.
@@ -206,6 +219,11 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
 ## Not reproduced / open
 
 - Slow lift (above). Bar-local glitch (deliberate).
+- Swell size: held still, the device grows 14.06 - 14.14 pt (five holds:
+  `tabbar{3,5}-tap-selected` 300 ms, `tabbar4-taps` 1 s) against
+  `chromeGrowth` 14.6; scrubs grow 14.7 - 16.9 pt with the drag. The
+  release of a lens held 0.3 - 1 s returns the swell 26 - 42 ms after its
+  stamp (5 holds) against `chromeReleaseLag` 22.
 - Tab bar deformation replay only on undeformed frames.
 - Reduce Motion read from UIKit (notes private): no lift, selection on (0.9, 0.2) for taps and scrubs; ported, device pass pending ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)). No haptics.
 

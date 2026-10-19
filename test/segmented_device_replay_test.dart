@@ -103,6 +103,7 @@ MorphLensTuning _pressingAfter(double pressDelay) {
     chromeGrowth: s.chromeGrowth,
     chromeSpring: s.chromeSpring,
     chromeLag: s.chromeLag,
+    chromeReleaseLag: s.chromeReleaseLag,
     reducedMotionTravelSpring: s.reducedMotionTravelSpring,
   );
 }
