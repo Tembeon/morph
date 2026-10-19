@@ -50,7 +50,7 @@ class LiquidGlass extends StatefulWidget {
   ///
   /// Every notification of [live] writes the new frame straight into the
   /// shape's render objects; the widget rebuilds only when the kind of
-  /// shape changes or its shadows appear or vanish.
+  /// shape changes.
   const LiquidGlass.live({
     required ValueListenable<LiquidGlassShapeFrame> this.live,
     this.child,
@@ -94,7 +94,7 @@ class LiquidGlass extends StatefulWidget {
 class _LiquidGlassState extends State<LiquidGlass> {
   final _childKey = GlobalKey(debugLabel: 'LiquidGlass.child');
 
-  (Type?, bool)? _form;
+  Type? _form;
 
   LiquidGlassShapeFrame? _resolvedFrame;
   LiquidGlassAppearance? _resolvedBase;
@@ -103,10 +103,7 @@ class _LiquidGlassState extends State<LiquidGlass> {
 
   // A shape without content reaches its render objects through their live
   // setters whatever its kind; only a clip around content is built for it.
-  (Type?, bool) _formOf() => (
-    widget.child == null ? null : widget.shape.runtimeType,
-    widget.shadows.isEmpty,
-  );
+  Type? _formOf() => widget.child == null ? null : widget.shape.runtimeType;
 
   @override
   void initState() {
@@ -184,24 +181,16 @@ class _LiquidGlassState extends State<LiquidGlass> {
         ),
       );
     }
-    final content = _RawLiquidGlass(
+    return _RawLiquidGlass(
       renderLink: InheritedGeometryRenderLink.of(context),
       live: live,
       presentOf: () => widget.live?.value.present ?? true,
       settingsOf: settings,
       appearanceOf: appearance,
+      shadowsOf: () => widget.shadows,
       devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
       shapeOf: shape,
       child: registered,
-    );
-    if (widget.shadows.isEmpty) return content;
-    return GlassShadow.live(
-      live: live,
-      shapeOf: shape,
-      shadowsOf: () => widget.shadows,
-      visibilityOf: () => appearance().visibility,
-      settings: scope.currentSettings,
-      child: content,
     );
   }
 }
@@ -215,6 +204,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
     required this.renderLink,
     required this.settingsOf,
     required this.appearanceOf,
+    required this.shadowsOf,
     required this.devicePixelRatio,
   });
 
@@ -224,6 +214,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
   final GeometryRenderLink? renderLink;
   final LiquidGlassSettings Function() settingsOf;
   final LiquidGlassAppearance Function() appearanceOf;
+  final List<BoxShadow> Function() shadowsOf;
   final double devicePixelRatio;
 
   void _apply(RenderLiquidGlass renderObject) {
@@ -231,6 +222,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
     renderObject.shape = shapeOf();
     renderObject.settings = settingsOf();
     renderObject.appearance = appearanceOf();
+    renderObject.shadows = shadowsOf();
   }
 
   @override
@@ -240,6 +232,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
       renderLink: renderLink,
       settings: settingsOf(),
       appearance: appearanceOf(),
+      shadows: shadowsOf(),
       devicePixelRatio: devicePixelRatio,
       present: presentOf(),
     );
@@ -258,16 +251,18 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
   }
 }
 
-/// Geometry of one independently registered shape.
+/// Geometry of one independently registered shape, which paints the
+/// shape's shadows behind its content.
 @internal
 class RenderLiquidGlass extends RenderLiquidGlassGeometry
-    with LiquidGlassShapeRenderObject, MorphLiveBinding {
+    with LiquidGlassShapeRenderObject, MorphLiveBinding, GlassShadowCaster {
   /// Creates the geometry and material registration for a shape.
   RenderLiquidGlass({
     required this._shape,
     required super.settings,
     required this._appearance,
     required super.devicePixelRatio,
+    this._shadows = const [],
     super.renderLink,
     super.present,
   });
@@ -290,6 +285,7 @@ class RenderLiquidGlass extends RenderLiquidGlassGeometry
   LiquidShape _shape;
 
   /// The shape registered with the layer.
+  @override
   LiquidShape get shape => _shape;
 
   set shape(LiquidShape value) {
@@ -297,6 +293,27 @@ class RenderLiquidGlass extends RenderLiquidGlassGeometry
     _shape = value;
     markNeedsPaint();
     markGeometryNeedsUpdate(force: true);
+  }
+
+  List<BoxShadow> _shadows;
+
+  /// The shadows around the shape.
+  @override
+  List<BoxShadow> get shadows => _shadows;
+
+  set shadows(List<BoxShadow> value) {
+    if (_shadows == value) return;
+    _shadows = value;
+    markNeedsPaint();
+  }
+
+  @override
+  double get shadowVisibility => appearance.visibility.clamp(0.0, 1.0);
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    paintShadows(context, offset);
+    super.paint(context, offset);
   }
 
   @override

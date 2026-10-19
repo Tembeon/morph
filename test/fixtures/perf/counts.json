@@ -266,7 +266,7 @@
   "segmented-drag/liquid": {
     "frames": 198,
     "builds": 0.2,
-    "paints": 26.1,
+    "paints": 25.6,
     "pictures": 2.8,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -277,7 +277,7 @@
   "lens-held/liquid": {
     "frames": 97,
     "builds": 0.5,
-    "paints": 37.4,
+    "paints": 36.4,
     "pictures": 4.0,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -288,7 +288,7 @@
   "tab-bar/liquid": {
     "frames": 218,
     "builds": 0.3,
-    "paints": 86.2,
+    "paints": 85.6,
     "pictures": 2.7,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -310,7 +310,7 @@
   "switch/liquid": {
     "frames": 146,
     "builds": 0.3,
-    "paints": 10.4,
+    "paints": 9.8,
     "pictures": 1.4,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -321,7 +321,7 @@
   "slider/liquid": {
     "frames": 161,
     "builds": 1.2,
-    "paints": 26.4,
+    "paints": 25.7,
     "pictures": 2.5,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -332,7 +332,7 @@
   "controls-page/liquid": {
     "frames": 161,
     "builds": 4.2,
-    "paints": 32.5,
+    "paints": 31.7,
     "pictures": 2.5,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -409,7 +409,7 @@
   "date-picker/liquid": {
     "frames": 168,
     "builds": 2.6,
-    "paints": 21.7,
+    "paints": 21.0,
     "pictures": 1.4,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -431,7 +431,7 @@
   "density-wave-1/liquid": {
     "frames": 112,
     "builds": 0.0,
-    "paints": 16.8,
+    "paints": 16.3,
     "pictures": 1.5,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -453,7 +453,7 @@
   "density-wave-4/liquid": {
     "frames": 118,
     "builds": 0.0,
-    "paints": 65.5,
+    "paints": 63.5,
     "pictures": 5.9,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -475,7 +475,7 @@
   "density-wave-8/liquid": {
     "frames": 126,
     "builds": 0.0,
-    "paints": 127.0,
+    "paints": 123.2,
     "pictures": 11.4,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -497,7 +497,7 @@
   "density-wave-16/liquid": {
     "frames": 142,
     "builds": 0.0,
-    "paints": 240.5,
+    "paints": 233.1,
     "pictures": 21.6,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -519,7 +519,7 @@
   "density-wave-32/liquid": {
     "frames": 174,
     "builds": 0.0,
-    "paints": 408.5,
+    "paints": 395.7,
     "pictures": 36.7,
     "captures": 0.0,
     "offscreen": 0.0,
