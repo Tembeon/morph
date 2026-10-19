@@ -38,36 +38,16 @@ and the approaches that are rejected on purpose.
 - Engine seams that must stay public for cross-file use are annotated
   `@internal` (scope registries, tag machinery, controller.notifyFrame,
   flight route/shared plumbing) so the analyzer warns consumers off.
-- Design-system package: morph imports
-  `package:material_ui/material_ui.dart`, never the in-SDK
-  `package:flutter/material.dart`. The two are separate copies of
-  Material with incompatible types (`material_ui.Theme` is not
-  `flutter/material.Theme`), so a consumer on the in-SDK library migrates
-  too or wraps the morph subtree in `MaterialUiCompatibilityBridge`.
-  `cupertino_ui` is transitive only: morph uses no SDK Cupertino
-  (`CupertinoMotion` comes from motor). Icons resolve through
-  `uses-material-design: true`.
-  One deliberate exception: `lib/src/widgets/widgets_theme.dart` also
-  imports the in-SDK library (`as sdk`) so `MorphWidgetsTheme` is a
-  ThemeExtension of both families and `MorphWidgetsTheme.maybeOf` /
-  `morphBrightnessOf` honour the nearest Theme of either one. A consumer
-  still on the in-SDK Material gets the measured controls' extension and
-  brightness without the bridge; the rest of morph (the engine's
-  Theme.of reads) still needs the migration or the bridge. No other file
-  imports the in-SDK library.
-- Engine-to-Material debt: the core still touches Material in four
-  places, so foundation.dart pulls material_ui onto every consumer:
-  - `theme.dart`: MorphTheme extends ThemeExtension, read via
-    `Theme.of().extension`.
-  - `flight.dart`: `Theme.of().colorScheme`, the shuttle's Material
-    container, the optional MaterialLocalizations barrier label.
-  - `route.dart`: MaterialLocalizations barrier label, colorScheme, the
-    settled page's Material.
-  - `show.dart`: DialogThemeData / BottomSheetThemeData adoption.
-  scope.dart and target.dart import material_ui for types only. The
-  shuttle's Material is what lets dialog content use InkWell and default
-  text styles; removing it is a behavior break. MorphWidgetsTheme is a
-  ThemeExtension too.
+- No design system in lib/: it imports no Material or Cupertino library
+  and no motor (test/architecture_test.dart forbids
+  `package:flutter/material.dart`, `package:material_ui/`,
+  `package:flutter/cupertino.dart`, `package:cupertino_ui/` and
+  `package:motor/`). Tests and the example may use `package:material_ui`
+  (a dev dependency), never the in-SDK `package:flutter/material.dart`:
+  the two are separate copies of Material with incompatible types. The
+  defaults come from `MorphTheme` (an `InheritedTheme` over
+  `MorphThemeData`: brightness, tint, haptics, glass, appearances), the
+  strings from `MorphLocalizations`.
 - Retarget contract: a repeated showMorph on a live tag retargets the
   existing flight. It keeps its target, builder, barrier and scrim
   (content lives in the shuttle and cannot be swapped mid-air); only
@@ -144,10 +124,6 @@ and the approaches that are rejected on purpose.
   reads equal, callbacks compared only by nullness), no dependency
   changed, no setState ran and `buildInputs` is unchanged. So a build
   never captures a widget callback; it calls `widget.onX` at event time.
-- Example spring recipes ride motor's `SingleMotionController` (retarget
-  with velocity carry-over built in); hand-rolling is only for places a
-  controller cannot go (the chips wave evaluates sims at t*rate, and a
-  controller owns its own clock).
 
 ## Invariants
 
@@ -258,9 +234,7 @@ and the approaches that are rejected on purpose.
   platform references and wound up on close. Geometry is linear in the
   value; character comes from physics.
 - motor's MotionController for the engine flight: its settle semantics
-  conflict with the handoff latch. The engine uses Motion only as a
-  simulation factory (widgets and recipes may ride
-  SingleMotionController).
+  conflict with the handoff latch. motor is gone from morph.
 - anchorScale in the frame: a remnant of a two-blob model.
 - Built-in gesture driving of flights, text/layout morphing: out of
   scope.

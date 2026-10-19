@@ -17,7 +17,19 @@ the tuning class dartdoc in the same change. The phone is shared: take
 
 - A pure motion class: a function of the touches it is fed and the time
   it is advanced to. No widgets, no tickers; it replays in a plain
-  `test()`.
+  `test()`. It implements `MorphMotion<E>` (`lib/src/motion/motion.dart`):
+  a command (a touch, a value set by the app) takes its time and
+  advances the motion to it; a read takes no time and answers for the
+  time the motion was advanced to (`time`); what the host must hear
+  (a value change, a haptic, a dismissal) is a typed event the host
+  drains with `drainEvents` after each command, before its handler
+  returns, and after each frame's advance, before the frame is
+  published (`MorphClock.deliverMotionEvents`, `MorphControlHost`).
+  Parts a motion is built from (`MorphSpringState`, `MorphChannel`,
+  `MorphFlexInteraction`, `MorphSmallLens`, the highlight and touch-glow
+  curves, tuning functions) stay functions of an explicit time: the
+  motion that owns them reads them at its own time. Replays advance a
+  motion before each read (`test/support/motion_at.dart`).
 - A thin widget host: a raw `Listener` stamps pointer events on the
   motion clock, calls `motion.pointerDown/Move/Up/Cancel`, advances the
   motion per tick and paints. The host owns only the `MorphClock`, the
@@ -68,7 +80,7 @@ control's node through `node.context`, not `Focus.of`.
 `spring_state.dart` - `MorphSpringState`: a damped spring in closed form
 from its last retarget (under-, critically and over-damped branches).
 Time is an explicit argument everywhere; `retarget(t, target, spring:)`
-carries (value, velocity); also `setState`, `snap`, `isAtRest`. This is
+carries (value, velocity); also `setState`, `snap`, `reach`, `isWithin`. This is
 what makes the motions pure functions of time. It never retargets before
 its last change.
 
@@ -255,16 +267,16 @@ ports `_UIFlexInteractionSpec` (lens-and-flex.md).
 
 ## Cross-cutting policy
 
-Theming: explicit `appearance` > `MorphWidgetsTheme` (one appearance per
-control) > the appearance class's `light`/`dark` table for
-`morphBrightnessOf` (Theme, else MediaQuery platform brightness, else
-light), with its accent replaced by `MorphWidgetsTheme.tint` (UIKit
-`tintColor`). The theme is a Material ThemeExtension or a
-`MorphWidgetsThemeScope` (no Material `Theme` needed); the nearer one
-wins. A ThemeData is one brightness, so a dark appearance goes in the
-dark theme. An explicit color parameter still beats the appearance.
-`morphResolveAppearance` builds a tinted table once per (table, tint), so
-a control comparing its resolved appearance by identity sees no change.
+Theming: explicit `appearance` > an appearance of the same type in the
+nearest `MorphThemeData.appearances` > the appearance class's
+`light`/`dark` table (its high-contrast table under Increase Contrast)
+for `morphBrightnessOf` (`MorphThemeData.brightness`, else the platform
+brightness, else light), with its accent replaced by
+`MorphThemeData.tint` (UIKit `tintColor`). A nested `MorphTheme`
+replaces the one above. An explicit color parameter still beats the
+appearance. `morphResolveAppearance` builds a tinted table once per
+(table, tint), so a control comparing its resolved appearance by
+identity sees no change (test/theme_resolution_test.dart).
 
 Naming: a look table (colors and metrics) is `Morph<Control>Appearance`
 and every widget takes it as `appearance:` (UIKit precedent:

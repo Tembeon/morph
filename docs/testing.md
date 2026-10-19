@@ -67,8 +67,6 @@ it.
 - A tag dropped by a build is only DEACTIVATED that frame and unmounts at the frame's
   end, so `MorphFlight.isSourceLost` reads true one frame later.
 - A broadcast-stream subscription made after an `await` misses what was queued before it.
-- A motor `SingleMotionController` settles within ~1e-4 px of its target: use
-  `moreOrLessEquals` with an epsilon, never equality.
 - `find.byKey(heroKey).last` in a context-menu test is the shuttle's GHOST replica; the
   slot copy is the one under the menu's Column.
 - `FlightSprings.instant` is a 281 ms critically damped spring, not a cut.

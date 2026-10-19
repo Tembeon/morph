@@ -4,8 +4,8 @@ Flutter widgets that behave and look like iOS 27 Liquid Glass, plus the engine u
 spring-driven, interruptible morphs from an inline widget to an overlay (dialog, sheet,
 page, menu), a "liquid" skin that fuses nearby surfaces into one shape, and a measured
 widget layer (tab bar, segmented control, switch, slider, stepper, buttons, menus, bars,
-sheets, alerts, search, date picker, lists, ...). No Navigator coupling. Physics comes from
-the `motor` package and from UIKit's own measured tuning.
+sheets, alerts, search, date picker, lists, ...). No Navigator coupling. Physics is Flutter's
+spring simulation with UIKit's own measured tuning.
 
 Not on pub.dev (`publish_to: none`); releases are git tags following semver, and the API
 follows the owner's app. Owner-local context lives in `CLAUDE.local.md` (untracked).
@@ -83,7 +83,8 @@ Read only the doc you need:
   context type is known; `Object?` not `dynamic`; comments only for the why, never the what;
   dartdoc speaks to the consumer in the present tense (history goes in commit messages).
 - `flutter analyze` stays at zero; `public_member_api_docs` is on.
-- The package imports `package:material_ui/material_ui.dart`, never
+- `lib/` imports no Material, Cupertino or motor (architecture_test). Tests
+  and the example use `package:material_ui/material_ui.dart`, never
   `package:flutter/material.dart` (separate copies of Material).
 - Packaging: the pubspec asset entry for `build/shaderbundles/` must stay; verify on a
   native device.
