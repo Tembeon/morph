@@ -142,8 +142,8 @@ morph даёт приложению полный набор Liquid Glass-ком�
 - **Проверка, unit.**
   - [x] Список Material в `architecture_test` пуст.
   - [x] `flutter pub deps` без `material_ui`, `cupertino_ui`, `flutter_shaders`. `material_ui` остался только в dev_dependencies для тестов.
-  - [ ] Тесты appearance на контрол.
-  - [ ] Тест `lerp`, вложенная тема, смена темы при открытом sheet, RTL.
+  - [x] Тесты appearance на контрол: `test/theme_resolution_test.dart`, 17 appearance, яркость, high contrast, тема против яркости, явный appearance против темы.
+  - [x] Вложенная тема и смена темы при открытом sheet (тема над и под навигатором) там же. `lerp` не делается (см. выше). RTL проверяют тесты самих контролов.
 - [ ] **Проверка, устройство.** iPhone, снимки страниц галереи в light и dark совпадают с текущими.
 - **Проверка, perf.** Не требуется, путь кадра не меняется.
 - [ ] **Гейт кода.** `/deslop`, `/no-comments`, comment-sicko по `lib/src/theme/` и местам разрешения appearance. Ревизия и итог записаны.
