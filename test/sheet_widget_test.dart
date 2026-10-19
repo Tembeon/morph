@@ -154,6 +154,38 @@ void main() {
     expect(result, isNull);
   });
 
+  testWidgets('the sheet follows a finger 12 points after the touch, the '
+      'device slop', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => showMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+          builder: _content,
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('sheet')),
+    );
+    await _settle(tester);
+    final held = tester.getRect(find.byKey(_contentKey)).top;
+    for (var dy = 1; dy <= 11; dy++) {
+      await gesture.moveBy(const Offset(0, -1));
+      await tester.pump();
+    }
+    expect(tester.getRect(find.byKey(_contentKey)).top, held);
+    for (var dy = 12; dy <= 16; dy++) {
+      await gesture.moveBy(const Offset(0, -1));
+      await tester.pump();
+    }
+    expect(tester.getRect(find.byKey(_contentKey)).top, lessThan(held - 2));
+    await gesture.up();
+    await _settle(tester);
+  });
+
   testWidgets('a tap on the dimming dismisses; Navigator.pop returns', (
     WidgetTester tester,
   ) async {

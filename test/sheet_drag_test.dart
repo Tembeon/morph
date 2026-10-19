@@ -17,7 +17,7 @@ const double _maximum = _h - 62 - 34;
 
 /// The distance UIKit's sheet pan waits for before the sheet moves; the
 /// sheet does not catch up with the finger afterwards.
-const double _slop = 12;
+const double _slop = MorphSheetTuning.dragSlop;
 
 /// One display frame of the 60 Hz simulator recordings: presentation
 /// layers are sampled for the frame being prepared.

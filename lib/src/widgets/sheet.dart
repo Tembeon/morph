@@ -455,6 +455,8 @@ class _SheetViewState extends State<_SheetView>
   double _stamp = 0;
   double? _scrubFrom;
   double _scrubTravel = 0;
+  double? _slopFrom;
+  bool _awaitingSlop = false;
   MorphSpringState? _scrubBack;
   bool _leaving = false;
   int _index = 0;
@@ -772,6 +774,7 @@ class _SheetViewState extends State<_SheetView>
     }
     _touch = event.pointer;
     _touchFrom = event.localPosition;
+    _slopFrom = event.position.dy;
     _touchDragged = false;
     motion.press(_stamp);
     wake();
@@ -801,12 +804,47 @@ class _SheetViewState extends State<_SheetView>
     wake();
   }
 
+  void _configureDrag(VerticalDragGestureRecognizer drag) {
+    drag.gestureSettings = const DeviceGestureSettings(
+      touchSlop: MorphSheetTuning.dragSlop,
+    );
+    drag.onStart = _dragStart;
+    drag.onUpdate = _dragUpdate;
+    drag.onEnd = _dragEnd;
+    drag.onCancel = _dragCancel;
+  }
+
+  void _dragCancel() {
+    if (_awaitingSlop) {
+      _awaitingSlop = false;
+      return;
+    }
+    if (_scrubFrom != null) {
+      _scrubTravel = 0;
+      _endScrub(0);
+      return;
+    }
+    _motion?.dragCancel(clock);
+    wake();
+  }
+
+  // Alone in the gesture arena the drag is accepted at the touch, so the
+  // sheet waits out UIKit's slop itself: it starts where the finger is
+  // MorphSheetTuning.dragSlop from the touch, as the device does.
+  bool _pastSlop(double y) =>
+      (y - (_slopFrom ?? y)).abs() >= MorphSheetTuning.dragSlop;
+
   void _dragStart(DragStartDetails details) {
     _stampMove();
+    _awaitingSlop = !_pastSlop(details.globalPosition.dy);
+    if (!_awaitingSlop) _beginDrag(details.globalPosition.dy);
+  }
+
+  void _beginDrag(double y) {
     final motion = _motion;
     if (motion == null || _leaving) return;
     motion.dismissible = _dismissAllowed;
-    _dragY = details.globalPosition.dy;
+    _dragY = y;
     motion.dragStart(_stamp, _dragY);
     wake();
   }
@@ -814,6 +852,12 @@ class _SheetViewState extends State<_SheetView>
   void _dragUpdate(DragUpdateDetails details) {
     _stampMove();
     final y = details.globalPosition.dy;
+    if (_awaitingSlop) {
+      if (!_pastSlop(y)) return;
+      _awaitingSlop = false;
+      _beginDrag(y);
+      return;
+    }
     final from = _scrubFrom;
     if (from != null) {
       _scrubTravel = y - from;
@@ -841,6 +885,10 @@ class _SheetViewState extends State<_SheetView>
 
   void _release(double velocity) {
     _stampMove();
+    if (_awaitingSlop) {
+      _awaitingSlop = false;
+      return;
+    }
     if (_scrubFrom != null) {
       _endScrub(velocity);
       return;
@@ -1066,19 +1114,18 @@ class _SheetViewState extends State<_SheetView>
                               onPointerMove: _move,
                               onPointerUp: _up,
                               onPointerCancel: _up,
-                              child: GestureDetector(
+                              child: RawGestureDetector(
                                 behavior: HitTestBehavior.opaque,
-                                onVerticalDragStart: _dragStart,
-                                onVerticalDragUpdate: _dragUpdate,
-                                onVerticalDragEnd: _dragEnd,
-                                onVerticalDragCancel: () {
-                                  if (_scrubFrom != null) {
-                                    _scrubTravel = 0;
-                                    _endScrub(0);
-                                    return;
-                                  }
-                                  _motion?.dragCancel(clock);
-                                  wake();
+                                gestures: {
+                                  VerticalDragGestureRecognizer:
+                                      GestureRecognizerFactoryWithHandlers<
+                                        VerticalDragGestureRecognizer
+                                      >(
+                                        () => VerticalDragGestureRecognizer(
+                                          debugOwner: this,
+                                        ),
+                                        _configureDrag,
+                                      ),
                                 },
                                 child: sheet,
                               ),

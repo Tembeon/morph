@@ -216,6 +216,11 @@ abstract final class MorphSheetTuning {
   /// releases, 0.003 - 0.047).
   static const double releaseDelay = 0.025;
 
+  /// How far, in points, a finger travels on the sheet before the sheet
+  /// follows it: the device drags start 12 points from the touch (7 on
+  /// the simulator); the drag replays use the device value.
+  static const double dragSlop = 12;
+
   /// The band at the top of the sheet, in unscaled points, where a tap
   /// cycles the detents as a tap on the grabber does; a tap 25 points
   /// below the top edge cycled them.
