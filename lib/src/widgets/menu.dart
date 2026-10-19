@@ -28,6 +28,7 @@ import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/theme/theme.dart';
+import 'package:morph/src/widgets/glass_glow.dart';
 
 /// The look of a [MorphMenuButton] and its menu.
 class MorphMenuAppearance implements MorphAppearance {
@@ -42,7 +43,6 @@ class MorphMenuAppearance implements MorphAppearance {
     this.iconSize = MorphMenuTuning.rowIconSize,
     this.destructiveColor = const Color(0xFFFF383C),
     this.highlightColor = const Color(0x1F000000),
-    this.glowColor = const Color(0xFFFFFFFF),
     this.secondaryColor = const Color(0x993C3C43),
     this.disabledColor = const Color(0x4C3C3C43),
     this.separatorColor = const Color(0x14000000),
@@ -86,9 +86,6 @@ class MorphMenuAppearance implements MorphAppearance {
 
   /// The fill of the pill under the highlighted row.
   final Color highlightColor;
-
-  /// The color of the glow under a finger on the menu.
-  final Color glowColor;
 
   /// The color of subtitles and section headers: secondaryLabel.
   final Color secondaryColor;
@@ -141,7 +138,6 @@ class MorphMenuAppearance implements MorphAppearance {
     disabledIconColor: Color(0x4CEBEBF5),
     destructiveColor: Color(0xFFFF4245),
     highlightColor: Color(0x29FFFFFF),
-    glowColor: Color(0xFFFFFFFF),
     secondaryColor: Color(0x99EBEBF5),
     disabledColor: Color(0x4CEBEBF5),
     separatorColor: Color(0x14FFFFFF),
@@ -175,7 +171,6 @@ class MorphMenuAppearance implements MorphAppearance {
     double? iconSize,
     Color? destructiveColor,
     Color? highlightColor,
-    Color? glowColor,
     Color? secondaryColor,
     Color? disabledColor,
     Color? separatorColor,
@@ -194,7 +189,6 @@ class MorphMenuAppearance implements MorphAppearance {
     iconSize: iconSize ?? this.iconSize,
     destructiveColor: destructiveColor ?? this.destructiveColor,
     highlightColor: highlightColor ?? this.highlightColor,
-    glowColor: glowColor ?? this.glowColor,
     secondaryColor: secondaryColor ?? this.secondaryColor,
     disabledColor: disabledColor ?? this.disabledColor,
     separatorColor: separatorColor ?? this.separatorColor,
@@ -217,7 +211,6 @@ class MorphMenuAppearance implements MorphAppearance {
       other.iconSize == iconSize &&
       other.destructiveColor == destructiveColor &&
       other.highlightColor == highlightColor &&
-      other.glowColor == glowColor &&
       other.secondaryColor == secondaryColor &&
       other.disabledColor == disabledColor &&
       other.separatorColor == separatorColor &&
@@ -238,7 +231,6 @@ class MorphMenuAppearance implements MorphAppearance {
     iconSize,
     destructiveColor,
     highlightColor,
-    glowColor,
     secondaryColor,
     disabledColor,
     separatorColor,
@@ -791,6 +783,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         motion.silhouetteFor(withField: _faceWithField),
         origin,
       ),
+      glow: null,
     );
   }
 
@@ -990,6 +983,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         lookStretch: 1,
         look: (opacity: 1, blur: 0),
         outline: null,
+        glow: null,
       );
       final face = _MenuShapes(
         style: style,
@@ -1149,6 +1143,7 @@ typedef _Shapes = ({
   double lookStretch,
   _Look look,
   MorphGlassOutline? outline,
+  MorphGlassGlow? glow,
 });
 
 /// Both shapes of the morph and the button's look inside the shrinking
@@ -1224,6 +1219,7 @@ class _MenuShapes extends StatelessWidget {
               outline: now.outline,
               surface: surface,
               glassShare: surface == null ? 1 : 1 - now.look.opacity,
+              glow: now.glow,
             ),
           );
         },
@@ -1263,6 +1259,7 @@ class _MenuShapes extends StatelessWidget {
                   tint: style.glassTint,
                   blurRadius: menuBlur,
                   brightness: brightness,
+                  glow: now.glow,
                 ),
             ],
             outline: menu == null ? null : now.outline,
@@ -1467,7 +1464,6 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       highlighted: motion.highlighted,
       highlightedCard: motion.highlightedCard,
       sliding: motion.isSliding,
-      glow: frame.glow != null,
       scrolls: cards.isNotEmpty && cards[0].layout.height > visible + 0.5,
     );
   }
@@ -1663,7 +1659,6 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                               child: Stack(
                                 clipBehavior: .none,
                                 children: [
-                                  ..._glow(structure, style),
                                   ..._cards(motion, style, cards, top: false),
                                 ],
                               ),
@@ -2169,36 +2164,6 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       ),
     );
   }
-
-  List<Widget> _glow(_LayerStructure structure, MorphMenuAppearance style) {
-    if (!structure.glow) return const [];
-    return [
-      MorphLivePositionedTemplate(
-        live: _ticks,
-        template: () =>
-            Positioned.fromRect(rect: _frame!.glow!.rect, child: morphLiveSlot),
-        child: IgnorePointer(
-          child: MorphLiveTemplate(
-            live: _ticks,
-            template: () {
-              final opacity = _frame!.glow!.opacity;
-              return DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: .circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      style.glowColor.withValues(alpha: opacity),
-                      style.glowColor.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    ];
-  }
 }
 
 typedef _RootKey = ({
@@ -2234,7 +2199,6 @@ class _LayerStructure {
     required this.highlighted,
     required this.highlightedCard,
     required this.sliding,
-    required this.glow,
     required this.scrolls,
   });
 
@@ -2249,7 +2213,6 @@ class _LayerStructure {
   final int? highlighted;
   final int highlightedCard;
   final bool sliding;
-  final bool glow;
   final bool scrolls;
 
   static bool _same<T>(List<T> a, List<T> b) {
@@ -2274,7 +2237,6 @@ class _LayerStructure {
       other.highlighted == highlighted &&
       other.highlightedCard == highlightedCard &&
       other.sliding == sliding &&
-      other.glow == glow &&
       other.scrolls == scrolls;
 
   @override
@@ -2287,7 +2249,6 @@ class _LayerStructure {
     highlighted,
     highlightedCard,
     sliding,
-    glow,
     scrolls,
   );
 }
@@ -2321,24 +2282,12 @@ class _LayerFrame {
       lookStretch: motion.buttonLookStretch,
       look: (opacity: motion.buttonLookOpacity, blur: motion.buttonLookBlur),
       outline: motion.silhouetteFor(withField: withField),
+      glow: motion.glowAt(brightness),
     );
     faded = (
       opacity: motion.cardGlassTransferred ? 0 : motion.contentOpacity,
       blur: motion.contentBlur / scale,
     );
-    final center = motion.glowCenter;
-    final glowOpacity = motion.glowOpacity;
-    final tuning = motion.tuning;
-    glow = center == null || glowOpacity <= 0
-        ? null
-        : (
-            rect: Rect.fromCenter(
-              center: _contentLocal(motion, center),
-              width: tuning.glowDiameter,
-              height: tuning.glowDiameter,
-            ),
-            opacity: glowOpacity,
-          );
     _cards = [
       for (var i = 1; i < cards.length; i++)
         _CardFrame(
@@ -2379,9 +2328,6 @@ class _LayerFrame {
 
   /// The fade of everything under the top card.
   late final _Look faded;
-
-  /// The glow under a finger, null while it does not show.
-  late final ({Rect rect, double opacity})? glow;
 
   late final List<_CardFrame> _cards;
 
@@ -2627,19 +2573,6 @@ class _CardHeader extends StatelessWidget {
       ),
     );
   }
-}
-
-/// [position] in the coordinates of the content laid out at its final
-/// size, which [MorphMenuMotion.contentRect] shows scaled.
-Offset _contentLocal(MorphMenuMotion motion, Offset position) {
-  final frame = motion.contentRect;
-  final scale = motion.contentScale;
-  final stretch = motion.contentStretch;
-  final local = position - frame.topLeft;
-  return Offset(
-    local.dx / (scale * stretch.dx),
-    local.dy / (scale * stretch.dy),
-  );
 }
 
 /// The rows of one card: [layout]'s elements in [style], drawn through
@@ -3494,6 +3427,7 @@ class _GlassPainter extends CustomPainter {
     this.outline,
     this.surface,
     this.glassShare = 1,
+    this.glow,
   });
 
   final MorphMenuAppearance style;
@@ -3502,6 +3436,7 @@ class _GlassPainter extends CustomPainter {
   final MorphGlassOutline? outline;
   final ({Color color, Color? rim})? surface;
   final double glassShare;
+  final MorphGlassGlow? glow;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -3523,6 +3458,8 @@ class _GlassPainter extends CustomPainter {
         ? style.glassColor
         : Color.lerp(surface.color, style.glassColor, glassShare)!;
     canvas.drawPath(shape, fill);
+    final glow = this.glow;
+    if (menu != null && glow != null) morphPaintGlassGlow(canvas, menu, glow);
     final rim = surface?.rim;
     if (rim == null || glassShare >= 1) return;
     final stroke = Paint();
@@ -3539,7 +3476,8 @@ class _GlassPainter extends CustomPainter {
       oldDelegate.outline != outline ||
       oldDelegate.style != style ||
       oldDelegate.surface != surface ||
-      oldDelegate.glassShare != glassShare;
+      oldDelegate.glassShare != glassShare ||
+      oldDelegate.glow != glow;
 }
 
 class _Ellipsis extends StatelessWidget {

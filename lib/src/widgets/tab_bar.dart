@@ -389,6 +389,8 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
     return MorphTouchGlowMotion(
       washPeak: spec.bigGlowOpacity,
       spotPeak: spec.littleGlowOpacity,
+      diameter: MorphTouchGlowMotion.tabBarDiameter,
+      riseLag: MorphTouchGlowMotion.tabBarRiseLag,
     );
   }
 

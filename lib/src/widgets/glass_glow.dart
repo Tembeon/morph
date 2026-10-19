@@ -154,8 +154,10 @@ class MorphGlassGlowPainter extends CustomPainter {
       oldDelegate.data.value != data.value;
 }
 
-/// The touch glow of a pressed glass bar as a function of time: UIKit's
-/// flex interaction glows on iOS 27's tab bar, measured on an iPhone.
+/// The touch glow of a pressed glass surface as a function of time:
+/// UIKit's flex interaction glows, measured on an iPhone on iOS 27's tab
+/// bar and open menu, which share the law and differ in [diameter],
+/// [riseLag] and their peaks.
 ///
 /// A touch raises both glows on a critically damped [riseSpring] after
 /// [riseLag]; they hold while the finger stays down. A finger that moves
@@ -167,10 +169,17 @@ class MorphGlassGlowPainter extends CustomPainter {
 ///
 /// Peaks come from the surface's [MorphFlexSpec] - its big glow opacity
 /// for the wash, its little glow opacity for the spot - so a 62 pixel
-/// tall bar peaks at 0.845 and 0.2845.
+/// tall bar peaks at 0.845 and 0.2845, and an open menu
+/// ([MorphFlexSpec.menu]) at 0 and 0.5.
 class MorphTouchGlowMotion {
   /// Creates a resting glow with the peaks of a surface's flex spec.
-  MorphTouchGlowMotion({required this.washPeak, required this.spotPeak});
+  MorphTouchGlowMotion({
+    required this.washPeak,
+    required this.spotPeak,
+    required this.diameter,
+    required this.riseLag,
+    this.minimumLit = 0,
+  });
 
   /// The opacity the wash rises to.
   final double washPeak;
@@ -185,13 +194,28 @@ class MorphTouchGlowMotion {
   static const fallSpring = MorphSpring(0.5, 1);
 
   /// How long after the touch the glows start to rise, in seconds.
-  static const double riseLag = 0.042;
+  final double riseLag;
+
+  /// The tab bar's [riseLag]: fitted to its device rows (tab-bar.md, Spec -
+  /// touch glow).
+  static const double tabBarRiseLag = 0.042;
+
+  /// The least time, in seconds, the glow rises before a release lets it
+  /// fall: a lift sooner than that starts the fall this long after the
+  /// rise began. Zero lets the fall follow the lift after [releaseLag].
+  final double minimumLit;
+
+  double _riseAt = 0;
 
   /// How long after the release the glows start to fall, in seconds.
   static const double releaseLag = 0.02;
 
   /// The diameter of the spot before it grows, in pixels.
-  static const double diameter = 93;
+  final double diameter;
+
+  /// The tab bar's [diameter]: its LittleGlow layer is a 93 pt disc
+  /// (tab-bar.md, Spec - touch glow).
+  static const double tabBarDiameter = 93;
 
   /// How many times its size the spot grows to after a release.
   static const double releaseGrowth = 4;
@@ -278,6 +302,9 @@ class MorphTouchGlowMotion {
   /// The center of the spot, in the pointer's coordinates.
   Offset get center => _center;
 
+  /// Whether a finger is down.
+  bool get isDown => _down != null;
+
   void _due(double t) => _timeline.runDue(t);
 
   /// A finger touched at [position] at time [t].
@@ -289,12 +316,11 @@ class MorphTouchGlowMotion {
     _dragging = false;
     _scale.snap(t, 1);
     _strength.snap(t, 1);
-    final start = t + riseLag;
-    _timeline.insert(
-      start,
-      (at) => _progress.retarget(at, 1, spring: riseSpring),
-    );
+    _riseAt = t + riseLag;
+    _timeline.insert(_riseAt, _rise);
   }
+
+  void _rise(double at) => _progress.retarget(at, 1, spring: riseSpring);
 
   /// The finger moved to [position] at time [t].
   void pointerMove(double t, Offset position) {
@@ -317,7 +343,8 @@ class MorphTouchGlowMotion {
     if (_down == null) return;
     _down = null;
     _timeline.clear();
-    final start = t + releaseLag;
+    if (minimumLit > 0 && _riseAt > t) _timeline.insert(_riseAt, _rise);
+    final start = math.max(t + releaseLag, _riseAt + minimumLit);
     _timeline.insert(start, (at) {
       _progress.retarget(at, 0, spring: fallSpring);
       _scale.retarget(at, releaseGrowth, spring: fallSpring);

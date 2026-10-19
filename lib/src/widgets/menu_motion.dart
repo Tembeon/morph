@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show Brightness;
 
 import 'package:flutter/painting.dart';
 import 'package:meta/meta.dart';
@@ -13,6 +14,7 @@ import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_morph_spec.dart';
 import 'package:morph/src/motion/spring_state.dart';
 import 'package:morph/src/motion/timeline.dart';
+import 'package:morph/src/widgets/glass_glow.dart';
 
 /// The tuning of a glass button's menu, as measured on iOS 27.
 ///
@@ -60,8 +62,8 @@ class MorphMenuTuning {
     this.sourceKickGain = 2.02,
     this.edgeMargin = defaultEdgeMargin,
     this.glowDiameter = 160,
-    this.glowOpacity = 0.5,
-    this.glowFade = 0.07,
+    this.glowRiseLag = 0.03,
+    this.glowMinimumLit = 0.1,
     this.highlightInset = 10,
     this.flex = MorphFlexSpec.menu,
     this.flexInBoundsPoints = 40,
@@ -567,14 +569,27 @@ class MorphMenuTuning {
   /// a menu that would come closer aligns with the button's edge instead.
   final double edgeMargin;
 
-  /// The diameter of the glow under a finger on the menu.
+  /// The diameter of the glow under a finger on the menu: the open
+  /// menu's `_UIFlexInteraction.LittleGlow` layer is a 160 pt disc drawn
+  /// through a vibrant color matrix (iPhone 16 Pro,
+  /// test/fixtures/ios27-device/menuglow). Its peak is [flex]'s little
+  /// glow opacity (0.5, the device rows peak at 0.49 - 0.5); the menu has
+  /// no wash ([flex]'s big glow opacity is 0). It follows the tab bar's
+  /// law ([MorphTouchGlowMotion]): a finger dragged 50 pt doubles it at
+  /// half the strength, which is how a finger sliding over the rows
+  /// lights the whole menu faintly.
   final double glowDiameter;
 
-  /// The opacity of the glow under a finger on the menu.
-  final double glowOpacity;
+  /// Seconds after a touch before the glow rises: fitted to eight device
+  /// captures (0.011 rms on a drag over the rows, 0.025 at worst).
+  final double glowRiseLag;
 
-  /// Seconds the glow takes to appear and to fade.
-  final double glowFade;
+  /// Seconds the glow rises at least before a lift lets it fall: a tap
+  /// on a row lets the rise finish (the fall starts 115 - 170 ms after the
+  /// touch, 40 - 87 ms after an 83 ms lift, on seven device captures),
+  /// where a long hold falls 26 ms after its lift. 0.1 is the rise
+  /// spring's response; the captures' spread around it is not modelled.
+  final double glowMinimumLit;
 
   /// The horizontal inset of the highlight pill from the menu's sides.
   final double highlightInset;
@@ -761,6 +776,15 @@ class MorphMenuTuning {
 
   /// The height of a menu with [rows] rows.
   double menuHeight(int rows) => 2 * verticalPadding + rowHeight * rows;
+
+  /// The glow a finger raises on the open menu ([glowDiameter]).
+  MorphTouchGlowMotion touchGlow() => MorphTouchGlowMotion(
+    washPeak: flex.bigGlowOpacity,
+    spotPeak: flex.littleGlowOpacity,
+    diameter: glowDiameter,
+    riseLag: glowRiseLag,
+    minimumLit: glowMinimumLit,
+  );
 
   /// The measured iOS 27 menu.
   static const standard = MorphMenuTuning();
@@ -1326,10 +1350,7 @@ class MorphMenuMotion
   _Pointer? _pointer;
   int? _highlighted;
   int _highlightCard = 0;
-  Offset? _glowAt;
-  double _glowFrom = 0;
-  double _glowStart = 0;
-  double _glowTarget = 0;
+  late final MorphTouchGlowMotion _touchGlow = tuning.touchGlow();
 
   final MorphTimeline _timeline = MorphTimeline(now: 0);
   MorphMenuCloseRequested? _request;
@@ -1785,18 +1806,11 @@ class MorphMenuMotion
     return index < targets.length ? targets[index] : null;
   }
 
-  /// The center of the glow under a finger on the menu.
-  Offset? get glowCenter => _glowAt;
-
-  /// The opacity of the glow under a finger on the menu.
-  double get glowOpacity {
-    final span = tuning.glowFade;
-    final t = ((_now - _glowStart) / span).clamp(0.0, 1.0);
-    return _glowFrom + (_glowTarget - _glowFrom) * t;
-  }
-
-  bool _glowAtRest(double t) =>
-      _glowFrom == _glowTarget || t - _glowStart >= tuning.glowFade;
+  /// The glow under a finger on the menu in the [brightness] the menu
+  /// resolved, centered in the motion's coordinates, or null while it
+  /// does not show.
+  MorphGlassGlow? glowAt(Brightness brightness) =>
+      _touchGlow.glowAt(_now, brightness);
 
   /// The opacity of the menu content.
   double get contentOpacity => _contentOpacityAt(_now);
@@ -2378,7 +2392,7 @@ class MorphMenuMotion
     final t = _now;
     if (_pointer?.scrolled ?? false) return false;
     if (_phase == _Phase.closing) return false;
-    if (!_press.isSettled(t) || !_flexAtRest(t) || !_glowAtRest(t)) {
+    if (!_press.isSettled(t) || !_flexAtRest(t) || !_touchGlow.isSettled(t)) {
       return false;
     }
     if (_phase == _Phase.opening) {
@@ -2532,7 +2546,6 @@ class MorphMenuMotion
     pointer.openedByHold = true;
     _pointer = pointer;
     _open(t);
-    _glow(t, position, on: true);
   }
 
   /// A finger touched down at [position].
@@ -2552,7 +2565,7 @@ class MorphMenuMotion
         return;
       }
       _track(t, pointer, position);
-      _glow(t, position, on: true);
+      _touchGlow.pointerDown(t, position);
       _flexDown(t, position);
       return;
     }
@@ -2580,7 +2593,6 @@ class MorphMenuMotion
       }
       pointer.openedByHold = true;
       _open(s);
-      _glow(s, pointer.position, on: true);
     });
   }
 
@@ -2626,7 +2638,13 @@ class MorphMenuMotion
     if (hit.target != _highlighted || hit.card != _highlightCard) {
       _track(t, pointer, position);
     }
-    _glowAt = position;
+    // A finger that held the menu open lights it once it moves (device:
+    // none under a still hold).
+    if (_touchGlow.isDown) {
+      _touchGlow.pointerMove(t, position);
+    } else {
+      _touchGlow.pointerDown(t, position);
+    }
     if (_flexTouch == null && !_flexPending) _flexDown(t, previous);
     _timeline.at(t + tuning.flexDelay, (double s) {
       final touch = _flexTouch;
@@ -3076,7 +3094,7 @@ class MorphMenuMotion
     final pointer = _pointer;
     if (pointer != null && !pointer.fromButton) {
       _setHighlight(rowAt(pointer.position), _topCard);
-      _glow(t, pointer.position, on: true);
+      _touchGlow.pointerDown(t, pointer.position);
     }
     final release = _earlyRelease;
     _earlyRelease = null;
@@ -3278,7 +3296,7 @@ class MorphMenuMotion
       if (generation != _flexGeneration) return;
       _flexUp(s);
     });
-    _glow(t, _glowAt, on: false);
+    _touchGlow.pointerUp(t);
   }
 
   /// The finger that flexed the menu lifted at time [t]: UIKit zeroes the
@@ -3293,14 +3311,6 @@ class MorphMenuMotion
     _flexScaleY.set(t, 1);
     _flexDriftX.set(t, 0);
     _flexDriftY.set(t, 0);
-  }
-
-  void _glow(double t, Offset? position, {required bool on}) {
-    final current = glowOpacity;
-    _glowAt = position;
-    _glowFrom = current;
-    _glowStart = t;
-    _glowTarget = on ? tuning.glowOpacity : 0;
   }
 
   double _sourceScaleAt(double t) {
