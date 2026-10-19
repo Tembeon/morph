@@ -350,9 +350,6 @@ class MorphTabBarMinimizeMotion {
   double _now = 0;
   int _generation = 0;
 
-  /// Called when [minimized] changes, from an advance or an input.
-  void Function({required bool minimized})? onMinimizedChanged;
-
   /// The behavior; a bar that no longer minimizes expands.
   MorphTabBarMinimizeBehavior get behavior => _behavior;
   MorphTabBarMinimizeBehavior _behavior;
@@ -432,7 +429,6 @@ class MorphTabBarMinimizeMotion {
         );
       },
     );
-    onMinimizedChanged?.call(minimized: value);
   }
 
   double? _pressX;

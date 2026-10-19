@@ -142,13 +142,9 @@ void main() {
 
     test('minimizing runs the glass, then the content after 0.05 s', () {
       final motion = MorphTabBarMinimizeMotion();
-      final changes = <bool>[];
-      motion.onMinimizedChanged = ({required bool minimized}) =>
-          changes.add(minimized);
       motion.advance(0);
       _drag(motion.scrollAway, 100);
       expect(motion.minimized, isTrue);
-      expect(changes, [true]);
       motion.advance(0.04);
       expect(motion.at(0.04).shape, greaterThan(0));
       expect(motion.at(0.04).content, 0);
@@ -160,7 +156,7 @@ void main() {
       expect(motion.at(3).shape, 1);
       expect(motion.at(3).content, 1);
       motion.setMinimized(3, minimized: false);
-      expect(changes, [true, false]);
+      expect(motion.minimized, isFalse);
       motion.advance(6);
       expect(motion.at(6).restsExpanded, isFalse);
       motion.settle(6);
