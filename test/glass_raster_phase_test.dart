@@ -46,24 +46,28 @@ void main() {
     expect(fixed.biased, isFalse);
   });
 
-  test('a matte under a uniform scale follows its pass\'s pixels', () {
+  test('a matte under a scale follows its pass\'s pixels per axis', () {
     Matrix4 scaled(double sx, double sy) {
       final m = Matrix4.translationValues(13.3, 7.1, 0);
       m.scaleByDouble(sx, sy, 1, 1);
       return m;
     }
 
-    expect(glassMatteDensity(Matrix4.identity()), 1);
-    expect(glassMatteDensity(Matrix4.translationValues(3.4, 9, 0)), 1);
-    expect(glassMatteDensity(scaled(1.05, 1.05)), 1.05);
-    expect(glassMatteDensity(scaled(0.93, 0.93)), 0.93);
-    expect(glassMatteDensity(scaled(1 + 1e-9, 1 + 1e-9)), 1);
-    // Two scales, a rotation or a scale out of range keep the layer's own
-    // device pixels.
-    expect(glassMatteDensity(scaled(1.05, 1.1)), 1);
-    expect(glassMatteDensity(Matrix4.rotationZ(0.1)), 1);
-    expect(glassMatteDensity(scaled(2.5, 2.5)), 1);
-    expect(glassMatteDensity(scaled(0.3, 0.3)), 1);
+    expect(glassMatteDensity(Matrix4.identity()), glassUnitMatteDensity);
+    expect(
+      glassMatteDensity(Matrix4.translationValues(3.4, 9, 0)),
+      glassUnitMatteDensity,
+    );
+    expect(glassMatteDensity(scaled(1.05, 1.05)), (x: 1.05, y: 1.05));
+    expect(glassMatteDensity(scaled(0.93, 0.93)), (x: 0.93, y: 0.93));
+    // A held tab bar's flex stretches one axis and squashes the other.
+    expect(glassMatteDensity(scaled(1.08, 0.94)), (x: 1.08, y: 0.94));
+    // An axis within a rounding error of 1 or out of range keeps the
+    // layer's own device pixels; a rotation keeps them on both.
+    expect(glassMatteDensity(scaled(1 + 1e-9, 1.05)), (x: 1.0, y: 1.05));
+    expect(glassMatteDensity(scaled(2.5, 1.1)), (x: 1.0, y: 1.1));
+    expect(glassMatteDensity(scaled(0.3, 0.3)), glassUnitMatteDensity);
+    expect(glassMatteDensity(Matrix4.rotationZ(0.1)), glassUnitMatteDensity);
   });
 
   testWidgets('a shape under an anchor shifts onto its own grid', (

@@ -23,6 +23,10 @@ layout(std140) uniform FusedUniforms {
     // Per box, in matte pixels: (center, half extents), then (corner
     // radius clamped to the half extents, 0, 0, 0).
     vec4 uFusedBoxes[FUSED_MAX_BOXES * 2];
+    // Matte texels per device pixel of the layer along x and y: a matte
+    // under a scale of its pass is encoded at the pass's pixels, while
+    // every position and distance stays in the layer's device pixels.
+    vec2 uMatteDensity;
 } fusedUniforms;
 
 #define uOffset fusedUniforms.uOffset
@@ -31,6 +35,7 @@ layout(std140) uniform FusedUniforms {
 #define uContourProps fusedUniforms.uContourProps
 #define uFusedLaw fusedUniforms.uFusedLaw
 #define uFusedBoxes fusedUniforms.uFusedBoxes
+#define uMatteDensity fusedUniforms.uMatteDensity
 
 // sdf.glsl's, which this pass does not include: it reads the shape rows.
 const float kOpticalCornerRadiusScale = 1.5;
@@ -42,7 +47,7 @@ const float kOpticalCornerRadiusScale = 1.5;
 out vec4 fragColor;
 
 void main() {
-    vec2 p = gl_FragCoord.xy + uOffset;
+    vec2 p = gl_FragCoord.xy / uMatteDensity + uOffset;
     int count = int(uFusedLaw.x);
     float k = uFusedLaw.y;
     float minWidth = uFusedLaw.z;

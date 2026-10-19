@@ -51,6 +51,7 @@ class FlutterGpuGeometryRenderer {
     _offsetShapeTints = resources.offsetShapeTints;
     _offsetShapeResponses = resources.offsetShapeResponses;
     _offsetShapeBounds = resources.offsetShapeBounds;
+    _offsetMatteDensity = resources.offsetMatteDensity;
     _vertexBufferView = resources.vertexBufferView;
     _uniformData = ByteData(_uniformSize);
   }
@@ -216,6 +217,7 @@ class FlutterGpuGeometryRenderer {
   late final int _offsetShapeTints;
   late final int _offsetShapeResponses;
   late final int _offsetShapeBounds;
+  late final int _offsetMatteDensity;
   late final ByteData _uniformData;
   int _writtenShapeFloats = 0;
   int _writtenRseFloats = 0;
@@ -250,8 +252,10 @@ class FlutterGpuGeometryRenderer {
   /// its merge law per pixel, with [mergeMinWidth] logical pixels the
   /// narrowest merge width that blends, exactly the body the analytic final
   /// shaders shade, and its samples are never read; any other [field] is
-  /// encoded from its samples. The returned image is a non-owning
-  /// wrapper - do NOT dispose it. Its texture is written again
+  /// encoded from its samples. The matte holds [matteDensity] texels per
+  /// unit of [offsetX] and [offsetY] along each axis, while every position
+  /// and distance it encodes stays in those units. The returned image is a
+  /// non-owning wrapper - do NOT dispose it. Its texture is written again
   /// [reuseAfterFrames] frames after a later render replaces it.
   ({ui.Image image, int width, int height, int textureWidth, int textureHeight})
   render({
@@ -274,6 +278,7 @@ class FlutterGpuGeometryRenderer {
     GlassField? field,
     double fieldScale = 1,
     double mergeMinWidth = 0,
+    ({double x, double y}) matteDensity = (x: 1, y: 1),
   }) {
     assert(() {
       debugRenderCount++;
@@ -370,6 +375,7 @@ class FlutterGpuGeometryRenderer {
       materialMapHeight: writeMaterials ? materialMapHeight.toDouble() : 1.0,
       geometryAaHalfWidth: _geometryAaHalfWidth,
       numShapes: numShapes.toDouble(),
+      matteDensity: matteDensity,
     );
     // A field or fused pass reads only the header, copied into its own
     // block; the shape rows matter only to the shape pass and the material
@@ -671,8 +677,13 @@ class FlutterGpuGeometryRenderer {
     required double materialMapHeight,
     required double geometryAaHalfWidth,
     required double numShapes,
+    required ({double x, double y}) matteDensity,
   }) {
     final floatData = _uniformData.buffer.asFloat32List();
+
+    final densityIndex = _offsetMatteDensity ~/ 4;
+    floatData[densityIndex] = matteDensity.x;
+    floatData[densityIndex + 1] = matteDensity.y;
 
     final uOffsetIndex = _offsetUOffset ~/ 4;
     floatData[uOffsetIndex] = offsetX;
@@ -779,6 +790,7 @@ class FlutterGpuGeometryRenderer {
     copy(_offsetUTextureSize, offsets.textureSize, 2);
     copy(_offsetOpticalProps, offsets.opticalProps, 4);
     copy(_offsetContourProps, offsets.contourProps, 4);
+    copy(_offsetMatteDensity, offsets.matteDensity, 2);
     final frame = offsets.fieldFrame ~/ 4;
     to[frame] = field.origin.dx * fieldScale;
     to[frame + 1] = field.origin.dy * fieldScale;
@@ -813,6 +825,7 @@ class FlutterGpuGeometryRenderer {
     copy(_offsetUTextureSize, offsets.textureSize, 2);
     copy(_offsetOpticalProps, offsets.opticalProps, 4);
     copy(_offsetContourProps, offsets.contourProps, 4);
+    copy(_offsetMatteDensity, offsets.matteDensity, 2);
     final law = offsets.fusedLaw ~/ 4;
     to[law] = body.boxes.length.toDouble();
     to[law + 1] = body.spacing * scale;
@@ -1008,6 +1021,7 @@ typedef _FieldUniformOffsets = ({
   int contourProps,
   int fieldFrame,
   int fieldSize,
+  int matteDensity,
 });
 
 /// Byte offsets of the members of the fused pass's uniform block.
@@ -1018,6 +1032,7 @@ typedef _FusedUniformOffsets = ({
   int contourProps,
   int fusedLaw,
   int fusedBoxes,
+  int matteDensity,
 });
 
 /// Field textures in GPU memory, each with the host buffer its samples are
@@ -1149,6 +1164,7 @@ class _SharedGeometryResources {
       contourProps: member('uContourProps'),
       fieldFrame: member('uFieldFrame'),
       fieldSize: member('uFieldSize'),
+      matteDensity: member('uMatteDensity'),
     );
     fusedPipeline = gpu.gpuContext.createRenderPipeline(
       vertexShader,
@@ -1165,6 +1181,7 @@ class _SharedGeometryResources {
       contourProps: fusedMember('uContourProps'),
       fusedLaw: fusedMember('uFusedLaw'),
       fusedBoxes: fusedMember('uFusedBoxes'),
+      matteDensity: fusedMember('uMatteDensity'),
     );
     materialGradientPipeline = gpu.gpuContext.createRenderPipeline(
       vertexShader,
@@ -1189,6 +1206,8 @@ class _SharedGeometryResources {
     offsetShapeResponses =
         uniformSlot.getMemberOffsetInBytes('uShapeResponses') ?? 0;
     offsetShapeBounds = uniformSlot.getMemberOffsetInBytes('uShapeBounds') ?? 0;
+    offsetMatteDensity =
+        uniformSlot.getMemberOffsetInBytes('uMatteDensity') ?? 0;
     final vertices = Float32List.fromList([
       -1.0, -1.0, 0.0, 0.0, //
       1.0, -1.0, 1.0, 0.0, //
@@ -1228,6 +1247,7 @@ class _SharedGeometryResources {
   late final int offsetShapeTints;
   late final int offsetShapeResponses;
   late final int offsetShapeBounds;
+  late final int offsetMatteDensity;
   late final gpu.DeviceBuffer vertexBuffer;
   late final gpu.BufferView vertexBufferView;
 }

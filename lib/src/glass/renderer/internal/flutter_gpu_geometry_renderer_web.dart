@@ -64,6 +64,7 @@ class FlutterGpuGeometryRenderer {
     GlassField? field,
     double fieldScale = 1,
     double mergeMinWidth = 0,
+    ({double x, double y}) matteDensity = (x: 1, y: 1),
   }) => throw UnsupportedError('Flutter GPU is not available on the web.');
 
   /// Nothing is held on the web.

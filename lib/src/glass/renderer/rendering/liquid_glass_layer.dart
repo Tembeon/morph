@@ -1650,10 +1650,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   @protected
   bool needsGeometryUpdate = true;
 
-  /// The matte texels per device pixel of the layer the latest matte was
-  /// encoded at ([glassMatteDensity]).
+  /// The matte texels per device pixel of the layer, along x and y, the
+  /// latest matte was encoded at ([glassMatteDensity]).
   @visibleForTesting
-  double get debugMatteDensity => _encoder.matteDensity;
+  ({double x, double y}) get debugMatteDensity => _encoder.matteDensity;
 
   // Encodes the committed shapes within [bounds].
   GlassGeometry _encode(Rect bounds) {

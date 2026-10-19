@@ -13,6 +13,14 @@ import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/morph.dart';
 // The test drives the renderer's own layers.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/renderer.dart'
+    show
+        LiquidGlass,
+        LiquidGlassAppearance,
+        LiquidGlassLayer,
+        LiquidGlassSettings,
+        LiquidRoundedSuperellipse;
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show RenderLiquidGlassLayer;
 // ignore: implementation_imports
@@ -20,10 +28,11 @@ import 'package:morph/src/widgets/glass_renderer.dart';
 
 import '../integration_test/support/shader_harness.dart';
 
-/// A liquid layer under a uniform scale rests on a matte encoded at its
-/// pass's pixels: a held tab bar swells its bar and its lens by a
-/// transform, and the rest frame matches the analytic frame along the
-/// bar's end and through the lens. A matte of the layer's own device
+/// A liquid layer under a scale rests on a matte encoded at its pass's
+/// pixels along each axis: a held tab bar flexes its bar and its lens by a
+/// transform that stretches along the drag and squashes across it, and the
+/// rest frame matches the analytic frame along the bar's end and through
+/// the lens. A matte of the layer's own device
 /// pixels under the swell repeats texels, sets the rim a pixel off every
 /// few rows, and the lens magnifies those steps (host run 2026-10-19,
 /// before: the end's rim off by up to 0.92 device px with ten row-to-row
@@ -144,7 +153,13 @@ void main() {
         final resting = mode == AnalyticGeometryMode.changes;
         expect(layer.debugResting, resting);
         expect(layer.debugAnalytic, !resting);
-        if (resting) expect(layer.debugMatteDensity, greaterThan(1));
+        if (resting) {
+          final density = layer.debugMatteDensity;
+          // ignore: avoid_print
+          print('held flex density $density');
+          expect(density.x, greaterThan(1));
+          expect(density.y, isNot(density.x));
+        }
       }
       final shot = await shoot();
       final boxes = (shapeBox(bar), shapeBox(lens));
@@ -182,6 +197,114 @@ void main() {
     expect(outside.max, lessThanOrEqualTo(16));
     expect(through.max, lessThanOrEqualTo(32));
     expect(through.mean, lessThan(0.5));
+  });
+
+  testWidgets('a layer scaled differently per axis rests on a matte at its '
+      'pass\'s pixels', (WidgetTester tester) async {
+    if (!ui.ImageFilter.isShaderFilterSupported) return;
+    const dpr = 3.0;
+    tester.view.physicalSize = const ui.Size(1206, 1920);
+    tester.view.devicePixelRatio = dpr;
+    addTearDown(tester.view.reset);
+    addTearDown(() {
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
+    });
+    await tester.runAsync(GlassBuiltInPainter.precache);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
+    GlassGeometryFlags.debugAnalyticGeometry = true;
+    final boundary = GlobalKey();
+
+    Future<void> frames(int count) async {
+      for (var i = 0; i < count; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 5)),
+        );
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+    }
+
+    // A capsule over the page under a stretch along x and a squash along
+    // y, the two axes of a held tab bar's flex, exaggerated.
+    Widget scene() => Directionality(
+      textDirection: TextDirection.ltr,
+      child: RepaintBoundary(
+        key: boundary,
+        child: Stack(
+          children: [
+            Positioned.fill(child: CustomPaint(painter: _Page())),
+            Positioned.fill(
+              child: Transform(
+                transform: Matrix4.diagonal3Values(1.08, 0.94, 1),
+                child: const LiquidGlassLayer(
+                  settings: LiquidGlassSettings(frost: 0),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: 60,
+                        top: 300,
+                        width: 220,
+                        height: 50,
+                        child: LiquidGlass(
+                          shape: LiquidRoundedSuperellipse(borderRadius: 25),
+                          appearance: LiquidGlassAppearance.ios27RegularDark(),
+                          child: SizedBox.expand(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    RenderLiquidGlassLayer layer() => tester.allRenderObjects
+        .whereType<RenderLiquidGlassLayer>()
+        .toSet()
+        .single;
+
+    Future<HarnessShot> shot(AnalyticGeometryMode mode) async {
+      GlassGeometryFlags.debugAnalyticMode = mode;
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(scene());
+      await frames(8);
+      final render =
+          boundary.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final image = (await tester.runAsync(
+        () => render.toImage(pixelRatio: dpr),
+      ))!;
+      final data = (await tester.runAsync(
+        () => image.toByteData(format: ui.ImageByteFormat.rawRgba),
+      ))!;
+      image.dispose();
+      return HarnessShot(image.width, image.height, data.buffer.asUint8List());
+    }
+
+    final rest = await shot(AnalyticGeometryMode.changes);
+    expect(layer().debugResting, isTrue);
+    expect(layer().debugMatteDensity, (x: 1.08, y: 0.94));
+    final moving = await shot(AnalyticGeometryMode.always);
+    expect(layer().debugAnalytic, isTrue);
+    final (geometry, _, _) = layer().shapesWithGeometry.first;
+    final capsule = MatrixUtils.transformRect(
+      geometry.getTransformTo(null),
+      geometry.paintBounds,
+    );
+    final body = _regionDiff(rest, moving, capsule.inflate(2), dpr);
+    final rim = _rimSteps(rest, moving, capsule, dpr);
+    // ignore: avoid_print
+    print(
+      'per-axis scale rest vs moving: max ${body.max} '
+      'mean ${body.mean.toStringAsFixed(3)}, rim off '
+      '${rim.offset.toStringAsFixed(3)} px, row jump '
+      '${rim.jump.toStringAsFixed(3)} px',
+    );
+    expect(rim.offset, lessThan(0.25));
+    expect(rim.jump, lessThan(0.25));
+    expect(body.mean, lessThan(0.5));
   });
 }
 
