@@ -1196,7 +1196,11 @@ class _MorphBarItemsState extends State<MorphBarItems>
   void _openMenu(double t, Object buttonId) {
     final menu = _prepareMenu(t, buttonId);
     if (menu == null) return;
-    menu.motion.open(t, sourceScale: _presses[menu.capsule]?.scale ?? 1);
+    final scale = _presses[menu.capsule]?.scale ?? 1;
+    menu.host.menuCommand(
+      (motion, t) => motion.open(t, sourceScale: scale),
+      at: t,
+    );
     wake();
   }
 
@@ -1504,7 +1508,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       _holdButton = null;
       if (activated && menu.motion.isOpen) {
         _buttons[buttonId]?.onPressed?.call();
-        menu.motion.close(t);
+        menu.host.menuCommand((motion, t) => motion.close(t), at: t);
         wake();
       }
       return;

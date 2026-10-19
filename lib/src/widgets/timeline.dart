@@ -54,13 +54,19 @@ class MorphTimeline {
   /// action that schedules another one relative to it lands on the right
   /// side of the clock. Actions that come due while the run is in
   /// progress run in the same call.
-  void runDue(double t) {
+  ///
+  /// When [until] answers true after an action, the run stops there and
+  /// [now] stays at that action's time; a later call goes on from it.
+  /// Returns whether the run reached [t].
+  bool runDue(double t, {bool Function()? until}) {
     while (_events.isNotEmpty && _events.first.$1 <= t) {
       final (at, action) = _events.removeAt(0);
       if (at > _now) _now = at;
       action(at);
+      if (until != null && until()) return false;
     }
     if (t > _now) _now = t;
+    return true;
   }
 
   /// Runs every pending action right away at [t], whatever its time.

@@ -162,7 +162,12 @@ void main() {
       bounds: const Size(402, 874),
     );
     var tracked = 0;
-    motion.onTrackedHighlight = () => tracked++;
+    void count() {
+      for (final event in motion.drainEvents()) {
+        if (event case MorphMenuHighlightChanged(tracked: true)) tracked++;
+      }
+    }
+
     motion.advance(-4);
     motion.open(-3);
     motion.advance(0);
@@ -175,8 +180,10 @@ void main() {
     motion.pointerMove(0.05, rows[0].translate(0, 2));
     motion.pointerMove(0.1, rows[1]);
     motion.pointerMove(0.15, rows[2]);
+    count();
     expect(tracked, 3);
     motion.highlight(0.2, 0);
+    count();
     expect(tracked, 3);
   });
 

@@ -550,10 +550,15 @@ void main() {
         );
         double? opened;
         double? fired;
-        motion.onActivate = (MorphMenuTarget target) {
-          fired = motion.time;
-          (target.entry! as MorphMenuItem).onSelected?.call();
-        };
+        void deliver() {
+          for (final event in motion.drainEvents()) {
+            if (event case MorphMenuActivated(:final time, :final target)) {
+              fired = time;
+              (target.entry! as MorphMenuItem).onSelected?.call();
+            }
+          }
+        }
+
         var dy = 0.0;
         for (final row in rows) {
           final t = _n(row, 't') - t0;
@@ -574,6 +579,7 @@ void main() {
           }
         }
         motion.advance(motion.time + 0.1);
+        deliver();
         expect(opened, isNotNull);
         expect((opened! - 6.021).abs(), lessThan(0.06));
         expect(_log, ['Sub two']);
