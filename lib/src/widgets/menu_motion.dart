@@ -902,8 +902,9 @@ abstract class MorphMenuProgress {
   /// The progress at time [t].
   double valueAt(double t);
 
-  /// Whether the progress rests at its target at time [t].
-  bool isAtRestAt(double t);
+  /// Whether the progress's remaining swing stays below [rest] from time
+  /// [t] on.
+  bool restsWithin(double t, double rest);
 
   /// Sends the progress toward 1 from time [t].
   void open(double t);
@@ -923,8 +924,7 @@ class _SpringProgress extends MorphMenuProgress {
   double valueAt(double t) => _spring.value(t);
 
   @override
-  bool isAtRestAt(double t) =>
-      _spring.isAtRest(t, _spring.target == 0 ? 1e-3 : 1e-4);
+  bool restsWithin(double t, double rest) => _spring.isWithin(t, rest);
 
   @override
   void open(double t) => _spring.retarget(t, 1, spring: tuning.openSpring);
@@ -1293,6 +1293,13 @@ class MorphMenuMotion {
   final _DrivenKick _buttonKick = _DrivenKick();
   MorphSpringState? _openReference;
   MorphSpringState? _closeReference;
+
+  // A kick skips a long quiet span only while its input, the reference's
+  // velocity, has died out: the rule the recorded kicks were fitted with.
+  static bool Function(double t) _referenceRests(MorphSpringState spring) =>
+      (double t) =>
+          (spring.value(t) - spring.target).abs() < 0.01 &&
+          spring.velocity(t).abs() < 0.1;
   final List<({double start, bool opening})> _fusions = [];
   final MorphMenuFusion _fusion = MorphMenuFusion();
   double _sampleTime = double.negativeInfinity;
@@ -1620,6 +1627,21 @@ class MorphMenuMotion {
   Rect get menuRect => _frameAt(_now);
 
   Rect get _menu => _frameAt(_now);
+
+  /// The swing at which a card's progress and the card container rest.
+  /// NEAR: a card lands by up to 0.001 of its travel (0.25 pt on a 250 pt
+  /// menu), looser than [MorphRest.length]; resting at 0.1 pt adds five
+  /// frames of captured glass to the menu-card perf scene.
+  static const double _cardRest = 1e-3;
+
+  /// The visible rest ([MorphRest], NEAR) of the progresses that grow the
+  /// menu, its corners and its cards out of the button: a swing below it
+  /// moves no edge of the open menu by [MorphRest.length] and changes no
+  /// fade by [MorphRest.opacity].
+  double get _progressRest => math.min(
+    MorphRest.opacity,
+    MorphRest.scale(math.max(tuning.menuWidth, _rootHeight.target)),
+  );
 
   Rect _frameAt(double t) {
     final h = _rootHeight.value(t) + _cardsExtra(t);
@@ -2205,10 +2227,10 @@ class MorphMenuMotion {
         ? MorphMenuTuning.flexReturnRest
         : MorphMenuTuning.flexPulseRest;
     final scaleRest = rest / math.max(1.0, math.max(frame.width, frame.height));
-    return _flexScaleX.isAtRest(t, scaleRest) &&
-        _flexScaleY.isAtRest(t, scaleRest) &&
-        _flexDriftX.isAtRest(t, rest) &&
-        _flexDriftY.isAtRest(t, rest);
+    return _flexScaleX.isWithin(t, scaleRest) &&
+        _flexScaleY.isWithin(t, scaleRest) &&
+        _flexDriftX.isWithin(t, rest) &&
+        _flexDriftY.isWithin(t, rest);
   }
 
   /// What the flex's pulse channel ([MorphMenuTuning.flexPulseSpring])
@@ -2334,6 +2356,21 @@ class MorphMenuMotion {
   @internal
   bool get isStill => _still;
 
+  /// Lands the menu's height, corners and cards on their targets at the
+  /// motion's time; a host calls it once the motion [isSettled], when what
+  /// remains does not show (NEAR, invisible). The progress keeps its
+  /// remainder, which no layout reads exactly, and so does the flex a held
+  /// finger leaves.
+  void settle() {
+    final t = _now;
+    _radius.settle(t);
+    _rootHeight.settle(t);
+    _cardContainer.settle(t);
+    for (final card in _cards) {
+      card.progress.settle(t);
+    }
+  }
+
   /// Whether nothing moves and nothing is pending.
   ///
   /// A finger resting on the menu or its button does not keep it awake once
@@ -2360,17 +2397,16 @@ class MorphMenuMotion {
     final t = _now;
     if (_pointer?.scrolled ?? false) return false;
     if (_phase == _Phase.closing) return false;
-    if (!_press.isAtRest(t, scaleTolerance: 1e-3) ||
-        !_flexAtRest(t) ||
-        !_glowAtRest(t)) {
+    if (!_press.isSettled(t) || !_flexAtRest(t) || !_glowAtRest(t)) {
       return false;
     }
     if (_phase == _Phase.opening) {
-      return _progress.isAtRestAt(t) &&
-          _radius.isAtRest(t, 1e-3) &&
-          _rootHeight.isAtRest(t, 1e-3) &&
-          (!_cardContainerActive || _cardContainer.isAtRest(t, 1e-3)) &&
-          _cards.every((_Card card) => card.progress.isAtRest(t, 1e-3)) &&
+      final rest = _progressRest;
+      return _progress.restsWithin(t, rest) &&
+          _radius.isWithin(t, rest) &&
+          _rootHeight.isWithin(t, MorphRest.length) &&
+          (!_cardContainerActive || _cardContainer.isWithin(t, _cardRest)) &&
+          _cards.every((_Card card) => card.progress.isWithin(t, _cardRest)) &&
           _menuKick.isAtRest &&
           _buttonKick.isAtRest &&
           _fusionAtRest(t);
@@ -2765,7 +2801,7 @@ class MorphMenuMotion {
       }
     }
     if (_phase == _Phase.closing &&
-        _progress.isAtRestAt(t) &&
+        _progress.restsWithin(t, _progressRest) &&
         _menuKick.isAtRest &&
         _buttonKick.isAtRest &&
         _fusionAtRest(t)) {
@@ -2915,7 +2951,7 @@ class MorphMenuMotion {
         open == null || !opening
             ? null
             : (double s) => tuning.openKickGain * a * open.velocity(s),
-        inputAtRest: open == null || !opening ? null : open.isAtRest,
+        inputAtRest: open == null || !opening ? null : _referenceRests(open),
       );
       _buttonKick.step(
         from,
@@ -2925,7 +2961,7 @@ class MorphMenuMotion {
             ? null
             : (double s) =>
                   tuning.sourceKickGain * _sourceAmplitude * close.velocity(s),
-        inputAtRest: close?.isAtRest,
+        inputAtRest: close == null ? null : _referenceRests(close),
       );
     }
     if (t >= from) _sampleTime = t;

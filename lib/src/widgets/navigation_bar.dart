@@ -441,21 +441,22 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
   @override
   void advanceMotion(double t) {
     _motion.advance(t);
-    if (_outgoing != null && _swap.isAtRest(t, 1e-3)) {
+    if (_outgoing != null && _swap.isWithin(t, MorphRest.opacity)) {
       setState(() => _outgoing = null);
     }
   }
 
   @override
   bool get motionSettled =>
-      _motion.isSettled && (_outgoing == null || _swap.isAtRest(clock, 1e-3));
+      _motion.isSettled &&
+      (_outgoing == null || _swap.isWithin(clock, MorphRest.opacity));
 
   @override
   void settleMotion() => _motion.settle();
 
   double get _swapProgress {
     if (_outgoing == null) return 1;
-    if (_swap.isAtRest(clock, 1e-3)) return 1;
+    if (_swap.isWithin(clock, MorphRest.opacity)) return 1;
     return _swap.value(clock).clamp(0.0, 1.0);
   }
 

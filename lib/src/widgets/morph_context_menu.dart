@@ -1379,6 +1379,9 @@ class _MenuDriverState extends State<_MenuDriver>
   bool get motionSettled => controller.menuMotion?.isSettled ?? true;
 
   @override
+  void settleMotion() => controller.menuMotion?.settle();
+
+  @override
   double? get motionWakeTime => controller.wakeTime;
 
   @override

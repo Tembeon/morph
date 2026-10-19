@@ -147,7 +147,8 @@ class MorphAlertMotion {
   bool get isDismissing => _dismissing;
 
   /// Whether the alert has left and nothing moves any more.
-  bool get isDismissed => _dismissing && _progress.isAtRest(_now, 0.002);
+  bool get isDismissed =>
+      _dismissing && _progress.isWithin(_now, MorphRest.opacity);
 
   /// Whether nothing moves visibly any more: the fade and the dimming
   /// swing less than [MorphRest.opacity] and the scale less than
@@ -350,10 +351,15 @@ class MorphPopoverMotion {
   bool get isDismissing => _dismissing;
 
   /// Whether the popover has left and nothing moves any more.
-  bool get isDismissed => _dismissing && _progress.isAtRest(_now, 0.002);
+  bool get isDismissed => _dismissing && _rests;
 
-  /// Whether nothing moves.
-  bool get isSettled => _progress.isAtRest(_now, 0.001);
+  /// Whether nothing moves visibly. NEAR: the progress rests within 1e-3,
+  /// which lands the far edge of a 300 pt popover by up to 0.3 pt, looser
+  /// than [MorphRest.length]; resting at 0.1 pt keeps an action sheet's
+  /// dismissal 64 ms longer.
+  bool get isSettled => _rests;
+
+  bool get _rests => _progress.isWithin(_now, 1e-3);
 
   /// Starts presenting the popover at time [t].
   void present(double t) {

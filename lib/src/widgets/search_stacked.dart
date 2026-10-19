@@ -227,6 +227,10 @@ class _MorphStackedSearchHostState extends State<MorphStackedSearchHost>
   Rect _rest = Rect.zero;
   Rect _focused = Rect.zero;
   double _lift = 0;
+
+  /// The swing of the presentation at which it rests. NEAR: the field
+  /// lands by up to 0.001 of its travel, looser than [MorphRest.length].
+  static const double _progressRest = 1e-3;
   Size _size = Size.zero;
 
   TextEditingController get _controller =>
@@ -300,21 +304,24 @@ class _MorphStackedSearchHostState extends State<MorphStackedSearchHost>
   @override
   void advanceMotion(double t) {
     if (t > _now) _now = t;
-    if (_spring.target == 0 && _presenting && _spring.isAtRest(t, 0.001)) {
+    if (_spring.target == 0 &&
+        _presenting &&
+        _spring.isWithin(t, _progressRest)) {
       _spring.settle(t);
       _presenting = false;
       _notifyPresented(false);
     } else if (_spring.target == 1 &&
         _spring.value(t) != 1 &&
-        _spring.isAtRest(t, 0.001)) {
-      // NEAR: the field jumps by at most 0.001 of its travel, once.
+        _spring.isWithin(t, _progressRest)) {
+      // NEAR: the field jumps by up to 0.001 of its travel, once.
       _spring.settle(t);
     }
   }
 
   @override
   bool get motionSettled =>
-      _spring.isAtRest(_now, 0.001) && _presenting == (_spring.target == 1);
+      _spring.isWithin(_now, _progressRest) &&
+      _presenting == (_spring.target == 1);
 
   /// Presents the search: the slot was tapped.
   void present() {

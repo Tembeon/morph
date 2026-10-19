@@ -435,22 +435,29 @@ class MorphSheetMotion {
     return h * s + h * (1 - s) / 2 - _shiftFor(h, d);
   }
 
-  /// Whether the sheet is dismissed and still.
+  /// Whether the sheet is dismissed and still: its offset swings less
+  /// than half a point about the hidden offset, where the sheet's top sits
+  /// at the container's bottom edge.
   bool get isDismissed =>
-      _dismissing && _offset.isAtRest(_now, 0.5) && _dragFrom == null;
+      _dismissing && _offset.isWithin(_now, 0.5) && _dragFrom == null;
 
-  /// Whether nothing moves.
+  /// Whether nothing moves visibly ([MorphRest], NEAR): height and offset
+  /// swing less than [MorphRest.length], the press and the stretch less
+  /// than [MorphRest.scale] of the sheet's longer side and the fill less
+  /// than [MorphRest.opacity].
   bool get isSettled =>
       _dragFrom == null &&
-      _height.isAtRest(_now, 0.05) &&
-      _offset.isAtRest(_now, 0.05) &&
+      _height.isWithin(_now, MorphRest.length) &&
+      _offset.isWithin(_now, MorphRest.length) &&
       _timeline.isEmpty &&
       _pressAt == null &&
       !_released &&
-      _press.isAtRest(_now, 1e-4) &&
-      _fill.isAtRest(_now, 1e-3) &&
+      _press.isWithin(_now, _scaleRest) &&
+      _fill.isWithin(_now, MorphRest.opacity) &&
       !_stretching &&
-      _stretch.isAtRest(_now, 1e-5);
+      _stretch.isWithin(_now, _scaleRest);
+
+  double get _scaleRest => MorphRest.scale(math.max(width, _heights[_index]));
 
   /// The unscaled height at time [t].
   double height(double t) => _height.value(t);
@@ -830,8 +837,8 @@ class MorphSheetMotion {
     _transition(t, _index);
   }
 
-  /// Advances the motion to time [t]; a spring within 0.05 pixels of its
-  /// target and nearly still comes to rest on it.
+  /// Advances the motion to time [t]; a spring whose remaining swing is
+  /// invisible ([isSettled]'s thresholds) comes to rest on its target.
   void advance(double t) {
     if (t > _now) _now = t;
     final pressAt = _pressAt;
@@ -840,11 +847,11 @@ class MorphSheetMotion {
       _press.retarget(pressAt, MorphSheetTuning.pressScale);
     }
     _timeline.runDue(_now);
-    if (_fill.isAtRest(_now, 1e-3)) _fill.snap(_now, _fill.target);
+    if (_fill.isWithin(_now, MorphRest.opacity)) _fill.settle(_now);
     if (_dragFrom != null) return;
-    if (_height.isAtRest(_now, 0.05)) _height.snap(_now, _height.target);
-    if (_offset.isAtRest(_now, 0.05)) _offset.snap(_now, _offset.target);
-    if (_stretch.isAtRest(_now, 1e-5)) _stretch.snap(_now, _stretch.target);
+    if (_height.isWithin(_now, MorphRest.length)) _height.settle(_now);
+    if (_offset.isWithin(_now, MorphRest.length)) _offset.settle(_now);
+    if (_stretch.isWithin(_now, _scaleRest)) _stretch.settle(_now);
   }
 
   /// The sheet's visible rect at time [t] in a container [containerHeight]

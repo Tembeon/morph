@@ -181,6 +181,10 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
   double _now = 0;
   double? _barWidth;
 
+  /// The swing of the morph at which it rests. NEAR: the shapes land by up
+  /// to 0.001 of their travel, looser than [MorphRest.length].
+  static const double _morphRest = 1e-3;
+
   static const MorphSpring _spring = MorphSearchTuning.tabSpring;
 
   TextEditingController get _controller =>
@@ -202,10 +206,9 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     _focusMotion.advance(t);
     _focusMotion.land(t);
     // At rest the morph lands on its target, so the tail it would still
-    // swing through (under 0.001 of the morph) neither moves nor lays out
-    // anything while the focus transition runs on. NEAR: the shapes jump
-    // by at most 0.001 of their travel, once.
-    if (_morph.value(t) != _morph.target && _morph.isAtRest(t, 0.001)) {
+    // swing through neither moves nor lays out anything while the focus
+    // transition runs on.
+    if (_morph.value(t) != _morph.target && _morph.isWithin(t, _morphRest)) {
       _morph.settle(t);
     }
     final activate = _activateAt;
@@ -219,7 +222,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
 
   @override
   bool get motionSettled =>
-      _morph.isAtRest(_now, 0.001) &&
+      _morph.isWithin(_now, _morphRest) &&
       _focusMotion.isSettled &&
       _keyboardWait == null &&
       _activateAt == null &&
@@ -360,6 +363,12 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       _collapsedSearch(geometry),
       m,
     );
+    final closeFrom = Rect.fromLTWH(
+      geometry.field.right - MorphSearchTuning.height,
+      geometry.field.top,
+      MorphSearchTuning.height,
+      MorphSearchTuning.height,
+    );
     final content = math.max(q, _minimize.content(_now));
     _frame = _TabFrame(
       q: q,
@@ -368,16 +377,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       bar: morphLerpRect(restBar, geometry.tab, q),
       field: fieldRect,
       search: morphLerpRect(restSearch, fieldRect, q),
-      close: morphLerpRect(
-        Rect.fromLTWH(
-          geometry.field.right - MorphSearchTuning.height,
-          geometry.field.top,
-          MorphSearchTuning.height,
-          MorphSearchTuning.height,
-        ),
-        geometry.close,
-        p,
-      ),
+      close: morphLerpRect(closeFrom, geometry.close, p),
       accessory: morphLerpRect(
         _accessoryRect(geometry),
         _inlineAccessoryRect(geometry),

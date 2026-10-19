@@ -220,6 +220,10 @@ class MorphSliderMotion {
   /// How far the thumb center travels between the ends.
   double get travel => math.max(0, width - thumbSize.width);
 
+  /// The value's visible rest ([MorphRest], NEAR): a swing that moves the
+  /// thumb less than [MorphRest.length] along [travel].
+  double get _valueRest => MorphRest.scale(travel);
+
   /// The time the motion was last advanced to.
   double get time => _now;
 
@@ -237,7 +241,7 @@ class MorphSliderMotion {
 
   /// Whether an animated [setValue] is moving the thumb.
   bool get isAnimatingValueChange =>
-      _programmatic && !_settle.isAtRest(_now, 1e-4);
+      _programmatic && !_settle.isWithin(_now, _valueRest);
 
   /// How far the stretched track's near end has moved: positive past the
   /// maximum end, negative past the minimum end.
@@ -288,7 +292,7 @@ class MorphSliderMotion {
   bool get isSettled =>
       _glide == null &&
       _timeline.isEmpty &&
-      _stretch.isAtRest(_now, 0.01) &&
+      _stretch.isWithin(_now, MorphRest.length) &&
       _settleAtRest &&
       lens.isSettled(_now) &&
       lens.hasSampled(_now, _thumbAt(_now));
@@ -441,7 +445,7 @@ class MorphSliderMotion {
   /// swing, seen through the detent curve, moves the thumb less than
   /// [MorphRest.length].
   bool get _settleAtRest {
-    if (!_stepped || !_detented) return _settle.isAtRest(_now, 1e-4);
+    if (!_stepped || !_detented) return _settle.isWithin(_now, _valueRest);
     if (_press != null) return false;
     final half = 0.5 / (ticks - 1);
     final reach = _settle.reach(_now);

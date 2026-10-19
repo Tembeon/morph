@@ -405,7 +405,7 @@ class MorphBarMotion {
       if (presence != null &&
           !c.leaving &&
           presence.target == 1 &&
-          presence.isAtRest(_now, 0.002)) {
+          presence.isWithin(_now, MorphRest.opacity)) {
         c.presence = null;
       }
     }
@@ -414,18 +414,21 @@ class MorphBarMotion {
           (i.capsule.presence != null && !_capsules.contains(i.capsule)) ||
           (i.leaving &&
               i.presence.target == 0 &&
-              i.presence.isAtRest(_now, 0.002)),
+              i.presence.isWithin(_now, MorphRest.opacity)),
     );
   }
 
   bool _gone(_Capsule c) {
     final presence = c.presence;
     if (presence != null) {
-      return presence.target == 0 && presence.isAtRest(_now, 0.002);
+      return presence.target == 0 && presence.isWithin(_now, MorphRest.opacity);
     }
+    // Finer than the visible rest: the device replacement replay keeps the
+    // remaining capsules' centers within 1.2 pt rms only when a shrunk
+    // capsule is dropped at a 0.05 pt landing or later (0.1 pt gives 1.31).
     return c.w.target <= c.target.width * spec.appearScale + 1e-9 &&
-        c.w.isAtRest(_now, 0.05) &&
-        c.h.isAtRest(_now, 0.05);
+        c.w.isWithin(_now, 0.05) &&
+        c.h.isWithin(_now, 0.05);
   }
 
   /// Whether what remains of the motion is invisible: nothing comes or

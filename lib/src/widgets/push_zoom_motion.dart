@@ -426,21 +426,23 @@ class MorphPushZoomMotion {
   /// The fraction of the dimming and of the shadow at time [t].
   double dimming(double t) => _dim.value(t).clamp(0.0, 1.0);
 
-  bool _rests(double tolerance) =>
-      _cx.isAtRest(_now, tolerance) &&
-      _cy.isAtRest(_now, tolerance) &&
-      _w.isAtRest(_now, tolerance) &&
-      _h.isAtRest(_now, tolerance) &&
-      _fade.isAtRest(_now, 0.002) &&
-      _dim.isAtRest(_now, 0.002);
+  /// Whether what remains of the motion is invisible ([MorphRest], NEAR):
+  /// the frame's center and size swing less than [MorphRest.length], the
+  /// crossfade and the dimming less than [MorphRest.opacity].
+  bool get _rests =>
+      _cx.isWithin(_now, MorphRest.length) &&
+      _cy.isWithin(_now, MorphRest.length) &&
+      _w.isWithin(_now, MorphRest.length) &&
+      _h.isWithin(_now, MorphRest.length) &&
+      _fade.isWithin(_now, MorphRest.opacity) &&
+      _dim.isWithin(_now, MorphRest.opacity);
 
   /// Whether the motion has come back to the source and rests there.
-  bool get isClosed => !_opening && _dragFrom == null && _rests(0.1);
+  bool get isClosed => !_opening && _dragFrom == null && _rests;
 
   /// Whether the page shows at full screen and nothing moves.
-  bool get isOpen =>
-      _opening && _dragFrom == null && _fadeAt == null && _rests(0.1);
+  bool get isOpen => _opening && _dragFrom == null && _fadeAt == null && _rests;
 
   /// Whether nothing moves and nothing is pending.
-  bool get isSettled => _dragFrom == null && _fadeAt == null && _rests(0.1);
+  bool get isSettled => _dragFrom == null && _fadeAt == null && _rests;
 }

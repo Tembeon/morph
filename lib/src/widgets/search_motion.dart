@@ -323,6 +323,12 @@ class MorphSearchMotion {
   bool _focused = false;
   int _focusGeneration = 0;
 
+  /// The swing of the transition's progress at which it rests. NEAR: the
+  /// field lands by up to 0.001 of its travel (0.3 pt over a 300 pt rise),
+  /// looser than [MorphRest.length]; resting at 0.1 pt keeps a cancel two
+  /// frames longer.
+  static const double _progressRest = 1e-3;
+
   /// Whether the field moves for Reduce Motion: the transition still runs,
   /// but nothing lifts. An approximation; it is not measured.
   bool get reducedMotion => _lift.reducedMotion;
@@ -347,8 +353,8 @@ class MorphSearchMotion {
   bool get isSettled =>
       _timeline.isEmpty &&
       !_lift.isPressed &&
-      _progress.isAtRest(_now, 0.001) &&
-      _lift.isAtRest(_now);
+      _progress.isWithin(_now, _progressRest) &&
+      _lift.isSettled(_now);
 
   /// The scale of the fully lifted field.
   double get liftedScale => _lift.liftedScale;
@@ -359,15 +365,13 @@ class MorphSearchMotion {
     if (t > _now) _now = t;
   }
 
-  /// Lands the transition on its target at time [t] once it rests within
-  /// 0.001 of it, instead of swinging through its last thousandth, which
-  /// would move the field for nothing; a host calls it after [advance].
-  /// NEAR: the field jumps by at most 0.001 of its travel (0.3 points over
-  /// a 300 point rise), once.
+  /// Lands the transition on its target at time [t] once it rests
+  /// ([_progressRest]), instead of swinging through a tail that would lay
+  /// the field out for nothing; a host calls it after [advance].
   void land(double t) {
     if (_timeline.isEmpty &&
         _progress.value(t) != _progress.target &&
-        _progress.isAtRest(t, 0.001)) {
+        _progress.isWithin(t, _progressRest)) {
       _progress.settle(t);
     }
   }

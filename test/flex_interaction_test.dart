@@ -285,7 +285,7 @@ void main() {
       flex.pointerUp(0.3);
       lift.retarget(0.3, 1, spring: spec.scaleSpring);
       expect(flex.scale(0.4), moreOrLessEquals(lift.value(0.4), epsilon: _eps));
-      expect(flex.isAtRest(5), isTrue);
+      expect(flex.isSettled(5), isTrue);
     });
 
     test('a drag stretches and shows the drift at the scale', () {

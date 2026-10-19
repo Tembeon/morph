@@ -307,11 +307,31 @@ class MorphDatePickerMotion {
   bool get isClosed {
     if (reducedMotion) return !_open && _pendingAt == null && _fadeDone(_now);
     final spring = _spring(_now);
-    return !_open && _pendingAt == null && spring.isAtRest(_now, 0.002);
+    return !_open && _pendingAt == null && spring.isWithin(_now, _closedRest);
   }
 
-  bool get _overlaySettled =>
-      reducedMotion ? _fadeDone(_now) : _spring(_now).isAtRest(_now, 0.001);
+  // The overlay settles on the rule its raster-to-live glyph handover was
+  // tuned with: within [overlayRest] of open and slower than ten times
+  // that per second. The reach bound moves the handover by a frame and
+  // strikes one more glyph atlas frame per open (glyph_strikes
+  // date-picker 2 to 3), each 6 - 9 ms of raster on the Pixel 6a.
+  bool get _overlaySettled {
+    if (reducedMotion) return _fadeDone(_now);
+    final spring = _spring(_now);
+    return (spring.value(_now) - spring.target).abs() < overlayRest &&
+        spring.velocity(_now).abs() < overlayRest * 10;
+  }
+
+  /// The swing of the overlay's progress, and of a switch between the
+  /// pickers, at which they rest. NEAR: the calendar's edge lands by up to
+  /// 0.27 pt, looser than [MorphRest.length]; resting at 0.1 pt costs 20
+  /// more frames in the date-picker perf scene (172 to 192).
+  static const double overlayRest = 1e-3;
+
+  /// The swing at which a closing overlay counts as gone, and an opening
+  /// one as open enough that a close waits the full delay. NEAR: 0.53 pt
+  /// on the calendar's edge, behind an overlay that has faded out.
+  static const double _closedRest = 2e-3;
 
   /// Whether nothing moves.
   bool get isSettled {
@@ -346,7 +366,7 @@ class MorphDatePickerMotion {
     advance(t);
     final opening =
         _pendingAt != null ||
-        (reducedMotion ? !_fadeDone(t) : !_spring(t).isAtRest(t, 0.002));
+        (reducedMotion ? !_fadeDone(t) : !_spring(t).isWithin(t, _closedRest));
     _open = false;
     _schedule(
       t +

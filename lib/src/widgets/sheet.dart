@@ -538,7 +538,7 @@ class _SheetViewState extends State<_SheetView>
     _zoomFrame = null;
     motion.advance(t);
     final back = _scrubBack;
-    if (back != null && back.isAtRest(t, 0.05)) _scrubBack = null;
+    if (back != null && back.isWithin(t, MorphRest.length)) _scrubBack = null;
     final zoom = _zoom;
     if (zoom != null) {
       zoom.advance(t);
@@ -1225,6 +1225,7 @@ extension on _SheetViewState {
     final natural = motion.visibleRect(t, size.height);
     final destination = _zoomTarget ?? natural;
     final source = _source.capture(context) ?? destination;
+    zoom.travel = MorphRest.travel(source, destination);
     final rect = zoom.rect(t, source, destination);
     final progress = zoom.sizeProgress(t);
     final p = progress.clamp(0.0, 1.0);

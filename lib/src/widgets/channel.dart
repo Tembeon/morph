@@ -149,9 +149,4 @@ class MorphChannel {
   /// time [t] on ([MorphSpringState.reach]).
   bool isWithin(double t, double tolerance) =>
       _state.isWithin(retargetStep == null ? t : _clock, tolerance);
-
-  /// Whether the channel is within [tolerance] of its target and nearly
-  /// still at time [t].
-  bool isAtRest(double t, [double tolerance = 0.01]) =>
-      _state.isAtRest(t, tolerance);
 }

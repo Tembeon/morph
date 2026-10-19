@@ -592,7 +592,7 @@ class MorphMenuFlightProgress extends MorphMenuProgress {
   double valueAt(double t) => _spring.valueAt(t);
 
   @override
-  bool isAtRestAt(double t) => _spring.isAtRestAt(t);
+  bool restsWithin(double t, double rest) => _spring.restsWithin(t, rest);
 
   @override
   void open(double t) {
@@ -891,6 +891,9 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
 
   @override
   bool get motionSettled => _motion?.isSettled ?? true;
+
+  @override
+  void settleMotion() => _motion?.settle();
 
   @override
   double? get motionWakeTime => _host.wakeTime;

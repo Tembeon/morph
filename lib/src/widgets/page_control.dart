@@ -253,10 +253,15 @@ class MorphPageControlMotion {
   /// the clock.
   bool get isSettled => _timeline.isEmpty && _still;
 
+  /// Whether what remains is invisible ([MorphRest], NEAR): the platter
+  /// and the old fill fade by less than [MorphRest.opacity], the widths
+  /// swing less than [MorphRest.length].
   bool get _still =>
-      _platter.isAtRest(_now, 0.002) &&
-      _widths.every((MorphSpringState w) => w.isAtRest(_now, 0.01)) &&
-      (_fade?.isAtRest(_now, 0.002) ?? true);
+      _platter.isWithin(_now, MorphRest.opacity) &&
+      _widths.every(
+        (MorphSpringState w) => w.isWithin(_now, MorphRest.length),
+      ) &&
+      (_fade?.isWithin(_now, MorphRest.opacity) ?? true);
 
   /// The time before which nothing moves, or null while something does:
   /// a touch waiting out the platter's delay draws nothing new.

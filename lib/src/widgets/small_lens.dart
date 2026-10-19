@@ -128,6 +128,18 @@ class MorphSmallLens {
   /// Seconds the size trails the lift progress by: one frame.
   double get sizeLag => _frames.frame;
 
+  /// The rest of the lift's size progress ([MorphRest], NEAR): a swing
+  /// that grows the lens by less than [MorphRest.length].
+  double get _sizeRest =>
+      MorphRest.length /
+      math.max(
+        math.max(
+          liftedSize.width - restSize.width,
+          liftedSize.height - restSize.height,
+        ),
+        1,
+      );
+
   /// Whether the lens is lifted or lifting.
   bool get isLifted => _progress.target == 1;
 
@@ -137,13 +149,13 @@ class MorphSmallLens {
     _timeline.clear();
     if (isLifted || reducedMotion) return;
     _liftStart = t;
-    final progressResting = _progress.isAtRest(t, 0.002);
+    final progressResting = _progress.isWithin(t, MorphRest.opacity);
     _progress.retarget(t, 1, spring: liftSpring);
     if (progressResting) {
       _progress.setState(t, _progress.value(t), liftVelocity);
     }
     final at = t + sizeLag;
-    final sizeResting = _size.isAtRest(at, 0.002);
+    final sizeResting = _size.isWithin(at, _sizeRest);
     _size.retarget(at, 1, spring: liftSpring);
     if (sizeResting) _size.setState(at, _size.value(at), liftVelocity);
   }
@@ -258,13 +270,9 @@ class MorphSmallLens {
   bool isSettled(double t) {
     if (!_timeline.isEmpty) return false;
     const length = MorphRest.length;
-    final growth = math.max(
-      liftedSize.width - restSize.width,
-      liftedSize.height - restSize.height,
-    );
     final scale = MorphRest.scale(liftedSize.width);
     return _progress.isWithin(t, MorphRest.opacity) &&
-        _size.isWithin(t, length / math.max(growth, 1)) &&
+        _size.isWithin(t, _sizeRest) &&
         _scaleX.isWithin(t, scale) &&
         (_scaleX.target - 1).abs() < scale &&
         _scaleY.isWithin(t, scale) &&

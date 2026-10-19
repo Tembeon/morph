@@ -77,10 +77,10 @@
     "idle": 0
   },
   "menu-card/flat": {
-    "frames": 273,
+    "frames": 269,
     "builds": 1.5,
-    "paints": 27.3,
-    "pictures": 2.6,
+    "paints": 26.4,
+    "pictures": 2.5,
     "captures": 0.0,
     "offscreen": 0.7,
     "snapshotImages": 0.0,
@@ -88,9 +88,9 @@
     "idle": 0
   },
   "menu-held/flat": {
-    "frames": 226,
+    "frames": 225,
     "builds": 1.3,
-    "paints": 19.9,
+    "paints": 19.8,
     "pictures": 1.9,
     "captures": 0.0,
     "offscreen": 0.3,
@@ -99,8 +99,8 @@
     "idle": 0
   },
   "context-menu/flat": {
-    "frames": 211,
-    "builds": 1.2,
+    "frames": 208,
+    "builds": 1.1,
     "paints": 20.2,
     "pictures": 1.6,
     "captures": 0.0,
@@ -112,7 +112,7 @@
   "nav-scroll/flat": {
     "frames": 86,
     "builds": 0.8,
-    "paints": 23.4,
+    "paints": 23.2,
     "pictures": 1.5,
     "captures": 0.0,
     "offscreen": 0.7,
@@ -121,10 +121,10 @@
     "idle": 0
   },
   "search-press/flat": {
-    "frames": 102,
+    "frames": 88,
     "builds": 0.2,
     "paints": 58.0,
-    "pictures": 4.6,
+    "pictures": 4.7,
     "captures": 0.0,
     "offscreen": 0.0,
     "snapshotImages": 0.0,
@@ -132,8 +132,8 @@
     "idle": 0
   },
   "sheet/flat": {
-    "frames": 154,
-    "builds": 1.1,
+    "frames": 142,
+    "builds": 1.2,
     "paints": 2.5,
     "pictures": 1.0,
     "captures": 0.0,
@@ -143,9 +143,9 @@
     "idle": 0
   },
   "date-picker/flat": {
-    "frames": 172,
-    "builds": 2.5,
-    "paints": 17.8,
+    "frames": 168,
+    "builds": 2.6,
+    "paints": 17.9,
     "pictures": 1.8,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -341,10 +341,10 @@
     "idle": 0
   },
   "menu-card/fake": {
-    "frames": 273,
+    "frames": 269,
     "builds": 1.7,
-    "paints": 37.7,
-    "pictures": 5.6,
+    "paints": 36.7,
+    "pictures": 5.5,
     "captures": 2.8,
     "offscreen": 3.6,
     "snapshotImages": 0.0,
@@ -352,10 +352,10 @@
     "idle": 0
   },
   "menu-held/fake": {
-    "frames": 226,
-    "builds": 1.6,
-    "paints": 27.8,
-    "pictures": 4.2,
+    "frames": 225,
+    "builds": 1.5,
+    "paints": 27.7,
+    "pictures": 4.1,
     "captures": 2.0,
     "offscreen": 2.3,
     "snapshotImages": 0.0,
@@ -363,10 +363,10 @@
     "idle": 0
   },
   "context-menu/fake": {
-    "frames": 211,
+    "frames": 208,
     "builds": 1.2,
     "paints": 23.1,
-    "pictures": 2.6,
+    "pictures": 2.5,
     "captures": 1.0,
     "offscreen": 1.3,
     "snapshotImages": 0.0,
@@ -376,7 +376,7 @@
   "nav-scroll/fake": {
     "frames": 86,
     "builds": 0.8,
-    "paints": 23.3,
+    "paints": 23.1,
     "pictures": 1.5,
     "captures": 4.8,
     "offscreen": 6.5,
@@ -385,7 +385,7 @@
     "idle": 0
   },
   "search-press/fake": {
-    "frames": 102,
+    "frames": 88,
     "builds": 0.2,
     "paints": 59.0,
     "pictures": 4.0,
@@ -396,9 +396,9 @@
     "idle": 0
   },
   "sheet/fake": {
-    "frames": 154,
-    "builds": 1.2,
-    "paints": 2.5,
+    "frames": 142,
+    "builds": 1.3,
+    "paints": 2.6,
     "pictures": 1.0,
     "captures": 2.0,
     "offscreen": 2.0,
@@ -407,12 +407,12 @@
     "idle": 0
   },
   "date-picker/fake": {
-    "frames": 172,
-    "builds": 2.5,
-    "paints": 21.6,
-    "pictures": 1.9,
-    "captures": 1.8,
-    "offscreen": 1.8,
+    "frames": 168,
+    "builds": 2.6,
+    "paints": 21.7,
+    "pictures": 2.0,
+    "captures": 1.9,
+    "offscreen": 1.9,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -605,10 +605,10 @@
     "idle": 0
   },
   "menu-card/liquid": {
-    "frames": 273,
+    "frames": 269,
     "builds": 1.7,
-    "paints": 37.7,
-    "pictures": 5.6,
+    "paints": 36.7,
+    "pictures": 5.5,
     "captures": 2.8,
     "offscreen": 3.6,
     "snapshotImages": 0.0,
@@ -616,10 +616,10 @@
     "idle": 0
   },
   "menu-held/liquid": {
-    "frames": 226,
-    "builds": 1.6,
-    "paints": 27.8,
-    "pictures": 4.2,
+    "frames": 225,
+    "builds": 1.5,
+    "paints": 27.7,
+    "pictures": 4.1,
     "captures": 2.0,
     "offscreen": 2.3,
     "snapshotImages": 0.0,
@@ -627,10 +627,10 @@
     "idle": 0
   },
   "context-menu/liquid": {
-    "frames": 211,
+    "frames": 208,
     "builds": 1.2,
     "paints": 23.1,
-    "pictures": 2.6,
+    "pictures": 2.5,
     "captures": 1.0,
     "offscreen": 1.3,
     "snapshotImages": 0.0,
@@ -640,7 +640,7 @@
   "nav-scroll/liquid": {
     "frames": 86,
     "builds": 0.8,
-    "paints": 23.3,
+    "paints": 23.1,
     "pictures": 1.5,
     "captures": 4.8,
     "offscreen": 6.5,
@@ -649,7 +649,7 @@
     "idle": 0
   },
   "search-press/liquid": {
-    "frames": 102,
+    "frames": 88,
     "builds": 0.2,
     "paints": 59.0,
     "pictures": 4.0,
@@ -660,9 +660,9 @@
     "idle": 0
   },
   "sheet/liquid": {
-    "frames": 154,
-    "builds": 1.2,
-    "paints": 2.5,
+    "frames": 142,
+    "builds": 1.3,
+    "paints": 2.6,
     "pictures": 1.0,
     "captures": 2.0,
     "offscreen": 2.0,
@@ -671,12 +671,12 @@
     "idle": 0
   },
   "date-picker/liquid": {
-    "frames": 172,
-    "builds": 2.5,
-    "paints": 21.6,
-    "pictures": 1.9,
-    "captures": 1.8,
-    "offscreen": 1.8,
+    "frames": 168,
+    "builds": 2.6,
+    "paints": 21.7,
+    "pictures": 2.0,
+    "captures": 1.9,
+    "offscreen": 1.9,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0

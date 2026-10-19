@@ -1015,7 +1015,8 @@ class _OverlayViewState extends State<_OverlayView>
       _queuedTurns -= direction;
       _turn(direction);
     }
-    if (_fromPart != null && _swap.isAtRest(t, 0.001)) {
+    if (_fromPart != null &&
+        _swap.isWithin(t, MorphDatePickerMotion.overlayRest)) {
       setState(() => _fromPart = null);
     }
     _syncStructure();
@@ -1026,7 +1027,7 @@ class _OverlayViewState extends State<_OverlayView>
   bool get motionSettled =>
       _queuedTurns == 0 &&
       _motion.isSettled &&
-      _swap.isAtRest(_motion.time, 0.001);
+      _swap.isWithin(_motion.time, MorphDatePickerMotion.overlayRest);
 
   _Part? _otherLabelAt(Offset position) {
     for (final part in _Part.values) {

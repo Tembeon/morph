@@ -370,9 +370,12 @@ class MorphTouchGlowMotion {
   /// still the glow rests lit until the finger moves or lifts.
   bool isSettled(double t) {
     _due(t);
-    if (!_timeline.isEmpty || !_progress.isAtRest(t, 0.002)) return false;
+    if (!_timeline.isEmpty || !_progress.isWithin(t, MorphRest.opacity)) {
+      return false;
+    }
     if (_down != null) {
-      return _scale.isAtRest(t, 0.001) && _strength.isAtRest(t, 0.002);
+      return _scale.isWithin(t, MorphRest.scale(diameter)) &&
+          _strength.isWithin(t, MorphRest.opacity);
     }
     return washOpacity(t) == 0 && spotOpacity(t) == 0;
   }

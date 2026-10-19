@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show Rect;
 
 import 'package:flutter/physics.dart';
 import 'package:meta/meta.dart';
@@ -25,6 +26,18 @@ abstract final class MorphRest {
 
   /// The remaining swing of a scale of a surface [extent] pixels long.
   static double scale(double extent) => length / math.max(extent, 1);
+
+  /// The extent, in pixels, a motion assumes before its host has measured
+  /// what it moves: about a phone screen's longer side.
+  static const double screen = 1000;
+
+  /// The farthest an edge moves between frames [from] and [to]: the
+  /// center's travel plus half the change of width or height. A progress
+  /// from one to the other rests visibly at [scale] of it.
+  static double travel(Rect from, Rect to) =>
+      (to.center - from.center).distance +
+      math.max((to.width - from.width).abs(), (to.height - from.height).abs()) /
+          2;
 }
 
 /// A damped spring: the SDK's [SpringSimulation] from its last retarget.
@@ -97,13 +110,6 @@ class MorphSpringState {
     _origin = _since(t);
     _y0 = value;
     _v0 = velocity;
-  }
-
-  /// Whether the spring is within [tolerance] of its target and nearly
-  /// still at time [t].
-  bool isAtRest(double t, [double tolerance = 0.01]) {
-    final (y, v) = _state(t);
-    return (y - _target).abs() < tolerance && v.abs() < tolerance * 10;
   }
 
   /// A bound on how far the spring still swings from its target at any

@@ -163,6 +163,11 @@ class MorphZoomMotion {
   double _now = 0;
   bool _opening = false;
 
+  /// The farthest, in pixels, a progress of 1 moves an edge of the
+  /// container ([MorphRest.travel] between its two frames); the host
+  /// updates it from the frames it zooms between.
+  double travel = MorphRest.screen;
+
   /// The time the motion was last advanced to.
   double get time => _now;
 
@@ -236,18 +241,20 @@ class MorphZoomMotion {
   }
 
   /// Whether the motion has come back to the source and rests there.
-  bool get isClosed =>
-      !_opening &&
-      _center.isAtRest(_now, 0.002) &&
-      _size.isAtRest(_now, 0.002) &&
-      _fade.isAtRest(_now, 0.002) &&
-      _dim.isAtRest(_now, 0.002);
+  bool get isClosed => !_opening && _rests;
 
   /// Whether nothing moves and nothing is pending.
-  bool get isSettled =>
-      _fadeAt == null &&
-      _center.isAtRest(_now, 0.002) &&
-      _size.isAtRest(_now, 0.002) &&
-      _fade.isAtRest(_now, 0.002) &&
-      _dim.isAtRest(_now, 0.002);
+  bool get isSettled => _fadeAt == null && _rests;
+
+  /// Whether what remains of the motion is invisible ([MorphRest], NEAR):
+  /// the center and the size move an edge less than [MorphRest.length] over
+  /// [travel], the crossfade and the dimming change less than
+  /// [MorphRest.opacity].
+  bool get _rests {
+    final progress = MorphRest.scale(travel);
+    return _center.isWithin(_now, progress) &&
+        _size.isWithin(_now, progress) &&
+        _fade.isWithin(_now, MorphRest.opacity) &&
+        _dim.isWithin(_now, MorphRest.opacity);
+  }
 }
