@@ -16,7 +16,7 @@ or with a flat look, chosen by the app or by the end user.
 
 The gallery has one page per control, a slow-motion toggle and a glass
 page that switches the tier, appearance and text direction for the whole
-app. Live build: <https://tembeon.github.io/morph/> (wasm, so fake glass;
+app. Live build: <https://tembeon.github.io/morph/> (wasm, so flat glass;
 a native build shows liquid glass). API docs:
 <https://tembeon.github.io/morph/docs/>.
 
@@ -88,12 +88,15 @@ The package's build hook compiles the glass shaders into
   liquid glass on a capable GPU, flat on the OpenGL ES fallback, on Skia
   and on Apple GPUs older than the A13, where sampling the backdrop
   misses the frame budget.
-- `MorphGlassRenderer.tier(MorphGlassTier.flat)` (or `fake`, `liquid`)
-  fixes the tier, for example from a user setting.
+- `MorphGlassRenderer.tier(MorphGlassTier.flat)` (or `liquid`) fixes the
+  tier, for example from a user setting.
 - Where the liquid tier cannot load (the web, a build without Flutter
-  GPU, a shader failure), liquid draws fake glass: the same layers
-  without refraction. `MorphTheme.liquidGlassUnavailableReason` says why;
-  the failure is also reported once through `FlutterError.reportError`.
+  GPU, a shader failure), liquid draws flat glass.
+  `MorphTheme.liquidGlassUnavailableReason` says why; the failure is also
+  reported once through `FlutterError.reportError`. Until the shaders
+  have loaded liquid is drawn flat too and turns liquid when they are
+  ready: await `MorphTheme.precacheGlass()` before `runApp` so the first
+  frame is liquid already.
 - Without a theme that chooses glass, the controls draw flat.
 
 The shapes, motion and fusion of every control are the same on every

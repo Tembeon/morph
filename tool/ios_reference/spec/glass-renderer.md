@@ -17,7 +17,7 @@ measurements.
   surfaces to `buildSurface` (alert, date picker, sheet, search bodies) or
   `buildFill` (stepper), placed at `MorphGlassSurface.bounds`. Touch glows
   (`MorphGlassSurface.glow`, tab-bar.md) are lit in the liquid tier's final
-  pass (docs/glass.md "Touch glow"); flat and fake draw none. Every call goes through a
+  pass (docs/glass.md "Touch glow"); flat draws none. Every call goes through a
   `MorphGlassHost` (`MorphGlassLayer` for the frames-driven layers): see
   "The surfaces channel" below.
 - `MorphGlassSurface.glass` is false for plain fills (segmented, switch and
@@ -66,16 +66,16 @@ measurements.
   (`.adaptive()` or `.tier(MorphGlassTier)`, lib/src/theme/glass.dart);
   `MorphTheme` installs `GlassAdaptiveScope`, which installs the internal
   painter `GlassBuiltInPainter` (glass_renderer.dart: `tier`
-  (`MorphGlassTier` flat / fake / liquid) and the liquid settings
+  (`MorphGlassTier` flat / liquid) and the liquid settings
   `MorphGlassMaterial`, blur, refraction, light, tint, frostControls;
   `liftedOptics` per control; `precache()`, public as
   `MorphTheme.precacheGlass`). A custom painter goes through
   `MorphGlassScope` (`package:morph/glass_painter.dart`).
 - WEB: the liquid capability sits behind a conditional import
   (glass_liquid.dart -> _native / _web; the web stub never touches
-  Flutter GPU, `liquidAvailable` false, liquid draws fake glass); the
+  Flutter GPU, `liquidAvailable` false, liquid draws flat glass); the
   layers themselves live in glass_liquid_draw.dart, shared by both, and
-  LiquidGlassLayer takes its fake path there; the three final-render
+  the web never builds them; the three final-render
   .frag files compile to an empty stub under SKIA_GRAPHICS_BACKEND ("Only
   simple shader sampling is supported"), so the web builds with nothing
   removed.
@@ -102,32 +102,31 @@ renderer's system-brightness default. Otherwise identical dark surfaces
 inside a light-system host would all become individual override passes.
 Container and list-stage tests retain the one-filter grouping contract.
 
-`test/glass_upstream_sync_test.dart` covers hide/unhide while frames keep
+`test/glass_upstream_sync_test.dart` covered hide/unhide while frames keep
 running, separate transfer/key ownership, fused-outline exclusions and an
 identity shared transfer. This is a correctness sync, not a measured GPU
-or energy optimization. Native optical shaders remain unchanged.
+or energy optimization. Native optical shaders remain unchanged. The fake
+layer patches and their tests went with the fake tier (2026-10-19); the
+test keeps the content-less shape case.
 
 ## Tiers
 
-- Tier 0 (flat) fills the outline.
-- Tier 1 (fake) is the liquid layers through the renderer's FakeGlass
-  (`LiquidGlassLayer(fake: true)`, the consolidated layer): the face
-  transfer as one backdrop color matrix over the frost, rim / bevel /
-  highlight from an analytic SDF per shape, no refraction, no lens
-  magnification or backdrop shrink (the lens content copy is not grown to
-  compensate); resting platters stay opaque fills. Needs no Flutter GPU:
-  liquid draws it before the capability resolves and when it fails, and
-  the web draws it. Replaced the frosted tier on 2026-10-05 (owner
-  decision; frosted's history stays in the sections below).
-- Tier 2 (liquid) shades it from the field: LiquidGlassLayer(field:)
+Two tiers (owner decision 2026-10-19): liquid where the GPU holds it,
+flat everywhere else - the cheap device classes, the web, and every frame
+before the liquid capability resolves. The fake tier (2026-10-05 to
+2026-10-19, which had replaced the frosted tier) is gone; the history of
+both stays in the sections below.
+
+- Flat fills the outline.
+- Liquid shades it from the field: LiquidGlassLayer(field:)
   switches the geometry pass to shaders/gpu/geometry_field_fragment.glsl
   (same matte encoding; distance / gradient / half thickness interpolated
   bilinearly from an RGBA32F texture sampled nearest, a ring of
   host-visible textures rewritten 3 frames after last use; the material
   pass still reads the shapes). A body that fuses and comes apart (the
-  menu) keeps ONE layer key ('body'), so its glass never restarts; the
-  old interim (liquid shapes clipped to the outline, frost in the neck)
-  survives only for an outline built from a path alone. The field's half
+  menu) keeps ONE layer key ('body'), so its glass never restarts; an
+  outline built from a path alone has no field and draws as the flat body
+  (below). The field's half
   thickness blends button -> menu by the nearer shape over the blur
   radius; the menu field is blurred at least 24 pt deep
   (`MorphMenuFusion.shadedDepth`, the bevel depth) and kept at every 2nd
@@ -183,24 +182,20 @@ or energy optimization. Native optical shaders remain unchanged.
   tab bar) max 10 channel steps, no pixel over 15; the held slider
   thumb's rim moves by up to 236 between launches of the SAME build, so
   its 174 is noise.
-- FAKE GLASS (the fake tier; also tests, the first frames, devices
-  without Flutter GPU) draws the fused outline too: `GlassField.outline`
-  - or, for a plain union without a field, the outline itself
-  (`LiquidGlassLayer.outlineOf`) - reaches ConsolidatedFakeGlassLayer,
-  which clips its backdrop and surfaces to it. Each region of the body
-  draws the face of its LARGEST shape only (the others are clipped to
-  outside it, a tie to the later one), so a menu's shrunken button
-  leaves no rim inside the menu; the neck is the outline clipped outside
-  every shape in turn (no path boolean - Skia's path ops refused an
-  outline running along its capsules - and no even-odd union, which
-  tinted shape overlaps twice). An outline built from a path alone
-  (public `MorphGlassOutline(path)`) has no field for liquid to shade, so
-  it is fake glass on both tiers.
-- FAKE FACE: the face transfer `Y + lift * Y * (1 - Y)` becomes a line in
-  the color matrix; it is exact at black and least-squares over (0, 1]
-  (white stays exact through the clamp). The unanchored least-squares
-  line lifted black by lift / 6 and made dark fake glass 15 - 24 channel
-  steps brighter than liquid over the gallery's black page.
+- PATH-ONLY OUTLINES: an outline built from a path alone (public
+  `MorphGlassOutline(path)`) has neither a field nor exact shapes for
+  liquid to shade, so the renderer draws it as the flat body
+  (`morphGlassLiveBody`, a fill of the path in the first surface's color)
+  on both tiers. The package's own controls always hand a field or the
+  boxes; only a custom control's outline takes this path.
+- STARTUP: until the liquid capability resolves, liquid draws flat.
+  `GlassAdaptiveScope` installs flat for liquid and liquid on the flip (the
+  painter changes, every dependent rebuilds); a `MorphGlassScope` that
+  holds a renderer asking for liquid notifies its dependents on the flip
+  itself; a glass host builds once. While shader filters are unsupported
+  or its Flutter GPU geometry renderer is loading, a `LiquidGlassLayer`
+  paints its child without glass; the widget layer builds liquid layers
+  only once liquid is available, so only direct renderer users see it.
 
 ## Adaptive policy (`GlassAdaptiveScope`, glass_tier.dart)
 
@@ -209,7 +204,8 @@ Installs the renderer at ONE tier for the session (owner decision
 explicit `tier` wins; else `GlassAdaptiveScope.tierFor(deviceClass,
 best)`, a pure function, decides once the liquid capability resolves
 (`MorphTheme.precacheGlass` before `runApp` makes that the first
-frame; without it the first frames draw the fake glass fallback):
+frame; without it the first frames draw flat and turn liquid when the
+capability resolves):
 
 - `skia` (a native runtime without Impeller: Android before API 29, or
   Impeller turned off; `ImageFilter.isShaderFilterSupported` false, known

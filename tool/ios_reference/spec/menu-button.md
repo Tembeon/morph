@@ -319,8 +319,8 @@ outside the repository).
   swiftui-light, palette, sub-tap, reopen-80, reopen-250); test
   menu_glow_test (drag 0.011 rms, taps 0.025 at worst).
 - morph lights the menu card, not the neck or the source, in the liquid
-  tier's final glass pass (docs/glass.md "Touch glow"); flat, fake and the
-  menu without a painter draw no glow and run none
+  tier's final glass pass (docs/glass.md "Touch glow"); flat and the menu
+  without a painter draw no glow and run none
   (`MorphMenuMotion.lightsGlow`).
 
 ## Fixtures

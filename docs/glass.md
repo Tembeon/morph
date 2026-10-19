@@ -20,8 +20,8 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
   Gaussian sigma, gain) is data. A painter renders it as part of the lit
   surface's glass, over everything the glass shows and under the content,
   or not at all; there is no glow paint layer of its own. The renderer
-  lights it on the liquid tier only (below); flat, fake and the
-  no-painter look draw no glow.
+  lights it on the liquid tier only (below); flat and the no-painter look
+  draw no glow.
 - `MorphGlassSurface.glass` is false for plain fills (tracks, stepper);
   those are drawn flat through `buildFill`.
 - Only native glass is glass: bars, glass buttons and bar capsules,
@@ -65,9 +65,9 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
   `MorphFrameSync`) push at once; anywhere else, or under a dirty
   ancestor, the host builds.
   Until the liquid capability resolves, a host listens to it and builds
-  once when it does: a renderer asking for liquid draws fake before that
-  and compares equal across the change. `keep` hands back the same glass widgets when only the
-  content changed.
+  once when it does: a renderer asking for liquid draws flat before that
+  and compares equal across the change. `keep` hands back the same glass
+  widgets when only the content changed.
 - A `slotted` frame (`morphGlassLayerSlots`: glass body surfaces of a
   container that neither float, glow nor frost) builds a slot for every
   surface as a separate shape and as a member of every fused body the
@@ -120,7 +120,7 @@ Rules:
 
 `MorphScrollEdgeEffect` reads the installed renderer's effective tier.
 Flat draws its fade / hairline only: no blur, no color-matrix backdrop
-filter, no seed copy. Fake, liquid and custom painters keep the full edge
+filter, no seed copy. Liquid and custom painters keep the full edge
 effect. The flat audit census is zero backdrop filters in all seven
 scenes (home-scroll, segmented, tab-bar, controls, menu, sheet, list).
 
@@ -221,12 +221,13 @@ and settings, and hosts inside a container kept out by a blocker.
 
 - The package carries one renderer: lib/src/glass/renderer, vendored
   from whynotmake-it (Apache-2.0); VENDORED lists the local patches.
-- Public entry: `MorphGlassRenderer` with `MorphGlassTier`:
-  - flat;
-  - fake - the liquid layers through the renderer's consolidated fake
-    layer: no refraction, no Flutter GPU. The fallback before the liquid
-    capability resolves, and the web's tier;
-  - liquid.
+- Public entry: `MorphGlassRenderer` with `MorphGlassTier`: flat and
+  liquid. Liquid draws where the GPU holds it; flat draws everywhere
+  else: the cheap device classes, the web, and every frame before the
+  liquid capability resolves. A backdrop-reading look without Flutter GPU
+  was measured and dropped: it cost about what liquid costs on the GLES
+  Pixel 6a, and on Skia its multi-pass blur ran 30 - 125 ms raster p95 a
+  page (Redmi 6A).
 - `GlassAdaptiveScope` picks the tier once per session, never at runtime.
   There is no tier switching from frame timings. An explicit tier wins;
   otherwise `GlassAdaptiveScope.tierFor(deviceClass, best)`: liquid on
@@ -235,10 +236,20 @@ and settings, and hosts inside a container kept out by a blocker.
   runtime without Impeller, known at once from
   `ImageFilter.isShaderFilterSupported`). The device class is probed from
   Flutter GPU (glass_device_native.dart) once the liquid capability
-  resolves. Fake glass costs about what liquid costs on the GLES Pixel 6a,
-  and on Skia it is a multi-pass blur at 30 - 125 ms raster p95 a page
-  (Redmi 6A), which is why the cheap tier is flat. Only the web keeps fake
-  glass as its tier.
+  resolves.
+- The startup flip: until the capability resolves, liquid is drawn flat.
+  `GlassAdaptiveScope` installs flat for liquid (chosen or explicit) and
+  installs liquid when the capability flips, so the painter changes and
+  every dependent rebuilds; a `MorphGlassScope` holding a renderer that
+  asks for liquid listens to the capability itself and notifies its
+  dependents on the flip; a glass host listens and builds once. Await
+  `MorphTheme.precacheGlass` before `runApp` and the first frame is
+  already liquid.
+- A `LiquidGlassLayer` paints its child with no glass while shader
+  filters are unsupported or its Flutter GPU geometry renderer is still
+  loading. The widget layer builds liquid layers only once liquid is
+  available, which caches the renderer, so only direct renderer users
+  see that transient.
 
 ## Outline is truth
 
@@ -249,6 +260,9 @@ and settings, and hosts inside a container kept out by a blocker.
   carries its boxes instead of a field: path union for the edge, each box
   shaded as its own circular rounded rectangle. Exact, with no per-frame
   trace or upload.
+- An outline built from a path alone (`MorphGlassOutline(path)`, a
+  custom control's) has neither a field nor boxes: the renderer draws it
+  as the flat body (`morphGlassLiveBody`) on the liquid tier too.
 
 ### Analytic geometry
 
@@ -314,7 +328,7 @@ paint layer.
 - `morphGlassLightsGlow(painter)`: whether glass shows a glow at all (the
   renderer's liquid tier, any custom painter). The open menu lights none
   without it (`MorphMenuMotion.lightsGlow`), so its 0.5 s fall keeps no
-  flat or fake menu awake. The tab bar and glass buttons still run theirs.
+  flat menu awake. The tab bar and glass buttons still run theirs.
 - Fidelity NEAR against the old 16-stop gradient: under 0.65 of an 8-bit
   level inside three sigma for the tab bar and the menu, and the old cut
   at a six-sigma square (a step of `gain e^-4.5`: 0.9 level on the tab bar,

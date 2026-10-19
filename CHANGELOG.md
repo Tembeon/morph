@@ -39,8 +39,8 @@ no behaviour or pixel change: every rename keeps what the old name did.
     `MorphAdaptiveGlass` is gone, the old renderer class is internal, and
     `MorphTheme.precacheGlass()`, `liquidGlassAvailable` and
     `liquidGlassUnavailableReason` replace its statics. `MorphGlassTier`
-    keeps its values; `MorphGlassMaterial` and `MorphGlassDeviceClass` are
-    internal.
+    is `flat` and `liquid` (below); `MorphGlassMaterial` and
+    `MorphGlassDeviceClass` are internal.
   - `MorphLocalizations` (English by default) supplies the dismiss, search,
     close and back labels; the widgets' `placeholder`, `closeLabel`,
     `searchLabel` and `backButtonSemanticLabel` default to it.
@@ -209,8 +209,22 @@ no behaviour or pixel change: every rename keeps what the old name did.
   The built-in renderer lights the tab bar, glass buttons and the open
   menu in its liquid tier's final glass shader (the same wash and
   color-dodge spot, clamped at white, with no blend pass, clip or paint
-  layer); the flat and fake tiers and controls without a painter draw no
-  touch glow.
+  layer); the flat tier and controls without a painter draw no touch
+  glow.
+- BREAKING: the fake glass tier is gone: `MorphGlassTier` is `flat` and
+  `liquid`. Liquid glass draws where the GPU holds it and flat glass
+  everywhere else. Behaviour changes:
+  - the web draws flat glass where it drew fake glass;
+  - glass asked for liquid draws flat until the liquid shaders are ready
+    (it drew fake glass) and turns liquid when they are, whether a
+    `MorphTheme` or a `MorphGlassScope` installed the renderer; awaiting
+    `MorphTheme.precacheGlass()` before `runApp` still makes the first
+    frame liquid;
+  - a fused body handed as `MorphGlassOutline(path)` alone, with no field
+    to shade, is drawn as a flat fill on the liquid tier too (it was fake
+    glass there).
+  The consolidated fake layer, its surface shader and its warm-up scene
+  are removed from the package and its shader assets.
 - BREAKING: navigation leading items are `List<MorphBarButtonGroup>`;
   they still replace the back button, as UIKit's `leftBarButtonItems`
   do while `leftItemsSupplementBackButton` is off.

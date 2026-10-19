@@ -89,7 +89,7 @@ sits under a `MorphGlassStage`, so the resting glass of all its rows is
 shaded in one layer, as UIKit's glass container would. Proof that nothing
 the section paints between the stage and a member is read by it: resting
 unfrosted glass samples only inside its own outline (refraction reaches
-inward, frost 0, on the liquid and the fake tier), and the only thing a
+inward, frost 0, on the liquid tier), and the only thing a
 row paints inside an accessory's outline is its highlight - a highlighted
 row keeps its accessories out (`MorphGlassContainerBarrier`) until the
 highlight goes. Text, separators (the row's own after its child, the
