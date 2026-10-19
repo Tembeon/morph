@@ -27,6 +27,7 @@ final class ScenePickerController: UITableViewController {
         ("Glass merge", "merge"),
         ("Disabled states", "x4dis"),
         ("Typography", "fonts"),
+        ("Bars over light and dark content", "abright"),
     ]
 
     override func viewDidLoad() {

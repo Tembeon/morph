@@ -22,6 +22,7 @@ enum Scenes {
         if let w2 = Widgets2Scenes.make(name) { return w2 }
         if let sn = SheetNavScenes.make(name) { return sn }
         if let x3 = ExtrasScenes.make(name) { return x3 }
+        if let ab = AdaptiveBrightnessScenes.make(name) { return ab }
         if let fonts = TypographyScenes.make(name) { return fonts }
         if let list = ListScenes.make(name) { return list }
         if name.hasPrefix("tabbar") {
