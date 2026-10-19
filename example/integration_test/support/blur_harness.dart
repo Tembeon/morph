@@ -48,7 +48,7 @@ class BlurCase {
 
 Widget _glass(HarnessCase glassCase) => LiquidGlassLayer(
   settings: glassCase.settings,
-  blursOwnBackdrop: glassCase.ownBackdrop,
+  read: glassCase.ownBackdrop ? GlassRead.lifted : GlassRead.own,
   defaultAppearance: const LiquidGlassAppearance.ios27RegularDark(),
   child: Stack(
     children: [

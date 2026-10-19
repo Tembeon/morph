@@ -427,7 +427,9 @@ Widget harnessScene({
                   child: LiquidGlassLayer(
                     settings: glassCase.settings,
                     field: glassCase.field,
-                    blursOwnBackdrop: glassCase.ownBackdrop,
+                    read: glassCase.ownBackdrop
+                        ? GlassRead.lifted
+                        : GlassRead.own,
                     defaultAppearance: _darkRegular,
                     child: Stack(
                       children: [

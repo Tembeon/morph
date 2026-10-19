@@ -260,9 +260,9 @@ void main() {
         .widgetList<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
         .toList();
     expect(layers, hasLength(2));
-    expect(layers.map((LiquidGlassLayer l) => l.useBackdropGroup), [
-      false,
-      false,
+    expect(layers.map((LiquidGlassLayer l) => l.read), [
+      GlassRead.own,
+      GlassRead.lifted,
     ]);
     final stack = tester.widget<Stack>(
       find

@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
@@ -1158,7 +1158,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
       );
     }
     return RepaintBoundary(
-      child: MorphChromeBackdrop(
+      child: GlassPlaneScope.chrome(
         child: MorphLiveTransform(
           live: _ticks,
           writeInto: _writeHint,

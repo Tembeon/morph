@@ -10,10 +10,10 @@ import 'package:flutter/rendering.dart'
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart' show PredictiveBackEvent;
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/bar_items.dart';
-import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/navigation_bar.dart';
@@ -522,7 +522,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
   // navigator around it unpainted.
   Widget _bars(Widget bar, {bool hidden = false}) => _BarBoundary(
     hidden: hidden,
-    child: MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar),
+    child: GlassPlaneScope.shareRead(read: _barsBackdrop, child: bar),
   );
 
   List<MorphBarButtonGroup> _leadingOf(
@@ -1658,7 +1658,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold>
   // navigator around it unpainted.
   Widget _bars(Widget bar, {bool hidden = false}) => _BarBoundary(
     hidden: hidden,
-    child: MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar),
+    child: GlassPlaneScope.shareRead(read: _barsBackdrop, child: bar),
   );
 
   ScrollController get _controller =>

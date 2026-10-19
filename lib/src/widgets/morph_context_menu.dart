@@ -7,8 +7,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/motion/flex_spec.dart';
 import 'package:morph/src/widgets/haptics.dart';
@@ -988,7 +988,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
             onHeight: (double height) => _accessoryHeight = height,
             child: _RegionScope(
               state: this,
-              child: MorphChromeBackdrop(
+              child: GlassPlaneScope.chrome(
                 child: Builder(builder: accessory.builder),
               ),
             ),
@@ -1113,7 +1113,7 @@ class _PreviewLayer extends StatelessWidget {
         );
         return matrix;
       },
-      child: RepaintBoundary(child: MorphChromeBackdrop(child: child)),
+      child: RepaintBoundary(child: GlassPlaneScope.chrome(child: child)),
     ),
   );
 

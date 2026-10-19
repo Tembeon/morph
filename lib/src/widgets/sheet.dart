@@ -5,12 +5,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/themes.dart';
-import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
@@ -1038,12 +1037,12 @@ class _SheetViewState extends State<_SheetView>
         _layout(size, padding, media.viewInsets.bottom);
         final motion = _motion!;
         _show(_sync.read());
-        return GlassBackdropCacheScope(
-          cache: _route.backdropCache,
+        return GlassPlaneScope.backdrop(
+          backdrop: GlassBackdrop.cached(_route.backdropCache),
           child: ValueListenableBuilder<_SheetStructure>(
             valueListenable: _structure,
-            child: GlassBackdropCacheScope(
-              cache: null,
+            child: GlassPlaneScope.backdrop(
+              backdrop: const GlassBackdrop.live(),
               child: MediaQuery(
                 data: media.copyWith(
                   padding: media.padding.copyWith(
@@ -1058,7 +1057,7 @@ class _SheetViewState extends State<_SheetView>
                 ),
                 child: KeyedSubtree(
                   key: _contentKey,
-                  child: MorphChromeBackdrop(child: content),
+                  child: GlassPlaneScope.chrome(child: content),
                 ),
               ),
             ),

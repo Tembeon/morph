@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
-/// Whether glass under a [GlassBackdropCacheScope] reads the scope's cached
+/// Whether glass under a cached GlassPlaneScope.backdrop reads the cached
 /// backdrop instead of a backdrop filter. On by default;
 /// `--dart-define=MORPH_BACKDROP_CACHE=false` reads the backdrop every frame.
 bool debugMorphBackdropCache = const bool.fromEnvironment(
@@ -397,8 +397,8 @@ ModalRoute<Object?>? glassRouteUnder(
 mixin GlassBackdropCacheRoute<T> on ModalRoute<T> {
   Route<Object?>? _below;
 
-  /// The cache of the page below; hand it to the route's glass with a
-  /// [GlassBackdropCacheScope].
+  /// The cache of the page below; the route declares it for its glass with
+  /// a cached GlassPlaneScope.backdrop.
   late final GlassBackdropCache backdropCache = GlassBackdropCache(
     source: () {
       final below = _below;
@@ -418,27 +418,4 @@ mixin GlassBackdropCacheRoute<T> on ModalRoute<T> {
     backdropCache.dispose();
     super.dispose();
   }
-}
-
-/// Hands [cache] to the glass in [child].
-@internal
-class GlassBackdropCacheScope extends InheritedWidget {
-  /// Scopes [cache] (null clears an outer one).
-  const GlassBackdropCacheScope({
-    required this.cache,
-    required super.child,
-    super.key,
-  });
-
-  /// The cache, or null.
-  final GlassBackdropCache? cache;
-
-  /// The cache of the nearest scope above [context], or null.
-  static GlassBackdropCache? maybeOf(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<GlassBackdropCacheScope>()
-      ?.cache;
-
-  @override
-  bool updateShouldNotify(GlassBackdropCacheScope oldWidget) =>
-      !identical(oldWidget.cache, cache);
 }

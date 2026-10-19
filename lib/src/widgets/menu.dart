@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/presentation.dart';
@@ -1938,7 +1939,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           children: [
             if (glass != null)
               Positioned.fill(
-                child: BackdropGroup(
+                child: GlassPlaneScope.plane(
                   child: MorphGlassHost(
                     painter: glass,
                     mode: MorphGlassMode.body,

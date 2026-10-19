@@ -312,8 +312,9 @@ reference. Contact sheets (liquid | fake | frosted | flat):
   and card); bar and menu kinds take their own copy on the liquid and
   fake tiers, through buildLayer, buildBody and buildSurface alike.
   The navigation bar and toolbar (button-kind capsules) share one group
-  of their own per screen (`MorphChromeBackdrop`, keyed by the stack's
-  or scaffold's `MorphChromeBackdropScope`; a bar alone gets its own),
+  of their own per screen (a `GlassPlaneScope.chrome` plane, joining the read
+  the stack's or scaffold's `GlassPlaneScope.shareRead` hands down; a bar
+  alone gets its own),
   as do the search tab bar and a sheet's content. A bar's capsules fuse
   at the bar's container spacing (12: groups 12 apart stay separate).
 - A resting lens/knob/thumb is an opaque platter; lifted it is clear glass
@@ -387,7 +388,7 @@ reference. Contact sheets (liquid | fake | frosted | flat):
 - FIX (cheapest correct grouping): bar / menu kinds never take the
   shared key on either tier (buildSurface used to pass it on liquid,
   the frosted tier passed it for everything); the navigation bar and
-  toolbar share one chrome key per screen (`MorphChromeBackdropScope`
+  toolbar share one chrome key per screen (`GlassPlaneScope.shareRead`
   above the stack's or scaffold's bars; a bar alone keys itself), the
   search tab bar and a sheet's content get a group of their own. Cost:
   a page whose body holds no glass pays nothing (the root key then has
@@ -1996,7 +1997,7 @@ frames with the frost spent 3 - 10 ms in that one saveLayer (p90 / p95 of
 saveLayer self time per frame 4.4 / 6.6 ms in controls).
 
 A lifted lens, knob or thumb now blurs a copy of its own surroundings
-(`LiquidGlassLayer.blursOwnBackdrop`, set by the widget layer on the
+(`GlassRead.lifted` on `LiquidGlassLayer`, set by the widget layer on the
 lifted glass only): while its frost needs a blur pass, the layer pushes a
 clip of the filter clip grown by the blur's reach (1.732 x the engine's
 scaled sigma + the texels its downsample adds, on the 64 px buckets) and an
