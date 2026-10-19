@@ -268,15 +268,19 @@ MorphSearchTabGeometry morphSearchTabLayout({
   );
 }
 
-/// [Rect.lerp] of [a] and [b] at [t] that keeps a size both share exactly:
-/// the corners move as [Rect.lerp] moves them, but a box that only
-/// travels keeps its width and height to the bit, so what it holds is not
-/// laid out again for rounding.
+/// [Rect.lerp] of [a] and [b] at [t] that keeps a width or height both
+/// share exactly: the origin moves as [Rect.lerp] moves it, but a side
+/// that does not change keeps its length to the bit, so what the box holds
+/// is not laid out again for rounding.
 @internal
 Rect morphLerpRect(Rect a, Rect b, double t) {
-  if (a.size != b.size) return Rect.lerp(a, b, t)!;
   final at = Rect.lerp(a, b, t)!;
-  return Rect.fromLTWH(at.left, at.top, a.width, a.height);
+  return Rect.fromLTWH(
+    at.left,
+    at.top,
+    a.width == b.width ? a.width : at.width,
+    a.height == b.height ? a.height : at.height,
+  );
 }
 
 /// The motion of an iOS 27 search field: the focus transition and the

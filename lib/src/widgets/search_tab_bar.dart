@@ -353,21 +353,21 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     final m = _minimize.shape(_now);
     final focused = _focusMotion.isFocused;
     final settled = (q - 1).abs() < 0.001 && widget.active;
-    final fieldRect = Rect.lerp(geometry.field, geometry.focusedField, p)!;
-    final restBar = Rect.lerp(geometry.bar, geometry.tab, m)!;
-    final restSearch = Rect.lerp(
+    final fieldRect = morphLerpRect(geometry.field, geometry.focusedField, p);
+    final restBar = morphLerpRect(geometry.bar, geometry.tab, m);
+    final restSearch = morphLerpRect(
       geometry.search,
       _collapsedSearch(geometry),
       m,
-    )!;
+    );
     final content = math.max(q, _minimize.content(_now));
     _frame = _TabFrame(
       q: q,
       p: p,
       content: content,
-      bar: Rect.lerp(restBar, geometry.tab, q)!,
+      bar: morphLerpRect(restBar, geometry.tab, q),
       field: fieldRect,
-      search: Rect.lerp(restSearch, fieldRect, q)!,
+      search: morphLerpRect(restSearch, fieldRect, q),
       close: morphLerpRect(
         Rect.fromLTWH(
           geometry.field.right - MorphSearchTuning.height,
@@ -378,11 +378,11 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
         geometry.close,
         p,
       ),
-      accessory: Rect.lerp(
+      accessory: morphLerpRect(
         _accessoryRect(geometry),
         _inlineAccessoryRect(geometry),
         m,
-      )!,
+      ),
     );
     final shown = q.clamp(0.0, 1.0);
     final searchIdle = q.abs() < 0.001 && !widget.active;
