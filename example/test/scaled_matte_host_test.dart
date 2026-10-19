@@ -6,6 +6,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/morph.dart';
 // The test drives the renderer's own layers.
 // ignore: implementation_imports
@@ -44,7 +46,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     RenderLiquidGlassLayer.debugAnalyticGeometry = true;
     final boundary = GlobalKey();
 

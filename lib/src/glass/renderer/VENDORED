@@ -624,3 +624,15 @@ Local patches (some commits include related package changes):
   layer's index constants (analyticUniformIndex .. analyticFusedTintsIndex,
   solidBackdropUniform, glowUniform, analyticMaxShapes);
   test/final_pass_layout_test.dart reads the GLSL declarations.
+- 2026-10-19 the final pass as its own module: pass/final_pass.dart
+  (GlassFinalPass) owns the final shaders (matte and analytic, keyed by
+  LiquidShaderVariant; the variant is picked from the table's switches,
+  GlassFinalPass.variantFor, never by list position), the analytic
+  program loads (precacheAnalyticShaders, analyticProgram), every
+  uniform write, the stale and solid shader sets, the inputs-changed
+  flag the filter's reuse depends on, the frost blur and the paints over
+  a solid or a cached backdrop; it reads the layer through
+  GlassPassSource. pass/glass_frost.dart (GlassFrost) is the frost
+  policy (softening kernel, shader frost, blur pass; debugMorphShaderFrost
+  moved there). geometry/glass_shape_pack.dart (GlassShapePack) holds a
+  frame's packed shapes. No uniform or pixel change.

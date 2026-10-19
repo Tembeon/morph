@@ -9,6 +9,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The test drives the renderer's own layer.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -130,7 +132,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticCapsule = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     harness = ShaderHarness(tester);
     backdrop = await harness.backdrop();
     RenderLiquidGlassLayer.debugAnalyticGeometry = true;

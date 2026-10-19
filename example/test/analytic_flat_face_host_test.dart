@@ -9,6 +9,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The A/B toggles the renderer's own analytic path.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
@@ -194,7 +196,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticCapsule = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final backdrop = await harness.backdrop();
     final dpr = harness.devicePixelRatio;

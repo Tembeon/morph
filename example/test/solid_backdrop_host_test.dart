@@ -9,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The A/B toggles the renderer's own paths.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
@@ -419,7 +421,7 @@ void main() {
     tester.view.devicePixelRatio = _dpr;
     addTearDown(tester.view.reset);
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
     RenderLiquidGlassLayer.debugAnalyticGeometry = true;
     addTearDown(() {
@@ -489,7 +491,7 @@ void main() {
       // Load first: the override's setter starts the loads in this test's
       // fake zone otherwise, whose futures never complete in the next test.
       await tester.runAsync(GlassBuiltInPainter.precache);
-      await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+      await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
       RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
       RenderLiquidGlassLayer.debugAnalyticGeometry = analytic;
       addTearDown(() {
@@ -559,7 +561,7 @@ void main() {
     tester.view.devicePixelRatio = _dpr;
     addTearDown(tester.view.reset);
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     final base = _cases[1];
 
     Widget moved(Offset shift, {required bool solid, Key? key}) => _scene(
@@ -614,7 +616,7 @@ void main() {
       tester.view.devicePixelRatio = _dpr;
       addTearDown(tester.view.reset);
       await tester.runAsync(GlassBuiltInPainter.precache);
-      await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+      await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
 
       final shots = <bool, List<HarnessShot>>{};
       final filters = <bool, int>{};
@@ -704,7 +706,7 @@ void main() {
       tester.view.devicePixelRatio = _dpr;
       addTearDown(tester.view.reset);
       await tester.runAsync(GlassBuiltInPainter.precache);
-      await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+      await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
 
       final variants = <String, Color? Function(Color page)>{
         'none': (page) => null,

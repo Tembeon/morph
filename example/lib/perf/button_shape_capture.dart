@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/morph.dart';
@@ -21,7 +22,7 @@ Future<void> main() async {
     '${out.path}/result.json',
   ).writeAsString(jsonEncode({'complete': false}));
   await MorphTheme.precacheGlass();
-  await RenderLiquidGlassLayer.precacheAnalyticShaders();
+  await GlassFinalPass.precacheAnalyticShaders();
   if (!MorphTheme.liquidGlassAvailable) {
     throw StateError('The capture requires liquid glass.');
   }

@@ -6,8 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The A/B toggles the renderer's own frost.
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show debugMorphShaderFrost;
+import 'package:morph/src/glass/renderer/pass/glass_frost.dart';
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';

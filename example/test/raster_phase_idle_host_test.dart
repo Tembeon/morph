@@ -5,6 +5,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/morph.dart';
 // The test drives the renderer's own layer.
 // ignore: implementation_imports
@@ -79,7 +81,7 @@ void main() {
       await tester.runAsync(GlassBuiltInPainter.precache);
       if (!MorphTheme.liquidGlassAvailable) return;
       if (mode.analytic) {
-        await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+        await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
         RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.changes;
       }
       RenderLiquidGlassLayer.debugAnalyticGeometry = mode.analytic;

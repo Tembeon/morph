@@ -318,7 +318,7 @@ tool/audit/2026-10-19-shader-diet/.
   32 but costs about 24 more arithmetic cycles a frosted pixel. So the
   one-appearance and tint-only matte variants come twice, frosted (64) and
   unfrosted (32, full occupancy, for no frost, the softening kernel or a
-  blur pass); the layer picks by `shaderFrostDeviceSigma`. The
+  blur pass); the pass picks by `GlassFrost.shaderSigma`. The
   mixed-appearance and analytic variants always carry the frost (64
   either way).
 - Where every tap lies inside the backdrop texture (all but the pixels

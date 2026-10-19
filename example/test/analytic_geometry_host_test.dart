@@ -12,6 +12,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The A/B toggles the renderer's own geometry path.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
@@ -228,7 +230,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     if (_out.isNotEmpty) Directory(_out).createSync(recursive: true);
     final harness = ShaderHarness(tester);
     final dpr = harness.devicePixelRatio;
@@ -316,7 +318,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final backdrop = await harness.backdrop();
     final boundary = GlobalKey();
@@ -478,7 +480,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final dpr = harness.devicePixelRatio;
     final configs = [
@@ -584,7 +586,7 @@ void main() {
       debugClearMorphGlassOutlines();
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final dpr = harness.devicePixelRatio;
     const names = {
@@ -656,7 +658,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final glassCase = harnessCases.firstWhere((c) => c.name == 'tint-pair');
 
@@ -719,7 +721,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
-    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final dpr = harness.devicePixelRatio;
     bool layerAnalytic() => tester.allRenderObjects

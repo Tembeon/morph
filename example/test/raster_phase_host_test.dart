@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The test reads which geometry path the renderer takes.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show RenderLiquidGlassLayer;
 import 'package:morph/morph.dart';
@@ -31,7 +33,7 @@ void main() {
     await tester.runAsync(GlassBuiltInPainter.precache);
     if (!MorphTheme.liquidGlassAvailable) return;
     if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
-      await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+      await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     }
     final boundary = GlobalKey();
     Future<Uint8List> shot(double top, {required bool container}) async {

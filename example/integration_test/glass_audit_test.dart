@@ -18,6 +18,8 @@ import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
 // The audit times the package's outline fusion on the device.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/pass/glass_frost.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart'
     show debugMorphBackdropCache, debugMorphBackdropCacheCaptures;
 // ignore: implementation_imports
@@ -25,7 +27,7 @@ import 'package:morph/src/glass/renderer/internal/blur_reach.dart'
     show debugMorphHalfResolutionBlur;
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show GlassCostProbe, debugGlassCostProbe, debugMorphShaderFrost;
+    show GlassCostProbe, debugGlassCostProbe;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_container.dart';
 // ignore: implementation_imports
