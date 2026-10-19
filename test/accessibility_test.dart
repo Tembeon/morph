@@ -55,18 +55,20 @@ void main() {
     });
 
     test('the shown state changes at each commit and toggling release', () {
-      final shown = <bool>[];
       final motion = MorphSwitchMotion(value: false);
-      motion.onDisplayedChanged = shown.add;
+      List<bool> shown() => [
+        for (final event in motion.drainEvents())
+          if (event case MorphSwitchShown(:final on)) on,
+      ];
       motion.pointerDown(0, 10);
       motion.pointerMove(0.3, 60);
       motion.pointerMove(0.4, 0);
       motion.pointerMove(0.5, 60);
       motion.pointerUp(0.6, 60);
-      expect(shown, [true, false, true]);
+      expect(shown(), [true, false, true]);
       motion.pointerDown(1, 10);
       motion.pointerUp(1.1, 10);
-      expect(shown, [true, false, true, false]);
+      expect(shown(), [false]);
     });
   });
 

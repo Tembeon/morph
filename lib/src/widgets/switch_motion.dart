@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:morph/src/gesture.dart';
+import 'package:morph/src/motion/motion.dart';
 import 'package:morph/src/widgets/small_lens.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -34,7 +34,9 @@ import 'package:morph/src/widgets/timeline.dart';
 /// The switch settles once every part's remaining swing is below
 /// [MorphRest] (0.1 pt, 0.3 device px at 3x; an opacity half an 8-bit
 /// step) and snaps onto its targets: invisible, NEAR.
-class MorphSwitchMotion {
+class MorphSwitchMotion
+    with MorphMotionEvents<MorphSwitchEvent>
+    implements MorphMotion<MorphSwitchEvent> {
   /// Creates a switch resting at [value] whose knob lens filters its
   /// motion at [frameRate] frames per second of motion time.
   MorphSwitchMotion({required bool value, this.frameRate = 120})
@@ -118,15 +120,6 @@ class MorphSwitchMotion {
   bool _committed = false;
   bool _everCommitted = false;
 
-  /// Called with the new value whenever the user toggles the switch.
-  ValueChanged<bool>? onChanged;
-
-  /// Called with the state the switch shows whenever a touch changes it:
-  /// a drag committing or uncommitting, and a release that toggles. This
-  /// is the moment UIKit plays the switch's haptic (read from UIKit,
-  /// notes private: `interactiveChangeToDisplayedOn:`).
-  ValueChanged<bool>? onDisplayedChanged;
-
   /// Whether the switch moves for Reduce Motion: no lift and no rubber
   /// band (see the class documentation).
   bool get reducedMotion => lens.reducedMotion;
@@ -138,8 +131,12 @@ class MorphSwitchMotion {
 
   double get _now => _timeline.now;
 
-  /// The time the motion was last advanced to.
+  @override
   double get time => _now;
+
+  // The lifted knob rests under a still finger and wakes with its moves.
+  @override
+  double? get wakeTime => null;
 
   /// The knob position from the off end, rubber band included.
   double get knob => _knob.value(_now);
@@ -151,6 +148,7 @@ class MorphSwitchMotion {
   /// pending and every spring's remaining swing below [MorphRest] (NEAR,
   /// invisible; [settle] snaps the rest). A finger held still counts: the
   /// lifted knob rests until the finger moves or lifts.
+  @override
   bool get isSettled =>
       _timeline.isEmpty &&
       _knob.isWithin(_now, MorphRest.length) &&
@@ -159,6 +157,7 @@ class MorphSwitchMotion {
       lens.hasSampled(_now, _knob.value(_now));
 
   /// Puts a settled switch exactly onto its targets.
+  @override
   void settle() {
     _knob.settle(_now);
     _color.settle(_now);
@@ -189,7 +188,7 @@ class MorphSwitchMotion {
       _committed = !_committed;
       _everCommitted = true;
       _colorLater(t, on: !shown);
-      onDisplayedChanged?.call(!shown);
+      emit(MorphSwitchShown(on: !shown));
     }
     final slop = _slop ??= t - _downT < deadZoneWindow ? deadZone : 0;
     final dx = x - downX;
@@ -211,7 +210,7 @@ class MorphSwitchMotion {
     _timeline.clear();
     _settle(t, next: next);
     lens.unlift(t);
-    if (next != shown) onDisplayedChanged?.call(next);
+    if (next != shown) emit(MorphSwitchShown(on: next));
   }
 
   /// The touch was cancelled; the switch keeps its value.
@@ -241,7 +240,7 @@ class MorphSwitchMotion {
     _value = next;
     _knob.retarget(t, next ? travel : 0);
     _colorTo(t, on: next);
-    if (changed) onChanged?.call(next);
+    if (changed) emit(MorphSwitchChanged(on: next));
   }
 
   void _colorLater(double t, {required bool on}) {
@@ -255,7 +254,7 @@ class MorphSwitchMotion {
     _color.retarget(t, target, spring: on ? onColorSpring : offColorSpring);
   }
 
-  /// Advances the motion to time [t].
+  @override
   void advance(double t) {
     if (!_started) {
       _started = true;
@@ -276,4 +275,29 @@ class MorphSwitchMotion {
     if (position > travel) return travel + shown(position - travel);
     return math.max(0, position);
   }
+}
+
+/// What a [MorphSwitchMotion] tells its host.
+sealed class MorphSwitchEvent {
+  const MorphSwitchEvent();
+}
+
+/// The user toggled the switch to [on].
+final class MorphSwitchChanged extends MorphSwitchEvent {
+  /// Creates the event.
+  const MorphSwitchChanged({required this.on});
+
+  /// The new value.
+  final bool on;
+}
+
+/// A touch changed the state the switch shows to [on]: a drag committing
+/// or uncommitting, or a release that toggles. This is the moment UIKit
+/// plays the switch's haptic (read from UIKit, notes private).
+final class MorphSwitchShown extends MorphSwitchEvent {
+  /// Creates the event.
+  const MorphSwitchShown({required this.on});
+
+  /// The state the switch shows.
+  final bool on;
 }

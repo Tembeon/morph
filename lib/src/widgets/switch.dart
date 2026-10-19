@@ -168,9 +168,20 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
       value: widget.value,
       frameRate: motionFrameRate,
     );
-    motion.onChanged = _changed;
-    motion.onDisplayedChanged = _displayed;
     return motion;
+  }
+
+  @override
+  void deliverMotionEvents() {
+    for (final event in _motion.drainEvents()) {
+      if (!mounted) return;
+      switch (event) {
+        case MorphSwitchChanged(:final on):
+          _changed(on);
+        case MorphSwitchShown():
+          morphPlayHaptic(context, MorphHaptic.impact);
+      }
+    }
   }
 
   void _changed(bool value) {
@@ -180,10 +191,6 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
       _motion.setValue(clock, value: widget.value);
       return true;
     });
-  }
-
-  void _displayed(bool on) {
-    if (mounted) morphPlayHaptic(context, MorphHaptic.impact);
   }
 
   @override
