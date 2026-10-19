@@ -1,0 +1,12 @@
+f2028cc2  runs 3  fixed-perf False  2026-10-19 23:52
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+nav/nav-navigation-steady-liquid    271   2.0   3.3   9.4  14.2   5.0   0.7    1   618  raster-cpu:2 bad raster: waitForBufferRelease 5.9, SurfaceFrame::Encode 4.0, QueueSubmit 2.6  [raster 11.77->14.24, power_mw 795->618]
+nav/nav-navigation-nested-push-liq  177   6.2  11.0   8.0  12.5   7.5   2.3    3   573  ui-build:2 ui-layout:2 bad ui: layout 9.4, build 4.1, paint 2.8  [gpu 6.831->7.542, power_mw 711->573]
+nav/nav-navigation-nested-pop-liqu  167   5.7  10.7   8.4  11.1   6.2   2.4    4   498  ui-layout:2 ui-other:1 ui-paint:1 bad ui: layout 12.6, paint 7.3, build 3.7  [ui 8.576->10.67, gpu 5.442->6.229, over_pct 1.3->2.4, power_mw 715->498]
+nav/nav-navigation-enter-flat       174   3.1   5.7   6.1   9.0   3.6   0.6    0   693  ui-layout:1 bad ui: layout 11.8, build 7.0, paint 2.9  [power_mw 579->693]
+nav/nav-navigation-steady-flat      271   1.8   3.0   6.1   7.1   1.6   0.0    0   463    [ui 3.923->2.967, power_mw 608->463]
+nav/nav-navigation-nested-push-fla  173   4.7   9.0   6.2   8.1   3.6   0.6    5   458  ui-build:1 bad ui: build 7.1, layout 4.9, paint 2.9  [ui 7.263->8.966, gpu 2.918->3.629, power_mw 619->458]
+nav/nav-navigation-nested-pop-flat  166   4.1   8.7   6.3   8.6   3.2   1.8    6   409  ui-layout:3 bad ui: layout 14.2, build 5.8, paint 3.0  [ui 6.906->8.654, gpu 2.394->3.177, power_mw 622->409]
+nav/nav-navigation-enter-liquid     174   4.9   9.0   8.7  12.0   5.9   1.7    4   519  ui-layout:3 bad ui: layout 11.1, build 5.6, paint 3.0  [power_mw 700->519]
