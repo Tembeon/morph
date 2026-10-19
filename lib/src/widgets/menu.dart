@@ -298,6 +298,7 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
   final MorphMenuAppearance? appearance;
 
   /// The measured motion.
+  @internal
   final MorphMenuTuning tuning;
 
   /// The overlay the menu shows in, or null for
@@ -313,6 +314,7 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 
   /// Called with the flight of the menu each time a new one launches;
   /// its [MorphFlight.events] are the seam for haptics.
+  @internal
   final ValueChanged<MorphFlight>? onOpen;
 
   /// The order of the entries relative to the source.

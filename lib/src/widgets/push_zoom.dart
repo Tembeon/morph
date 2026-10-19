@@ -220,6 +220,9 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
   void _dragCancel() {
     final motion = _motion;
     if (motion == null || !motion.isDragging) return;
+    // Restarted with zero travel, the drag always ends on the return path;
+    // ended as it stands, one past the dismiss distance would not.
+    motion.dragStart(clock, Offset.zero);
     motion.dragEnd(clock, Offset.zero);
     wake();
   }

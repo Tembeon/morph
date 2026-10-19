@@ -101,6 +101,30 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a back gesture over a pending edge touch previews', (
+    tester,
+  ) async {
+    final inbox = await _pumpStack(tester);
+    unawaited(
+      Navigator.of(
+        inbox,
+      ).push(MorphNavigationRoute<void>(builder: (_) => _detail())),
+    );
+    await _settle(tester);
+    final rest = tester.getCenter(find.text('body')).dx;
+    final touch = await tester.startGesture(const Offset(3, 400));
+    await tester.pump();
+    await _back(tester, 'startBackGesture');
+    await _back(tester, 'updateBackGestureProgress', 0.5);
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(tester.getCenter(find.text('body')).dx, greaterThan(rest + 150));
+    await touch.cancel();
+    await _back(tester, 'commitBackGesture');
+    await _settle(tester);
+    expect(find.text('body'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a cancelled back returns the page', (tester) async {
     final inbox = await _pumpStack(tester);
     unawaited(
@@ -151,6 +175,34 @@ void main() {
     await _settle(tester);
     expect(find.text('sheet'), findsNothing);
     expect(find.text('body'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a cancelled back returns a zoomed page past the dismiss '
+      'distance', (tester) async {
+    final inbox = await _pumpStack(tester);
+    unawaited(
+      Navigator.of(inbox).push(
+        MorphNavigationRoute<void>(
+          from: _sourceLink,
+          builder: (_) =>
+              const SizedBox.expand(child: Center(child: Text('zoomed'))),
+        ),
+      ),
+    );
+    await _settle(tester);
+    final open = tester.getCenter(find.text('zoomed'));
+    await _back(tester, 'startBackGesture');
+    await _back(tester, 'updateBackGestureProgress', 0.6);
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(tester.getCenter(find.text('zoomed')), isNot(open));
+    await _back(tester, 'cancelBackGesture');
+    await _settle(tester);
+    expect(
+      tester.getCenter(find.text('zoomed')).dx,
+      moreOrLessEquals(open.dx, epsilon: 0.5),
+    );
+    expect(tester.binding.hasScheduledFrame, isFalse);
     expect(tester.takeException(), isNull);
   });
 

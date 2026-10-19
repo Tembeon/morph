@@ -1326,16 +1326,26 @@ class _EdgePopState extends State<_EdgePop> implements MorphBackPreview {
 
   @override
   bool get acceptsBackPreview =>
-      !_active &&
-      _pointer == null &&
-      widget.route.isCurrent &&
-      widget.route.popGestureEnabled;
+      !_active && widget.route.isCurrent && widget.route.popGestureEnabled;
 
   // Back gesture events carry no time stamp and arrive between frames.
   double get _now => Timeline.now / Duration.microsecondsPerSecond;
 
   @override
   void startBackPreview(PredictiveBackEvent event) {
+    // The edge touch reached the page before the system took it for its
+    // back gesture; it ends here so the edge swipe cannot claim it too.
+    final pointer = _pointer;
+    if (pointer != null) {
+      _pointer = null;
+      for (final drag in [_drag, _content]) {
+        drag?.onStart = null;
+        drag?.onUpdate = null;
+        drag?.onEnd = null;
+        drag?.onCancel = null;
+      }
+      GestureBinding.instance.cancelPointer(pointer);
+    }
     _forward = _rtl ? -1 : 1;
     _eventTime = _now;
     _popMotion = MorphNavigationPopMotion(_width);
