@@ -30,7 +30,6 @@ import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_bou
 import 'package:morph/src/glass/renderer/liquid_glass_glow.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_render_scope.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_settings.dart';
-import 'package:morph/src/glass/renderer/rendering/consolidated_fake_glass_layer.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
@@ -38,13 +37,16 @@ import 'package:morph/src/glass/renderer/shaders.dart';
 ///
 /// The owner computes every union before supplying [field]. Shapes provide
 /// the material and shadows; this layer never fuses their geometry.
+///
+/// The glass needs Impeller's shader filters and the Flutter GPU geometry
+/// renderer. Until the renderer has loaded, and wherever shader filters are
+/// unsupported, the layer paints its child with no glass.
 class LiquidGlassLayer extends StatefulWidget {
   /// Creates a new [LiquidGlassLayer] with the given [child] and [settings].
   const LiquidGlassLayer({
     required this.child,
     this._settings = const LiquidGlassSettings(),
     this.defaultAppearance,
-    this.fake = false,
     this.useBackdropGroup = false,
     this.backdropKey,
     this.blursOwnBackdrop = false,
@@ -70,7 +72,6 @@ class LiquidGlassLayer extends StatefulWidget {
     this.outlineOf,
     this.glowOf,
     this.defaultAppearance,
-    this.fake = false,
     this.useBackdropGroup = false,
     this.backdropKey,
     this.blursOwnBackdrop = false,
@@ -94,12 +95,11 @@ class LiquidGlassLayer extends StatefulWidget {
   /// layer.
   ///
   /// The liquid geometry pass shades such a body from the shapes
-  /// themselves; fake glass clips its backdrop and surfaces to it as it
-  /// does to a field's [GlassField.outline].
+  /// themselves.
   final Path? Function()? outlineOf;
 
   /// The touch glow the final pass applies now, for a live layer; null for
-  /// a layer that never glows. Fake glass draws no glow.
+  /// a layer that never glows.
   final LiquidGlassGlow? Function()? glowOf;
 
   final LiquidGlassSettings _settings;
@@ -112,8 +112,7 @@ class LiquidGlassLayer extends StatefulWidget {
   /// With a field the geometry pass shades the body the field describes
   /// instead of the shapes' own outlines or blend groups; the shapes still
   /// supply the appearance, the shadows and the bounds of the matte, which
-  /// must contain the body. Fake glass, which shades no field, clips its
-  /// backdrop and surfaces to the field's [GlassField.outline] instead.
+  /// must contain the body.
   GlassField? get field => fieldOf != null ? fieldOf!() : _field;
 
   /// The subtree in which you should include at least one [LiquidGlass] widget.
@@ -131,18 +130,11 @@ class LiquidGlassLayer extends StatefulWidget {
   /// platform brightness.
   final LiquidGlassAppearance? defaultAppearance;
 
-  /// Whether to replace all liquid glass effects in this layer with the
-  /// fake tier, which the layer paints in one consolidated pass.
-  ///
-  /// The layer also uses the fake tier when Impeller shader filters or Flutter
-  /// GPU are unavailable, for example on Skia.
-  final bool fake;
-
   /// Whether to share a [BackdropGroup] capture for backdrop effects.
   ///
   /// The nearest ancestor group is used when one exists. Otherwise this layer
-  /// creates a local group so its FakeGlass shapes can share backdrop capture
-  /// work. Multiple [LiquidGlassLayer]s need a common ancestor group or an
+  /// creates a local group so its shapes can share backdrop capture work.
+  /// Multiple [LiquidGlassLayer]s need a common ancestor group or an
   /// explicit shared [backdropKey] to share across layer boundaries.
   ///
   /// On Impeller, each independent backdrop capture does a full-screen
@@ -155,7 +147,6 @@ class LiquidGlassLayer extends StatefulWidget {
   /// elements that sit over the same content plane (for example all root
   /// chrome). Do not put a sheet and the FAB above it in one group.
   ///
-  /// This applies consistently to real and fake glass.
   /// [backdropKey] takes precedence when both are provided.
   ///
   /// Defaults to false.
@@ -191,7 +182,7 @@ class LiquidGlassLayer extends StatefulWidget {
   /// not fully opaque is ignored. The color must really be what lies under
   /// the glass: the layer cannot tell, and anything else painted under its
   /// shapes (an image, text, a second fill) would not show through the
-  /// glass. Fake glass ignores it.
+  /// glass.
   final Color? solidBackdrop;
 
   @override
@@ -199,22 +190,17 @@ class LiquidGlassLayer extends StatefulWidget {
 }
 
 class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
-  static List<String> get _fakeSurfaceShaderAssets => [
-    ShaderKeys.fakeGlassSurface,
-  ];
-
   late final GeometryRenderLink _link = GeometryRenderLink();
 
   late final _LayerSettings _settingsLive = _LayerSettings(this);
 
   FlutterGpuGeometryRenderer? _gpuGeometryRenderer;
-  final List<FlutterGpuGeometryRenderer> _retiredGpuGeometryRenderers = [];
   bool _triedGpuGeometryRenderer = false;
   bool _gpuInitializationScheduled = false;
   bool _loggedFallback = false;
 
-  // Fake and real subtrees never coexist, so one key keeps the user's subtree
-  // alive across a renderer swap without ever being mounted twice.
+  // The glass and the bare child never coexist, so one key keeps the user's
+  // subtree alive when the renderer arrives without ever mounting it twice.
   final _childKey = GlobalKey(debugLabel: 'LiquidGlassLayer.child');
 
   void _logDebugFallback(String message) {
@@ -224,9 +210,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
   }
 
   void _tryCreateCachedGpuGeometryRenderer() {
-    if (widget.fake ||
-        !ImageFilter.isShaderFilterSupported ||
-        _triedGpuGeometryRenderer) {
+    if (!ImageFilter.isShaderFilterSupported || _triedGpuGeometryRenderer) {
       return;
     }
     final renderer = FlutterGpuGeometryRenderer.tryCreateCached(
@@ -242,14 +226,14 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
     _gpuInitializationScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _gpuInitializationScheduled = false;
-      if (!mounted || widget.fake || _triedGpuGeometryRenderer) return;
+      if (!mounted || _triedGpuGeometryRenderer) return;
 
       _triedGpuGeometryRenderer = true;
       try {
         final renderer = await FlutterGpuGeometryRenderer.fromAsset(
           ShaderKeys.gpuGeometryShaderBundle,
         );
-        if (!mounted || widget.fake) {
+        if (!mounted) {
           renderer.dispose();
           return;
         }
@@ -257,8 +241,8 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
       } on Object catch (error) {
         if (!mounted) return;
         _logDebugFallback(
-          'Flutter GPU is unavailable; LiquidGlassLayer is using FakeGlass. '
-          'Enable Impeller and Flutter GPU for the full glass effect. $error',
+          'Flutter GPU is unavailable; LiquidGlassLayer draws no glass. '
+          'Enable Impeller and Flutter GPU for the glass effect. $error',
         );
       }
       if (mounted) setState(() {});
@@ -275,34 +259,11 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
   void didUpdateWidget(covariant LiquidGlassLayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.live, widget.live)) _settingsLive.follow();
-    if (oldWidget.fake && !widget.fake) {
-      _tryCreateCachedGpuGeometryRenderer();
-    }
-    if (!oldWidget.fake && widget.fake) {
-      final renderer = _gpuGeometryRenderer;
-      _gpuGeometryRenderer = null;
-      _triedGpuGeometryRenderer = false;
-      if (renderer != null) {
-        // The old real render subtree is removed during this rebuild. Retire
-        // its textures after that frame so it cannot contaminate subsequent
-        // fake-only measurements, without invalidating a sampler still used by
-        // the outgoing subtree.
-        _retiredGpuGeometryRenderers.add(renderer);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!_retiredGpuGeometryRenderers.remove(renderer)) return;
-          renderer.dispose();
-        });
-      }
-    }
   }
 
   @override
   void dispose() {
     _gpuGeometryRenderer?.dispose();
-    for (final renderer in _retiredGpuGeometryRenderers) {
-      renderer.dispose();
-    }
-    _retiredGpuGeometryRenderers.clear();
     _link.dispose();
     _settingsLive.dispose();
     super.dispose();
@@ -330,32 +291,20 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
             ? BackdropGroup.of(context)?.backdropKey
             : null);
     final shaderFiltersSupported = ImageFilter.isShaderFilterSupported;
-    if (!widget.fake && shaderFiltersSupported) {
+    if (shaderFiltersSupported) {
       // Android's Impeller context is not available until its first surface
       // frame has been established. Creating flutter_gpu resources directly
       // from build can therefore block the UI isolate before the first frame.
       _scheduleGpuGeometryRendererInitialization();
-    }
-    final gpuRenderer = _gpuGeometryRenderer;
-    final useFake =
-        widget.fake || !shaderFiltersSupported || gpuRenderer == null;
-    if (useFake) {
-      if (!widget.fake && !shaderFiltersSupported && kDebugMode) {
-        _logDebugFallback(
-          'Impeller shader filters are unavailable; LiquidGlassLayer is using '
-          'FakeGlass. Enable Impeller and Flutter GPU for the full effect.',
-        );
-      }
-
-      return _buildFakeLayer(
-        backdropKey: backdropKey,
-        defaultAppearance: defaultAppearance,
-        settings: widget.settings,
-        child: KeyedSubtree(key: _childKey, child: widget.child),
+    } else {
+      _logDebugFallback(
+        'Impeller shader filters are unavailable; LiquidGlassLayer draws no '
+        'glass. Enable Impeller and Flutter GPU for the glass effect.',
       );
     }
-
+    final gpuRenderer = _gpuGeometryRenderer;
     final live = widget.live;
+    final child = KeyedSubtree(key: _childKey, child: widget.child);
     return RepaintBoundary(
       child: LiquidGlassRenderScope(
         settings: widget.settings,
@@ -364,82 +313,40 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
         backdropKey: backdropKey,
         child: InheritedGeometryRenderLink(
           link: _link,
-          child: MultiShaderBuilder(assetKeys: ShaderKeys.liquidGlassRenders, (
-            context,
-            shaders,
-            child,
-          ) {
-            return _RawShapes(
-              defaultRenderShader: shaders[0],
-              ios27RenderShader: shaders[1],
-              materialRenderShader: shaders[2],
-              tintRenderShader: shaders[3],
-              tintIos27RenderShader: shaders[4],
-              backdropKey: backdropKey,
-              blursOwnBackdrop: widget.blursOwnBackdrop,
-              solidBackdrop: widget.solidBackdrop,
-              // A keyed group reads its own copy on purpose (glass painted
-              // in between belongs in it); only an unkeyed read is cached.
-              backdropCache: backdropKey == null
-                  ? GlassBackdropCacheScope.maybeOf(context)
-                  : null,
-              live: live,
-              settingsOf: () => widget.settings,
-              defaultAppearance: defaultAppearance,
-              link: _link,
-              gpuGeometryRenderer: gpuRenderer,
-              fieldOf: () => widget.field,
-              glowOf: () => widget.glowOf?.call(),
-              child: child!,
-            );
-          }, child: KeyedSubtree(key: _childKey, child: widget.child)),
+          child: !shaderFiltersSupported || gpuRenderer == null
+              ? child
+              : MultiShaderBuilder(assetKeys: ShaderKeys.liquidGlassRenders, (
+                  context,
+                  shaders,
+                  child,
+                ) {
+                  return _RawShapes(
+                    defaultRenderShader: shaders[0],
+                    ios27RenderShader: shaders[1],
+                    materialRenderShader: shaders[2],
+                    tintRenderShader: shaders[3],
+                    tintIos27RenderShader: shaders[4],
+                    backdropKey: backdropKey,
+                    blursOwnBackdrop: widget.blursOwnBackdrop,
+                    solidBackdrop: widget.solidBackdrop,
+                    // A keyed group reads its own copy on purpose (glass
+                    // painted in between belongs in it); only an unkeyed
+                    // read is cached.
+                    backdropCache: backdropKey == null
+                        ? GlassBackdropCacheScope.maybeOf(context)
+                        : null,
+                    live: live,
+                    settingsOf: () => widget.settings,
+                    defaultAppearance: defaultAppearance,
+                    link: _link,
+                    gpuGeometryRenderer: gpuRenderer,
+                    fieldOf: () => widget.field,
+                    glowOf: () => widget.glowOf?.call(),
+                    child: child!,
+                  );
+                }, child: child),
         ),
       ),
-    );
-  }
-
-  Widget _buildFakeLayer({
-    required BackdropKey? backdropKey,
-    required LiquidGlassAppearance defaultAppearance,
-    required LiquidGlassSettings settings,
-    required Widget child,
-  }) {
-    // Match the full renderer's retained subtree boundary. FakeGlass paints
-    // several contour-following canvas bands; without this boundary an
-    // ancestor/compositor transform can make every band record again even
-    // though neither the shape nor material changed.
-    final live = widget.live;
-    Widget buildFakeSurfaceLayer(FragmentShader? surfaceShader) {
-      return RepaintBoundary(
-        child: LiquidGlassRenderScope(
-          settings: settings,
-          settingsLive: live == null ? null : _settingsLive,
-          defaultAppearance: defaultAppearance,
-          consolidatesFakeBackdrop: true,
-          consolidatesFakeSurface: true,
-          backdropKey: backdropKey,
-          child: InheritedGeometryRenderLink(
-            link: _link,
-            child: ConsolidatedFakeGlassLayer(
-              link: _link,
-              live: live,
-              settingsOf: () => widget.settings,
-              defaultAppearance: defaultAppearance,
-              backdropKey: backdropKey,
-              surfaceShader: surfaceShader,
-              outlineOf: () =>
-                  widget.field?.outline ?? widget.outlineOf?.call(),
-              child: child,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return MultiShaderBuilder(
-      assetKeys: _fakeSurfaceShaderAssets,
-      (_, shaders, _) => buildFakeSurfaceLayer(shaders.firstOrNull),
-      child: buildFakeSurfaceLayer(null),
     );
   }
 }
@@ -2716,9 +2623,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   final List<double> _cullData = [];
   static final Matrix4 _identity = Matrix4.identity();
 
-  @override
-  double get materialOutset => _contourOutset;
-
   double get _contourOutset {
     if (settings.contourWidth <= 0) return 0;
     return max(
@@ -2979,7 +2883,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
             scale: devicePixelRatio,
           );
           // The geometry shader tests each cap's angular span as
-          // 1 - cos(span); FakeGlass reads the spans themselves.
+          // 1 - cos(span).
           rseParameters[2] = 1.0 - cos(rseParameters[2]);
           rseParameters[3] = 1.0 - cos(rseParameters[3]);
           _rseData.addAll(rseParameters);

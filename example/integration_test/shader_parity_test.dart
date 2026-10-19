@@ -37,10 +37,9 @@ const int _frames = int.fromEnvironment('SHADER_FRAMES', defaultValue: 40);
 
 /// The bench's cases when SHADER_CASES names none: a control row, a large
 /// face, a frosted menu, the material variant, the tint variant, a lifted
-/// lens, fake glass.
+/// lens.
 const String _benchCases =
-    'regular-dark,big-sheet,menu-frosted,mixed-models,tint-pair,lens-lifted,'
-    'fake-big-sheet';
+    'regular-dark,big-sheet,menu-frosted,mixed-models,tint-pair,lens-lifted';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

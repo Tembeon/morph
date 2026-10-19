@@ -703,9 +703,6 @@ class _Qa {
     await _sceneTop();
     await shot('glass-light-disabled');
     await _setting(_switchNamed('Disabled'));
-    await _setting(find.text('Fake'));
-    await _sceneTop();
-    await shot('glass-fake');
     await _setting(find.text('Flat'));
     await _sceneTop();
     await shot('glass-off');

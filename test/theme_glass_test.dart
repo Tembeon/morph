@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_device.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass.dart';
 
 void main() {
+  setUpAll(() => isLocalTest = true);
+  tearDownAll(() => isLocalTest = false);
   setUp(() => morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.capable);
   tearDown(() => morphGlassDeviceClassProbe = morphProbeGlassDeviceClass);
 
@@ -72,8 +75,8 @@ void main() {
         },
       ),
     );
-    await tester.pumpWidget(app(const .tier(.fake)));
-    expect(GlassAdaptiveScope.tierOf(inside), MorphGlassTier.fake);
+    await tester.pumpWidget(app(const .tier(.liquid)));
+    expect(GlassAdaptiveScope.tierOf(inside), MorphGlassTier.liquid);
     await tester.pumpWidget(app(const .tier(.flat)));
     expect(GlassAdaptiveScope.tierOf(inside), MorphGlassTier.flat);
   });
@@ -85,7 +88,7 @@ void main() {
     late BuildContext inner;
     await tester.pumpWidget(
       MorphTheme(
-        data: const MorphThemeData(glass: .tier(.fake)),
+        data: const MorphThemeData(glass: .tier(.liquid)),
         child: Builder(
           builder: (context) {
             outer = context;
@@ -105,9 +108,9 @@ void main() {
         ),
       ),
     );
-    expect(GlassAdaptiveScope.tierOf(outer), MorphGlassTier.fake);
+    expect(GlassAdaptiveScope.tierOf(outer), MorphGlassTier.liquid);
     expect(GlassAdaptiveScope.tierOf(inner), MorphGlassTier.flat);
     final tinted = tester.element(find.byType(MorphTheme).at(2));
-    expect(GlassAdaptiveScope.tierOf(tinted), MorphGlassTier.fake);
+    expect(GlassAdaptiveScope.tierOf(tinted), MorphGlassTier.liquid);
   });
 }

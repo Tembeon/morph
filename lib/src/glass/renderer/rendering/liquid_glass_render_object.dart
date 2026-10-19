@@ -9,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/src/glass/renderer/glass_shadow.dart';
 import 'package:morph/src/glass/renderer/internal/glass_composition_probe.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/retained_glass_clip.dart';
@@ -39,40 +38,6 @@ enum GlassFrameState {
 
   /// The frame drew the glass effect for at least one visible shape.
   active,
-}
-
-/// Grows [bounds] to include the exterior shadows of [shapes], whose
-/// coordinates map into the layer through their transforms.
-@internal
-Rect expandForGlassShadows(
-  Rect bounds,
-  Iterable<(List<ShapeGeometry>, Matrix4)> shapes,
-  LiquidGlassSettings settings,
-) {
-  var result = bounds;
-  for (final (geometryShapes, geometryToLayer) in shapes) {
-    for (final shape in geometryShapes) {
-      final shapeVisibility = shape.appearance.visibility.clamp(0.0, 1.0);
-      if (shapeVisibility <= 0) continue;
-      final shapeToLayer = shape.shapeToGeometry == null
-          ? geometryToLayer
-          : geometryToLayer.multiplied(shape.shapeToGeometry!);
-      for (final shadow in shape.shadows) {
-        final extent = max(
-          shadow.spreadRadius +
-              glassShadowBlurSupport(shadow.blurRadius * shapeVisibility),
-          0,
-        ).toDouble();
-        final localBounds = (Offset.zero & shape.renderObject.size)
-            .shift(shadow.offset)
-            .inflate(extent);
-        result = result.expandToInclude(
-          MatrixUtils.transformRect(shapeToLayer, localBounds),
-        );
-      }
-    }
-  }
-  return result;
 }
 
 bool _debugWarnedOpacityBetweenShapeAndLayer = false;
@@ -118,11 +83,10 @@ bool debugCheckOpacityBetweenShapesAndLayer(
 ///
 /// The base owns shape registration via [GeometryRenderLink], transform
 /// polling ([FramePollMarker] and the compositor-translation poll), the
-/// retained [GlassFrameState] with its encoded input snapshot, layer
-/// shadows, retained ancestor clips ([RetainedGlassClip])
-/// and compositor translation. Subclasses implement only their effect in
-/// [paintFrame]: real glass renders a GPU matte plus the final shader
-/// filter; fake glass draws a blur plus a surface shader.
+/// retained [GlassFrameState] with its encoded input snapshot, retained
+/// ancestor clips ([RetainedGlassClip]) and compositor translation. The
+/// subclass implements only its effect in [paintFrame]: a GPU matte plus
+/// the final shader filter.
 @internal
 abstract class LiquidGlassRenderObject extends RenderProxyBox
     implements LiquidGlassLayerRenderObject {
@@ -221,11 +185,11 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   shapesWithGeometry = [];
 
   /// Snapshot of the inputs the effect last encoded: each shape's render
-  /// object, geometry cache and transform into this layer. The real layer
-  /// writes it when it encodes the GPU matte; the fake layer's clip cache
-  /// matches against it. This is not the compositor-translation baseline -
-  /// the poll compares [shapesWithGeometry] - so it may stay stale while a
-  /// frame intentionally keeps the last encode (idle).
+  /// object, geometry cache and transform into this layer. The layer
+  /// writes it when it encodes the GPU matte. This is not the
+  /// compositor-translation baseline - the poll compares
+  /// [shapesWithGeometry] - so it may stay stale while a frame
+  /// intentionally keeps the last encode (idle).
   final List<_EncodedGeometryInput> _encodedGeometryInputs = [];
 
   /// Layer-local bounds the retained frame was encoded for. Only effects
@@ -378,8 +342,8 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     _ancestorClips.update(this, shapeRenderObjects);
   }
 
-  /// The structural identity of a frame's geometry: render objects, whether
-  /// they carry shadows, and their ancestry to this layer. Retained updates
+  /// The structural identity of a frame's geometry: render objects and
+  /// their ancestry to this layer. Retained updates
   /// compare it to detect topology changes that need a normal paint.
   @protected
   List<Object> geometryStructure(
@@ -388,7 +352,6 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     for (final entry in geometries)
       for (final shape in entry.$2.shapes) ...[
         shape.renderObject,
-        shape.shadows.isNotEmpty,
         for (
           var node = shape.renderObject.parent;
           node != null && !identical(node, this);
@@ -408,12 +371,10 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     var index = 0;
     for (final entry in geometries) {
       for (final shape in entry.$2.shapes) {
-        if (index + 2 > retained.length ||
-            retained[index] != shape.renderObject ||
-            retained[index + 1] != shape.shadows.isNotEmpty) {
+        if (index >= retained.length || retained[index] != shape.renderObject) {
           return false;
         }
-        index += 2;
+        index += 1;
         for (
           var node = shape.renderObject.parent;
           node != null && !identical(node, this);
@@ -471,9 +432,9 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   );
 
   /// Snapshots the committed shapes' identities, caches and transforms into
-  /// the encoded inputs, reusing entries where possible. Only encode paths
-  /// call this - the matte render for real glass, the clip cache for fake;
-  /// the compositor-translation poll reads [shapesWithGeometry] instead.
+  /// the encoded inputs, reusing entries where possible. Only the matte
+  /// render calls this; the compositor-translation poll reads
+  /// [shapesWithGeometry] instead.
   @protected
   void rememberFrameInputs() {
     final inputs = _encodedGeometryInputs;
@@ -722,117 +683,6 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   @protected
   void updateIdleAncestorClips() =>
       _idleAncestorClips.update(this, shapeRenderObjects);
-
-  // MARK: Effect bounds and shadows
-
-  /// Logical outset the effect paints around the geometry bounds: the SDF
-  /// contour support for real glass, the surface outset for the fallback.
-  @protected
-  double get materialOutset;
-
-  /// Grows [bounds] by this layer's [materialOutset] and the committed
-  /// shapes' exterior shadows, in layer coordinates.
-  @protected
-  Rect expandEffectBounds(Rect bounds) => expandForGlassShadows(
-    bounds.inflate(materialOutset),
-    _shadowSources(),
-    settings,
-  );
-
-  Iterable<(List<ShapeGeometry>, Matrix4)> _shadowSources() =>
-      shapesWithGeometry.map((entry) => (entry.$2.shapes, entry.$3));
-
-  /// Draws every committed shape's exterior shadows into [canvas] at
-  /// [offset], then cuts the shape silhouettes back out so interior fills
-  /// do not darken the glass. Both passes scale with shape visibility.
-  @protected
-  void drawGlassShadows(Canvas canvas, Offset offset) {
-    // The silhouette cutout needs a saveLayer, so skip the pass entirely
-    // when no committed shape casts a shadow.
-    final hasShadows = shapesWithGeometry.any(
-      (entry) => entry.$2.shapes.any((shape) => shape.shadows.isNotEmpty),
-    );
-    if (!hasShadows) return;
-    canvas.save();
-    canvas.translate(offset.dx, offset.dy);
-    canvas.saveLayer(effectPaintBounds, Paint());
-
-    for (final (_, geometry, geometryToLayer) in shapesWithGeometry) {
-      for (final shape in geometry.shapes) {
-        final shapeVisibility = shape.appearance.visibility.clamp(0.0, 1.0);
-        if (shape.shadows.isEmpty || shapeVisibility <= 0) continue;
-        canvas.save();
-        canvas.transform(geometryToLayer.storage);
-        if (shape.shapeToGeometry case final transform?) {
-          canvas.transform(transform.storage);
-        }
-        final rect = Offset.zero & shape.renderObject.size;
-        for (final shadow in shape.shadows) {
-          final paint = shadow
-              .copyWith(
-                color: shadow.color.withValues(
-                  alpha: shadow.color.a * shapeVisibility,
-                ),
-                blurRadius: shadow.blurRadius * shapeVisibility,
-                blurStyle: BlurStyle.normal,
-              )
-              .toPaint();
-          _drawGlassShape(
-            canvas,
-            shape.shape,
-            rect.shift(shadow.offset).inflate(shadow.spreadRadius),
-            paint,
-          );
-        }
-        canvas.restore();
-      }
-    }
-
-    for (final (_, geometry, geometryToLayer) in shapesWithGeometry) {
-      for (final shape in geometry.shapes) {
-        final shapeVisibility = shape.appearance.visibility.clamp(0.0, 1.0);
-        if (shapeVisibility <= 0) continue;
-        canvas.save();
-        canvas.transform(geometryToLayer.storage);
-        if (shape.shapeToGeometry case final transform?) {
-          canvas.transform(transform.storage);
-        }
-        _drawGlassShape(
-          canvas,
-          shape.shape,
-          (Offset.zero & shape.renderObject.size).deflate(.5),
-          Paint()
-            ..color = Color.fromRGBO(0, 0, 0, shapeVisibility)
-            ..blendMode = BlendMode.dstOut,
-        );
-        canvas.restore();
-      }
-    }
-    canvas.restore();
-    canvas.restore();
-  }
-
-  void _drawGlassShape(
-    Canvas canvas,
-    LiquidShape shape,
-    Rect rect,
-    Paint paint,
-  ) {
-    switch (shape) {
-      case LiquidRoundedSuperellipse(:final borderRadius):
-        canvas.drawRSuperellipse(
-          RSuperellipse.fromRectAndRadius(rect, Radius.circular(borderRadius)),
-          paint,
-        );
-      case LiquidOval():
-        canvas.drawOval(rect, paint);
-      case LiquidRoundedRectangle(:final borderRadius):
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, Radius.circular(borderRadius)),
-          paint,
-        );
-    }
-  }
 
   @override
   @mustCallSuper

@@ -1,34 +1,9 @@
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/morph.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 
-/// The backdrop keys of every filter painted on screen (null for a
-/// filter that takes a copy of its own). The glass's opacity seed layer, a
-/// subclass that adds a pass only inside a fractional opacity, is not one.
-Set<BackdropKey?> _keys() {
-  final out = <BackdropKey?>{};
-  void walk(Layer layer) {
-    if (layer.runtimeType == BackdropFilterLayer) {
-      out.add((layer as BackdropFilterLayer).backdropKey);
-    }
-    if (layer is ContainerLayer) {
-      for (
-        var child = layer.firstChild;
-        child != null;
-        child = child.nextSibling
-      ) {
-        walk(child);
-      }
-    }
-  }
-
-  for (final view in RendererBinding.instance.renderViews) {
-    final root = view.debugLayer;
-    if (root != null) walk(root);
-  }
-  return out;
-}
+import 'support/glass_backdrop_keys.dart';
 
 Widget _button(String label) => MorphGlassButton(
   key: ValueKey<String>(label),
@@ -37,6 +12,9 @@ Widget _button(String label) => MorphGlassButton(
 );
 
 void main() {
+  setUpAll(() => isLocalTest = true);
+  tearDownAll(() => isLocalTest = false);
+
   testWidgets('a section in its own BackdropGroup reads a copy of its own', (
     tester,
   ) async {
@@ -47,7 +25,7 @@ void main() {
         MaterialApp(
           debugShowCheckedModeBanner: false,
           home: MorphTheme(
-            data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
+            data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
             child: BackdropGroup(
               backdropKey: page,
               child: Center(
@@ -75,7 +53,7 @@ void main() {
       );
       tester.takeException();
       await tester.pump();
-      return _keys();
+      return glassBackdropKeys(tester).toSet();
     }
 
     expect(await keys(own: false), {page});

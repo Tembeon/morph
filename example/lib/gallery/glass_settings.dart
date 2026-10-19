@@ -40,9 +40,9 @@ const MethodChannel galleryDisplayChannel = MethodChannel(
 /// The values live as long as the app does; nothing is written to disk.
 ///
 /// The glass tier starts as `--dart-define=GALLERY_GLASS=<name>` says:
-/// auto (the default: the theme picks it by the device's GPU), liquid,
-/// fake or flat. A build without the liquid tier
-/// (the web) draws fake glass in its place.
+/// auto (the default: the theme picks it by the device's GPU), liquid or
+/// flat. A build without the liquid tier (the web) draws flat glass in its
+/// place.
 class GalleryGlassSettings extends ChangeNotifier {
   /// The tier name a new settings object starts with; the device benches
   /// set it at launch so one build serves every tier.

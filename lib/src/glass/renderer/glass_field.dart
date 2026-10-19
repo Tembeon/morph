@@ -47,8 +47,7 @@ class GlassField {
   final double step;
 
   /// The zero contour of the field as a path in the layer's logical
-  /// coordinates, when its owner traced it: fake glass, which draws no
-  /// field, clips its backdrop and surfaces to it.
+  /// coordinates, when its owner traced it.
   final Path? outline;
 
   /// The box the grid spans.

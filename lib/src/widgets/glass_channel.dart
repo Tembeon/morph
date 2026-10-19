@@ -296,9 +296,9 @@ class _MorphGlassHostElement extends ComponentElement {
   @override
   void mount(Element? parent, Object? newSlot) {
     _host.frames?.addListener(_framed);
-    // A renderer asking for liquid draws fake until the capability
+    // A renderer asking for liquid draws flat until the capability
     // resolves, and its == does not see that; a resting host would keep
-    // the fake tree until its next frame.
+    // the flat tree until its next frame.
     if (!morphLiquidGlassCapability.value) {
       morphLiquidGlassCapability.addListener(_capabilityResolved);
     }

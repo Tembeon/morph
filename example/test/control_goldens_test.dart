@@ -10,8 +10,8 @@ import 'package:morph/morph.dart';
 
 import '../integration_test/support/control_matrix.dart';
 
-/// Every cell of the control matrix, on the flat and fake tiers, as a
-/// sequence of frame hashes at fixed steps of fake time, against the
+/// Every cell of the control matrix, on the flat tier, as a sequence of
+/// frame hashes at fixed steps of fake time, against the
 /// hashes recorded in test/fixtures/control_goldens.json: a change that
 /// must keep pixels (a control moved onto its own render object) proves it
 /// here.
@@ -30,7 +30,8 @@ final File _fixture = File('test/fixtures/control_goldens.json');
 
 void _main() {
   setUpAll(() async {
-    // No Impeller on the host: the renderer reports its fake fallback once.
+    // No Impeller on the host: the renderer reports once that liquid glass
+    // is unavailable.
     final previous = FlutterError.onError;
     FlutterError.onError = (FlutterErrorDetails details) {};
     try {
@@ -52,56 +53,50 @@ void _main() {
     );
   });
 
-  for (final tier in ['flat', 'fake']) {
-    testWidgets('control frames on the $tier tier', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      final previousTier = GalleryGlassSettings.initialTier;
-      GalleryGlassSettings.initialTier = tier;
-      addTearDown(() => GalleryGlassSettings.initialTier = previousTier);
-      final boundary = GlobalKey();
-      await tester.pumpWidget(
-        RepaintBoundary(
-          key: boundary,
-          child: const GalleryApp(key: ValueKey('matrix'), home: MatrixStage()),
-        ),
-      );
-      await tester.pump(const Duration(seconds: 1));
-      final driver = _HashingDriver(tester, boundary);
-      await runControlMatrix(driver, (String scene) => true);
-      final golden = _fixture.existsSync()
-          ? (jsonDecode(_fixture.readAsStringSync()) as Map<String, Object?>)
-          : const <String, Object?>{};
-      final failures = <String>[];
-      for (final MapEntry(:key, :value) in driver.frames.entries) {
-        final name = '$tier $key';
-        recorded[name] = value;
-        if (_update) continue;
-        final expected = (golden[name] as List<Object?>?)?.cast<String>();
-        if (expected == null) {
-          failures.add('$name: no recorded frames');
-          continue;
-        }
-        final n = value.length < expected.length
-            ? value.length
-            : expected.length;
-        var at = 0;
-        while (at < n && value[at] == expected[at]) {
-          at++;
-        }
-        if (at < n || value.length != expected.length) {
-          failures.add(
-            '$name: frame $at of ${expected.length} differs '
-            '(${value.length} taken)',
-          );
-        }
+  testWidgets('control frames on the flat tier', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final previousTier = GalleryGlassSettings.initialTier;
+    GalleryGlassSettings.initialTier = 'flat';
+    addTearDown(() => GalleryGlassSettings.initialTier = previousTier);
+    final boundary = GlobalKey();
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: boundary,
+        child: const GalleryApp(key: ValueKey('matrix'), home: MatrixStage()),
+      ),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    final driver = _HashingDriver(tester, boundary);
+    await runControlMatrix(driver, (String scene) => true);
+    final golden = _fixture.existsSync()
+        ? (jsonDecode(_fixture.readAsStringSync()) as Map<String, Object?>)
+        : const <String, Object?>{};
+    final failures = <String>[];
+    for (final MapEntry(:key, :value) in driver.frames.entries) {
+      final name = 'flat $key';
+      recorded[name] = value;
+      if (_update) continue;
+      final expected = (golden[name] as List<Object?>?)?.cast<String>();
+      if (expected == null) {
+        failures.add('$name: no recorded frames');
+        continue;
       }
-      expect(failures, isEmpty, reason: failures.join('\n'));
-    });
-  }
+      final n = value.length < expected.length ? value.length : expected.length;
+      var at = 0;
+      while (at < n && value[at] == expected[at]) {
+        at++;
+      }
+      if (at < n || value.length != expected.length) {
+        failures.add(
+          '$name: frame $at of ${expected.length} differs '
+          '(${value.length} taken)',
+        );
+      }
+    }
+    expect(failures, isEmpty, reason: failures.join('\n'));
+  });
 }
 
 /// Drives the matrix like the audit, hashing a frame every third pump of

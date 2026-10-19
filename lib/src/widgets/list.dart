@@ -256,10 +256,9 @@ class MorphListBackground extends StatelessWidget {
 /// [MorphGlassContainer] would, and since that glass can read nothing but
 /// the card's opaque color, on the liquid tier it shades it over that
 /// color without reading the backdrop: no backdrop filter at all, instead
-/// of one per button. The fake tier keeps one backdrop-reading layer for
-/// the card. A custom child's glass must be inset from the card's rounded
-/// edge by more than its refraction reaches: nearer, it shows the card's
-/// color where it would refract the page around the card. A
+/// of one per button. A custom child's glass must be inset from the card's
+/// rounded edge by more than its refraction reaches: nearer, it shows the
+/// card's color where it would refract the page around the card. A
 /// [MorphListRow] whose highlight shows draws its glass
 /// in a layer of its own until the highlight goes, so the glass reads the
 /// highlight under it. Frosted controls ([GlassBuiltInPainter.frostControls])

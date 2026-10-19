@@ -572,7 +572,6 @@ enum MorphGlassStyle
   clear,
 enum MorphGlassTier
   flat,
-  fake,
   liquid,
 class MorphLargeTitle extends StatelessWidget
   const MorphLargeTitle(
@@ -2062,7 +2061,7 @@ class MorphGlassScope extends InheritedTheme
   })
   static MorphGlassPainter? maybeOf(BuildContext context)
   final MorphGlassPainter painter
-  overrides: updateShouldNotify, wrap
+  overrides: createElement, updateShouldNotify, wrap
 class MorphGlassSurface
   const MorphGlassSurface({
     required MorphGlassKind kind,

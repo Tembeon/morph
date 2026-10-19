@@ -13,7 +13,7 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 class FlutterGpuGeometryRenderer {
   FlutterGpuGeometryRenderer._();
 
-  /// Always fails on the web; callers fall back to fake glass.
+  /// Always fails on the web; callers draw no liquid glass.
   static Future<FlutterGpuGeometryRenderer> fromAsset(String assetKey) =>
       Future<FlutterGpuGeometryRenderer>.error(
         UnsupportedError('Flutter GPU is not available on the web.'),

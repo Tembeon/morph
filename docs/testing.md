@@ -81,9 +81,10 @@ it.
   into the PURE motion class at their recorded times and compares geometry per frame
   within per-quantity tolerances: a red replay is a fidelity regression, never a flaky
   test, and tolerances are not knobs.
-- flutter_test has no Impeller: the liquid tier builds its real tree but paints the
-  fallback, so host tests cannot judge shader output. Shader pixel identity is checked on
-  the device (`tool/audit/shader/parity.py`).
+- flutter_test has no Impeller: the liquid tier builds its real tree but its layers paint
+  their content without glass, so host tests cannot judge shader output or count glass
+  backdrop filters (count the layers that hold shapes instead). Shader pixel identity is
+  checked on the device (`tool/audit/shader/parity.py`).
 - Tracing-pipeline changes also run `flutter test benchmark/liquid_benchmark_test.dart`
   (JIT numbers, relative before/after only).
 

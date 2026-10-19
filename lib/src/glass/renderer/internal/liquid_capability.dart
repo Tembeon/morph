@@ -29,7 +29,7 @@ class LiquidCapability extends ValueNotifier<bool> {
       FlutterError.reportError(
         FlutterErrorDetails(
           exception: FlutterError(
-            'Liquid glass is unavailable; morph is using fake glass. '
+            'Liquid glass is unavailable; morph is using flat glass. '
             'Reason: $_unavailableReason',
           ),
           stack: stack,

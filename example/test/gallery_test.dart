@@ -213,14 +213,13 @@ void main() {
     expect(settings.tier, isNull);
     await Scrollable.ensureVisible(tester.element(flat), alignment: 0.5);
     await _settle(tester);
-    // The host draws flat on auto, so the tier goes through fake first to
-    // see the tap on Flat change what is drawn.
-    await tester.tap(find.text('Fake'));
+    // The host has no liquid tier: liquid is installed as flat.
+    await tester.tap(find.text('Liquid'));
     await _settle(tester);
-    expect(settings.tier, MorphGlassTier.fake);
+    expect(settings.tier, MorphGlassTier.liquid);
     expect(
       GlassAdaptiveScope.tierOf(tester.element(flat)),
-      MorphGlassTier.fake,
+      MorphGlassTier.flat,
     );
     await tester.tap(flat);
     await _settle(tester);

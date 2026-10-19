@@ -28,8 +28,9 @@ import 'support/glass_scenes.dart';
 /// often.
 ///
 /// flutter_test has no Impeller, so the liquid tier builds its real widget
-/// and render tree but paints through the renderer's fallback: captures
-/// are the fallback's, the widget and paint counts are the liquid tier's.
+/// and render tree but its layers paint their content without glass: the
+/// widget and paint counts are the liquid tier's, and it captures no glass
+/// backdrop there.
 void main() {
   final fixture = File('test/fixtures/perf/counts.json');
   final update = Platform.environment['PERF_COUNTS_UPDATE'] == 'true';
@@ -138,8 +139,8 @@ void main() {
 /// back under it, so the entry is removed with the fix.
 const Map<String, Map<String, num>> _temporaryCeilings = {
   // The open menu repaints while only its touch glow moves (merge
-  // 2cda60f4); the targets are the fixture's 36.7 / 5.5 / 2.8.
-  'menu-card/liquid': {'paints': 38.7, 'pictures': 5.8, 'captures': 2.9},
+  // 2cda60f4); the target is the fixture's 36.7.
+  'menu-card/liquid': {'paints': 38.7},
 };
 
 const _pinnedKeys = [

@@ -8,7 +8,7 @@ SwiftUI `Glass`, `glassEffect(_:in:)`, `DefaultGlassEffectShape`, `GlassEffectCo
 `containerShape(_:)`, `GeometryProxy.concentricCornerRadii`.
 morph (`package:morph/morph.dart`): `MorphGlassEffect` (`child`, `shape`, `style`, `tint`, `interactive`,
 `appearance`), `MorphGlassStyle` (`regular`, `clear`), `MorphGlassContainer` (`child`, `solidBackdrop`),
-`MorphGlassRenderer` (`.adaptive()`, `.tier(MorphGlassTier)`), `MorphGlassTier` (`flat`, `fake`, `liquid`),
+`MorphGlassRenderer` (`.adaptive()`, `.tier(MorphGlassTier)`), `MorphGlassTier` (`flat`, `liquid`),
 `MorphThemeData.glass`, `MorphTheme.precacheGlass` / `liquidGlassAvailable` / `liquidGlassUnavailableReason`.
 Painter seam (`package:morph/glass_painter.dart`): `MorphGlassScope`, `MorphGlassPainter` (`buildSurface`,
 `buildFill`, `buildBody`, `buildLayer(spacing:, contentSlots:, outline:)`), `MorphGlassSurface`
@@ -67,7 +67,7 @@ Counts (members an app developer uses, n/a excluded): glass material and contain
 - `_UILiquidLensView`, `_UIFlexInteraction`: private; ported as internals (lens-and-flex.md).
 
 ## morph-only API
-- `MorphGlassRenderer.adaptive()` / `.tier()`, `MorphGlassTier`: the renderer tier per session (performance goal, no native analogue). `adaptive()` dartdoc says "flat glass elsewhere"; the code draws fake glass where Flutter GPU is missing (web): fix the doc.
+- `MorphGlassRenderer.adaptive()` / `.tier()`, `MorphGlassTier`: the renderer tier per session (performance goal, no native analogue). `adaptive()` draws flat glass wherever liquid is unavailable, the web included, as its dartdoc says.
 - `MorphTheme.precacheGlass`, `liquidGlassAvailable`, `liquidGlassUnavailableReason`: shader warm-up and capability.
 - `MorphGlassContainer.solidBackdrop`: performance lever, trusts the color.
 - `MorphGlassEffect.appearance` (`MorphGlassButtonAppearance`): flat colors without a painter or on the flat tier.
@@ -80,7 +80,7 @@ Counts (members an app developer uses, n/a excluded): glass material and contain
 | 2 | Clear and tinted glass look unmeasured (upstream fits) | high | M meas. | record `clearGlass` / tinted panels as for the regular face table |
 | 3 | Concentric corners | med | S-M | `MorphConcentricBorder` (+ `concentricCornerRadii`) |
 | 4 | `GlassEffectTransition` / animated `effect` | low-med | M (materialize measured on the sim) | `MorphGlassEffect.transition` |
-| 5 | Arbitrary shapes in `MorphGlassEffect` | low-med | M | per-corner radii, then paths (fake glass only for paths) |
+| 5 | Arbitrary shapes in `MorphGlassEffect` | low-med | M | per-corner radii, then paths (flat only for paths) |
 | 6 | Increase Contrast glass material | med | M meas. | measure on the device, then a high-contrast table |
 | 7 | `glassEffectUnion`, `Glass.identity`, `backgroundExtensionEffect` | low | M | later |
 
@@ -116,11 +116,11 @@ Family `renderer-tiers` (`UIVisualEffectView`; tiers have no native analogue):
 | api | missing | `MorphGlassEffect` covers init / contentView | animated `effect` change |
 | layout | n/a | every tier draws the package's outline (test/glass_outline_contract_test.dart) | - |
 | states | measured | tier per device class from Pixel 6a Vulkan / GLES, iPhone 16 Pro, Redmi 6A Skia (glass-renderer.md "Adaptive policy"); test/glass_renderer_test.dart 'the adaptive tier' | Apple GPUs before the A13 and `unknown` -> liquid unmeasured |
-| transitions | n/a | one tier per session; `MorphTheme.precacheGlass` removes the fake-to-liquid start (test/glass_pipeline_warm_up_test.dart, test/glass_startup_bounds_test.dart) | - |
+| transitions | n/a | one tier per session; `MorphTheme.precacheGlass` removes the flat-to-liquid start (test/glass_liquid_flip_test.dart, test/glass_startup_bounds_test.dart) | - |
 | boundaries | approx | blur raised to Impeller's half resolution by at most 12 percent, NEAR (blur_reach.dart, test/blur_reach_test.dart) | - |
-| configuration | approx | fake = liquid without refraction and lens optics, least-squares face line; flat = flat fill (both declared, glass-renderer.md "Tiers") | - |
+| configuration | approx | flat = flat fill (declared, glass-renderer.md "Tiers") | - |
 | events, input, mutation | n/a | - | - |
 | accessibility | n/a | - | Reduce Transparency could select a tier if Flutter exposed it |
-| optics | approx | declared fake / flat looks; liquid optics graded above | - |
-| platform | measured | liquid iOS / macOS / Android, fake on the web (glass_liquid_web.dart), flat on Skia and GLES (device runs above) | Windows / Linux not run (macOS stands in) |
+| optics | approx | declared flat look; liquid optics graded above | - |
+| platform | measured | liquid iOS / macOS / Android, flat on the web (glass_liquid_web.dart), on Skia and GLES (device runs above) | Windows / Linux not run (macOS stands in) |
 | performance | measured | glass-renderer.md device sections; the passport marks the policy numbers as engineering defaults | - |

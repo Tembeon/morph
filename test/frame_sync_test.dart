@@ -4,7 +4,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/liquid_glass.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/live.dart';
@@ -18,10 +17,7 @@ import 'package:morph/src/widgets/glass_renderer.dart';
 /// structure changes, and the value drawn in a frame is the motion's value
 /// of that frame.
 void main() {
-  setUpAll(() async {
-    isLocalTest = true;
-    await MultiShaderBuilder.precacheShaders([ShaderKeys.fakeGlassSurface]);
-  });
+  setUpAll(() => isLocalTest = true);
   tearDownAll(() => isLocalTest = false);
 
   final running = <AnimationController>[];

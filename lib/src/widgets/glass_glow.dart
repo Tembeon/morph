@@ -17,7 +17,7 @@ import 'package:morph/src/motion/timeline.dart';
 /// dodge whose white level is `1 - 1 / factorAt`. A [MorphGlassPainter]
 /// renders them as part of the surface's glass or not at all; the
 /// package's renderer evaluates both in its liquid tier's final glass
-/// shader, and its flat and fake tiers draw no glow.
+/// shader, and its flat tier draws no glow.
 @immutable
 class MorphGlassGlow {
   /// Creates a glow description.

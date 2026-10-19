@@ -78,25 +78,25 @@ void main() {
 
   for (final analytic in [false, true]) {
     test(
-      'fake and flat outlines are the package fusion, analytic $analytic',
+      'fused and flat outlines are the package fusion, analytic $analytic',
       () {
         RenderLiquidGlassLayer.debugAnalyticGeometry = analytic;
         // The traced flat silhouette; shader bodies are pinned elsewhere.
         MorphFlatBodyShader.debugEnabled = false;
         addTearDown(() => MorphFlatBodyShader.debugEnabled = null);
         final frame = _frame(pair);
-        final fake = frame.partsFor(MorphGlassTier.fake).fused.single.$2;
+        final fused = frame.parts.fused.single.$2;
         final flat = frame.partsFor(MorphGlassTier.flat).fused.single.$2;
-        expect(fake, same(morphGlassContainerOutline(pair, 12)));
+        expect(fused, same(morphGlassContainerOutline(pair, 12)));
         expect(
           flat,
           same(morphGlassContainerOutline(pair, 12, withField: false)),
         );
-        expect(morphGlassOutlineField(fake), isNot(isA<GlassBoxField>()));
+        expect(morphGlassOutlineField(fused), isNot(isA<GlassBoxField>()));
         expect(morphGlassOutlineField(flat), isNull);
         final liquid = frame.partsFor(MorphGlassTier.liquid).fused.single.$2;
         expect(morphGlassOutlineField(liquid) is GlassBoxField, analytic);
-        if (!analytic) expect(liquid, same(fake));
+        if (!analytic) expect(liquid, same(fused));
       },
     );
   }

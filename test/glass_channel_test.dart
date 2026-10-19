@@ -1,25 +1,22 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/liquid_glass.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
-import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+
+import 'support/liquid_capability.dart';
 
 /// The glass channel: a frame that keeps a layer's structure reaches the
 /// render objects without a widget build below the host; a frame that
 /// changes it rebuilds the tree once.
 void main() {
-  setUpAll(() async {
-    isLocalTest = true;
-    await MultiShaderBuilder.precacheShaders([ShaderKeys.fakeGlassSurface]);
-  });
+  setUpAll(() => isLocalTest = true);
   tearDownAll(() => isLocalTest = false);
 
   Future<(ValueNotifier<int>, List<MorphGlassSurface> Function())> pumpLayer(
@@ -250,19 +247,10 @@ void main() {
     );
   });
 
-  testWidgets('a resting host leaves fake glass once liquid glass is ready', (
+  testWidgets('a resting host leaves flat glass once liquid glass is ready', (
     tester,
   ) async {
-    final capability = morphLiquidGlassCapability as ValueNotifier<bool>;
-    final previous = FlutterError.onError;
-    FlutterError.onError = (FlutterErrorDetails details) {
-      if (details.library != 'morph glass') previous?.call(details);
-    };
-    isLocalTest = false;
-    addTearDown(() {
-      isLocalTest = true;
-      FlutterError.onError = previous;
-    });
+    final capability = pendingLiquidGlass();
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
@@ -280,21 +268,10 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(
-      tester
-          .widgetList<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
-          .map((LiquidGlassLayer layer) => layer.fake),
-      everyElement(isTrue),
-    );
+    expect(find.byType(LiquidGlassLayer), findsNothing);
     capability.value = true;
     await tester.pump();
     expect(find.byType(LiquidGlassLayer), findsWidgets);
-    expect(
-      tester
-          .widgetList<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
-          .map((LiquidGlassLayer layer) => layer.fake),
-      everyElement(isFalse),
-    );
   });
 }
 

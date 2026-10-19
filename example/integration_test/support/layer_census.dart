@@ -100,8 +100,8 @@ class LayerCensus {
     final owner =
         // ignore: invalid_use_of_internal_member
         GlassLayerOwners.owners?[layer] ??
-        // A render object whose own layer is the filter (BackdropFilter,
-        // fake glass) is found by the walk below.
+        // A render object whose own layer is the filter (BackdropFilter) is
+        // found by the walk below.
         _layerOwners[layer];
     if (owner == null) {
       _relabel();

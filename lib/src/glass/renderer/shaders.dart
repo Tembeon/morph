@@ -128,9 +128,6 @@ abstract class ShaderKeys {
     liquidGlassTintIos27Render,
   ];
 
-  static String get fakeGlassSurface =>
-      '${_runtimeRoot}fake_glass_surface.frag';
-
   /// The single-pass Gaussian the bar glyphs blur with.
   static String get glyphBlur =>
       '${_shadersRoot}lib/src/widgets/shaders/glyph_blur.frag';

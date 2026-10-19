@@ -10,18 +10,23 @@ import 'package:morph/src/liquid_field.dart';
 /// A control hands one to `MorphGlassPainter.buildLayer` when its glass
 /// surfaces are one body whose edge is not their own shapes - a menu
 /// joined to its button by a neck. The package computes it once, by the
-/// same law on every quality tier, so a flat fill, fake glass and
-/// liquid glass all draw the same shape.
+/// same law on both tiers, so a flat fill and liquid glass draw the same
+/// shape.
 ///
 /// [path] is the edge in the layer's local coordinates. An outline the
 /// package fused also carries the body's signed distance field, from which
 /// the package's own renderer shades the body as liquid glass; the plain
 /// union of rounded boxes carries the boxes, which the renderer shades as
-/// their own exact shapes; an outline created from a path alone is clipped
-/// instead.
+/// their own exact shapes; an outline created from a path alone carries
+/// neither and is drawn flat.
 @immutable
 class MorphGlassOutline {
   /// Creates an outline from its edge alone.
+  ///
+  /// It carries no distance field, so the package's own renderer has
+  /// nothing to shade it from: it draws such a body as a flat fill of
+  /// [path] in its first surface's color on the liquid tier too, as the
+  /// flat tier does. A custom [MorphGlassPainter] gets the path as given.
   const MorphGlassOutline(Path path)
     : _path = path,
       _field = null,
@@ -1009,7 +1014,7 @@ MorphGlassOutline? _recentHit(
 /// a liquid layer that evaluates the merge law itself: its field is a
 /// [GlassBoxField] of the shapes, fused only if something reads its
 /// samples, and its path the plain union of the shapes, for the body's
-/// blurred shadow. Fake glass and flat fills, which clip to the edge, take
+/// blurred shadow. Flat fills, which clip to the edge, take
 /// [morphGlassContainerOutline] instead.
 ///
 /// Falls back to [morphGlassContainerOutline] for spacing 0 or more than

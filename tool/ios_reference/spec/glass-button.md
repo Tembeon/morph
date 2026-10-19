@@ -69,8 +69,8 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
   (tab-bar.md: rise 0.1 s critical after 0.042 s, 93 pt spot, fall 0.5 s
   after 0.02 s, x4) differs in rise, delay and size; whether a button
   glows the same is open. morph lights the capsule in the liquid tier's
-  final glass pass (docs/glass.md "Touch glow"); flat, fake and the
-  button without a painter draw no glow.
+  final glass pass (docs/glass.md "Touch glow"); flat and the button
+  without a painter draw no glow.
 - `.glass()` and `.prominentGlass()` move identically.
 - Text: title 17 regular.
 - Reused by: bar capsules (recorded 1 + 16/w), search field (lift only,

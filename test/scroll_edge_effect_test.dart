@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/morph.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_inspector.dart';
@@ -30,6 +31,9 @@ Map<String, Object?>? _filter(Map<String, Object?> state, String type) {
 }
 
 void main() {
+  setUpAll(() => isLocalTest = true);
+  tearDownAll(() => isLocalTest = false);
+
   testWidgets('flat edges keep their fade without backdrop reads', (
     WidgetTester tester,
   ) async {
@@ -66,7 +70,7 @@ void main() {
     );
     for (final style in MorphScrollEdgeEffectStyle.values) {
       for (final edge in [AxisDirection.up, AxisDirection.down]) {
-        await tester.pumpWidget(scene(MorphGlassTier.fake, style, edge));
+        await tester.pumpWidget(scene(MorphGlassTier.liquid, style, edge));
         expect(MorphGlassInspector.census().filters, 2);
         await tester.pumpWidget(scene(MorphGlassTier.flat, style, edge));
         for (final value in [1.0, 0.5, 0.0, 0.75, 1.0]) {
@@ -89,7 +93,7 @@ void main() {
             image.dispose();
           });
         }
-        await tester.pumpWidget(scene(MorphGlassTier.fake, style, edge));
+        await tester.pumpWidget(scene(MorphGlassTier.liquid, style, edge));
         expect(MorphGlassInspector.census().filters, 2);
       }
     }
@@ -130,7 +134,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: MorphGlassScope(
-              painter: const GlassBuiltInPainter(tier: MorphGlassTier.fake),
+              painter: const GlassBuiltInPainter(tier: MorphGlassTier.liquid),
               child: Stack(
                 children: [
                   const Positioned.fill(child: ColoredBox(color: Colors.red)),

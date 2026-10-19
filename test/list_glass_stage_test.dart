@@ -11,10 +11,12 @@ import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 
+import 'support/glass_backdrop_keys.dart';
+
 final GlobalKey _shot = GlobalKey();
 
 Widget _list({
-  MorphGlassTier tier = MorphGlassTier.fake,
+  MorphGlassTier tier = MorphGlassTier.liquid,
   GlassBuiltInPainter renderer = const GlassBuiltInPainter(),
   int rows = 4,
 }) => MaterialApp(
@@ -53,28 +55,6 @@ Widget _list({
   ),
 );
 
-int _filters() {
-  var count = 0;
-  void walk(Layer layer) {
-    if (layer.runtimeType == BackdropFilterLayer) count++;
-    if (layer is ContainerLayer) {
-      for (
-        var child = layer.firstChild;
-        child != null;
-        child = child.nextSibling
-      ) {
-        walk(child);
-      }
-    }
-  }
-
-  for (final view in RendererBinding.instance.renderViews) {
-    final root = view.debugLayer;
-    if (root != null) walk(root);
-  }
-  return count;
-}
-
 Future<Uint8List> _pixels(WidgetTester tester) async {
   final boundary =
       _shot.currentContext!.findRenderObject()! as RenderRepaintBoundary;
@@ -91,28 +71,26 @@ void main() {
   tearDownAll(() => isLocalTest = false);
   tearDown(() => debugMorphGlassStagesOpen = true);
 
-  for (final tier in [MorphGlassTier.liquid, MorphGlassTier.fake]) {
-    testWidgets('a section shades its rows\' resting glass accessories in '
-        'one layer (${tier.name})', (WidgetTester tester) async {
-      await tester.pumpWidget(_list(tier: tier));
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.byType(LiquidGlass), findsNWidgets(4));
-      expect(find.byType(LiquidGlassLayer), findsOneWidget);
-    });
-  }
+  testWidgets('a section shades its rows\' resting glass accessories in '
+      'one layer', (WidgetTester tester) async {
+    await tester.pumpWidget(_list());
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(LiquidGlass), findsNWidgets(4));
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+  });
 
-  testWidgets('a section paints one backdrop filter for its accessories', (
+  testWidgets('a section reads one backdrop for its accessories', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(_list());
     await tester.pump(const Duration(milliseconds: 100));
-    final shared = _filters();
+    final shared = glassLayersWithShapes();
     debugMorphGlassStagesOpen = false;
     await tester.pumpWidget(_list(rows: 3));
     await tester.pumpWidget(_list());
     await tester.pump(const Duration(milliseconds: 100));
     expect(shared, 1);
-    expect(_filters(), 4);
+    expect(glassLayersWithShapes(), 4);
   });
 
   testWidgets('a highlighted row\'s accessory leaves the section\'s layer '

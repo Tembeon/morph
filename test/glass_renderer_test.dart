@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/src/glass/renderer/rendering/consolidated_fake_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_device_native.dart';
 import 'package:morph/src/widgets/glass_liquid_native.dart';
@@ -17,7 +16,7 @@ import 'package:morph/src/widgets/glass_renderer.dart';
 void main() {
   setUpAll(() => isLocalTest = true);
 
-  testWidgets('the fake tier draws the liquid layers as fake glass', (
+  testWidgets('the liquid tier draws a liquid layer and flat draws none', (
     tester,
   ) async {
     const surface = MorphGlassSurface(
@@ -26,7 +25,7 @@ void main() {
       color: Color(0xFF34C759),
       brightness: Brightness.light,
     );
-    for (final tier in [MorphGlassTier.fake, MorphGlassTier.liquid]) {
+    for (final tier in MorphGlassTier.values) {
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,
@@ -44,10 +43,10 @@ void main() {
         ),
       );
       tester.takeException();
-      final layer = tester.widget<LiquidGlassLayer>(
+      expect(
         find.byType(LiquidGlassLayer),
+        tier == MorphGlassTier.liquid ? findsOneWidget : findsNothing,
       );
-      expect(layer.fake, tier == MorphGlassTier.fake);
     }
   });
 
@@ -390,10 +389,9 @@ void main() {
           case MorphGlassTier.flat:
             expect(layers, isEmpty);
             expect(blurs, 0);
-          case MorphGlassTier.fake || MorphGlassTier.liquid:
+          case MorphGlassTier.liquid:
             expect(layers, hasLength(1));
             expect(layers.single.field, isNotNull);
-            expect(layers.single.fake, tier == MorphGlassTier.fake);
         }
       });
     }
@@ -446,11 +444,41 @@ void main() {
       );
       expect(layer.field, same(morphGlassOutlineField(outline)));
       expect(find.byType(ClipPath), findsNothing);
-      final fake = tester.renderObject<RenderConsolidatedFakeGlassLayer>(
-        find.byType(ConsolidatedFakeGlassLayer),
-      );
-      expect(fake.outline, same(outline.path));
-      expect(fake.debugClipPath, same(outline.path));
+    });
+
+    testWidgets('an outline from a path alone is drawn flat on liquid', (
+      tester,
+    ) async {
+      const menu = RRect.fromLTRBXY(20, 0, 220, 80, 32, 32);
+      const button = RRect.fromLTRBXY(100, 90, 144, 134, 22, 22);
+      final path = Path();
+      path.addRRect(menu);
+      path.addRRect(button);
+      const surfaces = [
+        MorphGlassSurface(
+          kind: MorphGlassKind.button,
+          shape: button,
+          color: Color(0xF2222222),
+          brightness: Brightness.dark,
+        ),
+        MorphGlassSurface(
+          kind: MorphGlassKind.menu,
+          shape: menu,
+          color: Color(0xF2222222),
+          brightness: Brightness.dark,
+        ),
+      ];
+      for (final tier in MorphGlassTier.values) {
+        await tester.pumpWidget(
+          host(
+            (context) => GlassBuiltInPainter(
+              tier: tier,
+            ).buildLayer(context, surfaces, outline: MorphGlassOutline(path)),
+          ),
+        );
+        expect(find.byType(LiquidGlassLayer), findsNothing);
+        expect(find.byType(CustomPaint), findsOneWidget);
+      }
     });
   });
 
@@ -580,7 +608,7 @@ void main() {
       expect(GlassAdaptiveScope.cheapTier, MorphGlassTier.flat);
     });
 
-    test('Skia, where the best tier is fake glass, gets the cheap tier', () {
+    test('Skia gets the cheap tier whatever the renderer can draw', () {
       for (final best in MorphGlassTier.values) {
         expect(
           GlassAdaptiveScope.tierFor(MorphGlassDeviceClass.skia, best),
@@ -591,12 +619,6 @@ void main() {
 
     test('never goes above the tier the renderer can draw', () {
       for (final deviceClass in MorphGlassDeviceClass.values) {
-        expect(
-          GlassAdaptiveScope.tierFor(deviceClass, MorphGlassTier.fake),
-          deviceClass == MorphGlassDeviceClass.skia
-              ? GlassAdaptiveScope.cheapTier
-              : MorphGlassTier.fake,
-        );
         expect(
           GlassAdaptiveScope.tierFor(deviceClass, MorphGlassTier.flat),
           MorphGlassTier.flat,
@@ -658,8 +680,8 @@ void main() {
       );
       morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.capable;
       expect(
-        await drawn(tester, tier: MorphGlassTier.fake),
-        MorphGlassTier.fake,
+        await drawn(tester, tier: MorphGlassTier.flat),
+        MorphGlassTier.flat,
       );
     });
   });

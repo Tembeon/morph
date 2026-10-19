@@ -72,7 +72,6 @@ class HarnessCase {
     this.name,
     this.settings,
     this.shapes, {
-    this.fake = false,
     this.field,
     this.ownBackdrop = false,
   });
@@ -85,9 +84,6 @@ class HarnessCase {
 
   /// The shapes the layer shades.
   final List<HarnessShape> shapes;
-
-  /// Whether the layer draws fake glass.
-  final bool fake;
 
   /// The fused body's distance field, for a field case.
   final GlassField? field;
@@ -282,29 +278,10 @@ final List<HarnessCase> harnessCases = [
     LiquidGlassSettings.ios27ToolbarLight(),
     _trio(const LiquidGlassAppearance.ios27ToolbarLight(visibility: 0.5)),
   ),
-  HarnessCase(
-    'fake-regular-dark',
-    const LiquidGlassSettings(frost: 0),
-    _trio(_darkRegular),
-    fake: true,
-  ),
-  HarnessCase(
-    'fake-clear',
-    LiquidGlassSettings.ios27Clear(),
-    _trio(const LiquidGlassAppearance.ios27Clear()),
-    fake: true,
-  ),
   _frostedLens('lens-frost-rise', 0.1, 0.4),
   _frostedLens('lens-frost-quarter', 0.25, 1),
   _frostedLens('lens-frost-half', 0.5, 1),
   _frostedLens('lens-frost-late', 0.85, 1),
-  HarnessCase('fake-big-sheet', const LiquidGlassSettings(frost: 0), [
-    HarnessShape(
-      const Rect.fromLTWH(10, 20, 340, 600),
-      _rse(34),
-      const LiquidGlassAppearance.ios27RegularLight(tint: _blue),
-    ),
-  ], fake: true),
 ];
 
 /// Two 52 pt capsules fused by a polynomial smooth minimum of 20 pt,
@@ -450,7 +427,6 @@ Widget harnessScene({
                   key: ValueKey('${glassCase.name}-${variant.name}-$copy'),
                   child: LiquidGlassLayer(
                     settings: glassCase.settings,
-                    fake: glassCase.fake,
                     field: glassCase.field,
                     blursOwnBackdrop: glassCase.ownBackdrop,
                     defaultAppearance: _darkRegular,

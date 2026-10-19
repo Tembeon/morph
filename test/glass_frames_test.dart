@@ -34,7 +34,6 @@ void main() {
   setUpAll(() async {
     isLocalTest = true;
     await MultiShaderBuilder.precacheShaders([
-      ShaderKeys.fakeGlassSurface,
       ...ShaderKeys.liquidGlassRenders,
     ]);
     // A flat container body that fuses fills its traced outline until

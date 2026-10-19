@@ -160,18 +160,14 @@ void main() {
   });
 
   test('only the flat renderer and no painter take the edge alone', () {
+    isLocalTest = true;
+    addTearDown(() => isLocalTest = false);
     expect(morphGlassShadesOutlines(null), isFalse);
     expect(
       morphGlassShadesOutlines(
         const GlassBuiltInPainter(tier: MorphGlassTier.flat),
       ),
       isFalse,
-    );
-    expect(
-      morphGlassShadesOutlines(
-        const GlassBuiltInPainter(tier: MorphGlassTier.fake),
-      ),
-      isTrue,
     );
     expect(morphGlassShadesOutlines(const GlassBuiltInPainter()), isTrue);
     expect(morphGlassShadesOutlines(const _FlatSubclass()), isTrue);

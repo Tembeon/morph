@@ -10,6 +10,8 @@ import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 
+import 'support/glass_backdrop_keys.dart';
+
 Offset _center(int i) => Offset(40 + (i % 8) * 50.0, 60 + (i ~/ 8) * 44.0);
 
 Widget _page(
@@ -49,82 +51,49 @@ Widget _page(
   );
 }
 
-int _filters() {
-  var count = 0;
-  void walk(Layer layer) {
-    if (layer.runtimeType == BackdropFilterLayer) count++;
-    if (layer is ContainerLayer) {
-      for (
-        var child = layer.firstChild;
-        child != null;
-        child = child.nextSibling
-      ) {
-        walk(child);
-      }
-    }
-  }
-
-  for (final view in RendererBinding.instance.renderViews) {
-    final root = view.debugLayer;
-    if (root != null) walk(root);
-  }
-  return count;
-}
-
 void main() {
   setUpAll(() => isLocalTest = true);
   tearDownAll(() => isLocalTest = false);
 
-  for (final tier in [MorphGlassTier.liquid, MorphGlassTier.fake]) {
-    testWidgets('resting buttons in a container share one layer '
-        '(${tier.name})', (WidgetTester tester) async {
-      await tester.pumpWidget(_page(8, container: true, tier: tier));
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.byType(LiquidGlassLayer), findsOneWidget);
-      expect(find.byType(LiquidGlass), findsNWidgets(8));
-      await tester.pumpWidget(_page(8, container: false, tier: tier));
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.byType(LiquidGlassLayer), findsNWidgets(8));
-    });
-  }
+  testWidgets('resting buttons in a container share one layer', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_page(8, container: true));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(find.byType(LiquidGlass), findsNWidgets(8));
+    await tester.pumpWidget(_page(8, container: false));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(LiquidGlassLayer), findsNWidgets(8));
+  });
 
-  for (final tier in [MorphGlassTier.liquid, MorphGlassTier.fake]) {
-    testWidgets('resting buttons stay in the container across a brightness '
-        'flip (${tier.name})', (WidgetTester tester) async {
-      await tester.pumpWidget(_page(4, container: true, tier: tier));
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.byType(LiquidGlassLayer), findsOneWidget);
-      await tester.pumpWidget(
-        _page(4, container: true, tier: tier, brightness: .light),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byType(LiquidGlassLayer), findsOneWidget);
-      expect(find.byType(LiquidGlass), findsNWidgets(4));
-      await tester.pumpWidget(_page(4, container: true, tier: tier));
-      await tester.pumpAndSettle();
-      expect(find.byType(LiquidGlassLayer), findsOneWidget);
-    });
-  }
+  testWidgets('resting buttons stay in the container across a brightness '
+      'flip', (WidgetTester tester) async {
+    await tester.pumpWidget(_page(4, container: true));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    await tester.pumpWidget(_page(4, container: true, brightness: .light));
+    await tester.pumpAndSettle();
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(find.byType(LiquidGlass), findsNWidgets(4));
+    await tester.pumpWidget(_page(4, container: true));
+    await tester.pumpAndSettle();
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+  });
 
   testWidgets('a resting button outside a container takes the new '
       'brightness into its layer', (WidgetTester tester) async {
     LiquidGlassAppearance? appearance() => tester
         .widget<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
         .defaultAppearance;
-    await tester.pumpWidget(
-      _page(1, container: false, tier: MorphGlassTier.fake, brightness: .light),
-    );
+    await tester.pumpWidget(_page(1, container: false, brightness: .light));
     await tester.pumpAndSettle();
     final light = appearance();
-    await tester.pumpWidget(
-      _page(1, container: false, tier: MorphGlassTier.fake),
-    );
+    await tester.pumpWidget(_page(1, container: false));
     await tester.pumpAndSettle();
     final dark = appearance();
     expect(dark, isNot(light));
-    await tester.pumpWidget(
-      _page(1, container: false, tier: MorphGlassTier.fake, brightness: .light),
-    );
+    await tester.pumpWidget(_page(1, container: false, brightness: .light));
     await tester.pumpAndSettle();
     expect(appearance(), light);
   });
@@ -313,19 +282,15 @@ void main() {
     expect(find.byType(LiquidGlassLayer), findsNothing);
   });
 
-  testWidgets('a container paints one backdrop filter for its buttons', (
+  testWidgets('a container reads one backdrop for its buttons', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(
-      _page(8, container: true, tier: MorphGlassTier.fake),
-    );
+    await tester.pumpWidget(_page(8, container: true));
     await tester.pump(const Duration(milliseconds: 100));
-    final shared = _filters();
-    await tester.pumpWidget(
-      _page(8, container: false, tier: MorphGlassTier.fake),
-    );
+    final shared = glassLayersWithShapes();
+    await tester.pumpWidget(_page(8, container: false));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(shared, lessThan(_filters()));
+    expect(shared, lessThan(glassLayersWithShapes()));
   });
 
   testWidgets('a container hands its solid backdrop to its glass layer', (
@@ -346,27 +311,6 @@ void main() {
     }
   });
 
-  testWidgets('on the fake tier a solid backdrop changes nothing', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      _page(8, container: true, tier: MorphGlassTier.fake),
-    );
-    await tester.pump(const Duration(milliseconds: 100));
-    final reading = _filters();
-    expect(reading, greaterThan(0));
-    await tester.pumpWidget(
-      _page(
-        8,
-        container: true,
-        tier: MorphGlassTier.fake,
-        solidBackdrop: const Color(0xFF203040),
-      ),
-    );
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(_filters(), reading);
-  });
-
   testWidgets('a tinted button joins the container of plain ones', (
     WidgetTester tester,
   ) async {
@@ -375,7 +319,7 @@ void main() {
         builder: morphFromMaterial,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
         home: MorphTheme(
-          data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
           child: ColoredBox(
             color: const Color(0xFF406080),
             child: MorphGlassContainer(
@@ -449,7 +393,7 @@ void main() {
             builder: morphFromMaterial,
             theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
             home: MorphTheme(
-              data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
+              data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
               child: RepaintBoundary(
                 key: key,
                 child: ColoredBox(
@@ -493,7 +437,7 @@ void main() {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
         home: MorphTheme(
-          data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
           child: Builder(
             builder: (BuildContext context) => Center(
               child: TextButton(

@@ -7,8 +7,7 @@ Vulkan, 60 Hz, 16.67 ms budget): the gallery must hold 60+ fps
 everywhere on it, ideally with headroom toward 120 fps so weaker devices
 still hold 60. Fidelity may be traded for performance where the eye does
 not notice, and every trade is stated as IDENTICAL, NEAR or an
-approximation. Both renderers - glass (liquid / fake) and flat - stay
-supported.
+approximation. Both renderers - liquid glass and flat - stay supported.
 
 ## 1. Targets and admission policy
 
@@ -74,11 +73,12 @@ supported.
 - Work per frame (deterministic, every `flutter test`):
   test/perf_counts_test.dart counts rebuilds, paints, re-recorded
   pictures, backdrop captures, offscreen layers, traced outlines,
-  snapshot fallbacks and idle frames for eleven scenes x three tiers,
+  snapshot fallbacks and idle frames for eleven scenes x two tiers,
   pinned as ceilings in test/fixtures/perf/counts.json
   (`PERF_COUNTS_UPDATE=true` rewrites it after a change that lowers a
   count). flutter_test has no Impeller: liquid builds its real tree but
-  paints the fallback.
+  its layers paint their content without glass, so liquid counts no
+  glass captures there.
 - Pixel identity across frames: test/glass_frames_test.dart hashes.
 - Skin / flight (AOT): `cd example && flutter build macos --release
   --dart-define=MORPH_BENCH=true`, run the binary, grep BENCH.
@@ -94,7 +94,7 @@ supported.
 |---|---|---|
 | Analytic geometry | eligible liquid layer (<= 8 shapes, uniform or tint-only; container body <= 4 uniform-radius boxes) evaluated in the final shader: no matte, material pass, field upload or CPU fusion | on; `MORPH_ANALYTIC_GEOMETRY=false` restores the matte, mode `changes` = analytic only while geometry changes; host oracles pin the shader to liquid_field.dart (mean < 0.75/channel); body shadow NEAR |
 | Flat shader bodies | flat fused body of <= 4 boxes filled by the merge law in flat_fused_body.frag; path traced only if read | on; `MORPH_FLAT_SHADER_BODIES=false` restores the traced path |
-| Flat sparse silhouette | flat fused bodies trace their exact silhouette without unused optical fields (fake/liquid keep full fields) | IDENTICAL (silhouette hashes match all 63 collections) |
+| Flat sparse silhouette | flat fused bodies trace their exact silhouette without unused optical fields (liquid keeps full fields) | IDENTICAL (silhouette hashes match all 63 collections) |
 | Menu fusion workers | `MorphFusionWorker`: fuse the next three predicted frames on up to four isolates, served within 0.02 pt per input | profile/release only; IDENTICAL law |
 | Menu fusion core | plain-union field from box distances, grids kept across calls, menu face built once | IDENTICAL |
 | Field uploads | fewer per-frame field uploads (07bb27d) | IDENTICAL |
@@ -254,7 +254,6 @@ Profile builds, ms unless stated; most recent measurement per scene.
 | Redmi 6A flat push / pop | missed slots per window 2-4 / 3 | same |
 | iPhone 16 Pro liquid segmented / tab bar / controls | build p95 1.32 / 1.56 / 2.56; raster p95 1.68 / 2.82 / 2.25 | perf/2026-10-05-apple-verify |
 | iPhone 16 Pro liquid menu / home scroll / sheet | build p95 2.12 / 1.39 / 1.33; raster p95 3.05 / 2.32 / 2.76 | perf/2026-10-05-apple-verify |
-| iPhone 16 Pro fake controls / menu / sheet | raster p95 3.93 / 3.37 / 3.08 | perf/2026-10-05-apple-verify |
 | iPhone 16 Pro flat menu | build p95 1.55 (fusion ahead); raster p95 1.76 | perf/2026-10-06-fusion-ab, 2026-10-05-apple-verify |
 | iPhone 16 Pro liquid buttons, raster p50 | 16: 2.50 -> 1.19 in a container; 32: 3.53 -> 1.46 | perf/2026-10-05-apple-verify |
 | macOS AOT release bench | oneMoving/cached 57 us/op, manyPieces 436, megaCluster64 1 939 (8 239 unbounded); glacial flight raster p95 1.33 | release bench |

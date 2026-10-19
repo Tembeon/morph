@@ -82,8 +82,16 @@ void main() {
         for (final step in setup.steps) {
           final result = await recorder.record(step);
           lines.add(result.describe(name));
-          if (_ceilings['$name ${step.name}'] case final ceiling?) {
-            over.addAll(result.over(ceiling));
+          final key = '$name ${step.name}';
+          if (_ceilings[key] case final ceiling?) {
+            final raised = _temporaryCeilings[key];
+            over.addAll(result.over(raised ?? ceiling));
+            if (raised != null && result.over(ceiling).isEmpty) {
+              over.add(
+                '${step.name}: back under its target; remove its temporary '
+                'ceiling',
+              );
+            }
           }
         }
         await setup.end?.call(tester);
@@ -546,6 +554,43 @@ const _ceilings = <String, _Ceiling>{
 };
 
 typedef _Ceiling = ({int first, int ms, int builds, int layouts, int paints});
+
+/// Ceilings raised by the owner until a known cost is removed. [_ceilings]
+/// keeps the target; a step back under it fails, so the entry goes with
+/// the fix.
+const _temporaryCeilings = <String, _Ceiling>{
+  // With the fake tier gone the host builds GlassShadow as the device
+  // always did, and its layouts count (no-fake-tier merge); target 7.
+  'navigation/liquid push': (
+    first: 248,
+    ms: 960,
+    builds: 2,
+    layouts: 9,
+    paints: 50,
+  ),
+  'navigation/liquid pop': (
+    first: 137,
+    ms: 944,
+    builds: 2,
+    layouts: 9,
+    paints: 51,
+  ),
+  // The same GlassShadow layouts under a held or dragged lens; target 3.
+  'tabbar-touch/liquid drag-lens-home-to-profile': (
+    first: 0,
+    ms: 2192,
+    builds: 0,
+    layouts: 4,
+    paints: 107,
+  ),
+  'tabbar-touch/liquid press-hold-home': (
+    first: 0,
+    ms: 1616,
+    builds: 0,
+    layouts: 4,
+    paints: 107,
+  ),
+};
 
 const _screen = Size(402, 874);
 const _frame = Duration(milliseconds: 16);

@@ -1,6 +1,6 @@
-/// The glass layers of the liquid and the fake tier: the renderer's
-/// layers over the package's shapes. Shared by every build; the web,
-/// without Flutter GPU, draws them as fake glass.
+/// The glass layers of the liquid tier: the renderer's layers over the
+/// package's shapes. Shared by every build; the web, without Flutter GPU,
+/// never reaches them and draws its glass flat.
 library;
 
 import 'dart:math' as math;
@@ -23,7 +23,6 @@ import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
-import 'package:morph/src/theme/glass.dart';
 
 MorphGlassMaterial _materialOf(
   GlassBuiltInPainter renderer,
@@ -207,8 +206,8 @@ LiquidGlassGlow? _glowOf(List<MorphGlassSurface> surfaces) {
 /// one body shaded from [field] when it is given; [exact] shapes are the
 /// surfaces' own circular rounded boxes instead of continuous corners. A
 /// lifted lens's layer shrinks its backdrop by [shrink] about a center
-/// line of [rim] weight. On the liquid tier the layer's final pass applies
-/// the touch glow of its lit surface ([_glowOf]); fake glass draws none.
+/// line of [rim] weight. The layer's final pass applies the touch glow of
+/// its lit surface ([_glowOf]).
 ///
 /// With [slots] the layer holds that many shapes whatever [select] picks,
 /// the ones past its pick absent ([_slotShapes]), and reads its settings
@@ -224,7 +223,6 @@ Widget _layer(
   Path? Function(MorphGlassFrame frame)? outline,
   bool shadows = true,
   bool exact = false,
-  bool? fake,
   bool ownBackdrop = false,
   int? slots,
   MorphGlassSurface Function(MorphGlassFrame frame)? anchor,
@@ -245,8 +243,7 @@ Widget _layer(
   });
   final fieldOf = field == null ? null : source.pick(field);
   final outlineOf = outline == null ? null : source.pick(outline);
-  final faked = fake ?? renderer.effectiveTier == MorphGlassTier.fake;
-  final glow = faked ? null : source.pick((f) => _glowOf(select(f)));
+  final glow = source.pick((f) => _glowOf(select(f)));
   return ClipRect(
     clipper: const _Reach(),
     child: LiquidGlassLayer.live(
@@ -255,8 +252,7 @@ Widget _layer(
       defaultAppearance: morphLiquidAppearance(renderer, first(source.frame)),
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
       outlineOf: outlineOf == null ? null : () => outlineOf.value,
-      glowOf: glow == null ? null : () => glow.value,
-      fake: faked,
+      glowOf: () => glow.value,
       useBackdropGroup: shared,
       blursOwnBackdrop: ownBackdrop,
       child: slots == null
@@ -388,8 +384,8 @@ MorphGlassSurface _local(MorphGlassSurface surface) => MorphGlassSurface(
   shadows: surface.shadows,
 );
 
-/// One glass surface on the liquid or the fake tier, the one [select]
-/// picks from [source], sized to its bounds.
+/// One glass surface on the liquid tier, the one [select] picks from
+/// [source], sized to its bounds.
 @internal
 Widget morphLiquidSurface(
   GlassBuiltInPainter renderer,
@@ -403,16 +399,14 @@ Widget morphLiquidSurface(
   shared: !_chrome(select(source.frame)),
 );
 
-/// One fused glass body on the liquid or the fake tier, the one [select]
-/// picks from [source], filling its layer's box.
+/// One fused glass body on the liquid tier, the one [select] picks from
+/// [source], filling its layer's box.
 ///
 /// A body the package fused carries its distance field and is shaded from
 /// it, neck included. A plain union is shaded from its surfaces' own
 /// rounded boxes, the nearest one at every point, exactly the field it
-/// would sample. Fake glass clips to the outline and draws each region the
-/// face of its largest surface, the neck tinted like the first. An outline
-/// built from a path alone has no field to shade, so it is fake glass on
-/// both tiers.
+/// would sample. An outline built from a path alone has no field to shade,
+/// so it is drawn as the flat tier draws it ([morphGlassLiveBody]).
 @internal
 Widget morphLiquidBody(
   GlassBuiltInPainter renderer,
@@ -422,42 +416,32 @@ Widget morphLiquidBody(
   select,
 ) {
   final (surfaces, outline) = select(source.frame);
-  final chrome = surfaces.any(_chrome);
-  final field = morphGlassOutlineField(outline);
   final exact = morphGlassOutlineShapes(outline) != null;
-  List<MorphGlassSurface> members(MorphGlassFrame f) => select(f).$1;
-  if (field != null || exact) {
-    return CustomPaint(
-      painter: MorphGlassBodyShadow.live(
-        source.pick((f) {
-          final (surfaces, outline) = select(f);
-          return (
-            outline.path,
-            _shadows(surfaces.first),
-            surfaces.first.opacity.clamp(0.0, 1.0),
-            morphGlassOutlineShadowCover(outline),
-          );
-        }),
-      ),
-      child: _layer(
-        renderer,
-        source,
-        members,
-        shared: !chrome,
-        field: (f) => morphGlassOutlineField(select(f).$2),
-        outline: (f) => select(f).$2.path,
-        shadows: false,
-        exact: exact,
-      ),
-    );
+  if (morphGlassOutlineField(outline) == null && !exact) {
+    return morphGlassLiveBody(source, select);
   }
-  return _layer(
-    renderer,
-    source,
-    members,
-    shared: !chrome,
-    outline: (f) => select(f).$2.path,
-    fake: true,
+  return CustomPaint(
+    painter: MorphGlassBodyShadow.live(
+      source.pick((f) {
+        final (surfaces, outline) = select(f);
+        return (
+          outline.path,
+          _shadows(surfaces.first),
+          surfaces.first.opacity.clamp(0.0, 1.0),
+          morphGlassOutlineShadowCover(outline),
+        );
+      }),
+    ),
+    child: _layer(
+      renderer,
+      source,
+      (f) => select(f).$1,
+      shared: !surfaces.any(_chrome),
+      field: (f) => morphGlassOutlineField(select(f).$2),
+      outline: (f) => select(f).$2.path,
+      shadows: false,
+      exact: exact,
+    ),
   );
 }
 
@@ -532,8 +516,7 @@ class _LensRects {
   int get hashCode => Object.hashAll(lenses);
 }
 
-/// One layer of a control on the liquid or the fake tier, built from
-/// [source].
+/// One layer of a control on the liquid tier, built from [source].
 ///
 /// A control's glass body surfaces share a layer: the ones drawn as their
 /// own shapes one layer, each fused body a layer of its own shaded from
@@ -586,7 +569,6 @@ Widget morphLiquidLayer(
   List<RRect> lenses(MorphGlassFrame f) => [
     for (final i in lensed) f.partsFor(tier).floating[i].shape,
   ];
-  final refracts = renderer.effectiveTier == MorphGlassTier.liquid;
   final snapshot = source.keep('snapshot', GlassContentSnapshot.new);
   Widget at(
     (String, int) slot,
@@ -685,12 +667,8 @@ Widget morphLiquidLayer(
                     magnification:
                         1 +
                         lensOptics.magnification * lens.lift.clamp(0.0, 1.0),
-                    grow: refracts
-                        ? morphBackdropScale(lens, shrinkOf(lens))
-                        : 1,
-                    axis: refracts
-                        ? morphShrinkAxis(lens.bounds, lensOptics.rim)
-                        : Offset.zero,
+                    grow: morphBackdropScale(lens, shrinkOf(lens)),
+                    axis: morphShrinkAxis(lens.bounds, lensOptics.rim),
                   );
                 }),
                 snapshot: snapshot,
