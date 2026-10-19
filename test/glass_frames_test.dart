@@ -14,11 +14,15 @@ import 'package:morph/morph.dart';
 
 import 'support/glass_scenes.dart';
 
-/// The glass channel draws exactly what a rebuild of every glass layer
-/// draws: every scene of the perf counts, on every tier, recorded frame by
-/// frame twice - once with the glass hosts pushing frames into their
-/// render objects, once with every host rebuilding its whole tree from the
-/// painter on every frame - and the frames compared pixel for pixel.
+/// The glass channel draws what a rebuild of every glass layer draws, up
+/// to raster rounding: every scene of the perf counts, on every tier,
+/// recorded frame by frame twice - once with the glass hosts pushing
+/// frames into their render objects, once with every host rebuilding its
+/// whole tree from the painter on every frame - and the frames compared
+/// pixel for pixel. A channel may differ by one 8-bit level, as a label's
+/// raster edge sampled under a transform that was composited again rather
+/// than painted again does; no channel may differ by more, and the frames
+/// with such pixels are counted and printed.
 ///
 /// `GLASS_FRAMES_OUT=<file> flutter test test/glass_frames_test.dart`
 /// also writes the frame hashes of the pushing run, to compare a tree
@@ -46,7 +50,7 @@ void main() {
     }
   });
 
-  final rebuilt = <String, List<String>>{};
+  final rebuilt = <String, List<Uint32List>>{};
   final modes = switch (Platform.environment['GLASS_FRAMES_MODE']) {
     'rebuilt' => [false],
     'pushed' => [true],
@@ -66,21 +70,48 @@ void main() {
           debugMorphGlassRebuildEveryFrame = !push;
           final frames = await _record(tester, scene, tier);
           expect(frames, isNotEmpty);
-          dumped[name] = frames;
+          dumped[name] = [for (final f in frames) _hash(f)];
           if (!push) {
-            rebuilt[name] = frames;
+            if (modes.contains(true)) rebuilt[name] = frames;
             return;
           }
-          final reference = rebuilt[name];
+          final reference = rebuilt.remove(name);
           if (reference == null) return;
-          expect(frames, orderedEquals(reference), reason: name);
+          expect(frames.length, reference.length, reason: name);
+          final rounded = <String>[];
+          for (var f = 0; f < frames.length; f++) {
+            final (:worst, :pixels) = _compare(frames[f], reference[f]);
+            expect(worst, lessThanOrEqualTo(1), reason: '$name frame $f');
+            if (pixels > 0) rounded.add('frame $f: $pixels px');
+          }
+          if (rounded.isNotEmpty) {
+            debugPrint('$name: one level apart in ${rounded.join(', ')}');
+          }
         });
       }
     }
   }
 }
 
-Future<List<String>> _record(
+/// The largest difference of one 8-bit channel between [a] and [b], and
+/// how many pixels differ at all.
+({int worst, int pixels}) _compare(Uint32List a, Uint32List b) {
+  var worst = 0;
+  var pixels = 0;
+  for (var i = 0; i < a.length; i++) {
+    final x = a[i];
+    final y = b[i];
+    if (x == y) continue;
+    pixels++;
+    for (var shift = 0; shift < 32; shift += 8) {
+      final d = (((x >> shift) & 0xFF) - ((y >> shift) & 0xFF)).abs();
+      if (d > worst) worst = d;
+    }
+  }
+  return (worst: worst, pixels: pixels);
+}
+
+Future<List<Uint32List>> _record(
   WidgetTester tester,
   GlassScene scene,
   MorphGlassTier tier,
@@ -116,11 +147,11 @@ Future<List<String>> _record(
   tester.binding.addPersistentFrameCallback(capture);
   await scene.run(tester);
   active = false;
-  final hashes = await tester.runAsync(() async {
-    final out = <String>[];
+  final pixels = await tester.runAsync(() async {
+    final out = <Uint32List>[];
     for (final image in images) {
       final data = await image.toByteData();
-      out.add(_hash(data!.buffer.asUint32List()));
+      out.add(Uint32List.fromList(data!.buffer.asUint32List()));
       image.dispose();
     }
     return out;
@@ -130,7 +161,7 @@ Future<List<String>> _record(
     EnginePhase.sendSemanticsUpdate,
     const Duration(seconds: 20),
   );
-  return hashes!;
+  return pixels!;
 }
 
 String _hash(Uint32List words) {
