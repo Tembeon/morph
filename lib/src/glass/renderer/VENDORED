@@ -636,3 +636,12 @@ Local patches (some commits include related package changes):
   policy (softening kernel, shader frost, blur pass; debugMorphShaderFrost
   moved there). geometry/glass_shape_pack.dart (GlassShapePack) holds a
   frame's packed shapes. No uniform or pixel change.
+- 2026-10-19 geometry encoding as its own module: geometry/glass_geometry.dart
+  (GlassGeometryEncoder) owns the analytic eligibility
+  (analyticIneligibilityOf, analyticMaxPixels), the shape packing, the
+  matte render, the matte density and pass-pixel snapping, the raster
+  grid and phase (rasterGridStale) and the material short side; it
+  returns a sealed GlassGeometry (AnalyticGeometry or MatteGeometry) that
+  the layer adopts in one place (_adopt) for both the painted and the
+  retained refresh. It reads the layer through GlassGeometrySource. No
+  uniform, matte or pixel change.

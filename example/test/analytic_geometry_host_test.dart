@@ -12,6 +12,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The A/B toggles the renderer's own geometry path.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_geometry.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
@@ -212,8 +214,8 @@ const double _fineMeanBound = 0.75;
 
 void main() {
   // The oracles shade every harness case analytically, large ones too.
-  setUp(() => RenderLiquidGlassLayer.debugAnalyticMaxPixels = double.infinity);
-  tearDown(() => RenderLiquidGlassLayer.debugAnalyticMaxPixels = null);
+  setUp(() => GlassGeometryEncoder.debugAnalyticMaxPixels = double.infinity);
+  tearDown(() => GlassGeometryEncoder.debugAnalyticMaxPixels = null);
 
   testWidgets('analytic geometry against the matte on the host', (
     WidgetTester tester,

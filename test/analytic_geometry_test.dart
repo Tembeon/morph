@@ -4,8 +4,8 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/glass/renderer/geometry/glass_geometry.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
 String? _ineligibility({
@@ -14,7 +14,7 @@ String? _ineligibility({
   int fusedBoxes = 0,
   bool shadersReady = true,
   required List<(double, List<LiquidGlassAppearance>)> geometries,
-}) => RenderLiquidGlassLayer.analyticIneligibility(
+}) => GlassGeometryEncoder.analyticIneligibilityOf(
   enabled: enabled,
   hasField: hasField,
   fusedBoxes: fusedBoxes,
