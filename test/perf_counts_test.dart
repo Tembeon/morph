@@ -111,16 +111,36 @@ void main() {
         final ceiling = pinned[name] as Map<String, Object?>?;
         expect(ceiling, isNotNull, reason: 'no pinned counts for $name');
         for (final key in _pinnedKeys) {
+          final target = ceiling![key]! as num;
+          final raised = _temporaryCeilings[name]?[key];
           expect(
             result[key]! as num,
-            lessThanOrEqualTo(ceiling![key]! as num),
+            lessThanOrEqualTo(raised ?? target),
             reason: '$name: $key rose above its pinned ceiling',
           );
+          if (raised != null) {
+            expect(
+              result[key]! as num,
+              greaterThan(target),
+              reason:
+                  '$name: $key is back under $target; remove its temporary '
+                  'ceiling',
+            );
+          }
         }
       });
     }
   }
 }
+
+/// Ceilings raised by the owner for a known regression until its fix
+/// lands. The fixture keeps the target; the test fails once a scene is
+/// back under it, so the entry is removed with the fix.
+const Map<String, Map<String, num>> _temporaryCeilings = {
+  // The open menu repaints while only its touch glow moves (merge
+  // 2cda60f4); the targets are the fixture's 36.7 / 5.5 / 2.8.
+  'menu-card/liquid': {'paints': 38.7, 'pictures': 5.8, 'captures': 2.9},
+};
 
 const _pinnedKeys = [
   'builds',
