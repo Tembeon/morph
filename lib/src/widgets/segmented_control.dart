@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -136,7 +138,7 @@ class MorphSegmentedControlAppearance implements MorphAppearance {
       fontWeight: FontWeight.w500,
       color: Color(0xFF000000),
     ),
-    this.contentPadding = 16,
+    this.contentPadding = 9.15,
     this.disabledOpacity = 0.5,
   });
 
@@ -170,7 +172,10 @@ class MorphSegmentedControlAppearance implements MorphAppearance {
   /// [MorphTypography.segmentSelected].
   final TextStyle selectedTextStyle;
 
-  /// The horizontal padding around a label when sizing by content.
+  /// The padding on each side of a label when the segments size by
+  /// content: UIKit pads a label by 9 points a side (read from UIKit,
+  /// notes private), and with morph's label widths the device's content
+  /// rows fit 9.13 - 9.18.
   final double contentPadding;
 
   /// The opacity of a disabled control, applied to the whole control as
@@ -379,17 +384,13 @@ class _MorphSegmentedControlState
     final room = width - fixed;
     final List<double> widths;
     if (widget.proportionalWidth) {
-      final natural = [
-        for (final w in _labelSpans()) w + 2 * style.contentPadding,
-      ];
-      var total = 0.0;
-      for (var i = 0; i < count; i++) {
-        if (segments[i].width == null) total += natural[i];
-      }
-      widths = [
-        for (var i = 0; i < count; i++)
-          segments[i].width ?? natural[i] * room / total,
-      ];
+      widths = morphApportionSegments(
+        width: width,
+        labels: _labelSpans(),
+        fixed: [for (final s in segments) s.width],
+        padding: style.contentPadding,
+        minimum: style.height,
+      );
     } else if (free == count) {
       widths = List.filled(count, width / count);
     } else {
@@ -406,7 +407,8 @@ class _MorphSegmentedControlState
 
   double _naturalWidth() => _labelSpans().fold<double>(
     0,
-    (total, w) => total + w + 2 * _style.contentPadding,
+    (total, w) =>
+        total + math.max(_style.height, w + 2 * _style.contentPadding),
   );
 
   void _sync(double width) {
@@ -850,3 +852,33 @@ class _RenderPressedTitle extends RenderProxyBox {
 
 Widget _dimmed(bool dimmed, double opacity, Widget child) =>
     dimmed ? Opacity(opacity: opacity, child: child) : child;
+
+/// The widths of segments sized by content in a control [width] points
+/// wide, as UIKit apportions them: a segment with a [fixed] width keeps
+/// it, and the others share the rest by what each claims, its label
+/// width plus [padding] a side and at least [minimum], every share
+/// rounded down to a point; the remainder stays at the trailing end.
+@internal
+List<double> morphApportionSegments({
+  required double width,
+  required List<double> labels,
+  required List<double?> fixed,
+  required double padding,
+  required double minimum,
+}) {
+  final claims = [for (final w in labels) math.max(minimum, w + 2 * padding)];
+  var room = width;
+  var total = 0.0;
+  for (var i = 0; i < labels.length; i++) {
+    final set = fixed[i];
+    if (set != null) {
+      room -= set;
+    } else {
+      total += claims[i];
+    }
+  }
+  return [
+    for (var i = 0; i < labels.length; i++)
+      fixed[i] ?? (claims[i] * room / total).floorToDouble(),
+  ];
+}

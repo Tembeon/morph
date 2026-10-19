@@ -1445,7 +1445,7 @@ class MorphSegmentedControlAppearance implements MorphAppearance
     Color shadowColor = const Color(0x1F000000),
     TextStyle textStyle = const TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: Color(0xFF000000)),
     TextStyle selectedTextStyle = const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF000000)),
-    double contentPadding = 16,
+    double contentPadding = 9.15,
     double disabledOpacity = 0.5,
   })
   final double contentPadding
