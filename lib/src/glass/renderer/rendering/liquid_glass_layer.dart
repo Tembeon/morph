@@ -57,7 +57,6 @@ class LiquidGlassLayer extends StatefulWidget {
   }) : live = null,
        settingsOf = null,
        fieldOf = null,
-       outlineOf = null,
        glowOf = null,
        glows = null;
 
@@ -71,7 +70,6 @@ class LiquidGlassLayer extends StatefulWidget {
     required this.live,
     required LiquidGlassSettings Function() this.settingsOf,
     this.fieldOf,
-    this.outlineOf,
     this.glowOf,
     this.glows,
     this.defaultAppearance,
@@ -92,14 +90,6 @@ class LiquidGlassLayer extends StatefulWidget {
 
   /// The field now, for a live layer; null for a layer without a field.
   final GlassField? Function()? fieldOf;
-
-  /// The outline of the one body the layer's shapes form when its owner
-  /// fused them without a field (a plain union of the shapes), for a live
-  /// layer.
-  ///
-  /// The liquid geometry pass shades such a body from the shapes
-  /// themselves.
-  final Path? Function()? outlineOf;
 
   /// The touch glow the final pass applies now, for a live layer; null for
   /// a layer that never glows.
@@ -1586,8 +1576,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _geometryInputsChanged = true;
     }
     final materialBounds = boundingBox.inflate(_contourOutset);
-    // Liquid shapes register no layer shadows: GlassShadow draws them
-    // outside the layer.
+    // Liquid shapes paint their own shadows (GlassShadowCaster), outside
+    // the layer's effect.
     effectPaintBounds = materialBounds;
     return materialBounds;
   }

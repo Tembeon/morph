@@ -220,7 +220,6 @@ Widget _layer(
   double Function(MorphGlassSurface surface)? shrink,
   double rim = 0,
   GlassField? Function(MorphGlassFrame frame)? field,
-  Path? Function(MorphGlassFrame frame)? outline,
   bool shadows = true,
   bool exact = false,
   bool ownBackdrop = false,
@@ -242,7 +241,6 @@ Widget _layer(
         : settings.copyWith(backdropShrink: amount, backdropShrinkRim: rim);
   });
   final fieldOf = field == null ? null : source.pick(field);
-  final outlineOf = outline == null ? null : source.pick(outline);
   final glow = source.pick((f) => _glowOf(select(f)));
   return ClipRect(
     clipper: const _Reach(),
@@ -251,7 +249,6 @@ Widget _layer(
       settingsOf: () => settings.value,
       defaultAppearance: morphLiquidAppearance(renderer, first(source.frame)),
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
-      outlineOf: outlineOf == null ? null : () => outlineOf.value,
       glowOf: () => glow.value,
       glows: source.glows,
       useBackdropGroup: shared,
@@ -439,7 +436,6 @@ Widget morphLiquidBody(
       (f) => select(f).$1,
       shared: !surfaces.any(_chrome),
       field: (f) => morphGlassOutlineField(select(f).$2),
-      outline: (f) => select(f).$2.path,
       shadows: false,
       exact: exact,
     ),
@@ -485,7 +481,6 @@ Widget _slotBody(
           (_, final outline) => morphGlassOutlineField(outline),
           null => null,
         },
-        outline: (f) => select(f)?.$2.path,
         shadows: false,
         slots: count,
         anchor: anchor,

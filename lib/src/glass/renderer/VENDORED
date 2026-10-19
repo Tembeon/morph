@@ -616,3 +616,5 @@ Local patches (some commits include related package changes):
   uniform slots stay); coverage and contour direction are derived after
   the refraction; the one-model variants compute one tint tone; the
   mixed-appearance variant lights the touch glow. No spill on Vulkan.
+- 2026-10-19 dead input: LiquidGlassLayer.live's outlineOf is gone; only
+  the fake layer read it.
