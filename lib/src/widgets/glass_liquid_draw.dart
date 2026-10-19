@@ -200,6 +200,11 @@ LiquidGlassGlow? _glowOf(List<MorphGlassSurface> surfaces) {
   return null;
 }
 
+/// How far around its control's box a layer may paint: the reach of the
+/// glass's shadows and lift, so the backdrop pass the renderer blurs
+/// covers the control instead of the whole screen.
+const double _reach = 24;
+
 /// One glass layer of the surfaces [select] picks, each its own shape, or
 /// one body shaded from [field] when it is given; [exact] shapes are the
 /// surfaces' own circular rounded boxes instead of continuous corners. A
@@ -239,35 +244,33 @@ Widget _layer(
   });
   final fieldOf = field == null ? null : source.pick(field);
   final glow = source.pick((f) => _glowOf(select(f)));
-  return ClipRect(
-    clipper: const _Reach(),
-    child: LiquidGlassLayer.live(
-      live: source.live,
-      settingsOf: () => settings.value,
-      defaultAppearance: morphLiquidAppearance(renderer, first(source.frame)),
-      fieldOf: fieldOf == null ? null : () => fieldOf.value,
-      glowOf: () => glow.value,
-      glows: source.glows,
-      read: read,
-      child: slots == null
-          ? _shapes(
-              renderer,
-              source,
-              select,
-              count: count,
-              shadows: shadows,
-              exact: exact,
-            )
-          : _slotShapes(
-              renderer,
-              source,
-              select,
-              anchor!,
-              count: count,
-              shadows: shadows,
-              exact: exact,
-            ),
-    ),
+  return LiquidGlassLayer.live(
+    live: source.live,
+    settingsOf: () => settings.value,
+    defaultAppearance: morphLiquidAppearance(renderer, first(source.frame)),
+    fieldOf: fieldOf == null ? null : () => fieldOf.value,
+    glowOf: () => glow.value,
+    glows: source.glows,
+    read: read,
+    reach: _reach,
+    child: slots == null
+        ? _shapes(
+            renderer,
+            source,
+            select,
+            count: count,
+            shadows: shadows,
+            exact: exact,
+          )
+        : _slotShapes(
+            renderer,
+            source,
+            select,
+            anchor!,
+            count: count,
+            shadows: shadows,
+            exact: exact,
+          ),
   );
 }
 
@@ -1200,21 +1203,6 @@ class _ContentCopyPainter {
     m[15] = 1;
     canvas.transform(m);
   }
-}
-
-/// The box a layer may paint into: its control's box grown by the reach
-/// of the glass's shadows and lift, so the backdrop pass the renderer
-/// blurs covers the control instead of the whole screen.
-class _Reach extends CustomClipper<Rect> {
-  const _Reach();
-
-  static const double margin = 24;
-
-  @override
-  Rect getClip(Size size) => (Offset.zero & size).inflate(margin);
-
-  @override
-  bool shouldReclip(_Reach oldClipper) => false;
 }
 
 class _LensClip extends CustomClipper<Path> {

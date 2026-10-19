@@ -40,4 +40,13 @@ export 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart'
 export 'package:morph/src/glass/renderer/internal/backdrop_cache.dart'
     show GlassBackdropCache, GlassBackdropCacheRoute;
 export 'package:morph/src/glass/renderer/plane/glass_plane.dart'
-    show GlassBackdrop, GlassPlaneScope, GlassRead;
+    show GlassBackdrop, GlassPaintOrder, GlassPlaneScope, GlassRead;
+export 'package:morph/src/glass/renderer/plane/render_glass_plane.dart'
+    show
+        GlassLook,
+        GlassMemberCensus,
+        GlassSplit,
+        GlassStrategy,
+        RenderGlassMember,
+        RenderGlassPlane,
+        glassPlaneBlocker;

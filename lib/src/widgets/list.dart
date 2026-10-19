@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
@@ -816,7 +817,10 @@ class _MorphListRowState extends State<MorphListRow>
         if (separator != null) {
           body = CustomPaint(foregroundPainter: separator, child: body);
         }
-        return MorphGlassContainerBarrier(clear: shown <= 0, child: body);
+        return MorphGlassContainerBarrier(
+          clear: shown <= 0,
+          child: GlassPlaneScope.planeBreak(active: shown > 0, child: body),
+        );
       },
     );
     final onTap = widget.onTap;
