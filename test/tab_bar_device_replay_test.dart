@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
+import 'package:morph/src/widgets/tab_bar.dart';
 
 import 'support/onset.dart';
 import 'support/trace.dart';
@@ -216,6 +217,135 @@ List<String> _failures(Iterable<_Tap> taps, {required bool slowLift}) => [
       tap.label,
 ];
 
+/// The device recordings that log the lens layer's own scale (`sx`), from
+/// which the bar's swell is read: 25 taps of 58 ms and one 1 s hold.
+const _swellFiles = [
+  'tabbar2-taps.jsonl',
+  'tabbar3-taps.jsonl',
+  'tabbar4-taps.jsonl',
+  'tabbar5-taps.jsonl',
+];
+
+// The aligned taps' growth rms is 0.05 - 0.17 pt, in points of the bar's
+// width.
+const double _growthTolerance = 0.2;
+
+/// One recorded touch and morph's growth against the bar's recorded swell.
+class _Swell {
+  _Swell(this.file, this.down, this.up, this.onset, this.lensOnset);
+
+  final String file;
+  final double down;
+  final double up;
+
+  /// Seconds from the touch's stamp to the recorded lens's lift start.
+  final double lensOnset;
+
+  /// Seconds from the touch's and the release's stamps to the start and the
+  /// return of the recorded swell.
+  final ({double press, double release}) onset;
+
+  /// morph's growth minus the recorded one, in points of the bar's width.
+  final List<double> growth = [];
+
+  String get label =>
+      '$file ${((up - down) * 1000).round()} ms: press '
+      '${(onset.press * 1000).toStringAsFixed(1)} release '
+      '${(onset.release * 1000).toStringAsFixed(1)} ms, growth '
+      '${_rms(growth).toStringAsFixed(3)} pt';
+}
+
+/// Replays the logged touches of [file] through a tab bar lens and returns
+/// each touch with morph's growth against the bar's recorded swell, from
+/// just before the touch to 0.6 s after its release.
+///
+/// The recorded swell is the lens's window width over its bounds times its
+/// own scale (`w` over `bw` times `sx`), the bar's growth that swell times
+/// the bar's width; a row that repeats the previous geometry is a hold and
+/// is skipped. Without [alignToSwell] the touches play at their logged
+/// stamps, as morph stamps them on the device. With it, each touch and
+/// release is shifted so that morph's growth starts and returns when the
+/// recorded one does: the comparison then checks the growth's size and
+/// spring apart from its onsets, which differ from tap to tap by UIKit's
+/// delivery.
+List<_Swell> _replaySwell(String file, {required bool alignToSwell}) {
+  final count = int.parse(file.substring(6, 7));
+  final bar = _bars[count]!;
+  final width =
+      (bar.centers[1] - bar.centers[0]) * count +
+      2 * MorphTabBarMetrics.sideInset;
+  const tuning = MorphLensTuning.tabBar;
+  final trace = Trace.load('$_dir/$file');
+  final lens = _lensRows(trace);
+  final rows = <(double, double)>[];
+  TraceFrame? previous;
+  for (final f in lens) {
+    final held =
+        previous != null &&
+        previous.x == f.x &&
+        previous.w == f.w &&
+        previous.bw == f.bw &&
+        previous.opt('sx') == f.opt('sx');
+    previous = f;
+    if (!held) rows.add((f.t, f.w / (f.bw * f.opt('sx')!) - 1));
+  }
+
+  final swells = <_Swell>[];
+  final touches = <TraceTouch>[];
+  TraceTouch? down;
+  for (final touch in trace.touches) {
+    if (touch.phase == 0) down = touch;
+    if (touch.phase != 3 || down == null) continue;
+    final onset = pressOnsets(
+      rows,
+      down.t,
+      touch.t,
+      spring: tuning.chromeSpring,
+      amplitude: tuning.chromeGrowth / width,
+    );
+    final lensOnset = lensLiftStart(lens, down.t) - down.t;
+    swells.add(_Swell(file, down.t, touch.t, onset, lensOnset));
+    final pressShift = alignToSwell ? onset.press - tuning.chromeLag : 0.0;
+    final releaseShift = alignToSwell
+        ? onset.release - tuning.chromeReleaseLag
+        : 0.0;
+    touches.add(TraceTouch(down.t + pressShift, 0, down.x, down.y));
+    touches.add(TraceTouch(touch.t + releaseShift, 3, touch.x, touch.y));
+  }
+  touches.sort((a, b) => a.t.compareTo(b.t));
+
+  final motion = MorphLensMotion(
+    tuning: tuning,
+    slots: [for (final c in bar.centers) (center: c, width: bar.width)],
+    selected: 0,
+    height: MorphTabBarMetrics.lensHeight,
+  );
+  motion.advance(touches.first.t - 0.5);
+  var next = 0;
+  for (final (t, swell) in rows) {
+    while (next < touches.length && touches[next].t <= t) {
+      final touch = touches[next++];
+      if (touch.phase == 0) {
+        motion.pointerDown(touch.t, touch.x);
+      } else {
+        motion.pointerUp(touch.t, touch.x);
+      }
+    }
+    motion.advance(t);
+    for (final s in swells) {
+      if (t >= s.down - 0.03 && t <= s.up + 0.6) {
+        s.growth.add(motion.chromeGrowth - swell * width);
+      }
+    }
+  }
+  return swells;
+}
+
+List<_Swell> _allSwells({required bool alignToSwell}) => [
+  for (final file in _swellFiles)
+    ..._replaySwell(file, alignToSwell: alignToSwell),
+];
+
 void main() {
   test('tab bar taps at their logged times start the lens when the device '
       'does', () {
@@ -269,6 +399,57 @@ void main() {
       expect(tap.center.length, greaterThan(20), reason: tap.label);
     }
     expect(_failures(taps, slowLift: false), isEmpty);
+  });
+
+  test('the tab bar swells when the device does, counted from the touch '
+      'stamps', () {
+    const tuning = MorphLensTuning.tabBar;
+    final swells = _allSwells(alignToSwell: false);
+    expect(swells, hasLength(26));
+    // The device's bar swells with its lens (38.8 - 54.3 ms, median 44.75)
+    // and returns after a delivery (15.8 - 36.3 ms, median 21.6).
+    expect(
+      median([for (final s in swells) s.onset.press]),
+      closeTo(tuning.chromeLag, deviceFrame / 2),
+    );
+    expect(
+      median([for (final s in swells) s.onset.release]),
+      closeTo(tuning.chromeReleaseLag, deviceFrame / 2),
+    );
+    for (final s in swells) {
+      // The swell starts on the frame the lens does (-4.5 - +1 ms apart).
+      expect(s.onset.press, closeTo(s.lensOnset, deviceFrame), reason: s.label);
+      expect(
+        s.onset.press,
+        closeTo(tuning.chromeLag, deliverySpread),
+        reason: s.label,
+      );
+      expect(
+        s.onset.release,
+        closeTo(tuning.chromeReleaseLag, deliverySpread),
+        reason: s.label,
+      );
+    }
+    // Each tap strays by its own onsets: 0.09 - 0.67 pt, median 0.28. One
+    // lag of 20 ms (or the 34.3 ms that one lag fits with the growth left
+    // free) at both ends leaves a median of 1.25 (1.11) pt.
+    expect(median([for (final s in swells) _rms(s.growth)]), lessThan(0.35));
+  });
+
+  test('the tab bar swells like the device once its swell starts', () {
+    final swells = _allSwells(alignToSwell: true);
+    expect(swells, hasLength(26));
+    for (final s in swells) {
+      expect(s.growth.length, greaterThan(30), reason: s.label);
+      // The device holds its bar 14.06 - 14.14 pt wider (five holds), morph
+      // 14.6: a hold's plateau stays 0.46 pt apart (tab-bar.md).
+      final held = s.up - s.down > 0.5;
+      expect(
+        _rms(s.growth),
+        lessThan(held ? 0.65 : _growthTolerance),
+        reason: s.label,
+      );
+    }
   });
 
   test(

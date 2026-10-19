@@ -15,6 +15,8 @@ library;
 
 import 'dart:math' as math;
 
+import 'package:flutter/physics.dart';
+import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 
 import 'trace.dart';
@@ -68,6 +70,54 @@ double lensLiftStart(List<TraceFrame> rows, double after) {
       best = start;
     }
   }
+  return best;
+}
+
+/// The seconds from a touch's stamps [down] and [up] to the start and the
+/// return of a recorded press growth: the steps of [spring] to and from
+/// [amplitude] fitted by least squares to the growth [rows] (time, growth,
+/// 0 at rest) from just before the touch to 0.6 s after its release. The
+/// return never comes before the start, as in [MorphLensMotion].
+({double press, double release}) pressOnsets(
+  List<(double, double)> rows,
+  double down,
+  double up, {
+  required MorphSpring spring,
+  required double amplitude,
+}) {
+  final window = [
+    for (final row in rows)
+      if (row.$1 >= down - 0.03 && row.$1 <= up + 0.6) row,
+  ];
+  final simulation = SpringSimulation(spring.description, 0, 1, 0);
+  double step(double dt) => dt <= 0 ? 0 : simulation.x(dt);
+  double error(double press, double release) {
+    final start = down + press;
+    final end = math.max(up + release, start);
+    var sum = 0.0;
+    for (final (t, growth) in window) {
+      final model = amplitude * (step(t - start) - step(t - end));
+      sum += (model - growth) * (model - growth);
+    }
+    return sum;
+  }
+
+  var best = (press: 0.0, release: 0.0);
+  var bestError = double.infinity;
+  void search(double press0, double release0, double span, double grid) {
+    for (var p = press0; p <= press0 + span + 1e-9; p += grid) {
+      for (var r = release0; r <= release0 + span + 1e-9; r += grid) {
+        final e = error(p, r);
+        if (e < bestError) {
+          bestError = e;
+          best = (press: p, release: r);
+        }
+      }
+    }
+  }
+
+  search(0, 0, 0.1, 0.001);
+  search(best.press - 0.001, best.release - 0.001, 0.002, 0.00025);
   return best;
 }
 
