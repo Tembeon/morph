@@ -220,25 +220,25 @@ void main() {
   });
 
   test('a dragged slider reports its ends and inner stops', () {
-    final feels = <bool>[];
+    List<bool> felt(MorphSliderMotion motion) => [
+      for (final event in motion.drainEvents())
+        if (event case MorphSliderFelt(:final detent)) detent,
+    ];
     final plain = MorphSliderMotion(width: 300, value: 0.5);
-    plain.onFeel = feels.add;
     final x = plain.thumbCenter;
     plain.pointerDown(0, x);
     plain.pointerMove(0.02, x + 20);
     plain.pointerMove(0.04, x + 400);
     plain.pointerMove(0.06, x + 420);
-    expect(feels, [false]);
+    expect(felt(plain), [false]);
     final stepped = MorphSliderMotion(width: 300, value: 0, ticks: 5);
-    final stops = <bool>[];
-    stepped.onFeel = stops.add;
     final y = stepped.thumbCenter;
     stepped.pointerDown(0, y);
     stepped.pointerMove(0.02, y + 20);
     for (var i = 1; i <= 30; i++) {
       stepped.pointerMove(0.02 + i * 0.01, y + 20 + i * 10);
     }
-    expect(stops, [true, true, true, false]);
+    expect(felt(stepped), [true, true, true, false]);
   });
 
   group('Increase Contrast tables', () {

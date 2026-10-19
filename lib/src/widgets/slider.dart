@@ -250,15 +250,25 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
       frameRate: motionFrameRate,
       ticks: widget.ticks,
     );
-    motion.onChanged = _changed;
-    motion.onChangeEnd = _ended;
-    motion.onFeel = _feel;
     return motion;
   }
 
-  void _feel(bool detent) {
-    if (!mounted) return;
-    morphPlayHaptic(context, detent ? MorphHaptic.detent : MorphHaptic.edge);
+  @override
+  void deliverMotionEvents() {
+    for (final event in _motion.drainEvents()) {
+      if (!mounted) return;
+      switch (event) {
+        case MorphSliderChanged(:final value):
+          _changed(value);
+        case MorphSliderChangeEnded(:final value):
+          _ended(value);
+        case MorphSliderFelt(:final detent):
+          morphPlayHaptic(
+            context,
+            detent ? MorphHaptic.detent : MorphHaptic.edge,
+          );
+      }
+    }
   }
 
   /// [value] in the track's 0 to 1.

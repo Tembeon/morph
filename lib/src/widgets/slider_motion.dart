@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:morph/src/gesture.dart';
+import 'package:morph/src/motion/motion.dart';
 import 'package:morph/src/widgets/small_lens.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -46,7 +46,9 @@ import 'package:morph/src/widgets/timeline.dart';
 /// curve, without a glide.
 ///
 /// Times are seconds and positions pixels from the track's left end.
-class MorphSliderMotion {
+class MorphSliderMotion
+    with MorphMotionEvents<MorphSliderEvent>
+    implements MorphMotion<MorphSliderEvent> {
   /// Creates a slider of track [width] resting at [value] whose thumb
   /// lens filters its motion at [frameRate] frames per second of motion
   /// time.
@@ -204,19 +206,6 @@ class MorphSliderMotion {
 
   double get _now => _timeline.now;
 
-  /// Called with the new value whenever the user changes it.
-  ValueChanged<double>? onChanged;
-
-  /// Called with the final value when a drag and its fling end.
-  ValueChanged<double>? onChangeEnd;
-
-  /// Called when a dragging finger takes the value onto either end, and,
-  /// on a stepped slider, with true when it takes the value onto another
-  /// inner stop: the moments UIKit's slider plays its end and detent
-  /// haptics (read from UIKit, notes private). A fling gliding into an
-  /// end does not call it.
-  ValueChanged<bool>? onFeel;
-
   /// How far the thumb center travels between the ends.
   double get travel => math.max(0, width - thumbSize.width);
 
@@ -224,13 +213,18 @@ class MorphSliderMotion {
   /// thumb less than [MorphRest.length] along [travel].
   double get _valueRest => MorphRest.scale(travel);
 
-  /// The time the motion was last advanced to.
+  @override
   double get time => _now;
+
+  // The lifted thumb rests under a still finger and wakes with its moves.
+  @override
+  double? get wakeTime => null;
 
   /// The current value, 0 to 1.
   double get value => _valueAt(_now);
 
-  /// The value last handed to [onChanged], or set from outside.
+  /// The value last reported in a [MorphSliderChanged], or set from
+  /// outside.
   double get reportedValue => _reported;
 
   /// Whether the finger is dragging the thumb.
@@ -289,6 +283,7 @@ class MorphSliderMotion {
 
   /// Whether every part of the slider is at rest. A finger held still
   /// counts: the lifted thumb rests until the finger moves or lifts.
+  @override
   bool get isSettled =>
       _glide == null &&
       _timeline.isEmpty &&
@@ -298,6 +293,7 @@ class MorphSliderMotion {
       lens.hasSampled(_now, _thumbAt(_now));
 
   /// Puts a settled thumb lens onto its targets.
+  @override
   void settle() {
     if (_stepped && _press == null) _settle.settle(_now);
     lens.settle(_now, _thumbAt(_now));
@@ -343,7 +339,7 @@ class MorphSliderMotion {
     final clamped = raw.clamp(0.0, 1.0);
     if (!_stepped) {
       if (clamped != _value && (clamped == 0 || clamped == 1)) {
-        onFeel?.call(false);
+        emit(const MorphSliderFelt(detent: false));
       }
       _set(clamped);
       return;
@@ -351,7 +347,7 @@ class MorphSliderMotion {
     _detented = true;
     _settle.snap(t, clamped);
     final stop = _stopNear(clamped);
-    if (stop != _value) onFeel?.call(stop > 0 && stop < 1);
+    if (stop != _value) emit(MorphSliderFelt(detent: stop > 0 && stop < 1));
     _set(stop);
   }
 
@@ -373,11 +369,11 @@ class MorphSliderMotion {
     final speed = velocity ?? _velocity(press.samples);
     if (_stepped) {
       _settleOnStop(t, speed);
-      onChangeEnd?.call(_value);
+      emit(MorphSliderChangeEnded(_value));
       return;
     }
     if (speed == 0 || stretched) {
-      onChangeEnd?.call(_value);
+      emit(MorphSliderChangeEnded(_value));
       return;
     }
     _glide = _Glide(start: t, from: _value, speed: speed / width);
@@ -400,7 +396,7 @@ class MorphSliderMotion {
     }
     _releaseStretch(t);
     if (_stepped && !revert) _settleOnStop(t, _velocity(press.samples));
-    onChangeEnd?.call(_value);
+    emit(MorphSliderChangeEnded(_value));
   }
 
   /// Sends a released stepped slider's place, moving at [speed] pixels per
@@ -489,7 +485,7 @@ class MorphSliderMotion {
     _settle.snap(t, _value);
   }
 
-  /// Advances the motion to time [t].
+  @override
   void advance(double t) {
     if (!_started) {
       _started = true;
@@ -513,7 +509,7 @@ class MorphSliderMotion {
     if (glide.remaining(t) * travel < 0.05) {
       _glide = null;
       _set(glide.end.clamp(0.0, 1.0));
-      onChangeEnd?.call(_value);
+      emit(MorphSliderChangeEnded(_value));
       return;
     }
     _set(glide.value(t).clamp(0.0, 1.0));
@@ -548,7 +544,7 @@ class MorphSliderMotion {
   void _report(double value) {
     if (value == _reported) return;
     _reported = value;
-    onChanged?.call(value);
+    emit(MorphSliderChanged(value));
   }
 
   double _valueAt(double t) => _glide?.value(t).clamp(0.0, 1.0) ?? _value;
@@ -622,4 +618,39 @@ class _Press {
     samples.removeRange(0, stale);
     samples.add((t, x));
   }
+}
+
+/// What a [MorphSliderMotion] tells its host.
+sealed class MorphSliderEvent {
+  const MorphSliderEvent();
+}
+
+/// The user changed the value to [value], 0 to 1.
+final class MorphSliderChanged extends MorphSliderEvent {
+  /// Creates the event.
+  const MorphSliderChanged(this.value);
+
+  /// The new value, 0 to 1.
+  final double value;
+}
+
+/// A drag and its fling ended on [value], 0 to 1.
+final class MorphSliderChangeEnded extends MorphSliderEvent {
+  /// Creates the event.
+  const MorphSliderChangeEnded(this.value);
+
+  /// The final value, 0 to 1.
+  final double value;
+}
+
+/// A dragging finger took the value onto either end, or, with [detent],
+/// onto another inner stop of a stepped slider: the moments UIKit's
+/// slider plays its end and detent haptics (read from UIKit, notes
+/// private). A fling gliding into an end raises none.
+final class MorphSliderFelt extends MorphSliderEvent {
+  /// Creates the event.
+  const MorphSliderFelt({required this.detent});
+
+  /// Whether the value reached an inner stop rather than an end.
+  final bool detent;
 }
