@@ -1144,9 +1144,12 @@ class _ContentCopyPainter {
   /// The axes snap apart: a strip grown across only scales one axis more
   /// than the other, and the atlas keys the glyphs by the larger scale but
   /// places them by the scale across. The larger snaps on the copy's grid
-  /// and the other keeps its ratio to it snapped on the finest grid, so
-  /// each grid scale meets few scales across, and the copy is at most
-  /// 0.54 percent wider or taller than it is exactly besides the snap.
+  /// and the other keeps its ratio to it snapped on the same grid, so each
+  /// grid scale meets few scales across while a lift sweeps the strip's
+  /// growth, and the copy is at most half a step of that grid wider or
+  /// taller than it is exactly besides the snap: 0.54 percent while the
+  /// copy's scale moves slowly, 1.1 or 2.2 percent only while it moves fast
+  /// ([MorphGlyphPolicy.gridFor]).
   void _alignedItem(
     Canvas canvas,
     Rect slot,
@@ -1174,7 +1177,13 @@ class _ContentCopyPainter {
       perOctave: glyphs.perOctave,
     );
     double along(double unmagnified) =>
-        key * MorphGlyphScale.snap(unmagnified / keyed, 1) / unmagnified;
+        key *
+        MorphGlyphScale.snap(
+          unmagnified / keyed,
+          1,
+          perOctave: glyphs.perOctave,
+        ) /
+        unmagnified;
     final magX = along(unmagnifiedX);
     final magY = along(unmagnifiedY);
     final c = slot.center.dx;

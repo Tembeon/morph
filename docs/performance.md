@@ -138,7 +138,9 @@ approximation. Both renderers - liquid glass and flat - stay supported.
   quarter device pixels: a label that moves sideways while it scales (the
   tab bar's, under the swell and in the lens copy) takes
   `MorphGlyphs(aligned: true)`, which snaps down to the drift and puts
-  the snapped origin on a whole device pixel.
+  the snapped origin a sixteenth of a device pixel past a whole one (off
+  the quarters' edges, which glyphs a whole number of points apart hit at
+  2.625x).
 - On the Pixel the nested-navigation raster tail is the bar button
   glyphs and their blur, not page painting or glass (hiding glyphs cut
   nested raster p95 24-33 -> 7-8 ms in ablation).

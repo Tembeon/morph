@@ -235,6 +235,21 @@ flat tap 6 frames differ, worst mean 0.04, 0.08 percent of pixels over
 15; flat drag 22, 0.08 / 0.14; fake tap 17, 0.08 / 0.15; fake drag 24,
 0.13 / 0.16.
 
+With the device's swell timing and then UIKit's flex (2026-10-19) the
+cells rose to tap flat 5, drag flat 8, tap liquid 52 (last run 54 keys),
+drag liquid 47. Two snaps within the policy's bounds bring them to 4 / 6 /
+38 (16) / 41: an aligned label's origin lands a sixteenth of a device
+pixel past a whole one (glyphs a whole number of points apart fall on
+eighths of a pixel at 2.625x, half of them on the edge between two of the
+atlas's quarters, where rounding picks either; NEAR bound unchanged, at
+most half a device pixel), and the copy snaps its ratio across on its own
+grid instead of the finest (a lift sweeps the middle strip's growth, and
+every finest step was a new scale across: NEAR at most half a step of the
+copy's grid, 0.54 percent while it moves slowly, 1.1 / 2.2 only while it
+moves fast, as the policy's own snap). Drag liquid stays above its 37:
+the stretch grows the bar's scale under a drag, and labels entering the
+lens meet more scales (35 without the stretch).
+
 Repaints (lifecycle.md, 2026-10-14): native redraws 3-4 labels once on a
 selection change and moves the lens in the render server. Each label row
 (outside and inside the lens) is a repaint boundary of its own while the
