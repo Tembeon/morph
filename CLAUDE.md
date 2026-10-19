@@ -89,7 +89,7 @@ Read only the doc you need:
 - Packaging: the pubspec asset entry for `build/shaderbundles/` must stay; verify on a
   native device.
 - SDKs: normal commands use Flutter 3.47.2 stable; `flutter-beta` / `dart-beta` select the
-  3.49 pre-release used for current optimization work.
+  3.50 pre-release used for current optimization work (the example needs AGP 9.1.1 for it).
 - A performance change is admitted on evidence: device frame time AND energy, native pixels
   checked (host tests cannot run shaders; use the device parity run), and sustained use. Do
   not merge a path only because CPU or raster timing improved. Use `/usr/bin/grep` whenever
