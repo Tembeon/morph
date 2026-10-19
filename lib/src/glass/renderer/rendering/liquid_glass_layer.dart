@@ -10,7 +10,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';

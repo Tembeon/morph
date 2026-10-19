@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass.dart';

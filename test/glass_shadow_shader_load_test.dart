@@ -3,8 +3,6 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
-import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 

@@ -671,3 +671,10 @@ Local patches (some commits include related package changes):
   composition/glass_cost_probe.dart holds the device probes
   (debugGlassCostProbe, GlassCostProbe), now @internal so benches set
   them; debugSeedsBlur moved to GlassBackdropDraw. No pixel change.
+- 2026-10-19 one seam for the widget layer: renderer.dart also exports
+  what the widgets use of the renderer (GlassGeometryFlags, the capture
+  census, the blur reach helpers, the content snapshot, the geometry
+  renderer's limits, the defaults, the shadow shader);
+  test/architecture_test.dart forbids the widget layer (and the engine,
+  motion and theme modules) to import composition/, geometry/,
+  internal/, pass/ and rendering/ directly.

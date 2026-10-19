@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';

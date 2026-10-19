@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
-import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
-import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/theme/glass.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';

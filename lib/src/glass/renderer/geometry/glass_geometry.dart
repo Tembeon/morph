@@ -5,7 +5,6 @@ import 'package:flutter/rendering.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/glass/renderer/geometry/glass_shape_pack.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
-import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/rounded_superellipse_parameters.dart';

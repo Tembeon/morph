@@ -221,6 +221,11 @@ and settings, and hosts inside a container kept out by a blocker.
 
 - The package carries one renderer: lib/src/glass/renderer, vendored
   from whynotmake-it (Apache-2.0); VENDORED lists the local patches.
+- The widget layer reaches the renderer only through
+  lib/src/glass/renderer/renderer.dart: test/architecture_test.dart
+  rejects imports of its composition/, geometry/, internal/, pass/ and
+  rendering/ directories from lib/src/widgets (a ratchet lists the few
+  exceptions left, each with the step that removes it).
 - Public entry: `MorphGlassRenderer` with `MorphGlassTier`: flat and
   liquid. Liquid draws where the GPU holds it; flat draws everywhere
   else: the cheap device classes, the web, and every frame before the

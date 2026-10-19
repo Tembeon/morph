@@ -5,7 +5,6 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:morph/src/glass/renderer/geometry/glass_shape_pack.dart';
-import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/glass/renderer/internal/shader_uniforms.dart';
 import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_glow.dart';
