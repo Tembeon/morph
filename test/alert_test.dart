@@ -239,7 +239,7 @@ void main() {
             final at = local(touch);
             switch (touch['phase']) {
               case 0:
-                motion.pointerDown(_d(touch, 't') + 0.05, at);
+                motion.pointerDown(_d(touch, 't'), at);
               case 3:
                 motion.pointerUp(_d(touch, 't'), at);
               case _:

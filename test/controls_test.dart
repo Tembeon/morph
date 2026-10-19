@@ -186,7 +186,9 @@ MorphSmallLens _lens() => MorphSmallLens(
 
 /// The lift scale of the button in [file] against the model, with the
 /// press and release starts solved from the first moving frames because
-/// the simulator delivers touches 16 to 45 ms late.
+/// the simulator delivers touches 16 to 45 ms late; `releaseLag` is the
+/// model's release stamp, which the model takes up
+/// [MorphGlassButtonMotion.touchDelay] later, minus the recorded one.
 ({double press, double release, double peak, double releaseLag}) _buttonReplay(
   String file,
   Size size,
@@ -552,17 +554,25 @@ void main() {
         expect(e.press, lessThan(3e-4), reason: '$file press');
         expect(e.release, lessThan(3e-4), reason: '$file release');
         expect(e.peak.abs(), lessThan(1e-4), reason: '$file lifted scale');
-        expect(e.releaseLag.abs(), lessThan(0.02), reason: '$file release');
+        expect(
+          (e.releaseLag + MorphGlassButtonMotion.touchDelay).abs(),
+          lessThan(0.02),
+          reason: '$file release',
+        );
       }
     });
 
     test('a glass button leans after a finger that drags off', () {
+      // The flex takes up each touch MorphGlassButtonMotion.touchDelay
+      // after its stamp, as UIKit's does: the device lean halves (0.065 to
+      // 0.026 pt rms) and the stretch, against the touches taken up at
+      // once, grows from 0.0015 / 0.0016 to 0.0024 / 0.0026.
       final e = _leanReplay();
       expect(e.lean, lessThan(0.05));
-      expect(e.stretch, lessThan(0.002));
+      expect(e.stretch, lessThan(0.003));
       final d = _leanReplay(device: true);
-      expect(d.lean, lessThan(0.1));
-      expect(d.stretch, lessThan(0.002));
+      expect(d.lean, lessThan(0.05));
+      expect(d.stretch, lessThan(0.003));
     });
 
     test('the fill runs out to the track ends like the device', () {

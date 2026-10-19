@@ -32,8 +32,9 @@ default / cancel / destructive, `enabled`, handler), `preferredAction`,
 - Touch: lifts the WHOLE platter with the glass-button model at the
   alert's size (forSize: lift 4 -> 1.0125; 0.09 - 0.25 pt rms); a dragging
   finger stretches and shifts it by the same flex at that size (threshold
-  24000) [device: 0.4 pt lean per 120 pt drag; replay 0.017 / 0.042 pt rms
-  lean, 0.09 / 0.19 pt size, no fitted constant]; pressed button fill
+  24000) [device: 0.4 pt lean per 120 pt drag; replay at the touch stamps,
+  the flex taking each touch up 26 ms later as the glass button's does,
+  0.005 / 0.013 pt rms lean, 0.10 / 0.18 pt size, no fitted constant]; pressed button fill
   drops to 0.4 of its alpha; finger may slide between buttons.
 - A finger that drags an overflowing alert's content chooses nothing:
   the press cancels (highlight off, platter released) as soon as the

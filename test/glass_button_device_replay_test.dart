@@ -70,49 +70,39 @@ double _tapReleaseLag(
 }
 
 void main() {
-  test(
-    'a glass button lifts and returns when the device does, touches at '
-    'their logged stamps',
-    () {
-      // The press of every touch but the first of a recording (see the
-      // skipped test below) and every release land within UIKit's delivery
-      // spread of the model fed the touch at its stamp.
-      final taps = Trace.load('$_dir/$_taps');
-      const size = Size(44, 44);
-      final rows = taps.layer('0.0');
-      final downs = [
-        for (final t in taps.touches)
-          if (t.phase == 0) t.t,
-      ];
-      expect(downs, hasLength(4));
-      final presses = [
-        for (final down in downs.skip(1)) glassPressLag(rows, size, down),
-      ];
-      final releases = [
-        for (final up in taps.touches.where((t) => t.phase == 3))
-          _tapReleaseLag(rows, size, taps.touches, up),
-        for (final (file, size) in _holds)
-          () {
-            final trace = Trace.load('$_dir/$file');
-            final up = trace.touches.lastWhere((t) => t.phase == 3).t;
-            return glassReleaseLag(trace.layer('0.0'), size, up);
-          }(),
-      ];
-      expect(releases, hasLength(11));
-      for (final lag in [...presses, ...releases]) {
-        expect(lag.abs(), lessThan(deliverySpread));
-      }
-      expect(median(presses).abs(), lessThan(deviceFrame / 2));
-      expect(median(releases).abs(), lessThan(deviceFrame / 2));
-    },
-    skip:
-        'UIKit lifts the glass button 22.5 - 29.2 ms after the touch stamp '
-        '(median 26.1) and returns it 22.1 - 28.3 ms after the release '
-        '(median 26.0); morph flexes at the stamp. The 26 ms touchDelay '
-        'waits for the owner: it moves glass_frames density-wave-32 onto a '
-        'phase where the pushed and rebuilt frames differ by one 8-bit '
-        'level at the labels (base shows the same at a 9 ms scene step)',
-  );
+  test('a glass button lifts and returns when the device does, touches at '
+      'their logged stamps', () {
+    // The press of every touch but the first of a recording (see the
+    // skipped test below) and every release land within UIKit's delivery
+    // spread of the model fed the touch at its stamp.
+    final taps = Trace.load('$_dir/$_taps');
+    const size = Size(44, 44);
+    final rows = taps.layer('0.0');
+    final downs = [
+      for (final t in taps.touches)
+        if (t.phase == 0) t.t,
+    ];
+    expect(downs, hasLength(4));
+    final presses = [
+      for (final down in downs.skip(1)) glassPressLag(rows, size, down),
+    ];
+    final releases = [
+      for (final up in taps.touches.where((t) => t.phase == 3))
+        _tapReleaseLag(rows, size, taps.touches, up),
+      for (final (file, size) in _holds)
+        () {
+          final trace = Trace.load('$_dir/$file');
+          final up = trace.touches.lastWhere((t) => t.phase == 3).t;
+          return glassReleaseLag(trace.layer('0.0'), size, up);
+        }(),
+    ];
+    expect(releases, hasLength(11));
+    for (final lag in [...presses, ...releases]) {
+      expect(lag.abs(), lessThan(deliverySpread));
+    }
+    expect(median(presses).abs(), lessThan(deviceFrame / 2));
+    expect(median(releases).abs(), lessThan(deviceFrame / 2));
+  });
 
   test('a held glass button lifts and returns like the device once it '
       'starts', () {
@@ -160,10 +150,10 @@ void main() {
       }
     },
     skip:
-        'the first touch of each recording lifts 37.8 - 46.9 ms after its '
-        'stamp (8 captures), 12 - 21 ms later than the touches after it: '
-        'UIKit sets the button up on that touch (the next display frame '
-        'comes 20.6 - 21.5 ms after the one before instead of 8.3); a '
-        'one-time cost, not reproduced',
+        'the first touch of each recording lifts 11.8 - 20.9 ms after the '
+        'model fed its stamp (8 captures, 37.8 - 46.9 ms after the stamp) '
+        'vs the 14.6 ms delivery spread: UIKit sets the button up on that '
+        'touch (the next display frame comes 20.6 - 21.5 ms after the one '
+        'before instead of 8.3); a one-time cost, not reproduced',
   );
 }

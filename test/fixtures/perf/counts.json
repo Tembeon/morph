@@ -165,7 +165,7 @@
     "idle": 0
   },
   "density-wave-1/flat": {
-    "frames": 115,
+    "frames": 112,
     "builds": 0.0,
     "paints": 14.7,
     "pictures": 1.0,
@@ -187,9 +187,9 @@
     "idle": 0
   },
   "density-wave-4/flat": {
-    "frames": 121,
+    "frames": 118,
     "builds": 0.1,
-    "paints": 57.6,
+    "paints": 57.5,
     "pictures": 3.9,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -209,9 +209,9 @@
     "idle": 0
   },
   "density-wave-8/flat": {
-    "frames": 129,
+    "frames": 126,
     "builds": 0.3,
-    "paints": 111.7,
+    "paints": 111.5,
     "pictures": 7.6,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -231,10 +231,10 @@
     "idle": 0
   },
   "density-wave-16/flat": {
-    "frames": 145,
+    "frames": 142,
     "builds": 0.5,
-    "paints": 208.9,
-    "pictures": 14.1,
+    "paints": 209.8,
+    "pictures": 14.2,
     "captures": 0.0,
     "offscreen": 0.0,
     "snapshotImages": 0.0,
@@ -253,10 +253,10 @@
     "idle": 0
   },
   "density-wave-32/flat": {
-    "frames": 177,
+    "frames": 174,
     "builds": 0.9,
-    "paints": 351.5,
-    "pictures": 23.8,
+    "paints": 354.8,
+    "pictures": 24.0,
     "captures": 0.0,
     "offscreen": 0.0,
     "snapshotImages": 0.0,
@@ -429,10 +429,10 @@
     "idle": 0
   },
   "density-wave-1/fake": {
-    "frames": 115,
+    "frames": 112,
     "builds": 0.1,
     "paints": 17.8,
-    "pictures": 2.0,
+    "pictures": 2.1,
     "captures": 2.0,
     "offscreen": 2.0,
     "snapshotImages": 0.0,
@@ -451,10 +451,10 @@
     "idle": 0
   },
   "density-wave-4/fake": {
-    "frames": 121,
-    "builds": 0.6,
-    "paints": 69.1,
-    "pictures": 7.7,
+    "frames": 118,
+    "builds": 0.4,
+    "paints": 69.4,
+    "pictures": 7.9,
     "captures": 5.0,
     "offscreen": 8.0,
     "snapshotImages": 0.0,
@@ -473,10 +473,10 @@
     "idle": 0
   },
   "density-wave-8/fake": {
-    "frames": 129,
-    "builds": 1.1,
+    "frames": 126,
+    "builds": 1.0,
     "paints": 134.3,
-    "pictures": 15.1,
+    "pictures": 15.2,
     "captures": 9.0,
     "offscreen": 16.0,
     "snapshotImages": 0.0,
@@ -495,10 +495,10 @@
     "idle": 0
   },
   "density-wave-16/fake": {
-    "frames": 145,
+    "frames": 142,
     "builds": 2.0,
-    "paints": 252.1,
-    "pictures": 28.7,
+    "paints": 253.5,
+    "pictures": 29.0,
     "captures": 17.0,
     "offscreen": 32.0,
     "snapshotImages": 0.0,
@@ -517,10 +517,10 @@
     "idle": 0
   },
   "density-wave-32/fake": {
-    "frames": 177,
-    "builds": 3.4,
-    "paints": 425.2,
-    "pictures": 48.7,
+    "frames": 174,
+    "builds": 3.3,
+    "paints": 429.8,
+    "pictures": 49.5,
     "captures": 33.0,
     "offscreen": 64.0,
     "snapshotImages": 0.0,
@@ -693,10 +693,10 @@
     "idle": 0
   },
   "density-wave-1/liquid": {
-    "frames": 115,
+    "frames": 112,
     "builds": 0.1,
     "paints": 17.8,
-    "pictures": 2.0,
+    "pictures": 2.1,
     "captures": 2.0,
     "offscreen": 2.0,
     "snapshotImages": 0.0,
@@ -715,10 +715,10 @@
     "idle": 0
   },
   "density-wave-4/liquid": {
-    "frames": 121,
-    "builds": 0.6,
-    "paints": 69.1,
-    "pictures": 7.7,
+    "frames": 118,
+    "builds": 0.4,
+    "paints": 69.4,
+    "pictures": 7.9,
     "captures": 5.0,
     "offscreen": 8.0,
     "snapshotImages": 0.0,
@@ -737,10 +737,10 @@
     "idle": 0
   },
   "density-wave-8/liquid": {
-    "frames": 129,
-    "builds": 1.1,
+    "frames": 126,
+    "builds": 1.0,
     "paints": 134.3,
-    "pictures": 15.1,
+    "pictures": 15.2,
     "captures": 9.0,
     "offscreen": 16.0,
     "snapshotImages": 0.0,
@@ -759,10 +759,10 @@
     "idle": 0
   },
   "density-wave-16/liquid": {
-    "frames": 145,
+    "frames": 142,
     "builds": 2.0,
-    "paints": 252.1,
-    "pictures": 28.7,
+    "paints": 253.5,
+    "pictures": 29.0,
     "captures": 17.0,
     "offscreen": 32.0,
     "snapshotImages": 0.0,
@@ -781,10 +781,10 @@
     "idle": 0
   },
   "density-wave-32/liquid": {
-    "frames": 177,
-    "builds": 3.4,
-    "paints": 425.2,
-    "pictures": 48.7,
+    "frames": 174,
+    "builds": 3.3,
+    "paints": 429.8,
+    "pictures": 49.5,
     "captures": 33.0,
     "offscreen": 64.0,
     "snapshotImages": 0.0,

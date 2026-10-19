@@ -60,29 +60,22 @@ List<List<GlassTouch>> _gestures(Trace trace) {
 }
 
 void main() {
-  test(
-    'a glass button in a scroll view lifts at contact, as outside one',
-    () {
-      // The scroll view holds nothing back: three still holds, a tap and a
-      // swipe the scroll takes all lift within UIKit's delivery spread of
-      // the model fed the touch at its stamp, as the button does outside a
-      // scroll view (glass_button_device_replay_test.dart).
-      final gestures = _gestures(Trace.load(_file));
-      expect(gestures, hasLength(5));
-      final rows = _lift();
-      final lags = [
-        for (final g in gestures) glassPressLag(rows, _size, g.first.t),
-      ];
-      for (final lag in lags) {
-        expect(lag.abs(), lessThan(deliverySpread));
-      }
-      expect(median(lags).abs(), lessThan(deviceFrame / 2));
-    },
-    skip:
-        'the five touches in the scroll view lift 24.4 - 27.5 ms after their '
-        'stamps, as outside one; morph flexes at the stamp until the glass '
-        'button touchDelay (26 ms, held for the owner) lands',
-  );
+  test('a glass button in a scroll view lifts at contact, as outside one', () {
+    // The scroll view holds nothing back: three still holds, a tap and a
+    // swipe the scroll takes all lift within UIKit's delivery spread of
+    // the model fed the touch at its stamp, as the button does outside a
+    // scroll view (glass_button_device_replay_test.dart).
+    final gestures = _gestures(Trace.load(_file));
+    expect(gestures, hasLength(5));
+    final rows = _lift();
+    final lags = [
+      for (final g in gestures) glassPressLag(rows, _size, g.first.t),
+    ];
+    for (final lag in lags) {
+      expect(lag.abs(), lessThan(deliverySpread));
+    }
+    expect(median(lags).abs(), lessThan(deviceFrame / 2));
+  });
 
   test('a still glass button in a scroll view lifts and returns like the '
       'device once it starts', () {

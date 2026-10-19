@@ -1,8 +1,8 @@
 # Glass button passport
 
 Status: measured device + simulator; ported. The lift by size replays
-against the simulator captures, the drag-off against simulator and device;
-the device hold and tap captures are not replayed yet.
+against the simulator captures, the drag-off against simulator and device,
+the device holds, taps and scroll-view touches against the touch stamps.
 Flex spec: [lens-and-flex.md](lens-and-flex.md). API parity:
 [api/buttons.md](api/buttons.md).
 
@@ -29,6 +29,16 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
   44 -> 4 px at 160) [tuning].
 - Press on the tracking spring, release on the scale spring (small buttons
   ring below 1, wide ones barely).
+- Onset [device, from the touch's own time stamp, spec README "Clocks"]:
+  the lift starts 22.5 - 29.2 ms after the touch (median 26.1; the last
+  three taps of `button-glass-44x44-taps`, the five touches in a scroll
+  view) and the return 22.1 - 28.3 ms after the release (median 26.0,
+  the seven holds; the four 83 ms taps 13.5 - 22.2): UIKit's delivery
+  plus the frame the flex begins on. `touchDelay` 26 ms: the flex takes up
+  every touch (down, moves, release) that long after its stamp. The first
+  touch after the button appears lifts 37.8 - 46.9 ms after its stamp (8
+  captures; the display link's next frame comes 20.6 - 21.5 ms after the
+  one before instead of 8.3): a one-time setup, not reproduced.
 - Stays lifted for the whole touch, even far outside.
 - A dragging finger stretches the button along the drag and narrows it
   across by k = |it| / (4 T) + (|t| - |it|) / T per axis (t the travel,
@@ -47,11 +57,12 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
   Below and left are not measured.
 - Inside a `UIScrollView` (default `delaysContentTouches`) [device,
   2026-10-13]: a still hold lifts the button 41-45 ms after contact
-  (three runs, scale past 1.001, peak 1.144), so the scroll view holds
-  nothing back; a swipe that starts on the button lifts it to 1.02-1.09
+  (three runs, scale past 1.001, peak 1.144); the lift starts within
+  1.5 ms of `touchDelay` after the stamp on all five touches, as outside a
+  scroll view, so the scroll view holds nothing back; a swipe that starts on the button lifts it to 1.02-1.09
   and drops it when the scroll takes the touch, with no activation.
-- Glow: overlay 1 - exp(-t / 0.023 s) on press, little glow at the touch
-  point to 0.3; on release both fade and the little glow scales 1 -> 4 on
+- Glow: overlay 1 - exp(-t / 0.023 s) on press (from `touchDelay` after
+  the stamp, with the lift), little glow at the touch point to 0.3; on release both fade and the little glow scales 1 -> 4 on
   0.5/1.0. No source is recorded for the rise, the 66 pt little glow
   (`littleGlowSize`) or the fall spring; the captures log the glow
   container's frame, not its opacity. The tab bar's measured glow
@@ -62,7 +73,8 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
 - Text: title 17 regular.
 - Reused by: bar capsules (recorded 1 + 16/w), search field (lift only,
   0.05 s after contact), alert platter (its own size: lift 4, threshold
-  24000; 0.4 pt lean for a 120 pt drag with no fitted constant).
+  24000; 0.4 pt lean for a 120 pt drag with no fitted constant). The
+  capsules and the platter share `touchDelay`.
 
 ## Disabled [device, light + dark, 2026-10-03]
 
@@ -110,7 +122,10 @@ approximation) (`padding`, `minSize`, `menu`, `enabled`),
 (`reducedMotion`) (glass_button.dart) on `MorphFlexInteraction`
 (flex_interaction.dart, `glows: true`). Tests: controls_test (lift by size
 against the simulator hold800 captures; drag-off against simulator and
-device), flex_interaction_test, release_bounds_test (replays
+device), glass_button_device_replay_test (device onsets at the logged
+stamps within the 14.6 ms delivery spread, medians within half a frame;
+holds aligned to their onsets < 3e-4 rms; the first touch's setup
+skipped), scroll_delay_replay_test (the same in a scroll view), flex_interaction_test, release_bounds_test (replays
 release-outside.jsonl through the widget), disabled_test (replays
 disabled.json), glass_button_variants_test (clear, prominent, glow white
 levels), menu_source_test (button menus), controls_scroll_test (scroll
@@ -128,9 +143,6 @@ the lift.
 ## Not reproduced / open
 
 - Reduce Motion: no read of the flag found in the flex interaction (Swift); morph keeps its approximation, device pass pending ([states](states.md#read-from-uikit-static-2026-10-14-notes-private)).
-- Not replayed: the device hold800 captures (7 files), button-glass-44x44-taps
-  and tracking/scroll-delay.jsonl (controls_scroll_test checks the
-  behaviour only).
 - Not measured: the default insets 20 x 11, `minSize` 44 x 44 and the
   22 pt glyph (glass_button.dart); release bounds below and left; a
   glass <-> prominent configuration switch; the selected state.
