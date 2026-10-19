@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/glass_shadow.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 
+import 'support/glass_shadow_box.dart';
+
 const _shadows = [
   BoxShadow(color: Color(0x40000000), offset: Offset(0, 3), blurRadius: 12),
   BoxShadow(color: Color(0x1F000000), blurRadius: 4, spreadRadius: 1),
@@ -104,10 +106,9 @@ Widget _scene(Offset at, double visibility, {required bool direct}) =>
                   height: 44,
                   child: direct
                       ? _DirectShadow(visibility)
-                      : GlassShadow(
+                      : GlassShadowBox(
                           shape: _shape,
                           shadows: _shadows,
-                          settings: const LiquidGlassSettings(),
                           appearanceVisibility: visibility,
                         ),
                 ),

@@ -652,3 +652,11 @@ Local patches (some commits include related package changes):
   and GlassRestWatch (the rest watch in AnalyticGeometryMode.changes, the
   texture release, restFrames, releaseFrames, debugMatteReleases), which
   the layer drives through GlassRestHost. No pixel change.
+- 2026-10-19 dead code: GlassShadow, the standalone shadow widget only
+  tests used, is gone (the tests paint through GlassShadowCaster with a
+  box of their own, test/support/glass_shadow_box.dart);
+  FlutterGpuGeometryRenderer.waitUntilGpuContextAvailable and sixteen
+  debug counters and getters no test or bench read (renderer, texture,
+  submission and pipeline counts) are removed on both the native and the
+  web renderer; GlassCostProbe.pooled and pooledShader, the probes of the
+  rejected plane study, are removed.

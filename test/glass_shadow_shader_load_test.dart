@@ -3,11 +3,12 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/glass/renderer/glass_shadow.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
+
+import 'support/glass_shadow_box.dart';
 
 /// A glass shadow loads its shader itself when the option is on, so an app
 /// that never runs the renderer's precache still draws shader shadows.
@@ -28,10 +29,9 @@ void main() {
           child: SizedBox(
             width: 96,
             height: 44,
-            child: GlassShadow(
+            child: GlassShadowBox(
               shape: LiquidRoundedSuperellipse(borderRadius: 22),
               shadows: [MorphGlassDefaults.bodyShadow],
-              settings: LiquidGlassSettings(),
               appearanceVisibility: 1,
             ),
           ),
