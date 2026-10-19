@@ -129,6 +129,24 @@ mixin MorphClock<T extends StatefulWidget>
   /// node of the frame grid while frames run steadily.
   double get frameTime => _frameTime;
 
+  /// The time of the frame being produced, also before this clock's own
+  /// tick in it, or [clock] outside a running frame.
+  ///
+  /// Input delivered from another ticker, such as a scroll notification of
+  /// a fling, reads this, so its time does not depend on which ticker
+  /// runs first in the frame.
+  double get currentTime {
+    final scheduler = SchedulerBinding.instance;
+    final tick = _tickStamp;
+    if (!_ticking ||
+        tick == null ||
+        scheduler.schedulerPhase != SchedulerPhase.transientCallbacks) {
+      return _clock;
+    }
+    final since = scheduler.currentSystemFrameTimeStamp - tick;
+    return _tickClock + since.inMicroseconds / 1e6 / timeDilation;
+  }
+
   /// The period of the display's frames in motion time, in seconds, or
   /// null before the first steady frames; the coming frames fall at
   /// [frameTime] plus its multiples while the grid holds.

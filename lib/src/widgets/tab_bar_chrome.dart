@@ -596,7 +596,7 @@ mixin MorphTabBarMinimizing<T extends StatefulWidget> on MorphClock<T>
   }
 
   void _minimizeInput(void Function(double t) action) {
-    final t = clock;
+    final t = currentTime;
     minimizeMotion.advance(t);
     action(t);
     wake();
