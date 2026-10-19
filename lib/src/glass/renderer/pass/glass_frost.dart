@@ -37,8 +37,7 @@ final class GlassFrost {
         !ownBackdrop &&
         dispersion == 0 &&
         frost > 0) {
-      final sigma =
-          morphHalfResolutionSigma(frost, devicePixelRatio) * devicePixelRatio;
+      final sigma = frost * devicePixelRatio;
       if (sigma <= shaderMaxDeviceSigma) shaderSigma = sigma;
     }
     final double passSigma = softens || shaderSigma > 0
@@ -72,8 +71,10 @@ final class GlassFrost {
   /// dispersed lens (its taps would split the channels), a layer that
   /// blurs a copy of its own backdrop.
   ///
-  /// A frost just below the sigma Impeller blurs at half resolution is
-  /// raised to it ([morphHalfResolutionSigma]).
+  /// Never raised to Impeller's half resolution threshold: the final
+  /// pass's taps cost the same at every sigma, so a raise would only move
+  /// pixels and break the frost's continuity where it crosses the
+  /// threshold.
   final double shaderSigma;
 
   /// Sigma of the separate backdrop blur pass in logical pixels; 0 when
