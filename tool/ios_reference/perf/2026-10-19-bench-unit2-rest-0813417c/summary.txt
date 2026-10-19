@@ -1,0 +1,48 @@
+0813417c  runs 3  fixed-perf False  2026-10-19 10:43
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   312    [=]
+audit/liquid/idle-frames              0     -     -     -     -     -   0.0    0   271    [power_mw 286->271]
+audit/liquid/page-open              950   3.6   8.4   8.0  11.4   7.9   1.6   47   770  raster-cpu:6 ui-semantics:3 ui-layout:3 ui-build:2 ui-paint:1 bad raster: UpdateAtlasBitmap 5.1, Canvas::saveLayer 4.9, SurfaceFrame::Encode 4.0
+                                     dart (1425 samples): _RenderLiveTransform.performLayout 68, RenderMorphLiveBox.performLayout 36, _RenderBarContent.performLayout 35, _MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint 28 ms
+                                     ui by code (nearest owner, ms/frame): morph 1.99, app 0.00, framework 1.84
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 1.45, HandleOOBMessage 1.33, RenderLiquidGlassLayer 0.32, _RenderGlassShadow 0.17, SEMANTICS 0.14, _RenderShadedGlyphs 0.13
+                                     passes/frame: 2.4 (2.2 backdrop, 0.1 other layers, 0.0 inside pictures, 1.7 backdrop reads): MorphNavigationStack > MorphPresentationBoundary > MorphNavi 1.0, MorphPresentationBoundary > MorphNavigationBar > MorphScroll 0.7, MorphNavigationStack > MorphPresentationBoundary > MorphNavi 0.3, MorphNavigationStack > MorphPresentationBoundary > MorphTool 0.2
+audit/liquid/home-scroll           1241   2.5   4.0   8.6  11.2   4.4   0.0    6   546    [ui 3.417->3.964, gpu 5.425->4.427, power_mw 603->546]
+audit/liquid/segmented             1171   2.9   5.1   8.4  10.6   3.7   0.0    5   549    [raster 13.7->10.62]
+audit/liquid/tab-bar               1528   4.8   7.4   9.7  12.1  11.9   0.1    9   813  raster-sched:1 bad raster: SurfaceFrame::Encode 3.7, queueBuffer 3.0, QueueSubmit 2.3  [raster 14.19->12.13, gpu 14.83->11.94, over_pct 2.6->0.1, power_mw 1046->813]
+audit/liquid/controls              1163   4.2  10.0   8.9  11.9   5.2   0.1   30   594  raster-cpu:1 bad raster: SurfaceFrame::Encode 5.8, Canvas::saveLayer 4.4, QueueSubmit 3.3  [=]
+audit/liquid/menu                   763   5.7  11.9   8.2  13.2  12.9   4.2   53   752  raster-cpu:13 ui-other:7 ui-layout:4 raster-sched:2 ui-finalize:2 gpu:2 ui-paint:1 ui-compositing:1 bad raster: SurfaceFrame::Encode 7.9, Canvas::saveLayer 4.3, QueueSubmit 4.0  [ui 14.04->11.89, raster 14.75->13.16, over_pct 5.3->4.2]
+                                     dart (2803 samples): LiquidGlassRenderObject.paint 68, _MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint 68, GlassCompositionProbe.paint 68, LiquidGlassRenderObject._paintGlass 67 ms
+                                     ui by code (nearest owner, ms/frame): morph 2.56, app 0.00, framework 2.56
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 3.11, HandleOOBMessage 1.93, RenderLiquidGlassLayer 0.87, QueueSubmit 0.50, RenderParagraph 0.22, RenderCustomPaint 0.17
+                                     passes/frame: 2.1 (1.9 backdrop, 0.2 other layers, 0.0 inside pictures, 1.9 backdrop reads): MorphNavigationStack > MorphPresentationBoundary > MorphNavi 1.0, MorphThemeScope > MorphGlassInspector > MorphMenuLayer [body 0.6, MorphPress > MorphTag > MorphTagVisibility [body] RenderLiqu 0.4, image_filter unknown ImageFilterLayer 0.2
+audit/liquid/sheet                  727   3.0   6.7   8.9  13.0  16.7   5.5   18   924  gpu:37 ui-layout:3 bad raster: Canvas::saveLayer 11.5, waitForever 6.3, SurfaceFrame::Encode 3.6  [over_pct 8.7->5.5, power_mw 1118->924]
+                                     dart (1037 samples): LiquidGlassRenderObject.paint 24, _MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint 24, GlassCompositionProbe.paint 24, LiquidGlassRenderObject._paintGlass 24 ms
+                                     ui by code (nearest owner, ms/frame): morph 1.31, app 0.00, framework 1.46
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 1.10, HandleOOBMessage 0.86, RenderLiquidGlassLayer 0.15, RenderCustomPaint 0.09, RenderParagraph 0.07, _RenderGlassShadow 0.06
+                                     passes/frame: 3.4 (3.9 backdrop, 0.0 other layers, 0.0 inside pictures, 2.5 backdrop reads): MorphGlassContainer > MorphGlassButton > MorphPress [body] R 2.6, MorphNavigationStack > MorphPresentationBoundary > MorphNavi 1.0, MorphTheme > MorphThemeScope > MorphGlassInspector [sheet] R 0.4
+audit/liquid/list                  1192   2.3   4.5   9.7  14.6   7.1   1.9   21   599  raster-wait:15 raster-cpu:7 ui-paint:1 bad raster: waitForBufferRelease 7.8, SurfaceFrame::Encode 4.4, QueueSubmit 2.7  [ui 5.029->4.451, raster 12.5->14.6, gpu 8.212->7.085, power_mw 700->599]
+                                     dart (4259 samples): _MixinApplication22&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint 190, LiquidGlassRenderObject.paint 190, GlassCompositionProbe.paint 190, LiquidGlassRenderObject._paintGlass 186 ms
+                                     ui by code (nearest owner, ms/frame): morph 1.01, app 0.00, framework 3.13
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 2.64, HandleOOBMessage 1.55, RenderLiquidGlassLayer 0.14, RenderSliverToBoxAdapter 0.14, RenderCustomPaint 0.12, RenderParagraph 0.11
+                                     passes/frame: 3.1 (2.8 backdrop, 0.2 other layers, 0.0 inside pictures, 2.8 backdrop reads): MorphPresentationBoundary > MorphNavigationBar > MorphScroll 1.8, MorphNavigationStack > MorphPresentationBoundary > MorphNavi 1.0, opacity unknown OpacityLayer 0.2
+audit/flat/idle                       0     -     -     -     -     -   0.0    0   268    [power_mw 284->268]
+audit/flat/idle-frames                2   3.3   3.3  13.7  13.7   1.3   0.0    0   292    [power_mw 270->292]
+audit/flat/page-open                955   2.2   6.1   6.3   8.8   4.5   0.8   38   462  ui-semantics:4 raster-cpu:2 ui-build:1 ui-layout:1 bad ui: semantics 11.1, layout 5.0, build 3.8
+                                     dart (994 samples): _RenderLiveTransform.performLayout 51, RenderMorphLiveBox.performLayout 34, _RenderBarContent.performLayout 33, _LiveDrivenElement.mount 10 ms
+                                     ui by code (nearest owner, ms/frame): morph 0.91, app 0.00, framework 3.08
+                                     ui by owner (self ms/frame): HandleOOBMessage 2.76, Dart_InvokeClosure 1.27, RenderCustomPaint 0.18, _RenderShadedGlyphs 0.17, RenderParagraph 0.16, SEMANTICS 0.12
+                                     passes/frame: 0.1 (0.0 backdrop, 0.1 other layers, 0.0 inside pictures, 0.0 backdrop reads): opacity unknown OpacityLayer 0.1
+audit/flat/home-scroll             1239   1.6   3.1   6.5   8.2   2.0   0.1    5   438  raster-sched:1 bad raster: QueueSubmit 12.2, SurfaceFrame::Encode 2.9, CreateGlyphAtlas 0.5  [power_mw 525->438]
+audit/flat/segmented               1162   1.6   2.7   6.1   7.5   1.3   0.0    0   424    [power_mw 453->424]
+audit/flat/tab-bar                 1370   2.8   4.5   6.8   8.5   2.8   0.0    6   525    [ui 3.886->4.541, power_mw 634->525]
+audit/flat/controls                1142   2.3   8.7   5.9   7.1   1.2   0.1   20   420  ui-layout:1 bad ui: layout 5.6, build 5.0, paint 3.6  [=]
+audit/flat/menu                     776   3.1   7.0   5.4   9.7   3.4   1.5   46   453  ui-layout:8 ui-other:3 raster-cpu:1 bad ui: layout 12.0, other 5.0, paint 4.8  [ui 10.27->6.997, raster 11.19->9.713, power_mw 553->453]
+                                     dart (2254 samples): _LiveDrivenElement.update 50, _LivePositionedTemplateElement.update 48, RenderMorphGlyphs.paint 30, RenderMorphGlyphs._paintSharp 29 ms
+                                     ui by code (nearest owner, ms/frame): morph 0.83, app 0.00, framework 3.34
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 2.79, HandleOOBMessage 0.88, RenderParagraph 0.27, RenderMorphGlyphs 0.21, RenderStack 0.17, RenderTransform 0.17
+                                     passes/frame: 0.2 (0.0 backdrop, 0.2 other layers, 0.0 inside pictures, 0.0 backdrop reads): image_filter unknown ImageFilterLayer 0.2, opacity unknown OpacityLayer 0.0
+audit/flat/sheet                    730   1.5   3.4   5.9   8.1   3.5   0.0    9   430    [power_mw 501->430]
+audit/flat/list                    1187   1.4   2.8   6.9   8.8   2.5   0.0    3   461    [power_mw 799->461]
