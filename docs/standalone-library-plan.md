@@ -137,7 +137,7 @@ morph даёт приложению полный набор Liquid Glass-ком�
   - [x] В flight.dart и show.dart заменить `Theme.of(context).colorScheme` (flight.dart:1699) и чтения `MorphTheme.default*` (flight.dart:579-582) на `MorphThemeData`, затем удалить все импорты Material. Сделано в `725b5f4b` и `b474652e`; в `lib/` нет импортов Material.
   - [x] `MorphLocalizations` с английскими строками по умолчанию. `b474652e`, `f1a1b2bc`.
   - [x] Перенести `setFloatUniforms` из `flutter_shaders` в `scene/shaders.dart`. `46218a27`, `3d8c575c`: `lib/src/glass/renderer/internal/shader_uniforms.dart`, квантование как у `flutter_shaders`.
-  - [ ] Перевести галерею на `WidgetsApp` и собственную тему. Отложено: затрагивает только example; галерея пока на `MaterialApp` с `MorphTheme` в chrome.
+  - [x] Перевести галерею на `WidgetsApp` и собственную тему: `ddf1fe11`, `motor` убран из example в `654f35df`. Проверка light и dark на iPhone не проведена.
 - **Видно.** Галерея работает без Material-предков. Цвета light, dark, high contrast и tint не меняются.
 - **Проверка, unit.**
   - [x] Список Material в `architecture_test` пуст.
@@ -295,10 +295,11 @@ morph даёт приложению полный набор Liquid Glass-ком�
 
 - [x] Восстановить продуктовые тесты, удалённые с legacy-движком в `98237e58`: `256289a9` (меню, границы представлений, меню в контейнере стекла, 53 случая).
 - [x] Расхождения с UIKit, мелкие: границы date picker (`630c4c52`), systemRed у badge (`71cb6fa1`), systemBlue у бара и кольца фокуса (`752bac2d`), порог перетаскивания sheet 12 pt (`e00c9540`), восстановление стека (`737ffa50`), `onDetentChanged` только от пользователя (`cae41883`), публичная документация без внутренних имён (`98903140`).
-- [ ] `proportionalWidth` в segmented: закон UIKit для ширин по содержимому (устройство 60 / 231 / 70 pt против 71 / 212 / 78 у morph). Нужен закон из UIKit или подгонка по `segContent` и `segContent4`.
-- [ ] Replay записей, которые лежат в репозитории без теста (список в `spec/api/README.md`).
+- [x] `proportionalWidth` в segmented: закон распределения UIKit, ширины 60 / 231 / 70 и 42 / 184 / 42 / 92 pt как на устройстве (`0813417c`).
+- [x] Мелкие расхождения, второй проход: спиннер продолжает с кадра остановки (`4ec58de8`), pop route вне стека кнопкой бара (`edc7410b`), подпись для кнопок стекла с одной иконкой (`1c059815`), локализованные подписи контролов (`d48d4799`).
+- [ ] Replay записей, которые лежат в репозитории без теста (список в `spec/api/README.md`). Сделано: контекстное меню у нижнего края (`2eea0f50`), покой alert (`c612f31e`), старт и стоп спиннера, bar-стиль progress, затухание page control (`4ec58de8`). Открыто: содержимое popover action sheet на 0.71 pt ниже UIKit (skip с цифрами); строка списка со switch 59 против 53 pt и задержка старта касания в tab bar, segmented, switch, glass button и scroll идут в отдельных сессиях.
 - [ ] Доступность: Dynamic Type по контролам вместо необоснованных потолков, Bold Text, On/Off Labels, проход Reduce Motion на устройстве, контрастные цвета подписей.
-- [ ] Недостающее с высокой нуждой: меню Copy/Paste в полях ввода morph, pull to refresh, swipe actions, общий текстовый ввод, inline date picker, иконки в segmented, не-стеклянные стили кнопок, pop-up button.
+- [ ] Недостающее с высокой нуждой: ~~меню Copy/Paste в полях ввода morph~~ (`f3b60c05`, системное меню на iOS), pull to refresh, swipe actions, общий текстовый ввод, inline date picker, иконки в segmented, не-стеклянные стили кнопок, pop-up button.
 - [ ] Измерить на устройстве то, что сейчас взято из пресетов рендерера: clear и tinted поверхности стекла, кромка, рефракция, свечение кнопок.
 
 ## Приложение A. Результаты прототипов
