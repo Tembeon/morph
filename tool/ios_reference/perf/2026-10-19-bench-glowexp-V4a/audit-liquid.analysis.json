@@ -1,0 +1,110 @@
+{
+ "budget_ms": 16.666666666666668,
+ "gpu_uid": 10378,
+ "gpu_events": 13155,
+ "scenes": {
+  "m/menu/held": {
+   "budget_ms": 16.666666666666668,
+   "runs": 5,
+   "seconds": 22.06,
+   "frames": 977,
+   "fps": 44.3,
+   "ui_p50": 3.851441,
+   "ui_p95": 8.566773,
+   "ui_max": 28.979981,
+   "raster_p50": 8.118368,
+   "raster_p95": 12.259115,
+   "raster_max": 19.399333,
+   "gpu_p50": 4.114787,
+   "gpu_p95": 5.310018,
+   "gpu_ms_per_s": 164.77,
+   "save_layers_per_frame": 1.17,
+   "submits_per_frame": 2.06,
+   "over": 8,
+   "over_pct": 0.8,
+   "causes": {
+    "raster-cpu": 5,
+    "ui-other": 2,
+    "ui-paint": 1
+   },
+   "ui_phase_ms_per_frame": {
+    "paint": 1.726,
+    "other": 1.305,
+    "compositing": 0.974,
+    "layout": 0.135,
+    "build": 0.029,
+    "finalize": 0.023,
+    "gc": 0.005
+   },
+   "ui_owner_ms_per_frame": {
+    "Dart_InvokeClosure": 1.127,
+    "QueueSubmit": 0.312,
+    "Dart_NewInteger": 0.023,
+    "POST_FRAME": 0.016,
+    "CopyMutableObjectGraph": 0.013,
+    "Dart_Invoke": 0.012,
+    "Dart_NewStringFromCString": 0.005,
+    "Dart_StringToUTF8": 0.005,
+    "IncrementalMarkWithSizeBudget": 0.004,
+    "IterateIsolateRoots": 0.003
+   },
+   "raster_self_ms_per_frame": {
+    "SurfaceFrame::Encode": 2.915,
+    "QueueSubmit": 2.29,
+    "Canvas::saveLayer": 0.76,
+    "CreateGlyphAtlas": 0.424,
+    "waitForBufferRelease": 0.269,
+    "acquireNextBufferLocked": 0.25,
+    "Rasterizer::DrawToSurfaces": 0.224,
+    "QueuePresentKHR": 0.182
+   },
+   "glyph_atlas_ms_per_frame": 0.472,
+   "glyph_strike_frames_pct": 5.8,
+   "bad_glyph_atlas_ms_per_frame": 1.03,
+   "bad_raster_self_ms_per_frame": {
+    "SurfaceFrame::Encode": 7.71,
+    "QueueSubmit": 4.05,
+    "Canvas::saveLayer": 3.26,
+    "CreateGlyphAtlas": 0.64,
+    "UpdateAtlasBitmap": 0.39,
+    "Rasterizer::DrawToSurfaces": 0.35,
+    "acquireNextBufferLocked": 0.33,
+    "QueuePresentKHR": 0.28
+   },
+   "bad_ui_phase_ms_per_frame": {
+    "other": 6.8,
+    "paint": 5.85,
+    "layout": 5.31,
+    "compositing": 3.19,
+    "build": 0.82,
+    "finalize": 0.03
+   },
+   "ui_runnable_share": 0.01,
+   "raster_runnable_share": 0.032,
+   "dropped": 18,
+   "cpu_mhz": {
+    "little": 733,
+    "mid": 592,
+    "big": 529
+   },
+   "gpu_mhz": 251,
+   "power_mw": 637,
+   "rails_mw": {
+    "display": 174,
+    "cpu.little": 105,
+    "gpu": 78,
+    "memory.interface": 64,
+    "ddr.c": 59,
+    "cpu.mid": 51,
+    "cpu.big": 32,
+    "system.fabric": 32,
+    "ddr.b": 14,
+    "tpu": 12,
+    "ddr.a": 8,
+    "aoc.logic": 5,
+    "aoc.memory": 2,
+    "gps": 1
+   }
+  }
+ }
+}
