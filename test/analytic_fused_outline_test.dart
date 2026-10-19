@@ -4,8 +4,9 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
@@ -36,11 +37,11 @@ void main() {
   final five = [for (var i = 0; i < 5; i++) _capsule(16 + i * 50.0, 0, 44)];
 
   setUp(debugClearMorphGlassOutlines);
-  tearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+  tearDown(() => GlassGeometryFlags.debugAnalyticGeometry = null);
 
   test('the liquid tier with analytic geometry merges boxes without '
       'fusing them on the CPU', () {
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     final traces = morphGlassOutlineDebugTraces;
     final (members, outline) = _frame(
       pair,
@@ -67,7 +68,7 @@ void main() {
   });
 
   test('a body of more than four boxes keeps its fused field', () {
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     final (_, outline) = _frame(
       five,
     ).partsFor(MorphGlassTier.liquid).fused.single;
@@ -80,7 +81,7 @@ void main() {
     test(
       'fused and flat outlines are the package fusion, analytic $analytic',
       () {
-        RenderLiquidGlassLayer.debugAnalyticGeometry = analytic;
+        GlassGeometryFlags.debugAnalyticGeometry = analytic;
         // The traced flat silhouette; shader bodies are pinned elsewhere.
         MorphFlatBodyShader.debugEnabled = false;
         addTearDown(() => MorphFlatBodyShader.debugEnabled = null);
@@ -102,7 +103,7 @@ void main() {
   }
 
   test('a merged-box outline moves with its boxes', () {
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     final first = morphGlassContainerBoxOutline(pair, 12);
     const offset = Offset(7, 3);
     final moved = morphGlassContainerBoxOutline([

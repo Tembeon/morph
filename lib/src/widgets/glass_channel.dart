@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_container.dart';
@@ -81,7 +81,7 @@ class MorphGlassFrame {
   /// boxes instead of a fused field.
   MorphGlassLayerParts partsFor(MorphGlassTier tier) => switch (tier) {
     MorphGlassTier.flat => _silhouetteParts,
-    MorphGlassTier.liquid when RenderLiquidGlassLayer.analyticGeometryEnabled =>
+    MorphGlassTier.liquid when GlassGeometryFlags.analyticGeometryEnabled =>
       _boxParts,
     _ => parts,
   };
@@ -338,9 +338,7 @@ class _MorphGlassHostElement extends ComponentElement {
       morphLiquidGlassCapability.addListener(_capabilityResolved);
     }
     if (_followsAnalytic) {
-      RenderLiquidGlassLayer.analyticGeometryChanges.addListener(
-        markNeedsBuild,
-      );
+      GlassGeometryFlags.analyticGeometryChanges.addListener(markNeedsBuild);
     }
     super.mount(parent, newSlot);
   }
@@ -400,9 +398,7 @@ class _MorphGlassHostElement extends ComponentElement {
     _host.glows?.removeListener(_glowed);
     morphLiquidGlassCapability.removeListener(_capabilityResolved);
     if (_followsAnalytic) {
-      RenderLiquidGlassLayer.analyticGeometryChanges.removeListener(
-        markNeedsBuild,
-      );
+      GlassGeometryFlags.analyticGeometryChanges.removeListener(markNeedsBuild);
     }
     _container?.release(this);
     super.unmount();

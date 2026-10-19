@@ -3117,7 +3117,7 @@ taking the skip (a marker build, lower bounds): big-sheet 750893 of its
 1.41 M box pixels, menu-frosted 340641 of 0.72 M, the trio's 200 x 150 card 13002
 (its refraction bevel sets the flat depth); capsules never (radius =
 half height), nor small lenses. Test toggle:
-RenderLiquidGlassLayer.debugAnalyticFlatFace (uniform uAnalyticFlatFace).
+GlassGeometryFlags.debugAnalyticFlatFace (uniform uAnalyticFlatFace).
 Open: device GPU time on large moving surfaces.
 
 ## Flat shader bodies (2026-10-09, behind MORPH_FLAT_SHADER_BODIES)

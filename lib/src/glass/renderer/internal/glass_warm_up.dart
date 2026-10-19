@@ -3,13 +3,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
 import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
 import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
 import 'package:morph/src/glass/renderer/pass/final_pass_layout.dart';
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
 /// The longest precache waits for one warm-up scene on the raster thread.
@@ -119,7 +119,7 @@ Future<void> morphWarmLiquidPipelines(
     ];
     // The analytic variants are warmed only where layers use them; one
     // that does not load is left out rather than failing the warm-up.
-    if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
+    if (GlassGeometryFlags.analyticGeometryEnabled) {
       await GlassFinalPass.precacheAnalyticShaders();
       for (final variant in LiquidShaderVariant.values) {
         if (!variant.analyticGeometry) continue;

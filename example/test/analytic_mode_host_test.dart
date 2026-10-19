@@ -9,6 +9,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The test drives the renderer's own layer.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
@@ -16,7 +18,7 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show AnalyticGeometryMode, RenderLiquidGlassLayer;
+    show RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_outline.dart';
 
@@ -127,15 +129,15 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
-      RenderLiquidGlassLayer.debugAnalyticCapsule = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticCapsule = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     harness = ShaderHarness(tester);
     backdrop = await harness.backdrop();
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
   }
 
   testWidgets('changes: a resting layer shades from one matte encode', (
@@ -144,10 +146,10 @@ void main() {
     if (!ui.ImageFilter.isShaderFilterSupported) return;
     await setUp(t);
 
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     final always = await fresh(2);
     expect(layer().debugAnalytic, isTrue);
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.changes;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.changes;
     final resting = await fresh(2);
     expect(layer().debugAnalytic, isFalse);
     expect(layer().debugResting, isTrue);
@@ -177,10 +179,10 @@ void main() {
     expect(renderer.debugRenderCount, encodes + 1);
     expect(layer().debugPaintCount, paints);
     final restedThree = await shoot();
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     await frames(3);
     expect(layer().debugAnalytic, isTrue);
-    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    GlassGeometryFlags.debugAnalyticGeometry = false;
     final matteThree = await fresh(3);
     // The rest encode is the matte path's own frame.
     expect(HarnessDiff.of(restedThree, matteThree).max, 0);
@@ -190,7 +192,7 @@ void main() {
       'analytic', (WidgetTester t) async {
     if (!ui.ImageFilter.isShaderFilterSupported) return;
     await setUp(t);
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.changes;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.changes;
     await tester.pumpWidget(scene(2, ticking: true));
     await frames(3);
     final renderer = layer().gpuGeometryRenderer!;
@@ -252,7 +254,7 @@ void main() {
         ],
         field: morphGlassOutlineField(morphGlassContainerBoxOutline(boxes, 12)),
       );
-      RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.changes;
+      GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.changes;
       final traces = morphGlassOutlineDebugTraces;
       await harness.show(body, ShaderVariant.candidate);
       expect(layer().debugResting, isTrue, reason: name);
@@ -261,7 +263,7 @@ void main() {
       await frames(4);
       // The geometry pass merges the boxes itself: the CPU never fuses.
       expect(morphGlassOutlineDebugTraces - traces, 0, reason: name);
-      RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+      GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
       await frames(3);
       expect(layer().debugAnalytic, isTrue, reason: name);
       final moving = await harness.shoot();
@@ -293,10 +295,10 @@ void main() {
   ) async {
     if (!ui.ImageFilter.isShaderFilterSupported) return;
     await setUp(t);
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
-    RenderLiquidGlassLayer.debugAnalyticCapsule = false;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticCapsule = false;
     final superellipse = await fresh(3);
-    RenderLiquidGlassLayer.debugAnalyticCapsule = true;
+    GlassGeometryFlags.debugAnalyticCapsule = true;
     final stadium = await fresh(3);
     expect(layer().debugAnalytic, isTrue);
     final diff = HarnessDiff.of(superellipse, stadium);

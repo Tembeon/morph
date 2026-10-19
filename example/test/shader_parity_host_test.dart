@@ -8,10 +8,9 @@ import 'dart:ui' as ui;
 import 'package:flutter_test/flutter_test.dart';
 // The oracle pins the renderer's geometry path.
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/pass/glass_frost.dart';
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer;
+import 'package:morph/src/glass/renderer/pass/glass_frost.dart';
 
 import '../integration_test/support/shader_harness.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
@@ -46,8 +45,8 @@ void main() {
     // has no analytic variants: a build with MORPH_ANALYTIC_GEOMETRY would
     // draw the candidate analytically and the baseline from its matte.
     // analytic_geometry_host_test.dart compares the two paths instead.
-    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
-    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    GlassGeometryFlags.debugAnalyticGeometry = false;
+    addTearDown(() => GlassGeometryFlags.debugAnalyticGeometry = null);
     // The frozen copy has no frost of its own: the frost blurs in a pass.
     final shaderFrost = debugMorphShaderFrost;
     debugMorphShaderFrost = false;

@@ -7,12 +7,14 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/morph.dart';
 // The test drives the renderer's own layers.
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show AnalyticGeometryMode, RenderLiquidGlassLayer;
+    show RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_renderer.dart';
 
@@ -42,12 +44,12 @@ void main() {
     tester.view.devicePixelRatio = dpr;
     addTearDown(tester.view.reset);
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     final boundary = GlobalKey();
 
     Future<void> frames(int count) async {
@@ -124,7 +126,7 @@ void main() {
     Future<(HarnessShot, ui.Rect, ui.Rect)> held(
       AnalyticGeometryMode mode,
     ) async {
-      RenderLiquidGlassLayer.debugAnalyticMode = mode;
+      GlassGeometryFlags.debugAnalyticMode = mode;
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpWidget(app());
       await frames(10);

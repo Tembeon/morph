@@ -12,6 +12,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The A/B toggles the renderer's own geometry path.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/geometry/glass_geometry.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
@@ -23,7 +25,7 @@ import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show AnalyticGeometryMode, RenderLiquidGlassLayer;
+    show RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_outline.dart';
 
@@ -226,10 +228,10 @@ void main() {
     addTearDown(tester.view.reset);
     // These tests pin analytic shading on every frame it can; the
     // `changes` mode has its own test (analytic_mode_host_test.dart).
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
@@ -247,11 +249,11 @@ void main() {
         if (_only.isEmpty || _only.split(',').contains(c.name)) c,
     ];
     for (final glassCase in [...harnessCasesNamed(_only), ...fused]) {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+      GlassGeometryFlags.debugAnalyticGeometry = false;
       await harness.show(glassCase, ShaderVariant.candidate);
       expect(layerAnalytic(), isFalse, reason: glassCase.name);
       final matte = await harness.shoot();
-      RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+      GlassGeometryFlags.debugAnalyticGeometry = true;
       await harness.show(glassCase, ShaderVariant.candidate);
       final analytic = layerAnalytic();
       final shot = await harness.shoot();
@@ -314,10 +316,10 @@ void main() {
     addTearDown(tester.view.reset);
     // These tests pin analytic shading on every frame it can; the
     // `changes` mode has its own test (analytic_mode_host_test.dart).
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
@@ -416,7 +418,7 @@ void main() {
         .whereType<RenderLiquidGlassLayer>()
         .any((layer) => layer.debugAnalytic);
 
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     final two = await fresh(2, ui.Offset.zero);
     expect(layerAnalytic(), isTrue);
     final nine = await fresh(9, ui.Offset.zero);
@@ -446,19 +448,19 @@ void main() {
     expect(HarnessDiff.of(await shoot(), twoMoved).max, lessThanOrEqualTo(1));
 
     // Flipping the override in one mount takes effect on the next frame.
-    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    GlassGeometryFlags.debugAnalyticGeometry = false;
     await tester.pump();
     expect(layerAnalytic(), isFalse);
     await settle();
     final keptMatte = await shoot();
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     await tester.pump();
     expect(layerAnalytic(), isTrue);
     await settle();
     expect(HarnessDiff.of(await shoot(), twoMoved).max, lessThanOrEqualTo(1));
 
     // The matte path with the same transitions draws the same as fresh.
-    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    GlassGeometryFlags.debugAnalyticGeometry = false;
     final matteMoved = await fresh(2, moved);
     expect(HarnessDiff.of(keptMatte, matteMoved).max, lessThanOrEqualTo(1));
     final compared = _compare(matteMoved, twoMoved, (x, y) => true);
@@ -476,10 +478,10 @@ void main() {
     addTearDown(tester.view.reset);
     // These tests pin analytic shading on every frame it can; the
     // `changes` mode has its own test (analytic_mode_host_test.dart).
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
@@ -534,7 +536,7 @@ void main() {
         field: morphGlassOutlineField(morphGlassContainerOutline(boxes, 12)),
       );
       Future<HarnessShot> shot(HarnessCase c, {required bool analytic}) async {
-        RenderLiquidGlassLayer.debugAnalyticGeometry = analytic;
+        GlassGeometryFlags.debugAnalyticGeometry = analytic;
         await harness.show(c, ShaderVariant.candidate);
         return harness.shoot();
       }
@@ -578,10 +580,10 @@ void main() {
     addTearDown(tester.view.reset);
     // These tests pin analytic shading on every frame it can; the
     // `changes` mode has its own test (analytic_mode_host_test.dart).
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     addTearDown(() {
       debugMorphFusionStep = 2;
@@ -619,10 +621,10 @@ void main() {
       );
       debugMorphFusionStep = 2;
       debugClearMorphGlassOutlines();
-      RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+      GlassGeometryFlags.debugAnalyticGeometry = false;
       await harness.show(fine, ShaderVariant.candidate);
       final fineShot = await harness.shoot();
-      RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+      GlassGeometryFlags.debugAnalyticGeometry = true;
       await harness.show(merged, ShaderVariant.candidate);
       final analytic = await harness.shoot();
       final compared = _compare(fineShot, analytic, _covered(merged, dpr));
@@ -654,10 +656,10 @@ void main() {
     addTearDown(tester.view.reset);
     // These tests pin analytic shading on every frame it can; the
     // `changes` mode has its own test (analytic_mode_host_test.dart).
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
@@ -678,32 +680,32 @@ void main() {
         .toSet()
         .single;
 
-    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    GlassGeometryFlags.debugAnalyticGeometry = false;
     await harness.show(glassCase, ShaderVariant.candidate);
     final matte = await harness.shoot();
     final renderer = layer().gpuGeometryRenderer!;
     expect(renderer.holdsOutput, isTrue);
-    final releases = RenderLiquidGlassLayer.debugMatteReleases;
+    final releases = GlassRestWatch.debugMatteReleases;
     final textures = FlutterGpuGeometryRenderer.debugActiveGeometryTextureCount;
 
     // Alternating frames keep the textures.
     for (var i = 0; i < 6; i++) {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = i.isEven;
+      GlassGeometryFlags.debugAnalyticGeometry = i.isEven;
       await frames(1);
     }
-    expect(RenderLiquidGlassLayer.debugMatteReleases, releases);
+    expect(GlassRestWatch.debugMatteReleases, releases);
 
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     await frames(6);
     expect(layer().debugAnalytic, isTrue);
     expect(renderer.holdsOutput, isFalse);
-    expect(RenderLiquidGlassLayer.debugMatteReleases, releases + 1);
+    expect(GlassRestWatch.debugMatteReleases, releases + 1);
     expect(
       FlutterGpuGeometryRenderer.debugActiveGeometryTextureCount,
       lessThan(textures),
     );
 
-    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    GlassGeometryFlags.debugAnalyticGeometry = false;
     await frames(6);
     expect(layer().debugAnalytic, isFalse);
     expect(renderer.holdsOutput, isTrue);
@@ -717,10 +719,10 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
@@ -754,10 +756,10 @@ void main() {
     bool covered(int x, int y) =>
         inner.inflate(3).contains(ui.Offset((x + 0.5) / dpr, (y + 0.5) / dpr));
     for (final glassCase in cases) {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+      GlassGeometryFlags.debugAnalyticGeometry = false;
       await harness.show(glassCase, ShaderVariant.candidate);
       final matte = await harness.shoot();
-      RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+      GlassGeometryFlags.debugAnalyticGeometry = true;
       await harness.show(glassCase, ShaderVariant.candidate);
       expect(layerAnalytic(), isTrue, reason: glassCase.name);
       final analytic = await harness.shoot();
@@ -797,7 +799,7 @@ void main() {
         ], 12),
       ),
     );
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     await harness.show(
       merged(const LiquidGlassAppearance.ios27RegularDark()),
       ShaderVariant.candidate,

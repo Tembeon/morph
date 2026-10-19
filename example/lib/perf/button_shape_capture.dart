@@ -7,8 +7,8 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/scope.dart';
@@ -112,8 +112,8 @@ Future<void> main() async {
   Duration stamp() =>
       Duration(microseconds: DateTime.now().microsecondsSinceEpoch);
   for (final name in ['changes', 'matte', 'analytic']) {
-    RenderLiquidGlassLayer.debugAnalyticGeometry = name != 'matte';
-    RenderLiquidGlassLayer.debugAnalyticMode = name == 'analytic'
+    GlassGeometryFlags.debugAnalyticGeometry = name != 'matte';
+    GlassGeometryFlags.debugAnalyticMode = name == 'analytic'
         ? AnalyticGeometryMode.always
         : AnalyticGeometryMode.changes;
     mode.value = name;
