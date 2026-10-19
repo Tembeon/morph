@@ -31,6 +31,7 @@ import 'package:morph/src/glass/renderer/liquid_glass_glow.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_render_scope.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_settings.dart';
 import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
+import 'package:morph/src/glass/renderer/pass/final_pass_layout.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
@@ -57,7 +58,6 @@ class LiquidGlassLayer extends StatefulWidget {
   }) : live = null,
        settingsOf = null,
        fieldOf = null,
-       outlineOf = null,
        glowOf = null,
        glows = null;
 
@@ -71,7 +71,6 @@ class LiquidGlassLayer extends StatefulWidget {
     required this.live,
     required LiquidGlassSettings Function() this.settingsOf,
     this.fieldOf,
-    this.outlineOf,
     this.glowOf,
     this.glows,
     this.defaultAppearance,
@@ -92,14 +91,6 @@ class LiquidGlassLayer extends StatefulWidget {
 
   /// The field now, for a live layer; null for a layer without a field.
   final GlassField? Function()? fieldOf;
-
-  /// The outline of the one body the layer's shapes form when its owner
-  /// fused them without a field (a plain union of the shapes), for a live
-  /// layer.
-  ///
-  /// The liquid geometry pass shades such a body from the shapes
-  /// themselves.
-  final Path? Function()? outlineOf;
 
   /// The touch glow the final pass applies now, for a live layer; null for
   /// a layer that never glows.
@@ -566,11 +557,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// a layer needs them and their programs have loaded.
   List<FragmentShader>? _analyticFusedShaders;
 
-  /// The most shapes a layer evaluates in its final shader; a layer with
-  /// more renders a geometry matte. Matches ANALYTIC_MAX_SHAPES in
-  /// shaders/analytic_geometry.glsl.
-  static const int analyticMaxShapes = 8;
-
   /// The largest geometry, in device pixels of its bounds, an analytic
   /// frame shades: per-pixel shape evaluation costs in proportion to the
   /// area, and a screen-high surface (a sheet, about 2 million device
@@ -769,7 +755,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// Whether liquid layers evaluate their geometry in the final shader:
   /// [debugAnalyticGeometry], else [ShaderKeys.analyticGeometry].
   ///
-  /// A frame is analytic when it has at most [analyticMaxShapes] separate
+  /// A frame is analytic when it has at most [FinalPassLayout.analyticMaxShapes] separate
   /// shapes, or a [GlassBoxField] of at most [GlassBoxField.maxBoxes]
   /// merged boxes, and one appearance or appearances that differ only by
   /// tint; every other frame renders a matte. Separate shapes draw the
@@ -941,7 +927,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// can: analytic geometry is [enabled], the layer has no fused field
   /// ([hasField]) or one of at most [GlassBoxField.maxBoxes] merged boxes
   /// ([fusedBoxes], 0 for a sampled field), there are at most
-  /// [analyticMaxShapes] shapes, no
+  /// [FinalPassLayout.analyticMaxShapes] shapes, no
   /// geometry of two or more shapes blends them, the appearances are one
   /// or differ only by tint (against [fallback] when there are none), and
   /// the analytic shaders are ready ([shadersReady]).
@@ -967,8 +953,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     for (final (blend, shapes) in geometries) {
       final start = appearances.length;
       for (final appearance in shapes) {
-        if (appearances.length == analyticMaxShapes) {
-          return 'more than $analyticMaxShapes shapes';
+        if (appearances.length == FinalPassLayout.analyticMaxShapes) {
+          return 'more than ${FinalPassLayout.analyticMaxShapes} shapes';
         }
         appearances.add(appearance);
       }
@@ -1089,7 +1075,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   ) {
     // The final shader fades the whole material with visibility, so the
     // color factors are written at full strength.
-    shader.setFloatUniforms(initialIndex: 6, (value) {
+    shader.setFloatUniforms(initialIndex: FinalPassLayout.tint, (value) {
       value
         ..setColor(appearance.tint)
         ..setFloats([
@@ -1148,15 +1134,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           _materialShortSide,
         ]);
     });
-    // Float indices 53 and 54, after the 47-float common block and the
-    // 6-float filter->matte mapping: frosted glass cross-fades its blur away,
-    // while unfrosted glass stays alpha-1 and cross-fades its material in the
-    // shader, so both match the backdrop exactly at visibility 0.
+    // Frosted glass cross-fades its blur away, while unfrosted glass stays
+    // alpha-1 and cross-fades its material in the shader, so both match the
+    // backdrop exactly at visibility 0.
     final shaderFrost = shaderFrostDeviceSigma;
     shader
-      ..setFloat(53, blurPassSigma > 0 || shaderFrost > 0 ? 1 : 0)
       ..setFloat(
-        54,
+        FinalPassLayout.blurFade,
+        blurPassSigma > 0 || shaderFrost > 0 ? 1 : 0,
+      )
+      ..setFloat(
+        FinalPassLayout.soften,
         shaderFrost > 0
             ? 2 + shaderFrost
             : softensInShader
@@ -1167,17 +1155,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     // A new shader's uniforms are not zeroed: read the backdrop until a
     // solid frame writes its color.
     for (var i = 0; i < 4; i++) {
-      shader.setFloat(solidBackdropUniform + i, 0);
+      shader.setFloat(FinalPassLayout.solidBackdrop + i, 0);
     }
     shader.setFloatUniforms(
-      initialIndex: glowUniform,
+      initialIndex: FinalPassLayout.glow,
       (value) =>
           value.setFloats(LiquidGlassGlow.uniformsOf(_glow, devicePixelRatio)),
     );
   }
 
-  /// Writes uBackdropShrinkAxis (float indices 63 and 64): half the line the
-  /// backdrop shrinks about, in device pixels from the material center.
+  /// Writes uBackdropShrinkAxis: half the line the backdrop shrinks about,
+  /// in device pixels from the material center.
   void _writeBackdropShrinkAxis(FragmentShader shader) {
     final size = _materialSizeInMatte;
     final rim = settings.effectiveBackdropShrinkRim;
@@ -1185,8 +1173,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         rim * (size.longestSide - size.shortestSide) / 2 * devicePixelRatio;
     final alongX = size.width >= size.height;
     shader
-      ..setFloat(63, alongX ? half : 0)
-      ..setFloat(64, alongX ? 0 : half);
+      ..setFloat(FinalPassLayout.backdropShrinkAxis, alongX ? half : 0)
+      ..setFloat(FinalPassLayout.backdropShrinkAxis + 1, alongX ? 0 : half);
   }
 
   /// Largest frost, in device pixels, folded into the final pass instead of
@@ -1586,8 +1574,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _geometryInputsChanged = true;
     }
     final materialBounds = boundingBox.inflate(_contourOutset);
-    // Liquid shapes register no layer shadows: GlassShadow draws them
-    // outside the layer.
+    // Liquid shapes paint their own shadows (GlassShadowCaster), outside
+    // the layer's effect.
     effectPaintBounds = materialBounds;
     return materialBounds;
   }
@@ -1614,16 +1602,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     syncCoordinateMapping();
     final activeRenderShader = renderShader;
     activeRenderShader
-      ..setFloatUniforms(initialIndex: 2, (value) {
+      ..setFloatUniforms(initialIndex: FinalPassLayout.geometryOffset, (value) {
         value
           ..setOffset(_geometryMatteBounds.topLeft * devicePixelRatio)
           ..setSize(_geometryMatteBounds.size * devicePixelRatio);
       })
-      ..setFloatUniforms(initialIndex: 34, (value) {
+      ..setFloatUniforms(initialIndex: FinalPassLayout.materialCenter, (value) {
         value.setOffset(_materialCenterInMatte * devicePixelRatio);
       })
-      // Float index 59, after uBackdropBounds.
-      ..setFloatUniforms(initialIndex: 59, (value) {
+      ..setFloatUniforms(initialIndex: FinalPassLayout.geometryUVScale, (
+        value,
+      ) {
         final matteSize = _geometryMatteBounds.size * devicePixelRatio;
         value.setFloats([
           if (_geometryTextureSize.isEmpty) ...[
@@ -1721,54 +1710,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   @visibleForTesting
   static bool get debugHasBlankImage => _blankImage != null;
 
-  /// Float index of uAnalyticHeader (the optics vec4, then the ranges
-  /// vec4), the first analytic uniform, after the 81 common floats
-  /// (shaders/analytic_geometry.glsl).
-  @visibleForTesting
-  static const int analyticUniformIndex =
-      glowUniform + LiquidGlassGlow.floatCount;
-
-  /// Float index of uShapeData, after the two vec4 of uAnalyticHeader.
-  @visibleForTesting
-  static const int analyticShapeDataIndex = analyticUniformIndex + 8;
-
-  /// Float index of uRseData, after 3 vec4 of uShapeData per shape.
-  @visibleForTesting
-  static const int analyticRseDataIndex =
-      analyticShapeDataIndex + analyticMaxShapes * 12;
-
-  /// Float index of uShapeBounds, after 3 vec4 of uRseData per shape.
-  @visibleForTesting
-  static const int analyticBoundsIndex =
-      analyticRseDataIndex + analyticMaxShapes * 12;
-
-  /// Float index of the cull factors, the tail of uShapeBounds after one
-  /// vec4 of bounds per shape: one float per shape, four to a vec4.
-  @visibleForTesting
-  static const int analyticCullIndex =
-      analyticBoundsIndex + analyticMaxShapes * 4;
-
-  /// Float index of uAnalyticFlatFace, after the cull factors.
-  @visibleForTesting
-  static const int analyticFlatFaceIndex =
-      analyticCullIndex + analyticMaxShapes;
-
-  /// Float index of uFusedBoxes, after uAnalyticFlatFace; only the fused
-  /// variants declare it.
-  @visibleForTesting
-  static const int analyticFusedBoxesIndex = analyticFlatFaceIndex + 1;
-
-  /// Float index of uShapeTints in the separate-shape tint variants,
-  /// after uAnalyticFlatFace.
-  @visibleForTesting
-  static const int analyticTintsIndex = analyticFlatFaceIndex + 1;
-
-  /// Float index of uShapeTints in the fused tint variants, after 2 vec4
-  /// of uFusedBoxes per fused box.
-  @visibleForTesting
-  static const int analyticFusedTintsIndex =
-      analyticFusedBoxesIndex + GlassBoxField.maxBoxes * 8;
-
   // The geometry pass's optical inputs of the current analytic frame.
   double _analyticRefractionHeight = 0;
   double _analyticRefractionAmount = 1e-3;
@@ -1784,43 +1725,50 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   double _analyticSpacing = 0;
 
   // Writes the analytic frame's shapes and the geometry pass's optical
-  // inputs into [shader], from float index [analyticUniformIndex].
+  // inputs into [shader].
   void _writeAnalyticUniforms(FragmentShader shader) {
-    shader.setFloat(analyticUniformIndex, _analyticRefractionHeight);
-    shader.setFloat(analyticUniformIndex + 1, _analyticRefractionAmount);
-    shader.setFloat(analyticUniformIndex + 2, _analyticFitsShape ? 1 : 0);
-    shader.setFloat(analyticUniformIndex + 3, _analyticShapeCount.toDouble());
-    shader.setFloat(analyticUniformIndex + 4, _analyticContourExtent);
-    shader.setFloat(analyticUniformIndex + 5, _analyticBoxCount.toDouble());
-    shader.setFloat(analyticUniformIndex + 6, _analyticSpacing);
+    shader.setFloat(FinalPassLayout.analytic, _analyticRefractionHeight);
+    shader.setFloat(FinalPassLayout.analytic + 1, _analyticRefractionAmount);
+    shader.setFloat(FinalPassLayout.analytic + 2, _analyticFitsShape ? 1 : 0);
     shader.setFloat(
-      analyticUniformIndex + 7,
+      FinalPassLayout.analytic + 3,
+      _analyticShapeCount.toDouble(),
+    );
+    shader.setFloat(FinalPassLayout.analytic + 4, _analyticContourExtent);
+    shader.setFloat(FinalPassLayout.analytic + 5, _analyticBoxCount.toDouble());
+    shader.setFloat(FinalPassLayout.analytic + 6, _analyticSpacing);
+    shader.setFloat(
+      FinalPassLayout.analytic + 7,
       liquidMinMergeWidth * devicePixelRatio,
     );
     final fused = _analyticBoxCount > 0;
     // Only the fused variants declare uFusedBoxes.
     if (fused) {
       for (var i = 0; i < _analyticBoxCount * 8; i++) {
-        shader.setFloat(analyticFusedBoxesIndex + i, _analyticBoxes[i]);
+        shader.setFloat(FinalPassLayout.fusedBoxes + i, _analyticBoxes[i]);
       }
     }
-    for (var i = 0; i < _cullData.length && i < analyticMaxShapes; i++) {
-      shader.setFloat(analyticCullIndex + i, _cullData[i]);
+    for (
+      var i = 0;
+      i < _cullData.length && i < FinalPassLayout.analyticMaxShapes;
+      i++
+    ) {
+      shader.setFloat(FinalPassLayout.shapeCull + i, _cullData[i]);
     }
-    shader.setFloat(analyticFlatFaceIndex, _debugAnalyticFlatFace ? 1 : 0);
+    shader.setFloat(FinalPassLayout.flatFace, _debugAnalyticFlatFace ? 1 : 0);
     for (var i = 0; i < _shapeData.length; i++) {
-      shader.setFloat(analyticShapeDataIndex + i, _shapeData[i]);
+      shader.setFloat(FinalPassLayout.shapeData + i, _shapeData[i]);
     }
     for (var i = 0; i < _rseData.length; i++) {
-      shader.setFloat(analyticRseDataIndex + i, _rseData[i]);
+      shader.setFloat(FinalPassLayout.rseData + i, _rseData[i]);
     }
     for (var i = 0; i < _boundsData.length; i++) {
-      shader.setFloat(analyticBoundsIndex + i, _boundsData[i]);
+      shader.setFloat(FinalPassLayout.shapeBounds + i, _boundsData[i]);
     }
     // Only the tint variants declare uShapeTints.
     final shaders = _analyticSet;
     if (identical(shader, shaders[2]) || identical(shader, shaders[3])) {
-      final at = fused ? analyticFusedTintsIndex : analyticTintsIndex;
+      final at = fused ? FinalPassLayout.fusedTints : FinalPassLayout.tints;
       for (var i = 0; i < _analyticTints.length; i++) {
         shader.setFloat(at + i, _analyticTints[i]);
       }
@@ -2014,18 +1962,19 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     (double, double, double, double, double, double) mapping,
     Rect? backdropBounds,
   ) {
-    shader.setFloat(47, mapping.$1);
-    shader.setFloat(48, mapping.$2);
-    shader.setFloat(49, mapping.$3);
-    shader.setFloat(50, mapping.$4);
-    shader.setFloat(51, mapping.$5);
-    shader.setFloat(52, mapping.$6);
-    // Float index 55, after the frost flags.
+    const basis = FinalPassLayout.filterToMatteBasis;
+    shader.setFloat(basis, mapping.$1);
+    shader.setFloat(basis + 1, mapping.$2);
+    shader.setFloat(basis + 2, mapping.$3);
+    shader.setFloat(basis + 3, mapping.$4);
+    shader.setFloat(FinalPassLayout.filterToMatteOffset, mapping.$5);
+    shader.setFloat(FinalPassLayout.filterToMatteOffset + 1, mapping.$6);
+    const bounds = FinalPassLayout.backdropBounds;
     final matteBounds = backdropBounds ?? Rect.largest;
-    shader.setFloat(55, matteBounds.left * devicePixelRatio);
-    shader.setFloat(56, matteBounds.top * devicePixelRatio);
-    shader.setFloat(57, matteBounds.right * devicePixelRatio);
-    shader.setFloat(58, matteBounds.bottom * devicePixelRatio);
+    shader.setFloat(bounds, matteBounds.left * devicePixelRatio);
+    shader.setFloat(bounds + 1, matteBounds.top * devicePixelRatio);
+    shader.setFloat(bounds + 2, matteBounds.right * devicePixelRatio);
+    shader.setFloat(bounds + 3, matteBounds.bottom * devicePixelRatio);
   }
 
   // MARK: Native filter
@@ -2097,16 +2046,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     final color = _solidBackdrop;
     return color != null && color.a == 1 ? color : null;
   }
-
-  /// Float index of uSolidBackdrop in every final shader, after
-  /// uBackdropShrinkAxis.
-  @internal
-  static const int solidBackdropUniform = 65;
-
-  /// Float index of the touch glow in every final shader (uGlowSpot,
-  /// uGlowBox, uGlowShape), after uSolidBackdrop.
-  @visibleForTesting
-  static const int glowUniform = solidBackdropUniform + 4;
 
   // The shaders whose uSolidBackdrop holds a color now; the others hold
   // the initial zero, which reads the backdrop.
@@ -2277,7 +2216,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     } else {
       syncCoordinateMapping();
       if (_solidShaders.remove(renderShader)) {
-        renderShader.setFloat(solidBackdropUniform + 3, 0);
+        renderShader.setFloat(FinalPassLayout.solidBackdrop + 3, 0);
       }
       final shader = (_shaderHandle.layer ??= BackdropFilterLayer())
         ..filter = _updateShaderFilter()
@@ -2387,15 +2326,22 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       final shader = renderShader;
       _solidShaders.add(shader);
       // uSize: only the backdrop reads divide by it.
-      shader.setFloat(0, max(filterBounds.width * devicePixelRatio, 1));
-      shader.setFloat(1, max(filterBounds.height * devicePixelRatio, 1));
+      shader.setFloat(
+        FinalPassLayout.size,
+        max(filterBounds.width * devicePixelRatio, 1),
+      );
+      shader.setFloat(
+        FinalPassLayout.size + 1,
+        max(filterBounds.height * devicePixelRatio, 1),
+      );
       // The surface's encoding: sRGB components, extended where the color
       // lies outside sRGB (a Display P3 fill on a wide-gamut surface).
       final color = solid.withValues(colorSpace: ColorSpace.extendedSRGB);
-      shader.setFloat(solidBackdropUniform, color.r);
-      shader.setFloat(solidBackdropUniform + 1, color.g);
-      shader.setFloat(solidBackdropUniform + 2, color.b);
-      shader.setFloat(solidBackdropUniform + 3, 1);
+      const solidAt = FinalPassLayout.solidBackdrop;
+      shader.setFloat(solidAt, color.r);
+      shader.setFloat(solidAt + 1, color.g);
+      shader.setFloat(solidAt + 2, color.b);
+      shader.setFloat(solidAt + 3, 1);
       final paint = Paint();
       paint.shader = shader;
       // The filter path clips its output to this rect with a hard edge.
@@ -2509,20 +2455,22 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     final origin = corner * dpr;
     if (_coordinateMapping
         case (final b0, final b1, final b2, final b3, final ox, final oy)?) {
-      shader.setFloat(51, ox + b0 * origin.dx + b1 * origin.dy);
-      shader.setFloat(52, oy + b2 * origin.dx + b3 * origin.dy);
+      const offsetAt = FinalPassLayout.filterToMatteOffset;
+      shader.setFloat(offsetAt, ox + b0 * origin.dx + b1 * origin.dy);
+      shader.setFloat(offsetAt + 1, oy + b2 * origin.dx + b3 * origin.dy);
     }
-    shader.setFloat(0, image.width.toDouble());
-    shader.setFloat(1, image.height.toDouble());
+    shader.setFloat(FinalPassLayout.size, image.width.toDouble());
+    shader.setFloat(FinalPassLayout.size + 1, image.height.toDouble());
     final overlay = cache.overlay.withValues(
       colorSpace: ColorSpace.extendedSRGB,
     );
-    shader.setFloat(solidBackdropUniform, overlay.r);
-    shader.setFloat(solidBackdropUniform + 1, overlay.g);
-    shader.setFloat(solidBackdropUniform + 2, overlay.b);
+    const overlayAt = FinalPassLayout.solidBackdrop;
+    shader.setFloat(overlayAt, overlay.r);
+    shader.setFloat(overlayAt + 1, overlay.g);
+    shader.setFloat(overlayAt + 2, overlay.b);
     // An alpha in (0, 0.5] composites the color over the read backdrop;
     // above 0.5 it would replace the backdrop (solid).
-    shader.setFloat(solidBackdropUniform + 3, overlay.a * 0.5);
+    shader.setFloat(overlayAt + 3, overlay.a * 0.5);
     _solidShaders.add(shader);
     shader.setImageSampler(0, image, filterQuality: FilterQuality.low);
     final device = Rect.fromLTRB(

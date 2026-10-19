@@ -1,6 +1,6 @@
 # Композиция стекла и устройство liquid-слоя
 
-База `809c5fd4` (main, 2026-10-19). Проект на подпись владельца, код не менялся. Два связанных предмета: (1) как поверхности делят чтение подложки и фильтры; (2) границы модулей внутри `lib/src/glass/renderer/rendering/liquid_glass_layer.dart` и шов между ним и виджетным слоем.
+База `809c5fd4` (main, 2026-10-19). Владелец принял проект 2026-10-19 (ответы ниже); миграция идёт шагами M0 - M9 на ветке `glass-composition`. Два связанных предмета: (1) как поверхности делят чтение подложки и фильтры; (2) границы модулей внутри `lib/src/glass/renderer/rendering/liquid_glass_layer.dart` и шов между ним и виджетным слоем.
 
 ## Проблема
 
@@ -524,13 +524,13 @@ final class GlassBackdropDraw {
 
 ## Открытые вопросы и риски
 
-Вопросы владельцу:
+Ответы владельца (2026-10-19):
 
-1. Публичный API: оставить `MorphGlassContainer` (слияние) и Flutter `BackdropGroup` (граница чтения, плоскости её уважают) без нового публичного типа? Альтернатива: один публичный `MorphGlassPlane(paintOrder:, solidBackdrop:)`.
-2. Допуск по render-фактам сдвигает моменты слияния относительно сегодняшнего `still` (раньше выходит при glow и подъёме, позже входит после двух кадров покоя). Флипы остаются в пределах 1 - 3 шагов канала. Допустимо как NEAR?
-3. Pooled записан inconclusive. Рекомендация: перевести строку `performance.md` в rejected с разбором выше (без подсказки покрытия в движке не окупается) и оставить ветку `exp/glass-plane` только под архивным тегом. Или сначала замерить стенд плотности (n8, n16 в покое)?
-4. Подсказки `MorphGlassInspector` меняют смысл: вместо "хосты, которые контейнер слил бы" - "члены общей плоскости, которые слила бы owned-плоскость", по переписи. Так?
-5. Раскладка папок `pass/`, `geometry/`, `composition/`, `plane/` и запрет импорта через `architecture_test` вместо `part`-файлов: устраивает?
+1. Публичный API: остаются `MorphGlassContainer` (имя UIKit) и Flutter `BackdropGroup` (граница чтения, плоскости её уважают); нового публичного типа плоскости нет.
+2. Моменты допуска, сдвинутые render-фактами относительно `still`, приняты как NEAR (1 - 3 шага канала).
+3. Pooled отклонён: `performance.md` обновлён в f622f32c, прототип под тегом `archive/2026-10-19/exp/glass-plane`. Шаг pooled после M9c не строится.
+4. Подсказки `MorphGlassInspector` берутся из переписи плоскостей.
+5. Папки `pass/`, `geometry/`, `composition/`, `plane/` с запретами импорта в `architecture_test`, без `part`-файлов.
 
 Риски:
 
@@ -559,7 +559,7 @@ final class GlassBackdropDraw {
 | M9b | включить: контейнеры и stages становятся плоскостями; хосты не ветвятся по `joined`; `paintOrder` вместо `open`/`sharpOnly` | `MorphGlassFrame.still` (11 производителей), бит `joined` в структуре | `perf_counts` (density-wave и search-press: сборки вниз, храповик), `lifecycle_counts`, `control_goldens` (flat без изменений), `glyph_strikes` без изменений, оракулы M9a, `glass_frames_test` | да, один прогон: стенд плотности n4/n8/n16 rest и wave, list, search-press, sheet (масштаб), controls page; время кадра и энергия |
 | M9c | удалить наследие | `MorphGlassContainerScope`, `MorphGlassContainerLink`, `morphGlassJoinLook`, `morphGlassContainerReaches`, `morphGlassContainerBlocker`, `MorphGlassContainerGate`, `MorphGlassStageFade`, `MorphGlassStage`, `MorphGlassContainerBarrier` (-> `GlassPlaneBreak`), `GlassRasterAnchor`, `debugMorphGlassStagesOpen`, флаг `MORPH_GLASS_PLANES` | весь `flutter test` и `example`, `public_api_test` (диф `public_api.txt` по ответу на вопрос 1) | нет: те же пути, что в M9b |
 
-Если ответ на вопрос 3 всё же "замерить pooled на стенде плотности": отдельный шаг после M9c строит pooled для `shared`-плоскостей из `AnalyticGeometry` и `GlassFinalPass` (без чтения приватных полей чужих слоёв), гейты `glass_plane_host_test` (max 2 против split, одно приложение) и `perf_counts`, один прогон Pixel на n4/n8/n16 и кнопках шторки; без выигрыша по GPU и энергии не сливается.
+Pooled после M9c не строится (ответ 3).
 
 ## Следующий шаг
 
