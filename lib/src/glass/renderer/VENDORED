@@ -618,3 +618,9 @@ Local patches (some commits include related package changes):
   mixed-appearance variant lights the touch glow. No spill on Vulkan.
 - 2026-10-19 dead input: LiquidGlassLayer.live's outlineOf is gone; only
   the fake layer read it.
+- 2026-10-19 one uniform layout: pass/final_pass_layout.dart
+  (FinalPassLayout) names every float index of the final shader, the
+  core block and the analytic block, in place of the literals and the
+  layer's index constants (analyticUniformIndex .. analyticFusedTintsIndex,
+  solidBackdropUniform, glowUniform, analyticMaxShapes);
+  test/final_pass_layout_test.dart reads the GLSL declarations.

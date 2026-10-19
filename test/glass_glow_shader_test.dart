@@ -12,6 +12,7 @@ import 'package:morph/glass_painter.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_glow.dart';
 import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
+import 'package:morph/src/glass/renderer/pass/final_pass_layout.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
@@ -86,16 +87,13 @@ void main() {
   group('the glow uniforms', () {
     test('sit after uSolidBackdrop in every final shader', () {
       expect(_coreUniform('uSolidBackdropGlow'), (
-        RenderLiquidGlassLayer.solidBackdropUniform,
+        FinalPassLayout.solidBackdrop,
         16,
       ));
+      expect(FinalPassLayout.glow, FinalPassLayout.solidBackdrop + 4);
       expect(
-        RenderLiquidGlassLayer.glowUniform,
-        RenderLiquidGlassLayer.solidBackdropUniform + 4,
-      );
-      expect(
-        RenderLiquidGlassLayer.glowUniform + LiquidGlassGlow.floatCount,
-        RenderLiquidGlassLayer.analyticUniformIndex,
+        FinalPassLayout.glow + LiquidGlassGlow.floatCount,
+        FinalPassLayout.analytic,
       );
       final core = File(
         '${_shaders}liquid_glass_final_render_core.glsl',

@@ -7,6 +7,7 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
 import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
 import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
+import 'package:morph/src/glass/renderer/pass/final_pass_layout.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
@@ -155,7 +156,7 @@ Future<void> morphWarmLiquidPipelines(
       solid.setFloat(0, _cell);
       solid.setFloat(1, _cell);
       for (var i = 0; i < 4; i++) {
-        solid.setFloat(RenderLiquidGlassLayer.solidBackdropUniform + i, 1);
+        solid.setFloat(FinalPassLayout.solidBackdrop + i, 1);
       }
       solids.add(solid);
       final filter = morphGlassShaderFilter(shader);
@@ -208,7 +209,7 @@ Future<void> morphWarmLiquidPipelines(
       // backdrop behind in memory a later shader may be given.
       for (final solid in solids) {
         for (var i = 0; i < 4; i++) {
-          solid.setFloat(RenderLiquidGlassLayer.solidBackdropUniform + i, 0);
+          solid.setFloat(FinalPassLayout.solidBackdrop + i, 0);
         }
       }
     }
