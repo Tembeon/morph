@@ -77,8 +77,8 @@ class _Board extends StatelessWidget {
 
   void _open(BuildContext context, String name, {required bool dark}) {
     GalleryGlassScope.of(context).appearance = dark
-        ? ThemeMode.dark
-        : ThemeMode.light;
+        ? Brightness.dark
+        : Brightness.light;
     Navigator.of(context).push(
       PageRouteBuilder<void>(
         transitionDuration: Duration.zero,

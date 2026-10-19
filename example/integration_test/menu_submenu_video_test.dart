@@ -52,8 +52,8 @@ void main() {
 
     await tester.pump(_lead);
     const modes = bool.fromEnvironment('VIDEO_LIGHT_ONLY')
-        ? [ThemeMode.light]
-        : [ThemeMode.dark, ThemeMode.light];
+        ? [Brightness.light]
+        : [Brightness.dark, Brightness.light];
     for (final mode in modes) {
       settings.appearance = mode;
       unawaited(

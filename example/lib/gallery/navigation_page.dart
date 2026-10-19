@@ -1,4 +1,5 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -204,7 +205,7 @@ class _Photos extends StatelessWidget {
                       borderRadius: const BorderRadius.all(Radius.circular(12)),
                     ),
                     child: const Center(
-                      child: Icon(Icons.photo, color: Colors.white),
+                      child: Icon(Icons.photo, color: Color(0xFFFFFFFF)),
                     ),
                   ),
                 ),
@@ -233,7 +234,7 @@ class _Photo extends StatelessWidget {
         SliverFillRemaining(
           hasScrollBody: false,
           child: Center(
-            child: Icon(Icons.photo, color: Colors.white, size: 120),
+            child: Icon(Icons.photo, color: Color(0xFFFFFFFF), size: 120),
           ),
         ),
       ],
@@ -265,7 +266,7 @@ class _Row extends StatelessWidget {
         child: Text(
           'Message $index',
           style: const TextStyle(
-            color: Colors.white,
+            color: Color(0xFFFFFFFF),
             fontSize: 17,
             fontWeight: FontWeight.w600,
           ),

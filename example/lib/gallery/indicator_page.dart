@@ -1,5 +1,5 @@
 import 'package:flutter/scheduler.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/control_pages.dart';
 import 'package:morph_example/gallery/gallery.dart';

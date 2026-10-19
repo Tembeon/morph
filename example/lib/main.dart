@@ -1,4 +1,4 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:morph_example/autodemo.dart';
 import 'package:morph_example/gallery/gallery.dart';

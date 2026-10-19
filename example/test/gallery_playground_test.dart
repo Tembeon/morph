@@ -6,13 +6,7 @@ import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph/src/widgets/glass_inspector.dart';
 
-/// Every text on screen that fell through to the app's error text style.
-List<String> _unstyledTexts(WidgetTester tester) => [
-  for (final element in find.byType(RichText).evaluate())
-    if ((element.widget as RichText).text.style?.decorationStyle ==
-        TextDecorationStyle.double)
-      (element.widget as RichText).text.toPlainText(),
-];
+import 'support/gallery_text.dart';
 
 Future<void> _settle(WidgetTester tester) => tester.pumpAndSettle(
   const Duration(milliseconds: 100),
@@ -134,7 +128,7 @@ void main() {
     );
     expect(inspector.enabled, isTrue);
     expect(inspector.alignment, AlignmentDirectional.topStart);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 
   testWidgets('theming: a local accent, haptics and side-by-side settings', (
@@ -184,7 +178,7 @@ void main() {
     );
     await tester.tap(find.text('Apple'));
     await _settle(tester);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 
   testWidgets('alerts: text field options and a sheet from a rect', (
@@ -247,7 +241,7 @@ void main() {
       find.text('Alerts, sounds and badges keep you in the loop.'),
       findsNothing,
     );
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 
   testWidgets('lists: checkmarks, info buttons, a disabled row, lazy rows', (
@@ -287,6 +281,6 @@ void main() {
     await _settle(tester);
     await _toggle(tester, 'Enable the row');
     expect(find.text('50 lazy rows', skipOffstage: false), findsOneWidget);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 }

@@ -62,7 +62,7 @@ void _main() {
         await frames(10);
         final settings = GalleryGlassScope.read(navigator.currentContext!);
         settings.tier = MorphGlassTier.liquid;
-        settings.appearance = ThemeMode.dark;
+        settings.appearance = Brightness.dark;
         await frames(10);
         if (page != null) {
           await tester.ensureVisible(find.text(page));

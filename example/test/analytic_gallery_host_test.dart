@@ -63,7 +63,7 @@ void main() {
     await frames(10);
     final settings = GalleryGlassScope.read(navigator.currentContext!);
     settings.tier = MorphGlassTier.liquid;
-    settings.appearance = ThemeMode.dark;
+    settings.appearance = Brightness.dark;
     await frames(10);
     final traces = morphGlassOutlineDebugTraces;
     final entry = galleryEntries.firstWhere((e) => e.title == 'Navigation');
@@ -186,7 +186,7 @@ void main() {
     await frames(10);
     final settings = GalleryGlassScope.read(navigator.currentContext!);
     settings.tier = MorphGlassTier.liquid;
-    settings.appearance = ThemeMode.dark;
+    settings.appearance = Brightness.dark;
     await frames(10);
     final entry = galleryEntries.firstWhere((e) => e.title == 'Menu');
     unawaited(

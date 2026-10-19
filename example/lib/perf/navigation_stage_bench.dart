@@ -479,7 +479,7 @@ class _BenchState extends State<_Bench> {
     setState(() => _current = c);
     await SchedulerBinding.instance.endOfFrame;
     final settings = GalleryGlassScope.read(_navigator.currentContext!);
-    settings.appearance = ThemeMode.dark;
+    settings.appearance = Brightness.dark;
     settings.tier = c.mode == 'flat'
         ? MorphGlassTier.flat
         : MorphGlassTier.liquid;

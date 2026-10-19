@@ -4,13 +4,7 @@ import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/knobs.dart';
 
-/// Every text on screen that fell through to the app's error text style.
-List<String> _unstyledTexts(WidgetTester tester) => [
-  for (final element in find.byType(RichText).evaluate())
-    if ((element.widget as RichText).text.style?.decorationStyle ==
-        TextDecorationStyle.double)
-      (element.widget as RichText).text.toPlainText(),
-];
+import 'support/gallery_text.dart';
 
 Future<void> _settle(WidgetTester tester) => tester.pumpAndSettle(
   const Duration(milliseconds: 100),
@@ -135,7 +129,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 
   testWidgets('minimize options: automatic and a direct content scroll', (
@@ -192,7 +186,7 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Close'));
     await _settle(tester);
     expect(find.text('Item 0'), findsOneWidget);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
     expect(tester.takeException(), isNull);
   });
 
@@ -227,7 +221,7 @@ void main() {
     final field = tester.widget<EditableText>(find.byType(EditableText));
     expect(field.focusNode.hasFocus, isTrue);
     expect(find.bySemanticsLabel('Fruit search'), findsWidgets);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
     expect(tester.takeException(), isNull);
   });
 }

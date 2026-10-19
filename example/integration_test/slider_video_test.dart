@@ -67,7 +67,7 @@ void main() {
     Future<void> tap(Offset at, double hold) =>
         stroke(at, const [], press: hold);
 
-    for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+    for (final mode in [Brightness.light, Brightness.dark]) {
       settings.appearance = mode;
       for (final ticks in [0, 5]) {
         final value = ValueNotifier<double>(ticks == 0 ? 0.3 : 0);

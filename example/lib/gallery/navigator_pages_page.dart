@@ -1,4 +1,5 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -15,7 +16,8 @@ const List<Color> _palette = [
 /// drives one: each page slides in, or zooms out of its source.
 ///
 /// The stack has bars of its own, so it opens full screen in a route of
-/// the app's root navigator, above the gallery's stack.
+/// the app's root navigator, above the gallery's stack: a cover that
+/// slides up from the bottom edge and back down on Close.
 class NavigatorPagesPage extends StatefulWidget {
   /// Creates the page.
   const NavigatorPagesPage({super.key});
@@ -29,12 +31,27 @@ class _NavigatorPagesPageState extends State<NavigatorPagesPage> {
 
   void _open(List<_Entry> path) =>
       Navigator.of(context, rootNavigator: true).push(
-        MaterialPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) =>
+        PageRouteBuilder<void>(
+          transitionDuration: _coverDuration,
+          pageBuilder: (_, _, _) =>
               _Demo(prefersLargeTitles: _prefersLargeTitles, initialPath: path),
+          transitionsBuilder: (_, animation, _, child) => SlideTransition(
+            position: _cover.animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.linearToEaseOut,
+                reverseCurve: Curves.linearToEaseOut.flipped,
+              ),
+            ),
+            child: child,
+          ),
         ),
       );
+
+  /// The slide of Flutter's full-screen dialog routes on iOS; morph has
+  /// no full-screen cover of its own.
+  static const _coverDuration = Duration(milliseconds: 500);
+  static final _cover = Tween(begin: const Offset(0, 1), end: Offset.zero);
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +276,10 @@ class _Library extends StatelessWidget {
                               borderRadius: const .all(.circular(12)),
                             ),
                             child: const Center(
-                              child: Icon(Icons.photo, color: Colors.white),
+                              child: Icon(
+                                Icons.photo,
+                                color: Color(0xFFFFFFFF),
+                              ),
                             ),
                           ),
                         ),
@@ -356,7 +376,9 @@ class _Photo extends StatelessWidget {
     slivers: const [
       SliverFillRemaining(
         hasScrollBody: false,
-        child: Center(child: Icon(Icons.photo, color: Colors.white, size: 120)),
+        child: Center(
+          child: Icon(Icons.photo, color: Color(0xFFFFFFFF), size: 120),
+        ),
       ),
     ],
   );

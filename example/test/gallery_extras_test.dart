@@ -3,13 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 
-/// Every text on screen that fell through to the app's error text style.
-List<String> _unstyledTexts(WidgetTester tester) => [
-  for (final element in find.byType(RichText).evaluate())
-    if ((element.widget as RichText).text.style?.decorationStyle ==
-        TextDecorationStyle.double)
-      (element.widget as RichText).text.toPlainText(),
-];
+import 'support/gallery_text.dart';
 
 Future<void> _open(WidgetTester tester, String title) async {
   tester.view.physicalSize = const Size(1206, 2622);
@@ -76,7 +70,7 @@ void main() {
       const Duration(seconds: 10),
     );
     expect(find.text('Delete this photo?'), findsOneWidget);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
@@ -92,7 +86,7 @@ void main() {
     );
     expect(find.text('Share photo'), findsOneWidget);
     expect(find.text('Cancel'), findsNothing);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
     await tester.tapAt(const Offset(200, 20));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
@@ -136,7 +130,7 @@ void main() {
       const Duration(seconds: 10),
     );
     expect(find.byType(MorphTabBar), findsOneWidget);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
   });
 
   testWidgets('date picker: the calendar opens and picks', (tester) async {
@@ -148,7 +142,7 @@ void main() {
       const Duration(seconds: 10),
     );
     expect(find.text('October 2026'), findsOneWidget);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
     await tester.tap(find.text('20'));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
@@ -190,7 +184,7 @@ void main() {
     );
     expect(route, isA<MorphSheetRoute<String>>());
     expect((route! as MorphSheetRoute<String>).from, isNotNull);
-    expect(_unstyledTexts(tester), isEmpty);
+    expect(unstyledTexts(), isEmpty);
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),

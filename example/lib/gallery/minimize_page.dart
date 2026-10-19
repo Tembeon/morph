@@ -1,4 +1,5 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -223,7 +224,7 @@ class _MinimizeTabBarPageState extends State<MinimizeTabBarPage> {
                               child: Text(
                                 '${_tabs[_selected].label} row $i',
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: Color(0xFFFFFFFF),
                                   fontSize: 16,
                                 ),
                               ),
@@ -295,9 +296,9 @@ class _MiniPlayer extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: BoxDecoration(
-              color: Colors.deepOrange,
-              borderRadius: .circular(6),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFF5722),
+              borderRadius: .all(.circular(6)),
             ),
           ),
           const SizedBox(width: 10),

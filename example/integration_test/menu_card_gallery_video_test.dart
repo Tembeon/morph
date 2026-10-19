@@ -26,7 +26,7 @@ void main() {
     final settings = GalleryGlassScope.of(
       tester.element(find.byType(Navigator).first),
     );
-    settings.appearance = ThemeMode.light;
+    settings.appearance = Brightness.light;
     unawaited(
       navigator.push(
         MaterialPageRoute<void>(

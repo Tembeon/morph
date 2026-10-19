@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
 import 'package:morph/morph.dart';
 
 /// The width of a knob's label column, so the controls of a section line
