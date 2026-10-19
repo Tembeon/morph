@@ -37,7 +37,6 @@ class _GlassPageState extends State<GlassPage> {
   static const _tiers = <MorphGlassTier?, String>{
     null: 'Auto',
     MorphGlassTier.liquid: 'Liquid',
-    MorphGlassTier.fake: 'Fake',
     MorphGlassTier.flat: 'Flat',
   };
   static const _materials = {

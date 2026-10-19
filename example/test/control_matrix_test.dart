@@ -12,7 +12,8 @@ import '../integration_test/support/control_matrix.dart';
 /// control removed while its menu is still out lets the menu go.
 void main() {
   setUpAll(() async {
-    // No Impeller on the host: the renderer reports its fake fallback once.
+    // No Impeller on the host: the renderer reports once that liquid glass
+    // is unavailable.
     final previous = FlutterError.onError;
     FlutterError.onError = (FlutterErrorDetails details) {};
     try {
@@ -45,50 +46,38 @@ void main() {
   });
 
   // The device bench counts the date picker's saveLayers per frame
-  // (tool/ios_reference/spec/date-picker.md): its glass is the only one
-  // left, and the stage adds none after the empty cell's floor ticker.
-  for (final tier in [MorphGlassTier.flat, MorphGlassTier.fake]) {
-    testWidgets('the date picker open-close composites only its glass '
-        'offscreen (${tier.name})', (WidgetTester tester) async {
-      final initial = GalleryGlassSettings.initialTier;
-      GalleryGlassSettings.initialTier = tier.name;
-      addTearDown(() => GalleryGlassSettings.initialTier = initial);
-      tester.view.physicalSize = const Size(1080, 2400);
-      tester.view.devicePixelRatio = 2.625;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(
-        const GalleryApp(key: ValueKey('matrix'), home: MatrixStage()),
-      );
-      await tester.pump(const Duration(seconds: 1));
-      final frames = <Map<String, int>>[];
-      final driver = _HostDriver(
-        tester,
-        onFrame: () {
-          if (MatrixStage.control.value != null) {
-            frames.add(_offscreen(tester));
-          }
-        },
-      );
-      await runControlMatrix(
-        driver,
-        (String scene) =>
-            scene == 'm/empty/frames' || scene == 'm/date-picker/open-close',
-      );
-      expect(frames, isNotEmpty);
-      final kinds = {for (final frame in frames) ...frame.keys};
-      expect(
-        kinds,
-        tier == MorphGlassTier.flat ? isEmpty : {'backdrop'},
-        reason: 'offscreen layers other than the overlay glass',
-      );
-      final most = frames.fold(
-        0,
-        (int a, Map<String, int> f) =>
-            (f['backdrop'] ?? 0) > a ? f['backdrop']! : a,
-      );
-      expect(most, tier == MorphGlassTier.flat ? 0 : 1);
-    });
-  }
+  // (tool/ios_reference/spec/date-picker.md); on the flat tier the stage
+  // adds none after the empty cell's floor ticker.
+  testWidgets('the flat date picker open-close composites nothing '
+      'offscreen', (WidgetTester tester) async {
+    final initial = GalleryGlassSettings.initialTier;
+    GalleryGlassSettings.initialTier = MorphGlassTier.flat.name;
+    addTearDown(() => GalleryGlassSettings.initialTier = initial);
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      const GalleryApp(key: ValueKey('matrix'), home: MatrixStage()),
+    );
+    await tester.pump(const Duration(seconds: 1));
+    final frames = <Map<String, int>>[];
+    final driver = _HostDriver(
+      tester,
+      onFrame: () {
+        if (MatrixStage.control.value != null) {
+          frames.add(_offscreen(tester));
+        }
+      },
+    );
+    await runControlMatrix(
+      driver,
+      (String scene) =>
+          scene == 'm/empty/frames' || scene == 'm/date-picker/open-close',
+    );
+    expect(frames, isNotEmpty);
+    final kinds = {for (final frame in frames) ...frame.keys};
+    expect(kinds, isEmpty, reason: 'offscreen layers');
+  });
 }
 
 Map<String, int> _offscreen(WidgetTester tester) {

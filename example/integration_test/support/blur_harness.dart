@@ -52,7 +52,6 @@ class BlurCase {
 
 Widget _glass(HarnessCase glassCase) => LiquidGlassLayer(
   settings: glassCase.settings,
-  fake: glassCase.fake,
   blursOwnBackdrop: glassCase.ownBackdrop,
   defaultAppearance: const LiquidGlassAppearance.ios27RegularDark(),
   child: Stack(
@@ -70,22 +69,10 @@ Widget _glass(HarnessCase glassCase) => LiquidGlassLayer(
   ),
 );
 
-HarnessCase _fake(HarnessCase glassCase) => HarnessCase(
-  'fake-${glassCase.name}',
-  glassCase.settings,
-  glassCase.shapes,
-  fake: true,
-);
-
 /// The frosted cases of the shader harness: 2 pt frost under toolbar
-/// glass, a frosted menu, half visible frosted glass, and the same on the
-/// fake tier.
-List<HarnessCase> get _frosted {
-  final cases = harnessCasesNamed(
-    'toolbar-dark-blur,menu-frosted,visibility-half-frosted',
-  );
-  return [...cases, for (final c in cases) _fake(c)];
-}
+/// glass, a frosted menu and half visible frosted glass.
+List<HarnessCase> get _frosted =>
+    harnessCasesNamed('toolbar-dark-blur,menu-frosted,visibility-half-frosted');
 
 /// The cases: a tab bar, the frosted glass of [_frosted], and the hard and
 /// soft edge effects at the top and the bottom of the region, faded and

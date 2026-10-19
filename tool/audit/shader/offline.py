@@ -57,7 +57,6 @@ RUNTIME = [
     'liquid_glass_final_render_tint.frag',
     'liquid_glass_final_render_tint_ios27.frag',
     'liquid_glass_final_render_material.frag',
-    'fake_glass_surface.frag',
     'glass_shadow.frag',
     'liquid_glass_final_render_analytic.frag',
     'liquid_glass_final_render_analytic_ios27.frag',

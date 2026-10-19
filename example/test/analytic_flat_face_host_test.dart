@@ -240,7 +240,6 @@ void main() {
     }
 
     for (final glassCase in harnessCasesNamed(_only)) {
-      if (glassCase.fake) continue;
       RenderLiquidGlassLayer.debugAnalyticFlatFace = false;
       await harness.show(glassCase, ShaderVariant.candidate);
       final analytic = layerAnalytic();

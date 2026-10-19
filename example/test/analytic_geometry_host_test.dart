@@ -242,7 +242,6 @@ void main() {
         if (_only.isEmpty || _only.split(',').contains(c.name)) c,
     ];
     for (final glassCase in [...harnessCasesNamed(_only), ...fused]) {
-      if (glassCase.fake) continue;
       RenderLiquidGlassLayer.debugAnalyticGeometry = false;
       await harness.show(glassCase, ShaderVariant.candidate);
       expect(layerAnalytic(), isFalse, reason: glassCase.name);
