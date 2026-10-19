@@ -185,7 +185,7 @@ morph даёт приложению полный набор Liquid Glass-ком�
   - [ ] Veto и возврат фокуса.
 - **Проверка, устройство.**
   - [ ] iPhone, push zoom, navigation, alert.
-  - [ ] Pixel 6a, predictive back.
+  - [x] Pixel 6a, predictive back. `4f83019f`, снимки в `tool/audit/foundation-5.2-2026-10-19/`: предпросмотр, отмена и commit.
 - [ ] **Проверка, perf.** Pixel 6a, navigation push и pop.
 - [ ] **Гейт кода.** `/deslop`, `/no-comments`, comment-sicko по переведённым routes. Ревизия и итог записаны.
 - **Удалить в этом же юните.** `MorphMotionRouteMixin`, `MorphZoomSource`, `MorphThemeCarrier` у routes, `pushMorphZoom`, `AnimationController` и `SpringSimulation` в navigation_stack.dart.
