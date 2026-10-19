@@ -46,48 +46,69 @@ sealed class LiquidShape extends OutlinedBorder {
       ? '${objectRuntimeType(this, 'LiquidShape')}($side)'
       : '${objectRuntimeType(this, 'LiquidShape')}($side, $_radius)';
 
-  double? get _radius => null;
+  Object? get _radius => null;
 }
 
 /// Represents a squircle shape that can be used by a [LiquidGlass] widget.
 ///
-/// Works like a [RoundedSuperellipseBorder].
+/// Works like a [RoundedSuperellipseBorder] whose two top corners share
+/// one radius and two bottom corners another: Flutter's continuous
+/// rounded superellipse of those radii, the outline a sheet's glass and
+/// its clip share (top 38, bottom 54 to 62).
 class LiquidRoundedSuperellipse extends LiquidShape {
-  /// Creates a new [LiquidRoundedSuperellipse] with the given [borderRadius].
+  /// Creates a squircle with corners of [borderRadius], or with the two
+  /// bottom ones of [bottomRadius] when it is given.
   const LiquidRoundedSuperellipse({
-    required this.borderRadius,
+    required double borderRadius,
+    double? bottomRadius,
     super.side = BorderSide.none,
-  });
+  }) : topRadius = borderRadius,
+       bottomRadius = bottomRadius ?? borderRadius;
 
-  /// The radius of the squircle.
-  ///
-  /// This is the radius of the corners of the squircle.
-  final double borderRadius;
+  /// The radius of the two top corners.
+  final double topRadius;
 
-  @override
-  OutlinedBorder get _equivalentOutlinedBorder => RoundedSuperellipseBorder(
-    borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
-    side: side,
+  /// The radius of the two bottom corners.
+  final double bottomRadius;
+
+  /// Whether every corner has the same radius.
+  bool get isUniform => topRadius == bottomRadius;
+
+  /// The four corners, for Flutter's clips and paths of the same outline.
+  BorderRadius get radii => BorderRadius.vertical(
+    top: Radius.circular(topRadius),
+    bottom: Radius.circular(bottomRadius),
   );
 
   @override
-  LiquidRoundedSuperellipse copyWith({BorderSide? side, double? borderRadius}) {
+  OutlinedBorder get _equivalentOutlinedBorder =>
+      RoundedSuperellipseBorder(borderRadius: radii, side: side);
+
+  @override
+  LiquidRoundedSuperellipse copyWith({
+    BorderSide? side,
+    double? borderRadius,
+    double? bottomRadius,
+  }) {
     return LiquidRoundedSuperellipse(
       side: side ?? this.side,
-      borderRadius: borderRadius ?? this.borderRadius,
+      borderRadius: borderRadius ?? topRadius,
+      bottomRadius:
+          bottomRadius ?? (borderRadius == null ? this.bottomRadius : null),
     );
   }
 
   @override
   ShapeBorder scale(double t) {
     return LiquidRoundedSuperellipse(
-      borderRadius: borderRadius * t,
+      borderRadius: topRadius * t,
+      bottomRadius: bottomRadius * t,
       side: side.scale(t),
     );
   }
 
   @override
-  double get _radius => borderRadius;
+  Object get _radius => isUniform ? topRadius : (topRadius, bottomRadius);
 }
 
 /// Represents an ellipse shape that can be used by a [LiquidGlass] widget.

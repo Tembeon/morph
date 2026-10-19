@@ -550,6 +550,13 @@ final class GlassFinalPass {
     for (var i = 0; i < shapes.rseData.length; i++) {
       shader.setFloat(FinalPassLayout.rseData + i, shapes.rseData[i]);
     }
+    for (
+      var i = 0;
+      shapes.pairCount > 0 && i < shapes.rseLowerData.length;
+      i++
+    ) {
+      shader.setFloat(FinalPassLayout.rseLower + i, shapes.rseLowerData[i]);
+    }
     for (var i = 0; i < shapes.boundsData.length; i++) {
       shader.setFloat(FinalPassLayout.shapeBounds + i, shapes.boundsData[i]);
     }

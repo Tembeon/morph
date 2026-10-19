@@ -13,8 +13,16 @@
 // Three vec4s per shape: primitive parameters, inverse affine basis, and
 // transformed center/distance/group data. RSE parameters use three vec4s per
 // shape: degrees/(1 - cos span), circle centers, and semi-axes/radii. This is the
-// lossless symmetric subset of Flutter's Impeller UberSDF payload; the public
-// shape API has one uniform corner radius, so its signed scale is always 1.
+// lossless symmetric subset of Flutter's Impeller UberSDF payload, with its
+// signed scale always 1.
+//
+// A shader that defines RSE_PAIRS also shades a pair (type 4): a rounded
+// superellipse whose two top corners share one radius and two bottom corners
+// another, as Impeller's MakeBoundsRadii builds it. Its uRseData rows describe
+// the top half and the rows at MAX_SHAPES * 3 + index * 3 the bottom half, each
+// a symmetric rounded superellipse centred on the split line; the bottom rows'
+// half width slot carries the bottom radius. Such a shader declares
+// `uniform vec4 uRseData[MAX_SHAPES * 6];`.
 //
 // IMPORTANT: Every shader that includes this file must declare a
 // `uniform vec4 uShapeData[MAX_SHAPES * 3];`,
@@ -275,6 +283,25 @@ float getShapeCurvatureFactor(
     return smoothstep(-1.0, 1.0, min(cornerPosition.x, cornerPosition.y));
 }
 
+#if RSE_PAIRS
+// The half of pair [index] the local point p lies in: moves p to that half's
+// centre on the split line and makes primitive that half's own squircle, its
+// box twice the half's height. Both halves are vertical at the sides on the
+// line, so the outline is continuous and exact there. Returns the half's first
+// uRseData row.
+int resolvePairHalf(int index, inout vec2 p, inout vec4 primitive) {
+    float upper = uRseData[index * 3 + 2].y;
+    vec4 lower = uRseData[MAX_SHAPES * 3 + index * 3 + 2];
+    p.y -= 0.5 * (upper - lower.y);
+    if (p.y > 0.0) {
+        primitive = vec4(1.0, primitive.y, 2.0 * lower.y, lower.x);
+        return MAX_SHAPES * 3 + index * 3;
+    }
+    primitive = vec4(1.0, primitive.y, 2.0 * upper, primitive.w);
+    return index * 3;
+}
+#endif
+
 float getShapeDistance(
     int index,
     vec2 p,
@@ -282,14 +309,27 @@ float getShapeDistance(
     vec4 inverseBasis,
     vec4 placement
 ) {
-    vec4 rseDegreeAndSpans = uRseData[index * 3];
-    vec4 rseCircleCenters = uRseData[index * 3 + 1];
-    vec4 rseSemiAxisAndRadii = uRseData[index * 3 + 2];
     vec2 delta = p - placement.xy;
     vec2 localPoint = vec2(
         inverseBasis.x * delta.x + inverseBasis.y * delta.y,
         inverseBasis.z * delta.x + inverseBasis.w * delta.y
     );
+    int rse = index * 3;
+#if RSE_PAIRS
+    bool pair = primitive.x == 4.0;
+    if (pair) {
+        rse = resolvePairHalf(index, localPoint, primitive);
+    }
+#endif
+    vec4 rseDegreeAndSpans = uRseData[rse];
+    vec4 rseCircleCenters = uRseData[rse + 1];
+    vec4 rseSemiAxisAndRadii = uRseData[rse + 2];
+#if RSE_PAIRS
+    // The bottom rows carry the radius where the shared half width sits.
+    if (pair) {
+        rseSemiAxisAndRadii.x = 0.5 * primitive.y;
+    }
+#endif
     float localDistance = getShapeSDF(
         primitive.x,
         localPoint,
@@ -381,14 +421,20 @@ SceneSample getShapeSampleFromArray(int index, vec2 p, bool blended) {
     // unions interpolate this value below.
     resultSample.curvatureFactor = primitive.x == 2.0 ? 1.0 : 0.0;
     vec2 delta = p - placement.xy;
+    vec2 localPoint = vec2(
+        inverseBasis.x * delta.x + inverseBasis.y * delta.y,
+        inverseBasis.z * delta.x + inverseBasis.w * delta.y
+    );
+#if RSE_PAIRS
+    if (primitive.x == 4.0) {
+        resolvePairHalf(index, localPoint, primitive);
+    }
+#endif
     vec4 gradients = getShapeGradients(
         primitive,
         inverseBasis,
         placement.z,
-        vec2(
-            inverseBasis.x * delta.x + inverseBasis.y * delta.y,
-            inverseBasis.z * delta.x + inverseBasis.w * delta.y
-        ),
+        localPoint,
         blended
     );
     resultSample.normal = gradients.xy;

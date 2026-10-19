@@ -221,6 +221,7 @@ class FlutterGpuGeometryRenderer {
   late final ByteData _uniformData;
   int _writtenShapeFloats = 0;
   int _writtenRseFloats = 0;
+  int _writtenRseLowerFloats = 0;
 
   // Latest matte. Older scenes retain their own native references.
   gpu.Texture? _texture;
@@ -274,6 +275,7 @@ class FlutterGpuGeometryRenderer {
     bool writeTintOnly = false,
     List<double> appearanceData = const <double>[],
     List<double> rseData = const <double>[],
+    List<double> rseLowerData = const <double>[],
     List<double> boundsData = const <double>[],
     GlassField? field,
     double fieldScale = 1,
@@ -386,6 +388,7 @@ class FlutterGpuGeometryRenderer {
       _packShapeRows(
         shapeData: shapeData,
         rseData: rseData,
+        rseLowerData: rseLowerData,
         appearanceData: appearanceData,
         boundsData: boundsData,
       );
@@ -715,6 +718,7 @@ class FlutterGpuGeometryRenderer {
   void _packShapeRows({
     required List<double> shapeData,
     required List<double> rseData,
+    required List<double> rseLowerData,
     required List<double> appearanceData,
     required List<double> boundsData,
   }) {
@@ -741,6 +745,19 @@ class FlutterGpuGeometryRenderer {
       floatData[rseDataStartIndex + i] = 0;
     }
     _writtenRseFloats = rseFloats;
+
+    // A pair's bottom half sits in the second half of uRseData.
+    final lowerStartIndex = rseDataStartIndex + shapeLimit;
+    final lowerFloats = rseLowerData.length < shapeLimit
+        ? rseLowerData.length
+        : shapeLimit;
+    for (var i = 0; i < lowerFloats; i++) {
+      floatData[lowerStartIndex + i] = rseLowerData[i];
+    }
+    for (var i = lowerFloats; i < _writtenRseLowerFloats; i++) {
+      floatData[lowerStartIndex + i] = 0;
+    }
+    _writtenRseLowerFloats = lowerFloats;
 
     if (appearanceData.isNotEmpty &&
         appearanceData.length != maxShapes * 2 * 4) {

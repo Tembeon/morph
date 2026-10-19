@@ -236,7 +236,7 @@ final class GlassGeometryEncoder {
           return x.abs() * (halfSize.width - radius) +
               y.abs() * (halfSize.height - radius) +
               radius * sqrt(x * x + y * y);
-        case RawShapeType.squircle:
+        case RawShapeType.squircle || RawShapeType.squirclePair:
           return x.abs() * halfSize.width + y.abs() * halfSize.height;
       }
     }
@@ -574,16 +574,30 @@ final class GlassGeometryEncoder {
               flags.capsule &&
               shape.rawShapeType == RawShapeType.squircle &&
               shape.rawCornerRadius >= size.shortestSide / 2;
-          final rseParameters = roundedSuperellipseParameters(
-            size,
-            shape.rawCornerRadius,
-            scale: devicePixelRatio,
-          );
+          final pair = shape.rawShapeType == RawShapeType.squirclePair;
+          final rseParameters = pair
+              ? roundedSuperellipsePairParameters(
+                  size,
+                  shape.rawCornerRadius,
+                  shape.rawBottomRadius,
+                  scale: devicePixelRatio,
+                )
+              : roundedSuperellipseParameters(
+                  size,
+                  shape.rawCornerRadius,
+                  scale: devicePixelRatio,
+                );
           // The geometry shader tests each cap's angular span as
           // 1 - cos(span).
-          rseParameters[2] = 1.0 - cos(rseParameters[2]);
-          rseParameters[3] = 1.0 - cos(rseParameters[3]);
-          pack.rseData.addAll(rseParameters);
+          for (final at in pair ? const [0, 12] : const [0]) {
+            rseParameters[at + 2] = 1.0 - cos(rseParameters[at + 2]);
+            rseParameters[at + 3] = 1.0 - cos(rseParameters[at + 3]);
+          }
+          pack.rseData.addAll(rseParameters.sublist(0, 12));
+          if (pair) pack.pairCount++;
+          pack.rseLowerData.addAll(
+            pair ? rseParameters.sublist(12) : GlassShapePack.noLowerHalf,
+          );
           final center = centerInMatte * devicePixelRatio;
           final halfExtents = _matteHalfExtents(
             shape.rawShapeType,
@@ -702,6 +716,7 @@ final class GlassGeometryEncoder {
         height: textureHeight,
         shapeData: pack.shapeData,
         rseData: pack.rseData,
+        rseLowerData: pack.pairCount > 0 ? pack.rseLowerData : const [],
         boundsData: pack.boundsData,
         numShapes: numShapes,
         refractionHeight: settings.effectiveRefractionHeight * devicePixelRatio,

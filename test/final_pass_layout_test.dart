@@ -78,26 +78,28 @@ void main() {
           expect(layout['uAnalyticHeader'], (FinalPassLayout.analytic, 8));
           expect(layout['uShapeData'], (FinalPassLayout.shapeData, max * 12));
           expect(FinalPassLayout.shapeData, 89);
-          expect(layout['uRseData'], (FinalPassLayout.rseData, max * 12));
+          // Each shape's rows, then a pair's bottom-half rows.
+          expect(layout['uRseData'], (FinalPassLayout.rseData, max * 24));
           expect(FinalPassLayout.rseData, 185);
+          expect(FinalPassLayout.rseLower, FinalPassLayout.rseData + max * 12);
           expect(layout['uShapeBounds'], (
             FinalPassLayout.shapeBounds,
             max * 5,
           ));
-          expect(FinalPassLayout.shapeBounds, 281);
+          expect(FinalPassLayout.shapeBounds, 377);
           expect(
             FinalPassLayout.shapeCull,
             FinalPassLayout.shapeBounds + max * 4,
           );
-          expect(FinalPassLayout.shapeCull, 313);
+          expect(FinalPassLayout.shapeCull, 409);
           expect(layout['uAnalyticFlatFace'], (FinalPassLayout.flatFace, 1));
-          expect(FinalPassLayout.flatFace, 321);
+          expect(FinalPassLayout.flatFace, 417);
           if (fused) {
             expect(layout['uFusedBoxes'], (
               FinalPassLayout.fusedBoxes,
               boxes * 8,
             ));
-            expect(FinalPassLayout.fusedBoxes, 322);
+            expect(FinalPassLayout.fusedBoxes, 418);
           } else {
             expect(layout.containsKey('uFusedBoxes'), isFalse);
           }
@@ -106,7 +108,7 @@ void main() {
                 ? FinalPassLayout.fusedTints
                 : FinalPassLayout.tints;
             expect(layout['uShapeTints'], (at, max * 4));
-            expect(at, fused ? 354 : 322);
+            expect(at, fused ? 450 : 418);
           } else {
             expect(layout.containsKey('uShapeTints'), isFalse);
           }

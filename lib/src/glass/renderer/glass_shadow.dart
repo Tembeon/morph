@@ -219,6 +219,7 @@ mixin GlassShadowCaster on RenderBox {
   bool _paintShaded(Canvas canvas, Offset offset, _ShadowGeometry geometry) {
     final shape = this.shape;
     if (shape is! LiquidRoundedSuperellipse ||
+        !shape.isUniform ||
         !MorphGlassShadowShader.active ||
         shadows.any((s) => !(s.blurRadius > 0))) {
       return false;
@@ -233,7 +234,7 @@ mixin GlassShadowCaster on RenderBox {
     final visibility = shadowVisibility;
     // Fully faded shadows draw nothing.
     if (visibility <= 0) return true;
-    final radius = shape.borderRadius;
+    final radius = shape.topRadius;
     final blurs = _blursFor(geometry, radius);
     final coverages = geometry.coverages(radius);
     final root = owner?.rootNode;
@@ -275,10 +276,8 @@ mixin GlassShadowCaster on RenderBox {
 
   static void _addShape(Path path, LiquidShape shape, Rect rect) {
     switch (shape) {
-      case LiquidRoundedSuperellipse(:final borderRadius):
-        path.addRSuperellipse(
-          RSuperellipse.fromRectAndRadius(rect, Radius.circular(borderRadius)),
-        );
+      case LiquidRoundedSuperellipse(:final radii):
+        path.addRSuperellipse(radii.toRSuperellipse(rect));
       case LiquidOval():
         path.addOval(rect);
       case LiquidRoundedRectangle(:final borderRadius):
@@ -290,11 +289,8 @@ mixin GlassShadowCaster on RenderBox {
 
   void _drawShape(Canvas canvas, Rect rect, Paint paint) {
     switch (shape) {
-      case LiquidRoundedSuperellipse(:final borderRadius):
-        canvas.drawRSuperellipse(
-          RSuperellipse.fromRectAndRadius(rect, Radius.circular(borderRadius)),
-          paint,
-        );
+      case LiquidRoundedSuperellipse(:final radii):
+        canvas.drawRSuperellipse(radii.toRSuperellipse(rect), paint);
       case LiquidOval():
         canvas.drawOval(rect, paint);
       case LiquidRoundedRectangle(:final borderRadius):

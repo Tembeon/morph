@@ -43,9 +43,9 @@ class OptimizedClip extends StatelessWidget {
     }
     return switch (shape) {
       null => child,
-      LiquidRoundedSuperellipse(:final borderRadius) => ClipRSuperellipse(
+      LiquidRoundedSuperellipse(:final radii) => ClipRSuperellipse(
         clipBehavior: clipBehavior,
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: radii,
         child: child,
       ),
       LiquidRoundedRectangle(:final borderRadius) => ClipRRect(
@@ -120,10 +120,10 @@ class GlassLiveShapeClip extends StatelessWidget {
   final Widget child;
 
   BorderRadiusGeometry _radius() => switch (shapeOf()) {
-    LiquidRoundedSuperellipse(:final borderRadius) ||
-    LiquidRoundedRectangle(
-      :final borderRadius,
-    ) => BorderRadius.circular(borderRadius),
+    LiquidRoundedSuperellipse(:final radii) => radii,
+    LiquidRoundedRectangle(:final borderRadius) => BorderRadius.circular(
+      borderRadius,
+    ),
     LiquidOval() => BorderRadius.zero,
   };
 

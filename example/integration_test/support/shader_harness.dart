@@ -214,6 +214,20 @@ final List<HarnessCase> harnessCases = [
       ),
     ),
   ),
+  // A floating sheet's top and bottom radius pair (38, 54) across the
+  // gradient, and a docked sheet's square bottom.
+  const HarnessCase('sheet-pair', LiquidGlassSettings(frost: 0), [
+    HarnessShape(
+      Rect.fromLTWH(20, 60, 340, 360),
+      LiquidRoundedSuperellipse(borderRadius: 38, bottomRadius: 54),
+      _darkRegular,
+    ),
+    HarnessShape(
+      Rect.fromLTWH(60, 450, 240, 120),
+      LiquidRoundedSuperellipse(borderRadius: 38, bottomRadius: 0),
+      _darkRegular,
+    ),
+  ]),
   HarnessCase('tint-pair', const LiquidGlassSettings(frost: 0), [
     HarnessShape(const Rect.fromLTWH(30, 90, 140, 44), _rse(22), _darkRegular),
     HarnessShape(

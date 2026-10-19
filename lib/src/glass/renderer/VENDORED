@@ -696,3 +696,20 @@ Local patches (some commits include related package changes):
   GlassPlaneScope.cacheOf; GlassBackdropCacheScope and morph's
   MorphChromeBackdrop(Scope) are gone. The same keys, reads and caches
   as before.
+- 2026-10-20 top and bottom radius pairs: LiquidRoundedSuperellipse
+  carries topRadius and bottomRadius (the field borderRadius is gone, so
+  every reader of one radius was revisited; clips and the canvas shadow
+  take its radii, the shadow shader draws only uniform shapes). A pair is
+  RawShapeType.squirclePair (shader type 4): Flutter's rounded
+  superellipse of those corners, two symmetric halves on the split line
+  Impeller's MakeBoundsRadii puts at h * top / (top + bottom). The
+  geometry pass, the material pass and the analytic final pass declare
+  uRseData[MAX_SHAPES * 6] and define RSE_PAIRS: a pair's top-half rows
+  sit where every shape's rows sit, its bottom-half rows at
+  MAX_SHAPES * 3 + index * 3 (written only in a frame that holds a pair),
+  their half width slot carrying the bottom radius; sdf.glsl's
+  resolvePairHalf moves a point into its half before the squircle solve
+  and the normals, and flatFaceSample bounds a pair by its half.
+  FinalPassLayout gains rseLower; every index after it moves by 96. A
+  sheet's glass (top 38, bottom 54 to 62) is now the outline its clip
+  draws; uniform squircles shade as before.

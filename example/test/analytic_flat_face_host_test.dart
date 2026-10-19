@@ -23,7 +23,8 @@ import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The analytic shader's flat-face skip against the full distance solve
 /// on the host: every liquid case of the shader harness, plus stretched,
-/// rotated, overlapping and nested rounded superellipses, rendered with
+/// rotated, overlapping and nested rounded superellipses and pairs of a
+/// top and a bottom radius, rendered with
 /// the skip on and off through flutter_tester's Impeller. They must match
 /// to the last bit.
 ///
@@ -115,6 +116,30 @@ final List<_Scene> _scenes = [
       (const ui.Rect.fromLTWH(60, 220, 260, 160), _rse(0.5), _dark),
       (const ui.Rect.fromLTWH(30, 420, 300, 120), _rse(60), _dark),
       (const ui.Rect.fromLTWH(100, 560, 160, 64), _rse(200), _dark),
+    ],
+  ),
+  // Top and bottom radius pairs: a floating sheet's 38 and 54, a docked
+  // sheet's square bottom, the pair the other way round, a stretched one.
+  (
+    'pairs',
+    const LiquidGlassSettings(frost: 0),
+    Matrix4.diagonal3Values(1, 1.1, 1),
+    [
+      (
+        const ui.Rect.fromLTWH(10, 20, 340, 300),
+        const LiquidRoundedSuperellipse(borderRadius: 38, bottomRadius: 54),
+        _dark,
+      ),
+      (
+        const ui.Rect.fromLTWH(20, 340, 150, 120),
+        const LiquidRoundedSuperellipse(borderRadius: 38, bottomRadius: 0),
+        _dark,
+      ),
+      (
+        const ui.Rect.fromLTWH(190, 340, 150, 160),
+        const LiquidRoundedSuperellipse(borderRadius: 50, bottomRadius: 20),
+        const LiquidGlassAppearance.ios27RegularDark(tint: Color(0xCC007AFF)),
+      ),
     ],
   ),
 ];

@@ -52,7 +52,10 @@ uniform vec4 uAnalyticHeader[2];
 // px.
 #define uAnalyticRanges uAnalyticHeader[1]
 uniform vec4 uShapeData[MAX_SHAPES * 3];
-uniform vec4 uRseData[MAX_SHAPES * 3];
+// Each shape's rounded superellipse rows, then a pair's bottom-half rows
+// (gpu/sdf.glsl, RSE_PAIRS): one declaration, so no buffer slot more.
+#define RSE_PAIRS 1
+uniform vec4 uRseData[MAX_SHAPES * 6];
 // MAX_SHAPES shape bounds (what gpu/sdf.glsl reads), then the cull
 // factors, MAX_SHAPES / 4 vec4s.
 uniform vec4 uShapeBounds[MAX_SHAPES * 5 / 4];
@@ -136,7 +139,7 @@ float fusedDistance(vec2 p, int count) {
 SceneSample flatFaceSample(int index, vec2 p) {
     int baseIndex = index * 3;
     vec4 primitive = uShapeData[baseIndex];
-    if (primitive.x == 1.0) {
+    if (primitive.x == 1.0 || primitive.x == 4.0) {
         vec4 inverseBasis = uShapeData[baseIndex + 1];
         vec4 placement = uShapeData[baseIndex + 2];
         vec2 delta = p - placement.xy;
@@ -144,6 +147,12 @@ SceneSample flatFaceSample(int index, vec2 p) {
             inverseBasis.x * delta.x + inverseBasis.y * delta.y,
             inverseBasis.z * delta.x + inverseBasis.w * delta.y
         );
+        float halfMinor = 0.5 * min(primitive.y, primitive.z);
+        // A pair's half lies inside its own half box and within that half's
+        // radius of it, so the same bound holds there.
+        if (primitive.x == 4.0) {
+            resolvePairHalf(index, localPoint, primitive);
+        }
         vec2 halfSize = primitive.yz * 0.5;
         vec2 inside = halfSize - abs(localPoint);
         float radius = min(primitive.w, min(halfSize.x, halfSize.y));
@@ -151,7 +160,7 @@ SceneSample flatFaceSample(int index, vec2 p) {
         if (depth > analyticFlatDepth()) {
             SceneSample face;
             face.distance = -depth;
-            face.halfMinor = 0.5 * min(primitive.y, primitive.z) * placement.z;
+            face.halfMinor = halfMinor * placement.z;
             face.curvatureFactor = 0.0;
             vec4 gradients = getShapeGradients(
                 primitive,

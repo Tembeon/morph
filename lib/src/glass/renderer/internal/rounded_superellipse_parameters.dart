@@ -118,3 +118,46 @@ List<double> roundedSuperellipseParameters(
     rightRadius,
   ];
 }
+
+/// The half height of the top quadrant of Flutter 3.47's rounded
+/// superellipse of [height] whose top corners have radius [top] and bottom
+/// corners [bottom]: Impeller's `MakeBoundsRadii` splits the sides where
+/// the radii divide them in their own ratio. Lengths in any one unit.
+@internal
+double roundedSuperellipseSplit(double height, double top, double bottom) =>
+    top + bottom <= 0 ? height / 2 : height * top / (top + bottom);
+
+/// [roundedSuperellipseParameters] of the two halves of Flutter 3.47's
+/// rounded superellipse of [size] whose two top corners have radius [top]
+/// and two bottom corners [bottom], 24 floats: the top quadrant's 12, then
+/// the bottom quadrant's 12, whose first semi-axis slot (the half width,
+/// the same in both and the shape's own) carries the bottom radius
+/// instead. Each half is a symmetric rounded superellipse centred on the
+/// split line ([roundedSuperellipseSplit]); the shape is the top one above
+/// the line and the bottom one below it, as Impeller's quadrants. Lengths
+/// are [size] units times [scale].
+@internal
+List<double> roundedSuperellipsePairParameters(
+  Size size,
+  double top,
+  double bottom, {
+  double scale = 1,
+}) {
+  final upper = roundedSuperellipseSplit(size.height, top, bottom);
+  final lower = size.height - upper;
+  final topHalf = roundedSuperellipseParameters(
+    Size(size.width, 2 * upper),
+    top,
+    scale: scale,
+  );
+  final bottomHalf = roundedSuperellipseParameters(
+    Size(size.width, 2 * lower),
+    bottom,
+    scale: scale,
+  );
+  bottomHalf[8] = min(
+    bottom * scale,
+    min(size.width * scale / 2, lower * scale),
+  );
+  return <double>[...topHalf, ...bottomHalf];
+}

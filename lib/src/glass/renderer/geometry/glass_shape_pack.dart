@@ -18,8 +18,23 @@ final class GlassShapePack {
   /// 12 floats per shape.
   final List<double> shapeData = [];
 
-  /// The rounded superellipse parameters: 12 floats per shape.
+  /// The rounded superellipse parameters: 12 floats per shape, of its top
+  /// half for a pair (RawShapeType.squirclePair).
   final List<double> rseData = [];
+
+  /// The bottom half's parameters of a pair, 12 floats per shape, zeros
+  /// for every other shape: the shaders read them from the second half of
+  /// uRseData, at MAX_SHAPES * 3 + index * 3.
+  final List<double> rseLowerData = [];
+
+  /// The pairs among the shapes; the shaders read [rseLowerData] only for
+  /// them, so a frame without one leaves it unwritten.
+  int pairCount = 0;
+
+  /// The bottom half of a shape that is no pair.
+  static const List<double> noLowerHalf = <double>[
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
+  ];
 
   /// The culling boxes: 4 floats per shape.
   final List<double> boundsData = [];
@@ -72,6 +87,8 @@ final class GlassShapePack {
   void clear() {
     shapeData.clear();
     rseData.clear();
+    rseLowerData.clear();
+    pairCount = 0;
     boundsData.clear();
     cullData.clear();
   }

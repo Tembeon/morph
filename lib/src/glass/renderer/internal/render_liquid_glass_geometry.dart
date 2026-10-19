@@ -378,7 +378,11 @@ enum RawShapeType {
   // none(0), unused in CPU code
   squircle(1),
   ellipse(2),
-  roundedRectangle(3);
+  roundedRectangle(3),
+
+  /// A squircle whose two bottom corners have another radius than its two
+  /// top ones: two halves on the split line (sdf.glsl's resolveShape).
+  squirclePair(4);
 
   const RawShapeType(this.shaderIndex);
 
@@ -386,8 +390,8 @@ enum RawShapeType {
 
   static RawShapeType fromLiquidGlassShape(LiquidShape shape) {
     switch (shape) {
-      case LiquidRoundedSuperellipse():
-        return RawShapeType.squircle;
+      case LiquidRoundedSuperellipse(:final isUniform):
+        return isUniform ? RawShapeType.squircle : RawShapeType.squirclePair;
       case LiquidOval():
         return RawShapeType.ellipse;
       case LiquidRoundedRectangle():
@@ -409,19 +413,17 @@ class ShapeGeometry {
     required this.shapeBounds,
     required this.appearance,
     this.shapeToGeometry,
-  }) : rawCornerRadius = _getRadiusFromGlassShape(shape),
+  }) : rawCornerRadius = switch (shape) {
+         LiquidRoundedSuperellipse(:final topRadius) => topRadius,
+         LiquidRoundedRectangle(:final borderRadius) => borderRadius,
+         LiquidOval() => 0,
+       },
+       rawBottomRadius = switch (shape) {
+         LiquidRoundedSuperellipse(:final bottomRadius) => bottomRadius,
+         LiquidRoundedRectangle(:final borderRadius) => borderRadius,
+         LiquidOval() => 0,
+       },
        rawShapeType = RawShapeType.fromLiquidGlassShape(shape);
-
-  static double _getRadiusFromGlassShape(LiquidShape shape) {
-    switch (shape) {
-      case LiquidRoundedSuperellipse():
-        return shape.borderRadius;
-      case LiquidRoundedRectangle():
-        return shape.borderRadius;
-      case LiquidOval():
-        return 0;
-    }
-  }
 
   final LiquidGlassShapeRenderObject renderObject;
 
@@ -429,7 +431,12 @@ class ShapeGeometry {
 
   final RawShapeType rawShapeType;
 
+  /// The corner radius, of the two top corners for a [RawShapeType.squirclePair].
   final double rawCornerRadius;
+
+  /// The radius of the two bottom corners: [rawCornerRadius] except for a
+  /// [RawShapeType.squirclePair].
+  final double rawBottomRadius;
 
   final LiquidGlassAppearance appearance;
 

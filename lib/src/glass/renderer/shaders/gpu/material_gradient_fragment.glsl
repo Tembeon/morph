@@ -17,7 +17,8 @@ layout(std140) uniform GeometryUniforms {
     vec4 uOpticalProps;
     vec4 uContourProps;
     vec4 uShapeData[MAX_SHAPES * 3];
-    vec4 uRseData[MAX_SHAPES * 3];
+    // Then a pair's bottom-half rows (sdf.glsl, RSE_PAIRS).
+    vec4 uRseData[MAX_SHAPES * 6];
     vec4 uShapeTints[MAX_SHAPES];
     vec4 uShapeResponses[MAX_SHAPES];
     vec4 uShapeBounds[MAX_SHAPES];
@@ -31,6 +32,7 @@ layout(std140) uniform GeometryUniforms {
 #define uMaterialRasterScale (geometryUniforms.uContourProps.y)
 #define uMaterialMapSize (geometryUniforms.uContourProps.zw)
 
+#define RSE_PAIRS 1
 #include "sdf.glsl"
 #include "material_sdf.glsl"
 
