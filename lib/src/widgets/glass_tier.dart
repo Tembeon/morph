@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_device.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
@@ -166,7 +167,7 @@ class _GlassAdaptiveScopeState extends State<GlassAdaptiveScope> {
       child: widget.child,
     );
     return BackdropGroup.of(context) == null
-        ? BackdropGroup(child: glass)
+        ? GlassPlaneScope.plane(child: glass)
         : glass;
   }
 }

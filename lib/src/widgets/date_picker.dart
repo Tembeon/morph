@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/clock.dart';
@@ -876,8 +876,8 @@ class _DatePickerRoute extends PopupRoute<void>
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) => themes.install(
-    GlassBackdropCacheScope(
-      cache: backdropCache,
+    GlassPlaneScope.backdrop(
+      backdrop: GlassBackdrop.cached(backdropCache),
       child: _OverlayView(route: this),
     ),
   );

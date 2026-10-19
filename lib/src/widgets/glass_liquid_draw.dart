@@ -214,13 +214,12 @@ Widget _layer(
   GlassBuiltInPainter renderer,
   MorphGlassSource source,
   List<MorphGlassSurface> Function(MorphGlassFrame frame) select, {
-  bool shared = true,
+  GlassRead read = GlassRead.plane,
   double Function(MorphGlassSurface surface)? shrink,
   double rim = 0,
   GlassField? Function(MorphGlassFrame frame)? field,
   bool shadows = true,
   bool exact = false,
-  bool ownBackdrop = false,
   int? slots,
   MorphGlassSurface Function(MorphGlassFrame frame)? anchor,
 }) {
@@ -249,8 +248,7 @@ Widget _layer(
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
       glowOf: () => glow.value,
       glows: source.glows,
-      useBackdropGroup: shared,
-      blursOwnBackdrop: ownBackdrop,
+      read: read,
       child: slots == null
           ? _shapes(
               renderer,
@@ -392,7 +390,7 @@ Widget morphLiquidSurface(
   renderer,
   source,
   (f) => [_local(select(f))],
-  shared: !_chrome(select(source.frame)),
+  read: _chrome(select(source.frame)) ? GlassRead.own : GlassRead.plane,
 );
 
 /// One fused glass body on the liquid tier, the one [select] picks from
@@ -432,7 +430,7 @@ Widget morphLiquidBody(
       renderer,
       source,
       (f) => select(f).$1,
-      shared: !surfaces.any(_chrome),
+      read: surfaces.any(_chrome) ? GlassRead.own : GlassRead.plane,
       field: (f) => morphGlassOutlineField(select(f).$2),
       shadows: false,
       exact: exact,
@@ -611,7 +609,7 @@ Widget morphLiquidLayer(
                   renderer,
                   source,
                   (f) => f.partsFor(tier).separate,
-                  shared: !chrome,
+                  read: chrome ? GlassRead.own : GlassRead.plane,
                 ),
         ),
       for (var i = 0; i < parts.fused.length; i++)
@@ -675,10 +673,9 @@ Widget morphLiquidLayer(
               renderer,
               source,
               (f) => [f.partsFor(tier).floating[i]],
-              shared: false,
+              read: GlassRead.lifted,
               shrink: shrinkOf,
               rim: optics(surface).rim,
-              ownBackdrop: true,
             ),
           ),
         ],

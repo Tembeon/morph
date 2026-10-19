@@ -686,3 +686,13 @@ Local patches (some commits include related package changes):
   test/architecture_test.dart forbids the widget layer (and the engine,
   motion and theme modules) to import composition/, geometry/,
   internal/, pass/ and rendering/ directly.
+- 2026-10-19 glass planes, declarations: plane/glass_plane.dart holds
+  GlassRead (plane, own, lifted), GlassBackdrop (live, cached) and
+  GlassPlaneScope (plane, a key of its own; chrome, joining the read a
+  shareRead above hands down; backdrop, what glass with a read of its own
+  reads). LiquidGlassLayer
+  takes `read` in place of useBackdropGroup, backdropKey and
+  blursOwnBackdrop, and finds a cached backdrop through
+  GlassPlaneScope.cacheOf; GlassBackdropCacheScope and morph's
+  MorphChromeBackdrop(Scope) are gone. The same keys, reads and caches
+  as before.

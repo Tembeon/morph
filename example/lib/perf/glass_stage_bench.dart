@@ -493,14 +493,21 @@ class _SceneState extends State<_Scene> {
             ),
         ],
       );
-      Widget glass(List<Rect> regions) => LiquidGlassLayer(
-        settings: LiquidGlassSettings.ios27ToolbarDark(
-          frost: config.mode == 'optics' ? 0 : config.sigma,
-        ),
-        defaultAppearance: const LiquidGlassAppearance.ios27RegularDark(),
-        backdropKey: config.plan == 'shared' ? sharedKey : null,
-        child: shapes(regions),
-      );
+      Widget glass(List<Rect> regions) {
+        final shared = config.plan == 'shared';
+        final layer = LiquidGlassLayer(
+          settings: LiquidGlassSettings.ios27ToolbarDark(
+            frost: config.mode == 'optics' ? 0 : config.sigma,
+          ),
+          defaultAppearance: const LiquidGlassAppearance.ios27RegularDark(),
+          read: shared ? GlassRead.plane : GlassRead.own,
+          child: shapes(regions),
+        );
+        return shared
+            ? BackdropGroup(backdropKey: sharedKey, child: layer)
+            : layer;
+      }
+
       Widget proxy(Rect rect) => Positioned.fromRect(
         rect: rect,
         child: ClipRect(

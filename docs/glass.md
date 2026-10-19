@@ -135,13 +135,20 @@ scenes (home-scroll, segmented, tab-bar, controls, menu, sheet, list).
   may share. The page's resting body glass shares the root group.
 - Anything floating over the page reads a copy of its own or its own
   group: bar / menu kinds (both tiers, also through buildSurface), the
-  navigation bar + toolbar (one `MorphChromeBackdrop` key per screen,
-  chrome_group.dart), the search tab bar, a sheet's content, a menu's
+  navigation bar + toolbar (one shared read per screen,
+  `GlassPlaneScope.shareRead`), the search tab bar, a sheet's content, a menu's
   card, a context menu's hero and satellites, lifted glass, and a lifted
   lens / knob / thumb.
 - Two resting body glass surfaces with content painted between them: the
   later one misses that content. This cannot be detected per frame
   (pictures carry no drawn bounds).
+- Groups are declared with `GlassPlaneScope` (plane/glass_plane.dart):
+  `plane` (a key of its own), `chrome` (joins the read a `shareRead`
+  above hands down, else its own key), `shareRead`, and `backdrop` for
+  what glass with a read of its own reads (live, or a presentation's
+  cached copy of the route below). A layer says where it reads with
+  `GlassRead`: its plane, its own read, or its own read around a lifted
+  lens.
 - There is no automatic grouping. The app wraps a section painted over
   earlier glass in its own `BackdropGroup(child: section)`
   (GlassAdaptiveScope dartdoc, backdrop_section_test; options and device

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/edit_menu.dart';
@@ -498,8 +498,8 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    final view = GlassBackdropCacheScope(
-      cache: backdropCache,
+    final view = GlassPlaneScope.backdrop(
+      backdrop: GlassBackdrop.cached(backdropCache),
       child: _AlertView(route: this),
     );
     return _themes?.install(view) ?? view;

@@ -6,13 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
-import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -1852,7 +1852,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
         );
       },
     );
-    final grouped = MorphChromeBackdrop(child: items);
+    final grouped = GlassPlaneScope.chrome(child: items);
     if (MorphScope.maybeOf(context) != null) return grouped;
     return MorphScope(child: grouped);
   }

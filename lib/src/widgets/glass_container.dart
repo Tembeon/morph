@@ -292,7 +292,7 @@ Widget _containerLayer(
       return LiquidGlassLayer(
         settings: settings,
         defaultAppearance: appearance,
-        useBackdropGroup: true,
+        read: GlassRead.plane,
         solidBackdrop: solidBackdrop,
         child: MorphGlassContainerScope(
           link: link,

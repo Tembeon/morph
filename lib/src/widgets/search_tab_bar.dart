@@ -3,10 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/motion/spring.dart';
-import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
@@ -749,7 +749,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     );
     // A repaint boundary of its own: a frame of the morph repaints the
     // bar, not the page under it.
-    return RepaintBoundary(child: MorphChromeBackdrop(child: shortcuts));
+    return RepaintBoundary(child: GlassPlaneScope.chrome(child: shortcuts));
   }
 }
 

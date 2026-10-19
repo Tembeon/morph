@@ -40,9 +40,7 @@ class LiquidGlassLayer extends StatefulWidget {
     required this.child,
     this._settings = const LiquidGlassSettings(),
     this.defaultAppearance,
-    this.useBackdropGroup = false,
-    this.backdropKey,
-    this.blursOwnBackdrop = false,
+    this.read = GlassRead.own,
     this.solidBackdrop,
     this._field,
     super.key,
@@ -65,9 +63,7 @@ class LiquidGlassLayer extends StatefulWidget {
     this.glowOf,
     this.glows,
     this.defaultAppearance,
-    this.useBackdropGroup = false,
-    this.backdropKey,
-    this.blursOwnBackdrop = false,
+    this.read = GlassRead.own,
     this.solidBackdrop,
     super.key,
   }) : _settings = const LiquidGlassSettings(),
@@ -121,45 +117,17 @@ class LiquidGlassLayer extends StatefulWidget {
   /// platform brightness.
   final LiquidGlassAppearance? defaultAppearance;
 
-  /// Whether to share a [BackdropGroup] capture for backdrop effects.
+  /// Where the layer's glass reads its backdrop: its plane's one read
+  /// ([GlassRead.plane]: the nearest [GlassPlaneScope] or [BackdropGroup],
+  /// else a read of its own key), a read of its own at its own place in
+  /// paint order ([GlassRead.own], over a cached copy where a
+  /// [GlassPlaneScope.backdrop] above declares one), or a read of its own
+  /// around its glass for a small frost that animates ([GlassRead.lifted]).
   ///
-  /// The nearest ancestor group is used when one exists. Otherwise this layer
-  /// creates a local group so its shapes can share backdrop capture work.
-  /// Multiple [LiquidGlassLayer]s need a common ancestor group or an
-  /// explicit shared [backdropKey] to share across layer boundaries.
-  ///
-  /// On Impeller, each independent backdrop capture does a full-screen
-  /// readback (~115 mW GPU at 120 Hz on a Pixel 10) before blur or glass
-  /// work. Sharing one [BackdropGroup] or [BackdropKey] pays that readback
-  /// once: two real layers dropped from 797 mW to 688 mW, two plain sigma7 blurs
-  /// from 426 mW to 312 mW, on the same device.
-  ///
-  /// Shared members do not see content painted between them. Group only
-  /// elements that sit over the same content plane (for example all root
-  /// chrome). Do not put a sheet and the FAB above it in one group.
-  ///
-  /// [backdropKey] takes precedence when both are provided.
-  ///
-  /// Defaults to false.
-  final bool useBackdropGroup;
-
-  /// An explicit backdrop capture key for blur and refraction sharing.
-  ///
-  /// Multiple non-overlapping glass effects can reuse the same key to avoid
-  /// repeated backdrop captures. Effects that overlap should use different
-  /// keys because Flutter treats a shared key as a single backdrop filter.
-  final BackdropKey? backdropKey;
-
-  /// Whether a frost that needs a blur pass blurs a copy of the backdrop
-  /// around this layer's glass instead of the whole pass it paints in.
-  ///
-  /// The copy is one more backdrop read; it pays for a small surface whose
-  /// frost animates (a lifted lens): a blur composed under the glass shader
-  /// reads the whole enclosing pass, and an animated frost resizes its
-  /// full-size targets on every frame. A large or still frost (a bar, a
-  /// menu, a sheet) blurs cheaper without it. Ignored inside a backdrop
-  /// group.
-  final bool blursOwnBackdrop;
+  /// On Impeller every independent backdrop read copies the whole pass;
+  /// glass in one plane pays it once, but does not see what is painted
+  /// between its members.
+  final GlassRead read;
 
   /// The opaque color that fills everything this layer's glass would read,
   /// or null to read the backdrop.
@@ -262,9 +230,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.backdropKey == null &&
-        widget.useBackdropGroup &&
-        BackdropGroup.of(context) == null) {
+    if (widget.read == GlassRead.plane && BackdropGroup.of(context) == null) {
       return BackdropGroup(child: Builder(builder: _buildLayer));
     }
     return _buildLayer(context);
@@ -276,11 +242,9 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
         LiquidGlassAppearance.ios27Toolbar(
           brightness: MediaQuery.platformBrightnessOf(context),
         );
-    final backdropKey =
-        widget.backdropKey ??
-        (widget.useBackdropGroup
-            ? BackdropGroup.of(context)?.backdropKey
-            : null);
+    final backdropKey = widget.read == GlassRead.plane
+        ? BackdropGroup.of(context)?.backdropKey
+        : null;
     final shaderFiltersSupported = ImageFilter.isShaderFilterSupported;
     if (shaderFiltersSupported) {
       // Android's Impeller context is not available until its first surface
@@ -314,13 +278,13 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
                   return _RawShapes(
                     matteShaders: shaders,
                     backdropKey: backdropKey,
-                    blursOwnBackdrop: widget.blursOwnBackdrop,
+                    blursOwnBackdrop: widget.read == GlassRead.lifted,
                     solidBackdrop: widget.solidBackdrop,
-                    // A keyed group reads its own copy on purpose (glass
-                    // painted in between belongs in it); only an unkeyed
-                    // read is cached.
+                    // A plane reads its own copy on purpose (glass painted
+                    // in between belongs in it); only a read of its own is
+                    // cached.
                     backdropCache: backdropKey == null
-                        ? GlassBackdropCacheScope.maybeOf(context)
+                        ? GlassPlaneScope.cacheOf(context)
                         : null,
                     live: live,
                     settingsOf: () => widget.settings,

@@ -115,10 +115,6 @@ const _ratchet = <Rule, Set<String>>{
     'lib/src/glass/renderer/internal/optimized_clip.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/liquid_glass.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/rendering/liquid_glass_layer.dart imports lib/src/live.dart',
-    // The cache scope becomes a plane's backdrop (glass composition M7).
-    'lib/src/widgets/alert.dart imports lib/src/glass/renderer/internal/backdrop_cache.dart',
-    'lib/src/widgets/date_picker.dart imports lib/src/glass/renderer/internal/backdrop_cache.dart',
-    'lib/src/widgets/sheet.dart imports lib/src/glass/renderer/internal/backdrop_cache.dart',
     // The raster anchor goes with the container joins (glass composition M9).
     'lib/src/widgets/glass_liquid_draw.dart imports lib/src/glass/renderer/internal/raster_phase.dart',
     // The liquid capability bootstrap, renderer code living in widgets/.

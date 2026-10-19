@@ -316,8 +316,6 @@ const Set<String> _plumbing = {
   'MorphPress',
   'MorphControlCapsule',
   'MorphGlassLayer',
-  'MorphChromeBackdrop',
-  'MorphChromeBackdropScope',
   'MorphBarItems',
   'MorphGlassScope',
   'GlassAdaptiveScope',

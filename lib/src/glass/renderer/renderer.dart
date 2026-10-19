@@ -37,3 +37,7 @@ export 'package:morph/src/glass/renderer/internal/glass_defaults.dart'
     show MorphGlassDefaults;
 export 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart'
     show MorphGlassShadowShader;
+export 'package:morph/src/glass/renderer/internal/backdrop_cache.dart'
+    show GlassBackdropCache, GlassBackdropCacheRoute;
+export 'package:morph/src/glass/renderer/plane/glass_plane.dart'
+    show GlassBackdrop, GlassPlaneScope, GlassRead;
