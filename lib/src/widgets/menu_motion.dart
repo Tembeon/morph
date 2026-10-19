@@ -2348,19 +2348,31 @@ class MorphMenuMotion
 
   /// A count that changes whenever an input reaches the motion or a
   /// pending reaction runs: while it holds and [isStill] holds, every frame
-  /// shows the same picture.
+  /// shows the same picture but for the touch glow.
   @internal
   int get revision => _revision;
   int _revision = 0;
 
-  /// Whether nothing moves now; pending reactions and a resting finger may
-  /// still change the picture later ([revision]).
+  /// Whether nothing but the touch glow moves now ([isGlowing]); pending
+  /// reactions and a resting finger may still change the picture later
+  /// ([revision]).
   @internal
   bool get isStill => _still;
 
+  /// Whether the touch glow under a finger still rises, follows the finger
+  /// or fades ([glowAt]).
+  @internal
+  bool get isGlowing => !_touchGlow.isSettled(_now);
+
+  /// Whether all of the motion but its touch glow has settled while the
+  /// glow still moves ([isGlowing]).
+  @internal
+  bool get isGlowOnly => _timeline.isEmpty && _still && isGlowing;
+
   /// Lands the menu's height, corners and cards on their targets at the
-  /// motion's time; a host calls it once the motion [isSettled], when what
-  /// remains does not show (NEAR, invisible). The progress keeps its
+  /// motion's time; a host calls it once the motion [isSettled] or only its
+  /// glow moves ([isGlowOnly]), when what remains does not show (NEAR,
+  /// invisible); the glow keeps moving. The progress keeps its
   /// remainder, which no layout reads exactly, and so does the flex a held
   /// finger leaves.
   @override
@@ -2380,7 +2392,7 @@ class MorphMenuMotion
   /// the glow under it has faded in: its next move or release wakes it. A
   /// finger scrolling the content does.
   @override
-  bool get isSettled => _timeline.isEmpty && _still;
+  bool get isSettled => _timeline.isEmpty && _still && !isGlowing;
 
   /// The motion time of the next pending event while a finger rests and
   /// nothing else moves, or null otherwise.
@@ -2394,16 +2406,14 @@ class MorphMenuMotion
   @override
   double? get wakeTime {
     final due = _timeline.nextDue;
-    return due != null && _pointer != null && _still ? due : null;
+    return due != null && _pointer != null && _still && !isGlowing ? due : null;
   }
 
   bool get _still {
     final t = _now;
     if (_pointer?.scrolled ?? false) return false;
     if (_phase == _Phase.closing) return false;
-    if (!_press.isSettled(t) || !_flexAtRest(t) || !_touchGlow.isSettled(t)) {
-      return false;
-    }
+    if (!_press.isSettled(t) || !_flexAtRest(t)) return false;
     if (_phase == _Phase.opening) {
       final rest = _progressRest;
       return _progress.restsWithin(t, rest) &&

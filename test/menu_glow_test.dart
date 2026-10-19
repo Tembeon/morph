@@ -126,6 +126,42 @@ void main() {
       expect(motion.glowAt(Brightness.light)?.center, row);
     });
 
+    test('the glow of a tap fades on alone once the menu stands still', () {
+      final motion = menu();
+      final twin = menu();
+      for (final m in [motion, twin]) {
+        m.dismissOnSelect = false;
+        m.open(0);
+        m.advance(1);
+        final row = m.menuRect.center;
+        m.pointerDown(1, row);
+        m.advance(1.06);
+        m.pointerUp(1.06, row);
+      }
+      var t = 1.06;
+      while (!motion.isGlowOnly && t < 3) {
+        t += 1 / 120;
+        motion.advance(t);
+      }
+      expect(motion.isGlowOnly, isTrue);
+      expect(motion.isStill, isTrue);
+      expect(motion.isSettled, isFalse);
+      expect(motion.glowAt(Brightness.light), isNotNull);
+      motion.settle();
+      for (final at in [t + 0.05, t + 0.1]) {
+        motion.advance(at);
+        twin.advance(at);
+        expect(motion.glowAt(Brightness.light), twin.glowAt(Brightness.light));
+        expect(motion.glowAt(Brightness.light), isNotNull);
+      }
+      while (!motion.isSettled && t < 6) {
+        t += 1 / 120;
+        motion.advance(t);
+      }
+      expect(motion.isSettled, isTrue);
+      expect(motion.glowAt(Brightness.light), isNull);
+    });
+
     test('a menu whose glass shows no glow lights none and rests', () {
       final motion = menu();
       motion.lightsGlow = false;

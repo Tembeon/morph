@@ -253,6 +253,7 @@ Widget _layer(
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
       outlineOf: outlineOf == null ? null : () => outlineOf.value,
       glowOf: () => glow.value,
+      glows: source.glows,
       useBackdropGroup: shared,
       blursOwnBackdrop: ownBackdrop,
       child: slots == null

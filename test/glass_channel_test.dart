@@ -1,3 +1,5 @@
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/live.dart';
@@ -272,6 +274,83 @@ void main() {
     capability.value = true;
     await tester.pump();
     expect(find.byType(LiquidGlassLayer), findsWidgets);
+  });
+
+  testWidgets('a glow alone reaches only the glass that draws it', (
+    tester,
+  ) async {
+    final frames = ValueNotifier<int>(0);
+    final glows = ValueNotifier<int>(0);
+    addTearDown(frames.dispose);
+    addTearDown(glows.dispose);
+    MorphGlassGlow glow() => MorphGlassGlow(
+      wash: 0,
+      center: Offset(40 + glows.value * 10.0, 20),
+      radius: 90,
+      gain: 0.5 - glows.value * 0.1,
+    );
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 200,
+            height: 80,
+            child: MorphGlassLayer(
+              painter: const GlassBuiltInPainter(),
+              frames: frames,
+              glows: glows,
+              surfaces: () => [
+                MorphGlassSurface(
+                  kind: MorphGlassKind.menu,
+                  shape: const RRect.fromLTRBXY(0, 0, 200, 80, 32, 32),
+                  color: const Color(0xF2222222),
+                  brightness: Brightness.dark,
+                  glow: glow(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    tester.takeException();
+    final layer = tester.widget<LiquidGlassLayer>(
+      find.byType(LiquidGlassLayer),
+    );
+    var live = 0;
+    var lit = 0;
+    void heard() => live++;
+    void glowed() => lit++;
+    layer.live!.addListener(heard);
+    layer.glows!.addListener(glowed);
+    addTearDown(() {
+      layer.live!.removeListener(heard);
+      layer.glows!.removeListener(glowed);
+    });
+    var builds = 0;
+    var paints = 0;
+    debugOnRebuildDirtyWidget = (Element element, bool _) => builds++;
+    debugOnProfilePaint = (RenderObject _) => paints++;
+
+    // As a ticker tells them: inside the frame, before it builds.
+    void tick(ValueNotifier<int> notifier) => SchedulerBinding.instance
+        .scheduleFrameCallback((Duration _) => notifier.value++);
+
+    tick(glows);
+    await tester.pump();
+    debugOnRebuildDirtyWidget = null;
+    debugOnProfilePaint = null;
+    expect(
+      (live: live, lit: lit, builds: builds, paints: paints),
+      (live: 0, lit: 1, builds: 0, paints: 0),
+    );
+    expect(layer.glowOf!()?.center, const Offset(50, 20));
+    expect(layer.glowOf!()?.gain, moreOrLessEquals(0.4));
+
+    tick(frames);
+    await tester.pump();
+    expect((live: live, lit: lit), (live: 1, lit: 1));
   });
 }
 

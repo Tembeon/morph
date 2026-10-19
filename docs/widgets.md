@@ -46,7 +46,10 @@ flex scale or drift, a pulse), `MorphTimeline` for every delay and
 at a visible rest (`MorphRest`, spring_state.dart: every spring's remaining
 swing, `MorphSpringState.reach`, under 0.1 pt, an opacity's under half an
 8-bit step), after which `MorphClock.settleMotion` snaps the motion onto its
-targets before the last frame paints (NEAR, invisible).
+targets before the last frame paints (NEAR, invisible). While only a
+touch glow still moves (`motionGlowOnly`), `settleMotion` runs on every
+frame and leaves the glow running, and from the second such frame the
+clock notifies `glows` instead of `frames` (docs/glass.md, Touch glow).
 
 `MorphControlHost` hosts build in `buildControl`; `build` hands back the
 last result while `buildsLike(oldWidget)` holds (every field the build

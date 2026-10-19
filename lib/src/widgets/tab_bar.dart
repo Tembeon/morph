@@ -404,6 +404,9 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
   bool get motionSettled => super.motionSettled && _glow.isSettled(clock);
 
   @override
+  bool get motionGlowOnly => super.motionSettled && !_glow.isSettled(clock);
+
+  @override
   double trackPosition(Offset local) =>
       _rtl ? _layout.width - local.dx : local.dx;
 
@@ -788,6 +791,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
                       child: MorphGlassLayer(
                         painter: glass,
                         frames: frames,
+                        glows: glows,
                         surfaces: _surfaces,
                         content: Padding(
                           padding: const .symmetric(

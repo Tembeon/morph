@@ -350,4 +350,33 @@ void main() {
       expect(silent.glow(0.1), 0);
     });
   });
+
+  test('a released glow fades on through a settle of the shape', () {
+    MorphFlexInteraction pressed() {
+      final flex = MorphFlexInteraction(size: const Size(120, 44), glows: true);
+      flex.pointerDown(0, const Offset(60, 22));
+      flex.pointerUp(0.3);
+      return flex;
+    }
+
+    final flex = pressed();
+    final twin = pressed();
+    var t = 0.3;
+    while (!flex.isGlowOnly(t) && t < 2) {
+      t += 1 / 120;
+    }
+    expect(flex.isGlowOnly(t), isTrue);
+    expect(flex.isSettled(t), isFalse);
+    expect(flex.glow(t), greaterThan(0));
+    flex.settle(t);
+    for (final at in [t + 0.05, t + 0.1]) {
+      expect(flex.glow(at), twin.glow(at));
+      expect(flex.littleGlowScale(at), twin.littleGlowScale(at));
+    }
+    while (!flex.isSettled(t) && t < 4) {
+      t += 1 / 120;
+    }
+    expect(flex.isSettled(t), isTrue);
+    expect(flex.isGlowOnly(t), isFalse);
+  });
 }

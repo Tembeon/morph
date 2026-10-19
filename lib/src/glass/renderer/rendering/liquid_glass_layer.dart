@@ -57,13 +57,14 @@ class LiquidGlassLayer extends StatefulWidget {
        settingsOf = null,
        fieldOf = null,
        outlineOf = null,
-       glowOf = null;
+       glowOf = null,
+       glows = null;
 
   /// Creates a layer whose settings and field follow [live].
   ///
   /// Every notification of [live] writes [settingsOf], [fieldOf] and
   /// [glowOf] into the layer's render object and into its shapes without
-  /// rebuilding them.
+  /// rebuilding them; a notification of [glows] writes [glowOf] alone.
   const LiquidGlassLayer.live({
     required this.child,
     required this.live,
@@ -71,6 +72,7 @@ class LiquidGlassLayer extends StatefulWidget {
     this.fieldOf,
     this.outlineOf,
     this.glowOf,
+    this.glows,
     this.defaultAppearance,
     this.useBackdropGroup = false,
     this.backdropKey,
@@ -101,6 +103,12 @@ class LiquidGlassLayer extends StatefulWidget {
   /// The touch glow the final pass applies now, for a live layer; null for
   /// a layer that never glows.
   final LiquidGlassGlow? Function()? glowOf;
+
+  /// Notifies when only [glowOf] changed, for a live layer: the layer then
+  /// hands its final pass the new glow, a change of uniforms that paints
+  /// nothing while its backdrop filter can be kept
+  /// ([RenderLiquidGlassLayer.glow]).
+  final Listenable? glows;
 
   final LiquidGlassSettings _settings;
 
@@ -342,6 +350,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
                     gpuGeometryRenderer: gpuRenderer,
                     fieldOf: () => widget.field,
                     glowOf: () => widget.glowOf?.call(),
+                    glows: widget.glows,
                     child: child!,
                   );
                 }, child: child),
@@ -369,6 +378,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required this.link,
     required this.fieldOf,
     required this.glowOf,
+    required this.glows,
     this.gpuGeometryRenderer,
   });
 
@@ -388,6 +398,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final FlutterGpuGeometryRenderer? gpuGeometryRenderer;
   final GlassField? Function() fieldOf;
   final LiquidGlassGlow? Function() glowOf;
+  final Listenable? glows;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
@@ -410,6 +421,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     layer.backdropCache = backdropCache;
     layer.glow = glowOf();
     layer.bindLive(live, () => _apply(layer));
+    layer.bindGlows(glows, () => layer.glow = glowOf());
     return layer;
   }
 
@@ -434,6 +446,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     renderObject.backdropCache = backdropCache;
     renderObject.glow = glowOf();
     renderObject.bindLive(live, () => _apply(renderObject));
+    renderObject.bindGlows(glows, () => renderObject.glow = glowOf());
   }
 }
 
@@ -508,13 +521,45 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   LiquidGlassGlow? _glow;
 
   /// The touch glow the final pass applies to the glass, or null for none.
+  ///
+  /// A new glow is a change of the final shader's uniforms only: while the
+  /// layer draws through the backdrop filter it composited last, over
+  /// geometry it can reuse, the filter is replaced by one over the new
+  /// uniforms and nothing paints. Glass recorded into a picture (over a
+  /// solid or a cached backdrop) repaints.
   LiquidGlassGlow? get glow => _glow;
   set glow(LiquidGlassGlow? value) {
     if (_glow == value) return;
     _glow = value;
     _updateShaderSettings();
-    markNeedsPaint();
+    final filter = _shaderHandle.layer;
+    if (filter != null &&
+        attached &&
+        !drawableEmpty &&
+        hasReusableGeometry &&
+        _solidHandle.layer == null) {
+      filter.filter = _updateShaderFilter();
+    } else {
+      markNeedsPaint();
+    }
   }
+
+  Listenable? _glows;
+  VoidCallback? _glowsApply;
+
+  /// Follows [source], whose notifications change only the [glow], writing
+  /// it through [apply].
+  void bindGlows(Listenable? source, VoidCallback apply) {
+    _glowsApply = apply;
+    if (identical(source, _glows)) return;
+    if (attached) {
+      _glows?.removeListener(_onGlows);
+      source?.addListener(_onGlows);
+    }
+    _glows = source;
+  }
+
+  void _onGlows() => _glowsApply?.call();
 
   /// One appearance for the layer, the direct color model.
   final FragmentShader defaultRenderShader;
@@ -843,11 +888,13 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     // Only a debug override or a build with analytic geometry ever asks
     // the attached layers for a new frame.
     if (!kReleaseMode || ShaderKeys.analyticGeometry) _attachedLayers.add(this);
+    _glows?.addListener(_onGlows);
   }
 
   @override
   void detach() {
     _attachedLayers.remove(this);
+    _glows?.removeListener(_onGlows);
     super.detach();
   }
 

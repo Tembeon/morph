@@ -508,6 +508,14 @@ reference. Contact sheets (liquid | fake | frosted | flat):
   building; a frames-driven host (segmented, tab bar, switch, slider,
   glass button) builds once per frame and returns the same tree. Other
   painters are called every frame as before.
+- A frame that changes only touch glows (2026-10-19: a glow rising,
+  following the finger or fading while the control stands still) goes
+  through `MorphGlassHost.glows` / `MorphGlassChannel.pushGlows` to
+  `LiquidGlassLayer.live(glows:)` alone: the layer swaps its retained
+  backdrop filter for one over the new uniforms without a paint
+  (docs/glass.md "Touch glow"). The glow is IDENTICAL to the full
+  frame's; the control's geometry holding what it last showed is NEAR,
+  a remainder inside `MorphRest` as at every settle.
 - SAME PIXELS: test/glass_frames_test.dart records every perf-counts
   scene on every tier (63 scene/tiers, every third frame) with the
   channel and with `debugMorphGlassRebuildEveryFrame`, and compares them

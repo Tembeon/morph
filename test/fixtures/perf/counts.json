@@ -341,7 +341,7 @@
     "idle": 0
   },
   "menu-card/liquid": {
-    "frames": 269,
+    "frames": 270,
     "builds": 1.7,
     "paints": 36.7,
     "pictures": 5.5,
@@ -352,10 +352,10 @@
     "idle": 0
   },
   "menu-held/liquid": {
-    "frames": 224,
+    "frames": 223,
     "builds": 1.5,
     "paints": 26.4,
-    "pictures": 3.9,
+    "pictures": 4.0,
     "captures": 2.0,
     "offscreen": 2.3,
     "snapshotImages": 0.0,
@@ -363,10 +363,10 @@
     "idle": 0
   },
   "context-menu/liquid": {
-    "frames": 213,
+    "frames": 208,
     "builds": 1.1,
-    "paints": 21.0,
-    "pictures": 2.3,
+    "paints": 20.8,
+    "pictures": 2.2,
     "captures": 1.0,
     "offscreen": 1.3,
     "snapshotImages": 0.0,

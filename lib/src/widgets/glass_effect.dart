@@ -127,6 +127,9 @@ class _MorphGlassEffectState extends State<MorphGlassEffect>
   bool get motionSettled => _motion.isSettled;
 
   @override
+  bool get motionGlowOnly => _motion.isGlowOnly;
+
+  @override
   void settleMotion() => _motion.settle();
 
   double get _lift {
@@ -203,6 +206,7 @@ class _MorphGlassEffectState extends State<MorphGlassEffect>
       glow: interactive
           ? () => _motion.glowAt(brightness, tint: tint, clear: clear)
           : null,
+      glows: interactive ? glows : null,
       still: interactive ? () => _motion.isSettled : () => true,
       child: widget.child,
     );

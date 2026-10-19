@@ -140,7 +140,12 @@ over its surface's extent, an opacity under half an 8-bit step - and snaps
 onto its targets: invisible, NEAR. A finger held
 still counts: the press sleeps once lift and glow are in place (0.45 s; it
 ticked for as long as the finger stayed down) and wakes on the next move or
-the lift.
+the lift. The shape snaps as soon as it is at rest, also while the glow
+still fades (`MorphFlexInteraction.isGlowOnly`): from then on only the
+glow changes, and the frames that follow reach the glass alone
+(docs/glass.md "Touch glow"). NEAR, the same remainder as any settle: the
+host frames of a released drag (control_goldens m/glass-button/press-drag)
+show the resting picture three hashed frames (~140 ms) sooner.
 
 ## Not reproduced / open
 

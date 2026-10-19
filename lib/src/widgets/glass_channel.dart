@@ -104,6 +104,12 @@ abstract class MorphGlassSource {
   /// The notifications of a live source, or null for a fixed frame.
   Listenable? get live;
 
+  /// The notifications of a live source whose frame changed only in its
+  /// surfaces' touch glows ([MorphGlassSurface.glow]), or null for a fixed
+  /// frame; [live] stays quiet for them, so only the glass that draws a
+  /// glow follows them.
+  Listenable? get glows;
+
   /// The value [select] reads from the frame now, recomputed once per
   /// frame.
   ValueListenable<T> pick<T>(T Function(MorphGlassFrame frame) select);
@@ -124,6 +130,9 @@ class MorphMorphFixedSource implements MorphGlassSource {
 
   @override
   Listenable? get live => null;
+
+  @override
+  Listenable? get glows => null;
 
   @override
   ValueListenable<T> pick<T>(T Function(MorphGlassFrame frame) select) =>
@@ -149,11 +158,24 @@ class MorphGlassChannel extends ChangeNotifier implements MorphGlassSource {
   @override
   Listenable get live => this;
 
+  final ValueNotifier<int> _glows = ValueNotifier<int>(0);
+
+  @override
+  Listenable get glows => _glows;
+
   /// Hands [frame] to every render object bound to the channel.
   void push(MorphGlassFrame frame) {
     _frame = frame;
     _generation++;
     notifyListeners();
+  }
+
+  /// Hands [frame], which differs from the frame before only in its
+  /// surfaces' glows, to the render objects that follow [glows].
+  void pushGlows(MorphGlassFrame frame) {
+    _frame = frame;
+    _generation++;
+    _glows.value++;
   }
 
   /// Takes [frame] for a tree about to be rebuilt in a new structure: no
@@ -235,7 +257,8 @@ Listenable? morphRepaintOn<T>(
 /// [MorphGlassChannel] and the host keeps the tree it built before; the
 /// render objects of that tree follow the channel. A host its parent
 /// rebuilds with a new frame pushes it without building at all, and so
-/// does a host driven by [frames]. A painter other than
+/// does a host driven by [frames]. A frame told by [glows] reaches only
+/// the glass that draws the glow. A painter other than
 /// [GlassBuiltInPainter] itself is called every frame, as before.
 @internal
 class MorphGlassHost extends Widget {
@@ -245,6 +268,7 @@ class MorphGlassHost extends Widget {
     required this.mode,
     required this.frame,
     this.frames,
+    this.glows,
     this.content,
     super.key,
   });
@@ -260,6 +284,16 @@ class MorphGlassHost extends Widget {
 
   /// Notifies when the frame changes; null for a host its parent rebuilds.
   final Listenable? frames;
+
+  /// Notifies when the frame changes only in its surfaces' touch glows
+  /// ([MorphGlassSurface.glow]), while [frames] stays quiet; null for a
+  /// host whose glows change only with its frames.
+  ///
+  /// Such a frame is handed only to the glass that draws a glow
+  /// ([MorphGlassSource.glows]): the renderer's liquid layer takes the
+  /// new glow into its final pass without a paint, and nothing else of
+  /// the tree reads the frame.
+  final Listenable? glows;
 
   /// The control's content over the glass, for [MorphGlassMode.layer].
   final Widget? content;
@@ -296,6 +330,7 @@ class _MorphGlassHostElement extends ComponentElement {
   @override
   void mount(Element? parent, Object? newSlot) {
     _host.frames?.addListener(_framed);
+    _host.glows?.addListener(_glowed);
     // A renderer asking for liquid draws flat until the capability
     // resolves, and its == does not see that; a resting host would keep
     // the flat tree until its next frame.
@@ -312,6 +347,9 @@ class _MorphGlassHostElement extends ComponentElement {
 
   bool _syncing = false;
   bool _active = true;
+  // Whether a notification of the frames, not only of the glows, waits
+  // for the coming sync.
+  bool _framesDue = false;
 
   // A frame from a ticker syncs once after every ticker ran, before the
   // frame builds; a frame told in the mid-frame microtasks, where every
@@ -320,6 +358,13 @@ class _MorphGlassHostElement extends ComponentElement {
   // about to build may hand this host a new frame function, so the host
   // then builds with it instead of reading twice.
   void _framed() {
+    _framesDue = true;
+    _schedule();
+  }
+
+  void _glowed() => _schedule();
+
+  void _schedule() {
     if (_syncing || dirty) return;
     switch (SchedulerBinding.instance.schedulerPhase) {
       case SchedulerPhase.transientCallbacks:
@@ -334,10 +379,12 @@ class _MorphGlassHostElement extends ComponentElement {
 
   void _sync() {
     _syncing = false;
+    final glowsOnly = !_framesDue;
+    _framesDue = false;
     if (!_active || dirty) return;
     var settled = true;
     visitAncestorElements((Element element) => settled = !element.dirty);
-    if (!settled || !_push()) markNeedsBuild();
+    if (!settled || !_push(glowsOnly: glowsOnly)) markNeedsBuild();
   }
 
   void _capabilityResolved() {
@@ -350,6 +397,7 @@ class _MorphGlassHostElement extends ComponentElement {
   void unmount() {
     _active = false;
     _host.frames?.removeListener(_framed);
+    _host.glows?.removeListener(_glowed);
     morphLiquidGlassCapability.removeListener(_capabilityResolved);
     if (_followsAnalytic) {
       RenderLiquidGlassLayer.analyticGeometryChanges.removeListener(
@@ -403,6 +451,10 @@ class _MorphGlassHostElement extends ComponentElement {
       old.frames?.removeListener(_framed);
       newWidget.frames?.addListener(_framed);
     }
+    if (!identical(old.glows, newWidget.glows)) {
+      old.glows?.removeListener(_glowed);
+      newWidget.glows?.addListener(_glowed);
+    }
     if (old.mode != newWidget.mode) _structure = null;
     // A host its frames already marked builds once; a push here would read
     // and push the frame again in the build that follows.
@@ -417,8 +469,9 @@ class _MorphGlassHostElement extends ComponentElement {
   }
 
   /// Pushes the frame into the tree built before when its structure still
-  /// holds; false when the tree has to be built.
-  bool _push() {
+  /// holds, to the glass that draws a glow alone for [glowsOnly]; false
+  /// when the tree has to be built.
+  bool _push({bool glowsOnly = false}) {
     final channel = _channel;
     final renderer = _renderer;
     if (channel == null ||
@@ -431,7 +484,11 @@ class _MorphGlassHostElement extends ComponentElement {
     }
     final frame = _host.frame();
     if (_structureOf(renderer, frame) != _structure) return false;
-    channel.push(frame);
+    if (glowsOnly) {
+      channel.pushGlows(frame);
+    } else {
+      channel.push(frame);
+    }
     return true;
   }
 
@@ -461,6 +518,7 @@ class _MorphGlassHostElement extends ComponentElement {
 
   @override
   Widget build() {
+    _framesDue = false;
     final frame = _host.frame();
     final painter = _host.painter;
     if (painter.runtimeType != GlassBuiltInPainter ||

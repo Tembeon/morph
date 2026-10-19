@@ -137,11 +137,7 @@ void main() {
 /// Ceilings raised by the owner for a known regression until its fix
 /// lands. The fixture keeps the target; the test fails once a scene is
 /// back under it, so the entry is removed with the fix.
-const Map<String, Map<String, num>> _temporaryCeilings = {
-  // The open menu repaints while only its touch glow moves (merge
-  // 2cda60f4); the target is the fixture's 36.7.
-  'menu-card/liquid': {'paints': 38.7},
-};
+const Map<String, Map<String, num>> _temporaryCeilings = {};
 
 const _pinnedKeys = [
   'builds',

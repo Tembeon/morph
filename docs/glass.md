@@ -325,6 +325,16 @@ paint layer.
 - The glow is not structure: it enters `LiquidGlassLayer.live` through
   `glowOf` every frame and rebuilds nothing. A glowing host joins no glass
   container (`morphGlassJoinLook`): the container's pass carries no glow.
+- A frame in which only the glow moves (it rises, follows the finger or
+  fades while the control stands still) travels on its own channel:
+  `MorphClock.glows` (`motionGlowOnly`) or the menu host's `menuGlows`
+  -> `MorphGlassHost(glows:)` -> `MorphGlassChannel.pushGlows` ->
+  `LiquidGlassLayer.live(glows:)`. Only the layer's glow binding hears it;
+  `RenderLiquidGlassLayer.glow` rewrites the uniforms and hands the
+  retained backdrop filter a new filter over them, no paint, no picture,
+  no capture (glass recorded into a picture over a solid or cached
+  backdrop repaints). The control's other render objects keep the frame
+  they last showed.
 - `morphGlassLightsGlow(painter)`: whether glass shows a glow at all (the
   renderer's liquid tier, any custom painter). The open menu lights none
   without it (`MorphMenuMotion.lightsGlow`), so its 0.5 s fall keeps no
