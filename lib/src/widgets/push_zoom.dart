@@ -3,10 +3,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart' show PredictiveBackEvent;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/predictive_back.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/widgets/zoom_source.dart';
@@ -64,7 +66,8 @@ class MorphPushZoomPage extends StatefulWidget {
 class MorphPushZoomPageState extends State<MorphPushZoomPage>
     with
         SingleTickerProviderStateMixin<MorphPushZoomPage>,
-        MorphClock<MorphPushZoomPage> {
+        MorphClock<MorphPushZoomPage>
+    implements MorphBackPreview {
   MorphPushZoomMotion? _motion;
   late final MorphZoomSource _source = _host.zoomFrom;
   bool _leaving = false;
@@ -85,6 +88,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
     _pan.onEnd = _dragEnd;
     _pan.onCancel = _dragCancel;
     _sync.follow(frames);
+    morphAddBackPreview(this);
   }
 
   @override
@@ -98,6 +102,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
 
   @override
   void dispose() {
+    morphRemoveBackPreview(this);
     _sync.dispose();
     _host.attachZoomView(null);
     _pan.dispose();
@@ -218,6 +223,45 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
     motion.dragEnd(clock, Offset.zero);
     wake();
   }
+
+  @override
+  bool get acceptsBackPreview {
+    final motion = _motion;
+    return motion != null &&
+        !_leaving &&
+        !motion.isDragging &&
+        _host.zoomIsCurrent &&
+        _host.zoomCanPop;
+  }
+
+  @override
+  void startBackPreview(PredictiveBackEvent event) {
+    _motion?.dragStart(clock, Offset.zero);
+    updateBackPreview(event);
+  }
+
+  @override
+  void updateBackPreview(PredictiveBackEvent event) {
+    final motion = _motion;
+    if (motion == null || !motion.isDragging) return;
+    final width = context.size?.width ?? 0;
+    final forward = Directionality.maybeOf(context) == TextDirection.rtl
+        ? -1
+        : 1;
+    motion.dragUpdate(clock, Offset(event.progress * width * forward, 0));
+    wake();
+  }
+
+  @override
+  void commitBackPreview() {
+    final motion = _motion;
+    if (motion == null || !motion.isDragging) return;
+    unawaited(_host.zoomPop().then((_) => _stayed()));
+    wake();
+  }
+
+  @override
+  void cancelBackPreview() => _dragCancel();
 
   /// Whether a pointer down at [position] may start an interactive
   /// dismissal: only where no scroll view under the finger has content

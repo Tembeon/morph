@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' show Timeline;
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart'
     show BoxHitTestResult, RenderRepaintBoundary, RenderTransform;
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart' show PredictiveBackEvent;
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
@@ -19,6 +21,7 @@ import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
 import 'package:morph/src/widgets/motion_route.dart';
+import 'package:morph/src/widgets/predictive_back.dart';
 import 'package:morph/src/widgets/push_zoom.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
 import 'package:morph/src/spring.dart';
@@ -1109,7 +1112,7 @@ class _EdgePop extends StatefulWidget {
   State<_EdgePop> createState() => _EdgePopState();
 }
 
-class _EdgePopState extends State<_EdgePop> {
+class _EdgePopState extends State<_EdgePop> implements MorphBackPreview {
   HorizontalDragGestureRecognizer? _drag;
   _ContentPopDrag? _content;
 
@@ -1130,7 +1133,14 @@ class _EdgePopState extends State<_EdgePop> {
   VoidCallback? _detach;
 
   @override
+  void initState() {
+    super.initState();
+    morphAddBackPreview(this);
+  }
+
+  @override
   void dispose() {
+    morphRemoveBackPreview(this);
     _drag?.dispose();
     _content?.dispose();
     _detach?.call();
@@ -1313,6 +1323,53 @@ class _EdgePopState extends State<_EdgePop> {
     c.addStatusListener(listener);
     _detach = () => c.removeStatusListener(listener);
   }
+
+  @override
+  bool get acceptsBackPreview =>
+      !_active &&
+      _pointer == null &&
+      widget.route.isCurrent &&
+      widget.route.popGestureEnabled;
+
+  // Back gesture events carry no time stamp and arrive between frames.
+  double get _now => Timeline.now / Duration.microsecondsPerSecond;
+
+  @override
+  void startBackPreview(PredictiveBackEvent event) {
+    _forward = _rtl ? -1 : 1;
+    _eventTime = _now;
+    _popMotion = MorphNavigationPopMotion(_width);
+    _popMotion!.addPosition(_eventTime, 0);
+    _start(DragStartDetails());
+    updateBackPreview(event);
+  }
+
+  @override
+  void updateBackPreview(PredictiveBackEvent event) {
+    final c = widget.route._gestureController;
+    if (!_active || c == null) return;
+    _eventTime = _now;
+    _popMotion?.addPosition(_eventTime, event.progress * _width);
+    c.value = 1 - event.progress;
+    _popMotion?.update(_eventTime, event.progress);
+  }
+
+  @override
+  void commitBackPreview() {
+    final route = widget.route;
+    final c = route._gestureController;
+    if (!_active || c == null) return;
+    _active = false;
+    if (route.isCurrent) {
+      route._interactivePop = true;
+      route._interactivePopVelocity = _popMotion?.settleVelocity ?? 0;
+      route.navigator?.pop();
+    }
+    _stopWhenSettled(c);
+  }
+
+  @override
+  void cancelBackPreview() => _cancel();
 
   @override
   Widget build(BuildContext context) => Listener(
