@@ -145,6 +145,11 @@ class MorphGlassSurface {
 
   /// The outline of the surface in the control's local coordinates,
   /// deformation included.
+  ///
+  /// The package's renderer reads it as continuous corners: its liquid
+  /// tier shades the two top corners by the top-left radius and the two
+  /// bottom ones by the bottom-left radius, exactly, as a sheet's 38 point
+  /// top and 54 point bottom; the left and right corners of a pair match.
   final RRect shape;
 
   /// The flat fill the control would paint without a painter; a painter

@@ -14,13 +14,19 @@ final double _medium = MorphSheetDetent.medium.resolve(_maximum) + _bottom;
 /// fitted with the rubber band (6 - 8 points).
 const double _slop = 7;
 
-MorphSheetMotion _motion(List<double> heights, {int? docked, int initial = 0}) {
+MorphSheetMotion _motion(
+  List<double> heights, {
+  int? docked,
+  int initial = 0,
+  double? displayRadius = 62,
+}) {
   final motion = MorphSheetMotion(
     heights: heights,
     width: _w,
     initial: initial,
     fullHeight: _full,
     dockedIndex: docked,
+    displayRadius: displayRadius,
   );
   motion.present(0);
   motion.advance(3);
@@ -141,21 +147,92 @@ void main() {
       final t = _drag(motion, 546.3 + _bottom - _medium);
       final p = motion.at(t).dock;
       // Simulator: 58.44 of 54 -> 62 at progress 0.333.
-      final radius = 54 + 8 * motion.at(t).cornerBlend;
       expect(p, closeTo(0.333, 2e-3));
-      expect(radius, closeTo(58.44, 0.25));
+      expect(motion.at(t).bottomRadius, closeTo(58.44, 0.25));
     });
 
     test('a settle carries the corners on from where the drag left them', () {
       final motion = _motion([_medium, _full], docked: 1);
       final t = _drag(motion, 546.3 + _bottom - _medium);
-      final dragged = motion.at(t).cornerBlend;
+      final dragged = motion.at(t).bottomRadius;
       motion.dragEnd(t, -1500);
       final settle = t + MorphSheetTuning.releaseDelay;
       motion.advance(settle);
-      expect(motion.at(settle).cornerBlend, closeTo(dragged, 1e-6));
+      expect(motion.at(settle).bottomRadius, closeTo(dragged, 1e-6));
+      // Docked at rest the corners are square: the display's corner hides
+      // them, and an undocking starts from 0, as the device's clip does.
       motion.advance(settle + 2);
-      expect(motion.at(settle + 2).cornerBlend, 1);
+      expect(motion.at(settle + 2).bottomRadius, 0);
+    });
+  });
+
+  group('bottom corners (device clip layer, sheet-ml / sheet-l)', () {
+    test('docking runs 54 + 8 p, undocking from the rest 54 (1 - p)', () {
+      final motion = _motion([_medium, _full], docked: 1);
+      expect(motion.at(3).bottomRadius, 54);
+      motion.animateTo(3, 1);
+      for (final dt in [0.03, 0.08, 0.15, 0.25]) {
+        final m = motion.at(3 + dt);
+        expect(m.bottomRadius, closeTo(54 + 8 * m.dock, 1e-9), reason: '$dt');
+      }
+      motion.advance(5);
+      expect(motion.at(5).bottomRadius, 0);
+      motion.animateTo(5, 0);
+      for (final dt in [0.02, 0.08, 0.15, 0.25]) {
+        final m = motion.at(5 + dt);
+        expect(m.bottomRadius, closeTo(54 * (1 - m.dock), 1e-9), reason: '$dt');
+      }
+      motion.advance(7);
+      expect(motion.at(7).bottomRadius, 54);
+    });
+
+    test('an interrupted change runs on from the radius it reached', () {
+      final motion = _motion([_medium, _full], docked: 1);
+      motion.animateTo(3, 1);
+      motion.advance(3.08);
+      final reached = motion.at(3.08).bottomRadius;
+      expect(reached, greaterThan(55));
+      motion.animateTo(3.08, 0);
+      expect(motion.at(3.08).bottomRadius, closeTo(reached, 1e-9));
+      var last = reached;
+      for (var t = 3.09; t < 4; t += 0.01) {
+        final now = motion.at(t).bottomRadius;
+        expect((now - last).abs(), lessThan(1.5));
+        last = now;
+      }
+      expect(last, closeTo(54, 0.01));
+    });
+
+    test('a sheet presented docked keeps the display radius', () {
+      // sheet-l: a large-only sheet reads 62 through present and dismiss.
+      final large = _motion([_full], docked: 0);
+      expect(large.at(3).bottomRadius, 62);
+      large.dismiss(3);
+      expect(large.at(3.1).bottomRadius, 62);
+      final started = _motion([_medium, _full], docked: 1, initial: 1);
+      expect(started.at(3).bottomRadius, 62);
+    });
+
+    test('a keyboard relayout at the docked rest stays square', () {
+      final motion = _motion([_medium, _full], docked: 1);
+      motion.animateTo(3, 1);
+      motion.advance(5);
+      expect(motion.at(5).bottomRadius, 0);
+      motion.relayout(5, [_medium, _full], _w, fullHeight: _full);
+      motion.advance(6);
+      expect(motion.at(6).bottomRadius, 0);
+    });
+
+    test('the display radius sets both ends', () {
+      final unknown = _motion([_medium, _full], docked: 1, displayRadius: null);
+      expect(unknown.at(3).bottomRadius, 54);
+      unknown.animateTo(3, 1);
+      final mid = unknown.at(3.1);
+      expect(mid.bottomRadius, closeTo(54 * (1 - mid.dock), 1e-9));
+      final square = _motion([_medium, _full], docked: 1, displayRadius: 0);
+      expect(square.at(3).bottomRadius, 0);
+      final max = _motion([_medium, _full], docked: 1, displayRadius: 55);
+      expect(max.at(3).bottomRadius, 47);
     });
   });
 
