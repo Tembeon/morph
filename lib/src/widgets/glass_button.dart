@@ -179,10 +179,15 @@ class MorphGlassButtonMotion {
   /// and wakes on the finger's next move or its lift.
   bool get isSettled => _input.isEmpty && _flex.isSettled(_now);
 
+  /// Whether all of the button's motion but its touch glow has settled
+  /// while the glow still rises, follows the finger or fades.
+  bool get isGlowOnly => _input.isEmpty && _flex.isGlowOnly(_now);
+
   /// Whether the button rests undeformed: settled with no finger on it.
   bool get isAtRest => !_pressed && isSettled;
 
-  /// Puts a settled button onto its targets.
+  /// Puts a settled button onto its targets; a glow that still changes
+  /// keeps changing.
   void settle() => _flex.settle(_now);
 
   /// Advances the motion to time [t].
@@ -542,6 +547,9 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
   bool get motionSettled => _motion.isSettled;
 
   @override
+  bool get motionGlowOnly => _motion.isGlowOnly;
+
+  @override
   void settleMotion() => _motion.settle();
 
   bool get _enabled =>
@@ -709,6 +717,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
               enabled: enabled,
               lift: () => _lift,
               glow: () => _motion.glowAt(brightness, tint: tint, clear: clear),
+              glows: glows,
               still: () => _motion.isSettled,
               child: content,
             ),
@@ -734,6 +743,7 @@ class MorphControlCapsule extends StatelessWidget {
     required this.child,
     this.lift,
     this.glow,
+    this.glows,
     this.still,
     this.shape = morphCapsuleShape,
     this.style,
@@ -784,6 +794,10 @@ class MorphControlCapsule extends StatelessWidget {
   /// The current glow, or null for an unlit surface.
   final MorphGlassGlow? Function()? glow;
 
+  /// Notifications for a change of the [glow] alone, while [frames] stays
+  /// quiet ([MorphGlassHost.glows]).
+  final Listenable? glows;
+
   /// The content above the surface, drawn through [MorphGlyphs]: the
   /// control's press and lift scale it.
   final Widget child;
@@ -814,6 +828,7 @@ class MorphControlCapsule extends StatelessWidget {
               return MorphGlassLayer(
                 painter: glass,
                 frames: frames,
+                glows: glows,
                 still: still,
                 surfaces: () => [
                   MorphGlassSurface(

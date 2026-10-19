@@ -1378,6 +1378,9 @@ class _MenuDriverState extends State<_MenuDriver>
   bool get motionSettled => controller.menuMotion?.isSettled ?? true;
 
   @override
+  bool get motionGlowOnly => controller.menuMotion?.isGlowOnly ?? false;
+
+  @override
   void settleMotion() => controller.menuMotion?.settle();
 
   @override

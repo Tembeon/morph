@@ -93,6 +93,8 @@ mixin MorphClock<T extends StatefulWidget>
   double _stampClock = 0;
   double _frameRate = 120;
   final ValueNotifier<int> _frames = ValueNotifier<int>(0);
+  final ValueNotifier<int> _glows = ValueNotifier<int>(0);
+  bool _glowing = false;
   Timer? _doze;
   Duration? _dozeStamp;
   double _dozeClock = 0;
@@ -120,7 +122,15 @@ mixin MorphClock<T extends StatefulWidget>
   }
 
   /// Notifies on every frame of the motion; use it as a painter's repaint.
+  ///
+  /// A frame in which only the touch glow changes ([motionGlowOnly])
+  /// notifies [glows] instead.
   Listenable get frames => _frames;
+
+  /// Notifies on a frame in which only the motion's touch glow changes
+  /// ([motionGlowOnly]), while [frames] stays quiet; the glass that draws
+  /// the glow follows it ([MorphGlassHost.glows]).
+  Listenable get glows => _glows;
 
   /// The current time on the motion's clock, in seconds.
   double get clock => _clock;
@@ -167,9 +177,21 @@ mixin MorphClock<T extends StatefulWidget>
   /// Whether the motion has nothing left to animate.
   bool get motionSettled;
 
+  /// Whether everything of the motion but its touch glow has settled while
+  /// the glow still rises, follows the finger or fades.
+  ///
+  /// The frames that follow such a frame notify [glows] instead of
+  /// [frames], up to the frame the motion settles on or the next input:
+  /// the picture holds still around the glow, so they cost the glass that
+  /// draws the glow a new value and nothing else.
+  bool get motionGlowOnly => false;
+
   /// Puts a settled motion onto its targets before its last frame paints;
   /// a motion that settles at a visible threshold ([MorphRest]) snaps
   /// what remains here.
+  ///
+  /// It also runs on every frame for which [motionGlowOnly] holds, where
+  /// it leaves the glow that still moves running.
   void settleMotion() {}
 
   /// The motion time before which the motion draws nothing new, or null
@@ -240,8 +262,15 @@ mixin MorphClock<T extends StatefulWidget>
     advanceMotion(_clock);
     deliverMotionEvents();
     final settled = motionSettled;
-    if (settled) settleMotion();
-    _frames.value++;
+    final glowOnly = !settled && motionGlowOnly;
+    if (settled || glowOnly) settleMotion();
+    // The first frame of a glow alone still shows what settling snapped.
+    if (glowOnly && _glowing) {
+      _glows.value++;
+    } else {
+      _frames.value++;
+    }
+    _glowing = glowOnly;
     if (settled) {
       _base = _clock;
       _ticking = false;
@@ -271,6 +300,7 @@ mixin MorphClock<T extends StatefulWidget>
 
   /// Makes sure the ticker runs so a pending motion gets frames.
   void wake() {
+    _glowing = false;
     _doze?.cancel();
     _doze = null;
     if (!_ticker.isActive) _ticker.start();
@@ -288,6 +318,7 @@ mixin MorphClock<T extends StatefulWidget>
     _doze?.cancel();
     _ticker.dispose();
     _frames.dispose();
+    _glows.dispose();
     super.dispose();
   }
 }

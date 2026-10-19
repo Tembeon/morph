@@ -92,6 +92,7 @@ class MorphMenuController implements MorphMenuHost {
   /// ([MorphMenuTapped]).
   final VoidCallback? onTap;
   final ValueNotifier<int> _repaint = ValueNotifier<int>(0);
+  final ValueNotifier<int> _glows = ValueNotifier<int>(0);
   OverlayState? _overlay;
 
   MorphMenuMotion? _motion;
@@ -149,6 +150,9 @@ class MorphMenuController implements MorphMenuHost {
 
   @override
   Listenable get menuRepaint => _repaint;
+
+  @override
+  Listenable get menuGlows => _glows;
 
   @override
   final GlobalKey menuRowsKey = GlobalKey(debugLabel: 'menu rows');
@@ -498,16 +502,25 @@ class MorphMenuController implements MorphMenuHost {
     _drawnMotion = motion;
     _drawnRevision = revision;
     _drawnStill = still;
-    if (!same) _repaint.value++;
+    final glowing = motion.isGlowing;
+    if (!same) {
+      _repaint.value++;
+    } else if (glowing || _drawnGlowing) {
+      _glows.value++;
+    }
+    _drawnGlowing = glowing;
   }
 
   // A frame whose motion stood still since the previous one, with no input
-  // or pending reaction in between, shows the same picture: it paints
-  // nothing (a finger resting on the open menu between two steps of its
-  // flex pulse, MorphMenuTuning.flexPulseRate).
+  // or pending reaction in between, shows the same picture but for the
+  // touch glow: it paints nothing (a finger resting on the open menu
+  // between two steps of its flex pulse, MorphMenuTuning.flexPulseRate),
+  // and a glow that moves reaches only the glass that draws it. The frame
+  // after the glow came to rest still hands it its last value.
   MorphMenuMotion? _drawnMotion;
   int _drawnRevision = -1;
   bool _drawnStill = false;
+  bool _drawnGlowing = false;
 
   Offset _local(Offset global) {
     final box = _overlay?.context.findRenderObject();
@@ -647,6 +660,7 @@ class MorphMenuController implements MorphMenuHost {
     if (_repaintDisposed) return;
     _repaintDisposed = true;
     _repaint.dispose();
+    _glows.dispose();
     _prebuilt.dispose();
     prebuildHidden.dispose();
     menuRowsBlur.dispose();

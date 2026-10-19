@@ -658,6 +658,10 @@ abstract interface class MorphMenuHost {
   /// Notifies when the motion has advanced.
   Listenable get menuRepaint;
 
+  /// Notifies when the motion has advanced and only its touch glow changed
+  /// ([MorphMenuMotion.glowAt]), while [menuRepaint] stays quiet.
+  Listenable get menuGlows;
+
   /// The key of the root card's rows, which move into the open menu from
   /// wherever they were built ahead of it.
   GlobalKey get menuRowsKey;
@@ -783,7 +787,6 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         motion.silhouetteFor(withField: _faceWithField),
         origin,
       ),
-      glow: null,
     );
   }
 
@@ -886,6 +889,9 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   bool get motionSettled => _motion?.isSettled ?? true;
 
   @override
+  bool get motionGlowOnly => _motion?.isGlowOnly ?? false;
+
+  @override
   void settleMotion() => _motion?.settle();
 
   @override
@@ -983,7 +989,6 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         lookStretch: 1,
         look: (opacity: 1, blur: 0),
         outline: null,
-        glow: null,
       );
       final face = _MenuShapes(
         style: style,
@@ -1143,7 +1148,6 @@ typedef _Shapes = ({
   double lookStretch,
   _Look look,
   MorphGlassOutline? outline,
-  MorphGlassGlow? glow,
 });
 
 /// Both shapes of the morph and the button's look inside the shrinking
@@ -1153,7 +1157,8 @@ typedef _Shapes = ({
 /// union.
 ///
 /// The [shapes] are read again on every notification of [frames]
-/// without a build; the tree changes only with the widget.
+/// without a build, and the menu's [glow] on every notification of
+/// [glows] too; the tree changes only with the widget.
 ///
 /// The look fades only with a [look]: on the button (resting, or after
 /// the latch, where the progress is at or under zero) it is drawn
@@ -1166,6 +1171,8 @@ class _MenuShapes extends StatelessWidget {
     required this.shapes,
     this.surface,
     this.frames,
+    this.glows,
+    this.glow,
     this.menu = false,
     this.look = false,
     this.content,
@@ -1179,6 +1186,8 @@ class _MenuShapes extends StatelessWidget {
   final _Shapes Function() shapes;
   final ({Color color, Color? rim})? surface;
   final Listenable? frames;
+  final Listenable? glows;
+  final MorphGlassGlow? Function()? glow;
   final bool menu;
   final bool look;
   final Widget? content;
@@ -1229,6 +1238,7 @@ class _MenuShapes extends StatelessWidget {
         painter: glass,
         mode: MorphGlassMode.layer,
         frames: frames,
+        glows: glows,
         frame: () {
           final now = shapes();
           final menu = now.menu;
@@ -1258,7 +1268,7 @@ class _MenuShapes extends StatelessWidget {
                   tint: style.glassTint,
                   blurRadius: menuBlur,
                   brightness: brightness,
-                  glow: now.glow,
+                  glow: glow?.call(),
                 ),
             ],
             outline: menu == null ? null : now.outline,
@@ -1608,6 +1618,8 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             style: style,
             glyph: glyph,
             frames: _ticks,
+            glows: host.menuGlows,
+            glow: () => host.menuMotion?.glowAt(_brightness),
             shapes: () => _frame!.shapes,
             surface: structure.surface,
             menu: true,
@@ -2281,7 +2293,6 @@ class _LayerFrame {
       lookStretch: motion.buttonLookStretch,
       look: (opacity: motion.buttonLookOpacity, blur: motion.buttonLookBlur),
       outline: motion.silhouetteFor(withField: withField),
-      glow: motion.glowAt(brightness),
     );
     faded = (
       opacity: motion.cardGlassTransferred ? 0 : motion.contentOpacity,

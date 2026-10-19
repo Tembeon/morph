@@ -315,17 +315,25 @@ class MorphFlexInteraction {
   /// a finger or out after it) below a visible step, and no reaction
   /// pending. A finger held still counts: a held surface sleeps until the
   /// finger moves or lifts.
-  bool isSettled(double t) {
+  bool isSettled(double t) => _shapeSettled(t) && (!glows || _glowSettled(t));
+
+  /// Whether everything but the glow has settled at time [t] while the
+  /// glow still changes ([isSettled]).
+  bool isGlowOnly(double t) => glows && _shapeSettled(t) && !_glowSettled(t);
+
+  bool _shapeSettled(double t) {
     if (_ownsTimeline && !_timeline.isEmpty) return false;
     const length = MorphRest.length;
     final scale = MorphRest.scale(math.max(_size.width, _size.height));
-    final still =
-        _scaleX.isWithin(t, scale) &&
+    return _scaleX.isWithin(t, scale) &&
         _scaleY.isWithin(t, scale) &&
         _driftX.isWithin(t, length) &&
         _driftY.isWithin(t, length);
-    if (!still || !glows) return still;
+  }
+
+  bool _glowSettled(double t) {
     if (_down == null) return _glowOut.isWithin(t, MorphRest.opacity);
+    const length = MorphRest.length;
     final peak = math.max(_spec.bigGlowOpacity, _spec.littleGlowOpacity);
     return (1 - glow(t)) * peak < MorphRest.opacity &&
         _glowX.isWithin(t, length) &&
@@ -333,12 +341,12 @@ class MorphFlexInteraction {
   }
 
   /// Puts a settled surface onto its targets at time [t]; a held glow
-  /// shows at full strength.
+  /// shows at full strength. A glow that still changes keeps changing.
   void settle(double t) {
     for (final channel in _channels) {
       channel.snap(t, channel.target);
     }
-    if (!glows) return;
+    if (!glows || !_glowSettled(t)) return;
     _glowX.settle(t);
     _glowY.settle(t);
     if (_down != null) {

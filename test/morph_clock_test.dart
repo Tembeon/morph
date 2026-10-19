@@ -19,9 +19,18 @@ class _HostState extends State<_Host>
     with SingleTickerProviderStateMixin<_Host>, MorphClock<_Host> {
   double settleAt = 0;
   double? wakeAt;
+  double? glowOnlyFrom;
+  int settles = 0;
 
   @override
   double? get motionWakeTime => wakeAt;
+
+  @override
+  bool get motionGlowOnly =>
+      glowOnlyFrom != null && clock >= glowOnlyFrom! && clock < settleAt;
+
+  @override
+  void settleMotion() => settles++;
 
   @override
   void advanceMotion(double t) => widget.advances.add(t);
@@ -212,6 +221,34 @@ void main() {
       advances.last - last.last,
       moreOrLessEquals(0.040, epsilon: MorphFrameGrid.reach),
     );
+  });
+
+  testWidgets('a glow alone notifies the glows from its second frame on', (
+    WidgetTester tester,
+  ) async {
+    final (key, _, _) = await host(tester, running: true);
+    final state = key.currentState!;
+    var frames = 0;
+    var glows = 0;
+    state.frames.addListener(() => frames++);
+    state.glows.addListener(() => glows++);
+    state.glowOnlyFrom = state.clock + 0.012;
+    await tester.pump(const Duration(milliseconds: 8));
+    expect((frames, glows, state.settles), (1, 0, 0));
+    await tester.pump(const Duration(milliseconds: 8));
+    expect((frames, glows, state.settles), (2, 0, 1));
+    for (var i = 0; i < 3; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+    }
+    expect((frames, glows, state.settles), (2, 3, 4));
+    state.wake();
+    await tester.pump(const Duration(milliseconds: 8));
+    await tester.pump(const Duration(milliseconds: 8));
+    expect((frames, glows, state.settles), (3, 4, 6));
+    state.settleAt = state.clock + 0.004;
+    await tester.pump(const Duration(milliseconds: 8));
+    expect((frames, glows, state.settles), (4, 4, 7));
+    expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
   test('the frame grid snaps within its reach and restarts outside it', () {
