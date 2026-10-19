@@ -1055,6 +1055,7 @@ class MorphNavigationStack extends StatefulWidget
     List<NavigatorObserver> observers = const [],
     bool prefersLargeTitles = false,
     bool contentPopGestureEnabled = true,
+    String? restorationScopeId,
     Key? key,
   })
   const MorphNavigationStack.pages({
@@ -1067,6 +1068,7 @@ class MorphNavigationStack extends StatefulWidget
     List<NavigatorObserver> observers = const [],
     bool prefersLargeTitles = false,
     bool contentPopGestureEnabled = true,
+    String? restorationScopeId,
     Key? key,
   })
   final MorphBarAppearance? appearance
@@ -1079,6 +1081,7 @@ class MorphNavigationStack extends StatefulWidget
   final void Function(Page<Object?>)? onDidRemovePage
   final List<Page<Object?>>? pages
   final bool prefersLargeTitles
+  final String? restorationScopeId
   overrides: createState
 class MorphPageControl extends StatefulWidget
   const MorphPageControl({

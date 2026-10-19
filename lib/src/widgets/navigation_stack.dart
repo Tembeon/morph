@@ -253,6 +253,7 @@ class MorphNavigationStack extends StatefulWidget {
     this.observers = const [],
     this.prefersLargeTitles = false,
     this.contentPopGestureEnabled = true,
+    this.restorationScopeId,
     super.key,
   }) : pages = null,
        onDidRemovePage = null;
@@ -278,6 +279,7 @@ class MorphNavigationStack extends StatefulWidget {
     this.observers = const [],
     this.prefersLargeTitles = false,
     this.contentPopGestureEnabled = true,
+    this.restorationScopeId,
     super.key,
   }) : home = null;
 
@@ -289,6 +291,12 @@ class MorphNavigationStack extends StatefulWidget {
 
   /// The screens of a [MorphNavigationStack.pages] stack, or null.
   final List<Page<Object?>>? pages;
+
+  /// The restoration scope of the stack's navigator
+  /// ([Navigator.restorationScopeId]), or null for none; with it, the
+  /// state below a [MorphNavigationPage] with a restoration id outlives
+  /// the app's process, as UIKit's state restoration keeps a stack.
+  final String? restorationScopeId;
 
   /// Called when the user removes a page of [pages], or null.
   final void Function(Page<Object?> page)? onDidRemovePage;
@@ -373,6 +381,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
           ? Navigator(
               key: _navigator,
               observers: _observers,
+              restorationScopeId: widget.restorationScopeId,
               onGenerateInitialRoutes: (NavigatorState navigator, String _) => [
                 MorphNavigationRoute<void>(builder: (_) => widget.home!),
               ],
@@ -380,6 +389,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
           : Navigator(
               key: _navigator,
               observers: _observers,
+              restorationScopeId: widget.restorationScopeId,
               pages: pages,
               onDidRemovePage: (Page<Object?> page) =>
                   widget.onDidRemovePage?.call(page),
