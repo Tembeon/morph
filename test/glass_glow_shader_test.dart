@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_glow.dart';
+import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
@@ -113,19 +114,12 @@ void main() {
       expect(gate, greaterThan(0));
       expect(call, greaterThan(gate));
       expect(core.indexOf('#endif', gate), greaterThan(call));
-      final variants = Directory(_shaders)
-          .listSync()
-          .whereType<File>()
-          .where((f) => f.path.contains('liquid_glass_final_render'))
-          .where((f) => f.path.endsWith('.frag'));
-      expect(variants, hasLength(13));
-      for (final variant in variants) {
-        expect(
-          variant.readAsStringSync(),
-          contains('#include "liquid_glass_final_render_core.glsl"'),
-          reason: variant.path,
-        );
-      }
+      // Every variant compiles the one entry, which includes the core.
+      expect(
+        File('${_shaders}liquid_glass_final_render.frag').readAsStringSync(),
+        contains('#include "liquid_glass_final_render_core.glsl"'),
+      );
+      expect(LiquidShaderVariant.values, hasLength(13));
     });
 
     test('carry a glow in the matte space of the layer', () {
