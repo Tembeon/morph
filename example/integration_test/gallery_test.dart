@@ -143,7 +143,17 @@ class _Qa {
   }
 
   Future<void> back() async {
-    await tester.tap(find.bySemanticsLabel('Back').last);
+    final button = find.bySemanticsLabel('Back');
+    if (button.evaluate().isEmpty) {
+      // A page with leading buttons of its own has no back button.
+      final stack = find.descendant(
+        of: find.byType(MorphNavigationStack),
+        matching: find.byType(Navigator),
+      );
+      await tester.state<NavigatorState>(stack.first).maybePop();
+    } else {
+      await tester.tap(button.last);
+    }
     await settle(700);
   }
 
