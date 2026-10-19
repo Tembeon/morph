@@ -46,6 +46,25 @@ void main() {
     expect(fixed.biased, isFalse);
   });
 
+  test('a matte under a uniform scale follows its pass\'s pixels', () {
+    Matrix4 scaled(double sx, double sy) {
+      final m = Matrix4.translationValues(13.3, 7.1, 0);
+      m.scaleByDouble(sx, sy, 1, 1);
+      return m;
+    }
+
+    expect(glassMatteDensity(Matrix4.identity()), 1);
+    expect(glassMatteDensity(Matrix4.translationValues(3.4, 9, 0)), 1);
+    expect(glassMatteDensity(scaled(1.05, 1.05)), 1075 / 1024);
+    expect(glassMatteDensity(scaled(0.93, 0.93)), 952 / 1024);
+    // Two scales, a rotation or a scale out of range keep the layer's own
+    // device pixels.
+    expect(glassMatteDensity(scaled(1.05, 1.1)), 1);
+    expect(glassMatteDensity(Matrix4.rotationZ(0.1)), 1);
+    expect(glassMatteDensity(scaled(2.5, 2.5)), 1);
+    expect(glassMatteDensity(scaled(0.3, 0.3)), 1);
+  });
+
   testWidgets('a shape under an anchor shifts onto its own grid', (
     WidgetTester tester,
   ) async {
