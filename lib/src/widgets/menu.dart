@@ -833,7 +833,10 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
 
   MorphMenuMotion _prepare() {
     final current = _motion;
-    if (current != null && current.isPresented) return current;
+    if (current != null && current.isPresented) {
+      if (current.isClosing) _host.beginReopenSession();
+      return current;
+    }
     final overlay =
         widget.overlay ??
         morphPresentationOverlayOf(context) ??
@@ -1377,7 +1380,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   final ScrollController _scroll = ScrollController();
   bool _parentScrollLocked = false;
   Expando<Widget> _rows = Expando<Widget>();
-  final Expando<ValueNotifier<int?>> _hidden = Expando<ValueNotifier<int?>>();
+  final Map<MorphMenuLayout, ValueNotifier<int?>> _hidden = Map.identity();
   MorphMenuAppearance? _rowsStyle;
   // Synced where a build would read the motion: a frame that changes the
   // structure builds, every other one only pushes its geometry.
@@ -1411,6 +1414,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   void dispose() {
     _ticks.dispose();
     _scroll.dispose();
+    for (final hidden in _hidden.values) {
+      hidden.dispose();
+    }
     super.dispose();
   }
 
@@ -1498,7 +1504,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   }
 
   ValueNotifier<int?> _hiddenOf(MorphMenuLayout layout) =>
-      _hidden[layout] ??= ValueNotifier<int?>(null);
+      _hidden.putIfAbsent(layout, () => ValueNotifier<int?>(null));
 
   void _select(MorphMenuLayout layout, int target) {
     final host = widget.host;

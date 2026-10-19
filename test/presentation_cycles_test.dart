@@ -101,8 +101,6 @@ void main() {
         shows: 'Copy',
       ));
     },
-    // leak: menu.dart:1501 leaves one ValueNotifier undisposed per open
-    skip: true,
   );
 
   testWidgets(
@@ -129,8 +127,6 @@ void main() {
         shows: 'Copy',
       ));
     },
-    // leak: menu.dart:1501 leaves one ValueNotifier undisposed per open
-    skip: true,
   );
 
   testWidgets('a zoomed page leaves nothing behind across open and close '

@@ -137,38 +137,31 @@ Future<void> _uncachedReopen(
 }
 
 void main() {
-  group(
-    'a load that throws',
-    () {
-      testWidgets('is reported once and leaves the group empty', (
-        WidgetTester tester,
-      ) async {
-        var loads = 0;
-        await tester.pumpWidget(
-          _app([
-            _copy,
-            MorphMenuDeferred(() {
-              loads++;
-              throw StateError('offline');
-            }, id: 'recent'),
-          ]),
-        );
-        await _tapButton(tester);
-        expect(tester.takeException(), isA<StateError>());
-        expect(find.text('Copy'), findsOneWidget, reason: 'the menu opens');
-        expect(find.text('Loading...'), findsNothing);
-        await _settle(tester);
-        await _expectQuiet(tester);
-        await _close(tester);
-        await _expectWorks(tester, ['Copy']);
-        expect(loads, 1, reason: 'cached like a rejected Future');
-      });
-    },
-    skip:
-        'defect: a synchronous throw from load escapes MorphMenuContent '
-        '_resolve, the first tap opens nothing and every later opening '
-        'spins forever',
-  );
+  group('a load that throws', () {
+    testWidgets('is reported once and leaves the group empty', (
+      WidgetTester tester,
+    ) async {
+      var loads = 0;
+      await tester.pumpWidget(
+        _app([
+          _copy,
+          MorphMenuDeferred(() {
+            loads++;
+            throw StateError('offline');
+          }, id: 'recent'),
+        ]),
+      );
+      await _tapButton(tester);
+      expect(tester.takeException(), isA<StateError>());
+      expect(find.text('Copy'), findsOneWidget, reason: 'the menu opens');
+      expect(find.text('Loading...'), findsNothing);
+      await _settle(tester);
+      await _expectQuiet(tester);
+      await _close(tester);
+      await _expectWorks(tester, ['Copy']);
+      expect(loads, 1, reason: 'cached like a rejected Future');
+    });
+  });
 
   testWidgets('a rejected Future is reported and leaves the group empty', (
     WidgetTester tester,
@@ -335,17 +328,11 @@ void main() {
     await _uncachedReopen(tester, closing: false);
   });
 
-  group(
-    'an uncached group reopened during its close',
-    () {
-      testWidgets('loads again and drops the stale answer', (
-        WidgetTester tester,
-      ) async {
-        await _uncachedReopen(tester, closing: true);
-      });
-    },
-    skip:
-        'defect: a reopen during the close skips beginSession, so load does '
-        'not run again and the previous opening answers the new one',
-  );
+  group('an uncached group reopened during its close', () {
+    testWidgets('loads again and drops the stale answer', (
+      WidgetTester tester,
+    ) async {
+      await _uncachedReopen(tester, closing: true);
+    });
+  });
 }

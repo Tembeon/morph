@@ -288,6 +288,13 @@ class MorphMenuController implements MorphMenuHost {
     if (changed) _contentChanged(animate: true);
   }
 
+  /// Starts a new content session for a menu reopened while it closes, so
+  /// its uncached deferred groups load again as at any other opening.
+  void beginReopenSession() {
+    menuContent.beginSession();
+    _contentChanged(animate: true);
+  }
+
   void _contentChanged({required bool animate}) {
     if (_disposed) return;
     final motion = _motion;

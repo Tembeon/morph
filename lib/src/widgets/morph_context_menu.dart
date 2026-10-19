@@ -1351,7 +1351,10 @@ class _MenuDriverState extends State<_MenuDriver>
     required EdgeInsets padding,
   }) {
     final MorphMenuMotion? current = controller.menuMotion;
-    if (current != null && current.isPresented) return current;
+    if (current != null && current.isPresented) {
+      if (current.isClosing) controller.beginReopenSession();
+      return current;
+    }
     _content.rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     _content.titleStyle = MorphTypography.resolve(_style.textStyle);
     _content.textScaler =

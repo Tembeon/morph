@@ -140,7 +140,7 @@ class MorphMenuContent {
       if (!_disposed) onChanged(animate: true);
     }
 
-    deferred.load().then(
+    Future<List<MorphMenuEntry>>.sync(deferred.load).then(
       store,
       onError: (Object error, StackTrace stack) {
         FlutterError.reportError(
