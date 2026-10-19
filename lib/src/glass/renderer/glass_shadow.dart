@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 
@@ -16,12 +15,9 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 double glassShadowBlurSupport(double blurRadius) =>
     Shadow.convertRadiusToSigma(blurRadius) * 3;
 
-/// Paints [BoxShadow]s for a [LiquidShape] using canvas primitives
-/// (drawRRect, drawCircle, drawRSuperellipse, etc.) instead of drawPath.
-///
-/// This avoids the cost of rasterizing an arbitrary [Path] with a blur
-/// [MaskFilter], which is significantly slower than the dedicated GPU-
-/// accelerated primitives that Impeller/Skia provide for simple shapes.
+/// Paints [BoxShadow]s for a [LiquidShape] around [child]: the standalone
+/// form of [GlassShadowCaster], which a liquid glass shape mixes in to
+/// paint its own shadows.
 @internal
 class GlassShadow extends SingleChildRenderObjectWidget {
   /// Creates a new [GlassShadow] widget with the given [shape], [shadows], and
@@ -33,42 +29,7 @@ class GlassShadow extends SingleChildRenderObjectWidget {
     this.appearanceVisibility = 1,
     super.child,
     super.key,
-  }) : live = null,
-       shapeOf = null,
-       shadowsOf = null,
-       visibilityOf = null;
-
-  /// Creates shadows whose shape, list and visibility follow [live]: every
-  /// notification writes them into the render object.
-  GlassShadow.live({
-    required this.live,
-    required LiquidShape Function() this.shapeOf,
-    required List<BoxShadow> Function() this.shadowsOf,
-    required double Function() this.visibilityOf,
-    required this.settings,
-    super.child,
-    super.key,
-  }) : shape = shapeOf(),
-       shadows = shadowsOf(),
-       appearanceVisibility = visibilityOf();
-
-  /// The source of live shadows, or null for fixed ones.
-  final Listenable? live;
-
-  /// The shape now, for live shadows.
-  final LiquidShape Function()? shapeOf;
-
-  /// The shadows now, for live shadows.
-  final List<BoxShadow> Function()? shadowsOf;
-
-  /// The visibility now, for live shadows.
-  final double Function()? visibilityOf;
-
-  void _applyLive(_RenderGlassShadow shadow) {
-    shadow.shape = shapeOf!();
-    shadow.shadows = shadowsOf!();
-    shadow.visibility = visibilityOf!();
-  }
+  });
 
   /// The shape to paint shadows for.
   final LiquidShape shape;
@@ -87,15 +48,11 @@ class GlassShadow extends SingleChildRenderObjectWidget {
   final List<BoxShadow> shadows;
 
   @override
-  RenderObject createRenderObject(BuildContext context) {
-    final shadow = _RenderGlassShadow(
-      shape: shape,
-      shadows: shadows,
-      visibility: appearanceVisibility,
-    );
-    if (shapeOf != null) shadow.bindLive(live, () => _applyLive(shadow));
-    return shadow;
-  }
+  RenderObject createRenderObject(BuildContext context) => _RenderGlassShadow(
+    shape: shape,
+    shadows: shadows,
+    visibility: appearanceVisibility,
+  );
 
   @override
   void updateRenderObject(
@@ -103,18 +60,13 @@ class GlassShadow extends SingleChildRenderObjectWidget {
     // ignore: library_private_types_in_public_api
     _RenderGlassShadow renderObject,
   ) {
-    if (shapeOf != null) {
-      renderObject.bindLive(live, () => _applyLive(renderObject));
-      return;
-    }
-    renderObject
-      ..shape = shape
-      ..shadows = shadows
-      ..visibility = appearanceVisibility;
+    renderObject.shape = shape;
+    renderObject.shadows = shadows;
+    renderObject.visibility = appearanceVisibility;
   }
 }
 
-class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
+class _RenderGlassShadow extends RenderProxyBox with GlassShadowCaster {
   _RenderGlassShadow({
     required this._shape,
     required this._shadows,
@@ -122,19 +74,6 @@ class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
   }) : _visibility = visibility.clamp(0, 1);
 
   @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    // The shader loads itself for an app that never ran the renderer's
-    // precache; shadows draw on their clip path until it has loaded.
-    if (MorphGlassShadowShader.enabled && !MorphGlassShadowShader.ready) {
-      MorphGlassShadowShader.precache().then(_shaderLoaded).ignore();
-    }
-  }
-
-  void _shaderLoaded(void _) {
-    if (attached && MorphGlassShadowShader.active) markNeedsPaint();
-  }
-
   LiquidShape get shape => _shape;
   LiquidShape _shape;
   set shape(LiquidShape value) {
@@ -143,6 +82,7 @@ class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
     markNeedsPaint();
   }
 
+  @override
   List<BoxShadow> get shadows => _shadows;
   List<BoxShadow> _shadows;
   set shadows(List<BoxShadow> value) {
@@ -160,8 +100,59 @@ class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
   }
 
   @override
+  double get shadowVisibility => _visibility;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    paintShadows(context, offset);
+    super.paint(context, offset);
+  }
+}
+
+/// Paints the [BoxShadow]s of a [LiquidShape] that fills this box, using
+/// canvas primitives (drawRRect, drawCircle, drawRSuperellipse, etc.)
+/// instead of drawPath.
+///
+/// This avoids the cost of rasterizing an arbitrary [Path] with a blur
+/// [MaskFilter], which is significantly slower than the dedicated GPU-
+/// accelerated primitives that Impeller/Skia provide for simple shapes.
+///
+/// The box calls [paintShadows] before it paints anything else, and marks
+/// itself as needing paint when [shape], [shadows] or [shadowVisibility]
+/// change. The shadows take the box's size at paint: the box that sizes
+/// the glass casts them, so they add no layout of their own when the glass
+/// resizes.
+@internal
+mixin GlassShadowCaster on RenderBox {
+  /// The shape to paint shadows for.
+  LiquidShape get shape;
+
+  /// The shadows to paint, outside the shape when one is offset (see
+  /// [GlassShadow.shadows]).
+  List<BoxShadow> get shadows;
+
+  /// The materialization progress the shadows fade and tighten with, from
+  /// 0 to 1.
+  double get shadowVisibility;
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    // The shader loads itself for an app that never ran the renderer's
+    // precache; shadows draw on their clip path until it has loaded.
+    if (MorphGlassShadowShader.enabled && !MorphGlassShadowShader.ready) {
+      MorphGlassShadowShader.precache().then(_shaderLoaded).ignore();
+    }
+  }
+
+  void _shaderLoaded(void _) {
+    if (attached && MorphGlassShadowShader.active) markNeedsPaint();
+  }
+
+  @override
   Rect get paintBounds {
     var bounds = super.paintBounds;
+    final visibility = shadowVisibility;
     if (visibility <= 0 || shadows.isEmpty) return bounds;
 
     final shapeBounds = Offset.zero & size;
@@ -245,6 +236,7 @@ class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
 
   List<Paint> _paintsFor(bool needsCutout) {
     final paints = _paints;
+    final visibility = shadowVisibility;
     if (paints != null &&
         _paintVisibility == visibility &&
         listEquals(_paintShadows, shadows)) {
@@ -266,9 +258,9 @@ class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
     ];
   }
 
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    if (shadows.isNotEmpty && visibility > 0) {
+  /// Paints the shadows at [offset], the box's paint offset.
+  void paintShadows(PaintingContext context, Offset offset) {
+    if (shadows.isNotEmpty && shadowVisibility > 0) {
       final geometry = _geometryFor(size);
       if (!_paintShaded(context.canvas, offset, geometry)) {
         final outside = geometry.outside;
@@ -283,8 +275,6 @@ class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
         canvas.restore();
       }
     }
-
-    super.paint(context, offset);
   }
 
   // The shader uniforms of each shadow's blur for the geometry, shadows and
@@ -296,6 +286,7 @@ class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
 
   List<Float32List> _blursFor(_ShadowGeometry geometry, double radius) {
     final blurs = _blurs;
+    final visibility = shadowVisibility;
     if (blurs != null &&
         identical(_blurGeometry, geometry) &&
         _blurVisibility == visibility &&
@@ -333,6 +324,7 @@ class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
       return true;
     }());
     if (sharp) return false;
+    final visibility = shadowVisibility;
     // Fully faded shadows draw nothing.
     if (visibility <= 0) return true;
     final radius = shape.borderRadius;

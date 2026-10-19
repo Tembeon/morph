@@ -355,7 +355,11 @@ paint layer.
 
 Glass shadows clip to outside the glass (an even-odd path), never a
 saveLayer + dstOut per surface: no offscreen pass, no shadow under the
-translucent body (GlassShadow, MorphGlassBodyShadow).
+translucent body (GlassShadowCaster, MorphGlassBodyShadow).
+
+A liquid shape paints its own shadows (RenderLiquidGlass mixes in
+GlassShadowCaster): a proxy render object above the shape would lay out
+again on every frame the shape resizes.
 
 ## Packaging and web
 

@@ -79,7 +79,6 @@ const _ratchet = <Rule, Set<String>>{
   Rule.forbidden: {},
   Rule.dependency: {},
   Rule.direction: {
-    'lib/src/glass/renderer/glass_shadow.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/internal/content_snapshot.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/internal/optimized_clip.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/liquid_glass.dart imports lib/src/live.dart',

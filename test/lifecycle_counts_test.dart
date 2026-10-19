@@ -237,14 +237,14 @@ const _ceilings = <String, _Ceiling>{
     ms: 960,
     builds: 2,
     layouts: 7,
-    paints: 50,
+    paints: 45,
   ),
   'navigation/liquid pop': (
     first: 137,
     ms: 944,
     builds: 2,
     layouts: 7,
-    paints: 51,
+    paints: 45,
   ),
   'sheet/flat detent-large': (
     first: 20,
@@ -264,8 +264,8 @@ const _ceilings = <String, _Ceiling>{
     first: 20,
     ms: 688,
     builds: 0,
-    layouts: 24,
-    paints: 35,
+    layouts: 23,
+    paints: 34,
   ),
   'alert/flat dismiss': (first: 76, ms: 400, builds: 0, layouts: 0, paints: 18),
   'alert/flat action-sheet-dismiss': (
@@ -280,7 +280,7 @@ const _ceilings = <String, _Ceiling>{
     ms: 400,
     builds: 0,
     layouts: 0,
-    paints: 22,
+    paints: 21,
   ),
   'menu/flat open-inline': (
     first: 60,
@@ -335,15 +335,15 @@ const _ceilings = <String, _Ceiling>{
     first: 91,
     ms: 960,
     builds: 1,
-    layouts: 39,
-    paints: 45,
+    layouts: 38,
+    paints: 44,
   ),
   'search/liquid cancel': (
     first: 61,
     ms: 448,
     builds: 0,
-    layouts: 31,
-    paints: 33,
+    layouts: 29,
+    paints: 31,
   ),
   'search-bar/flat focus': (
     first: 28,
@@ -356,8 +356,8 @@ const _ceilings = <String, _Ceiling>{
     first: 34,
     ms: 704,
     builds: 1,
-    layouts: 37,
-    paints: 39,
+    layouts: 36,
+    paints: 37,
   ),
   // The context menu is the button menu's card on one vessel flight
   // (context-menu.md, unification): the lift off the preview clears the
@@ -394,7 +394,7 @@ const _ceilings = <String, _Ceiling>{
     paints: 25,
   ),
   'alert/flat show': (first: 130, ms: 416, builds: 0, layouts: 0, paints: 18),
-  'alert/liquid show': (first: 137, ms: 416, builds: 0, layouts: 0, paints: 22),
+  'alert/liquid show': (first: 137, ms: 416, builds: 0, layouts: 0, paints: 21),
   // Touch steps: the medians are those of the frames while the finger is
   // down, after the touch-down frame (lifecycle.md, touch rows).
   'segmented-touch/flat tap-seg2': (
@@ -500,14 +500,14 @@ const _ceilings = <String, _Ceiling>{
     ms: 2192,
     builds: 0,
     layouts: 3,
-    paints: 107,
+    paints: 106,
   ),
   'tabbar-touch/liquid press-hold-home': (
     first: 0,
     ms: 1616,
     builds: 0,
     layouts: 3,
-    paints: 107,
+    paints: 106,
   ),
   'switch-touch/liquid press-hold': (
     first: 0,
@@ -558,39 +558,7 @@ typedef _Ceiling = ({int first, int ms, int builds, int layouts, int paints});
 /// Ceilings raised by the owner until a known cost is removed. [_ceilings]
 /// keeps the target; a step back under it fails, so the entry goes with
 /// the fix.
-const _temporaryCeilings = <String, _Ceiling>{
-  // With the fake tier gone the host builds GlassShadow as the device
-  // always did, and its layouts count (no-fake-tier merge); target 7.
-  'navigation/liquid push': (
-    first: 248,
-    ms: 960,
-    builds: 2,
-    layouts: 9,
-    paints: 50,
-  ),
-  'navigation/liquid pop': (
-    first: 137,
-    ms: 944,
-    builds: 2,
-    layouts: 9,
-    paints: 51,
-  ),
-  // The same GlassShadow layouts under a held or dragged lens; target 3.
-  'tabbar-touch/liquid drag-lens-home-to-profile': (
-    first: 0,
-    ms: 2192,
-    builds: 0,
-    layouts: 4,
-    paints: 107,
-  ),
-  'tabbar-touch/liquid press-hold-home': (
-    first: 0,
-    ms: 1616,
-    builds: 0,
-    layouts: 4,
-    paints: 107,
-  ),
-};
+const _temporaryCeilings = <String, _Ceiling>{};
 
 const _screen = Size(402, 874);
 const _frame = Duration(milliseconds: 16);

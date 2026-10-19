@@ -575,3 +575,10 @@ Local patches (some commits include related package changes):
   a LiquidGlassLayer paints its child with no glass (morph builds liquid
   layers only once the liquid tier is available, which caches the
   renderer). The 3cec75e fake patches above went with the fake layer.
+- 2026-10-19 shape shadows painted by the shape: GlassShadow's painting
+  is the GlassShadowCaster mixin, and RenderLiquidGlass mixes it in and
+  paints its shadows before its content (the same commands in the same
+  order). LiquidGlass no longer wraps a shadowed shape in GlassShadow,
+  whose proxy laid out on every frame the shape resized, and no longer
+  rebuilds when its shadows appear or vanish. GlassShadow stays as the
+  standalone form.
