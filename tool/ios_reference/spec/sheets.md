@@ -27,6 +27,13 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   333.3 / 36.5) [tuning]: unscaled HEIGHT (detent value + bottom safe area)
   and TRANSLATION (present/dismiss). 0.06 pt rms.
 - Medium detent = 0.56 of the maximum the resolver gets.
+- Present drift [device and simulator, every floating present]: the
+  floating sheet slides in with its frame at the container's leading
+  edge (origin x 0, centre x 193 on 402) and moves to its 8 pt inset on
+  the present spring itself (x progress = y progress within 0.001). A
+  docked present and every dismissal keep x. `MorphSheetMotion.drift`;
+  replay: left edge while presenting 0.00 - 0.06 pt rms (2.4 - 3.0
+  without).
 - Floating (below large) = the full-width sheet scaled by 1 - 16/W (+ a shift
   keeping 8 pt off the bottom); unscaled corners 38 top, display radius - 8
   bottom; docking = one transform lerped by the docking progress, defined
@@ -228,7 +235,6 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
   (the 10 pt shortfall) and the 17e / SE sizes were not captured
   (pending, device plan in the coordinator's queue).
 
-- The present's 8 pt horizontal drift (first-frame artifact).
 - One frame per docking reading the sheet at y 0.
 - Keyboard MOTION: morph moves the raised sheet on the sheet spring as
   the insets change; UIKit's curve under the keyboard is not measured. A

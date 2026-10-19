@@ -387,6 +387,7 @@ class MorphSheetMotion
     MorphSheetTuning.stretchSpring,
     0,
   );
+  final MorphSpringState _drift = MorphSpringState(MorphSheetTuning.spring, 0);
   final MorphSpringState _lag = MorphSpringState(
     MorphSheetTuning.stretchLagSpring,
     0,
@@ -468,7 +469,10 @@ class MorphSheetMotion
       _press.isWithin(_now, _scaleRest) &&
       _fill.isWithin(_now, MorphRest.opacity) &&
       !_stretching &&
-      _stretch.isWithin(_now, _scaleRest);
+      _stretch.isWithin(_now, _scaleRest) &&
+      _drift.isWithin(_now, _driftRest);
+
+  double get _driftRest => inset <= 0 ? 1 : MorphRest.length / inset;
 
   double get _scaleRest => MorphRest.scale(math.max(width, _heights[_index]));
 
@@ -585,6 +589,16 @@ class MorphSheetMotion
     _stretch.retarget(t, 0);
   }
 
+  /// How far a presenting sheet still sits left of its place, in pixels:
+  /// UIKit slides a floating sheet in with its frame at the container's
+  /// leading edge (origin x 0) and moves it to its inset on the present
+  /// spring itself (device, every floating present: the centre x 193 ->
+  /// 201 on a 402 point screen, its progress the slide's within 0.001).
+  /// A docked sheet and a dismissal do not drift.
+  double get drift => _driftAt(_now);
+
+  double _driftAt(double t) => inset * (1 - _dockAt(t)) * _drift.value(t);
+
   /// The vertical shift of the scaled sheet's center, on top
   /// of [offset]: what keeps a floating sheet [inset] off the bottom.
   double get shift => _shiftAt(_now);
@@ -631,9 +645,18 @@ class MorphSheetMotion
   }
 
   /// Slides the sheet in from below the screen to its detent.
+  ///
+  /// A floating sheet slides in with its frame at the container's leading
+  /// edge and drifts sideways to its inset on the same spring, as UIKit's
+  /// does ([drift]).
   void present(double t) {
     advance(t);
     _dismissing = false;
+    final hidden = hiddenOffset;
+    if (hidden > 0) {
+      _drift.snap(t, (_offset.value(t) / hidden).clamp(0.0, 1.0));
+      _drift.retarget(t, 0);
+    }
     _offset.retarget(t, 0, spring: MorphSheetTuning.spring);
   }
 
@@ -907,6 +930,7 @@ class MorphSheetMotion
     if (_height.isWithin(_now, MorphRest.length)) _height.settle(_now);
     if (_offset.isWithin(_now, MorphRest.length)) _offset.settle(_now);
     if (_stretch.isWithin(_now, _scaleRest)) _stretch.settle(_now);
+    if (_drift.isWithin(_now, _driftRest)) _drift.settle(_now);
   }
 
   /// The sheet's visible rect in a container [containerHeight]
@@ -921,10 +945,11 @@ class MorphSheetMotion
         containerHeight + (s - 1) * h / 2 + _shiftAt(t) + _offsetAt(t);
     final k = math.sqrt(math.max(_stretchAt(t), 0.5));
     final w = width * s / k;
+    final x = -_driftAt(t);
     return Rect.fromLTRB(
-      (width - w) / 2,
+      (width - w) / 2 + x,
       bottom - h * s * k,
-      (width + w) / 2,
+      (width + w) / 2 + x,
       bottom,
     );
   }
