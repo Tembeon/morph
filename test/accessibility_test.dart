@@ -7,6 +7,7 @@ import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/slider_motion.dart';
 import 'package:morph/src/widgets/switch_motion.dart';
 import 'package:morph/src/scope.dart';
+import 'support/motion_at.dart';
 
 Future<T> _resolve<T>(
   WidgetTester tester,
@@ -140,17 +141,17 @@ void main() {
       final normal = MorphAlertMotion();
       reduced.present(0);
       normal.present(0);
-      expect(reduced.scale(0), 1);
-      expect(normal.scale(0), MorphAlertTuning.presentScale);
-      expect(reduced.opacity(0.1), normal.opacity(0.1));
+      expect(reduced.at(0).scale, 1);
+      expect(normal.at(0).scale, MorphAlertTuning.presentScale);
+      expect(reduced.at(0.1).opacity, normal.at(0.1).opacity);
     });
 
     test('the popover keeps its size', () {
       final popover = MorphPopoverMotion();
       popover.reducedMotion = true;
       popover.present(0);
-      expect(popover.scale(0), 1);
-      expect(popover.opacity(0), 0);
+      expect(popover.at(0).scale, 1);
+      expect(popover.at(0).opacity, 0);
     });
   });
 

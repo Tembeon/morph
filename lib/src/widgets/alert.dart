@@ -933,10 +933,9 @@ class _AlertViewState extends State<_AlertView>
   MorphAlertAppearance? _style;
 
   double _dimming(MorphAlertAppearance style) {
-    final motion = _alert!;
     return style.dimmingColor.a *
         MorphAlertTuning.dimmingOpacity *
-        motion.dimming(motion.time);
+        _alert!.dimming;
   }
 
   // The glass reads the dimming from the backdrop cache, so the cache
@@ -949,10 +948,8 @@ class _AlertViewState extends State<_AlertView>
     );
   }
 
-  double _opacity() {
-    final t = _alert?.time ?? _popover?.time ?? 0;
-    return (_alert?.opacity(t) ?? _popover?.opacity(t) ?? 1).clamp(0.0, 1.0);
-  }
+  double _opacity() =>
+      (_alert?.opacity ?? _popover?.opacity ?? 1).clamp(0.0, 1.0);
 
   (double, MorphAlertAppearance, TextScaler, TextDirection, bool)? _rowKey;
   bool _rowFits = false;
@@ -1030,7 +1027,7 @@ class _AlertViewState extends State<_AlertView>
               child: MorphLiveTransform.matrix(
                 live: frames,
                 matrixOf: () {
-                  final s = motion.scale(motion.time);
+                  final s = motion.scale;
                   return Matrix4.diagonal3Values(s, s, 1);
                 },
                 child: IgnorePointer(
@@ -1132,10 +1129,9 @@ class _PopoverFlow extends FlowDelegate {
       padding: padding,
       textDirection: direction,
     );
-    final t = motion.time;
-    final s = motion.scale(t);
+    final s = motion.scale;
     final anchor = placement.anchor;
-    final opacity = motion.opacity(t);
+    final opacity = motion.opacity;
     Matrix4 around(Offset at) {
       final m = Matrix4.translationValues(anchor.dx, anchor.dy, 0);
       m.multiply(Matrix4.diagonal3Values(s, s, 1));

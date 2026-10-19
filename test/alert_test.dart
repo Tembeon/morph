@@ -11,6 +11,7 @@ import 'package:morph/glass_painter.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'support/motion_at.dart';
 
 const _dir = 'test/fixtures/ios27/alert';
 
@@ -83,7 +84,7 @@ void main() {
           return [
             for (final r in alert)
               if (_d(r, 't') < dismiss)
-                motion.scale(_d(r, 't') + frame) - _d(r, 'w') / _d(r, 'bw'),
+                motion.at(_d(r, 't') + frame).scale - _d(r, 'w') / _d(r, 'bw'),
           ];
         }
 
@@ -93,7 +94,7 @@ void main() {
         final dimErr = [
           for (final r in dim)
             if (_d(r, 't') < dismiss)
-              motion.dimming(_d(r, 't') + frame) - _d(r, 'a'),
+              motion.at(_d(r, 't') + frame).dimming - _d(r, 'a'),
         ];
         expect(scaleRms, lessThan(0.0015));
         expect(_rms(dimErr), lessThan(0.012));
@@ -109,7 +110,7 @@ void main() {
             return [
               for (final r in dim)
                 if (_d(r, 't') > dismiss)
-                  motion.dimming(_d(r, 't') + frame) - _d(r, 'a'),
+                  motion.at(_d(r, 't') + frame).dimming - _d(r, 'a'),
             ];
           }
 
@@ -118,7 +119,7 @@ void main() {
           final motion = MorphAlertMotion();
           motion.present(present);
           motion.dismiss(start);
-          expect(motion.scale(start + 0.2), closeTo(1, 1e-3));
+          expect(motion.at(start + 0.2).scale, closeTo(1, 1e-3));
         },
       );
     });
@@ -293,7 +294,7 @@ void main() {
         motion.present(start - 5);
         motion.dismiss(start);
         return [
-          for (final r in popover) motion.scale(_d(r, 't')) - _d(r, 'sx'),
+          for (final r in popover) motion.at(_d(r, 't')).scale - _d(r, 'sx'),
         ];
       }
 
@@ -323,7 +324,7 @@ void main() {
           return [
             for (final r in popover)
               if (_d(r, 't') >= firstT && _d(r, 't') < dismiss)
-                motion.scale(_d(r, 't') + frame) - _d(r, 'sx'),
+                motion.at(_d(r, 't') + frame).scale - _d(r, 'sx'),
           ];
         }
 
@@ -336,7 +337,7 @@ void main() {
           return [
             for (final r in popover)
               if (_d(r, 't') > dismiss + 0.01)
-                motion.scale(_d(r, 't') + frame) - _d(r, 'sx'),
+                motion.at(_d(r, 't') + frame).scale - _d(r, 'sx'),
           ];
         }
 
@@ -355,7 +356,7 @@ void main() {
           for (final r in popover)
             if (_d(r, 't') >= firstT && _d(r, 't') < dismiss)
               () {
-                final s = motion.scale(_d(r, 't') + frame);
+                final s = motion.at(_d(r, 't') + frame).scale;
                 final full = placement.bounds;
                 final anchor = placement.anchor;
                 return anchor.dy +
@@ -372,9 +373,9 @@ void main() {
         final aErrors = [
           for (final r in popover)
             if (_d(r, 't') >= firstT)
-              (_d(r, 't') + frame < end ? shown : leaving).progress(
-                    _d(r, 't') + frame,
-                  ) -
+              (_d(r, 't') + frame < end ? shown : leaving)
+                      .at(_d(r, 't') + frame)
+                      .progress -
                   _d(r, 'a'),
         ];
         expect(_rms(aErrors), lessThan(0.01));
@@ -394,7 +395,7 @@ void main() {
         motion.dismiss(start);
         return [
           for (final r in popover)
-            motion.scale(_d(r, 't') + _frame) - _d(r, 'sx'),
+            motion.at(_d(r, 't') + _frame).scale - _d(r, 'sx'),
         ];
       }
 
@@ -440,21 +441,21 @@ void main() {
     test('presents from the measured scale, transparent', () {
       final motion = MorphAlertMotion();
       motion.present(0);
-      expect(motion.scale(0), closeTo(MorphAlertTuning.presentScale, 1e-9));
-      expect(motion.opacity(0), 0);
+      expect(motion.at(0).scale, closeTo(MorphAlertTuning.presentScale, 1e-9));
+      expect(motion.at(0).opacity, 0);
       motion.advance(2);
       expect(motion.isSettled, isTrue);
-      expect(motion.scale(2), closeTo(1, 1e-4));
-      expect(motion.opacity(2), closeTo(1, 1e-3));
+      expect(motion.at(2).scale, closeTo(1, 1e-4));
+      expect(motion.at(2).opacity, closeTo(1, 1e-3));
     });
 
     test('a dismissal mid-present reverses with the velocity', () {
       final motion = MorphAlertMotion();
       motion.present(0);
-      final before = motion.progress(0.05);
+      final before = motion.at(0.05).progress;
       motion.dismiss(0.05);
-      expect(motion.progress(0.05), closeTo(before, 1e-9));
-      expect(motion.progress(0.06), greaterThan(before));
+      expect(motion.at(0.05).progress, closeTo(before, 1e-9));
+      expect(motion.at(0.06).progress, greaterThan(before));
       motion.advance(3);
       expect(motion.isDismissed, isTrue);
     });

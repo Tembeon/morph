@@ -225,8 +225,8 @@ class MorphPageControlMotion {
   /// Called with the page a touch picks.
   ValueChanged<int>? onChanged;
 
-  /// The opacity of the platter under a touch at time [t], 0 to 1.
-  double platter(double t) => _platter.value(t).clamp(0.0, 1.0);
+  /// The opacity of the platter under a touch, 0 to 1.
+  double get platter => _platter.value(_now).clamp(0.0, 1.0);
 
   /// Whether a touch is scrubbing through the pages.
   bool get isScrubbing => _scrubbing;
@@ -304,7 +304,7 @@ class MorphPageControlMotion {
     _scrubbing = true;
     const pitch = MorphPageControlTuning.pitch;
     const h = MorphPageControlTuning.scrubHysteresis;
-    final ahead = x - center(_page, t);
+    final ahead = x - center(_page);
     var next = _page;
     if (ahead > pitch / 2 + h) {
       next = _page + ((ahead - pitch / 2 - h) / pitch).floor() + 1;
@@ -382,37 +382,35 @@ class MorphPageControlMotion {
     _fading = previous;
   }
 
-  /// The width of indicator [index] at time [t].
-  double width(int index, double t) =>
-      index >= 0 && index < count ? _widths[index].value(t) : 0;
+  /// The width of indicator [index].
+  double width(int index) =>
+      index >= 0 && index < count ? _widths[index].value(_now) : 0;
 
-  /// The opacity of the fill of indicator [index] at time [t]: 1 on the
-  /// current page, fading on the page just left, 0 elsewhere.
-  double fillOpacity(int index, double t) {
+  /// The opacity of the fill of indicator [index]: 1 on the current page,
+  /// fading on the page just left, 0 elsewhere.
+  double fillOpacity(int index) {
     if (index == _page) return 1;
-    if (index == _fading) return (_fade?.value(t) ?? 0).clamp(0.0, 1.0);
+    if (index == _fading) return (_fade?.value(_now) ?? 0).clamp(0.0, 1.0);
     return 0;
   }
 
-  /// The width of all indicators and the gaps between them at time [t].
-  double contentWidth(double t) {
+  /// The width of all indicators and the gaps between them.
+  double get contentWidth {
     if (count == 0) return 0;
     var w = MorphPageControlTuning.spacing * (count - 1);
     for (var i = 0; i < count; i++) {
-      w += width(i, t);
+      w += width(i);
     }
     return w;
   }
-
-  /// The center of indicator [index] from the start of the dots at
-  /// time [t].
-  double center(int index, double t) {
+  /// The center of indicator [index] from the start of the dots.
+  double center(int index) {
     if (index < 0 || index >= count) return 0;
     var x = 0.0;
     for (var i = 0; i < index; i++) {
-      x += width(i, t) + MorphPageControlTuning.spacing;
+      x += width(i) + MorphPageControlTuning.spacing;
     }
-    return x + width(index, t) / 2;
+    return x + width(index) / 2;
   }
 }
 
@@ -566,7 +564,7 @@ class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
   }
 
   Size get _size {
-    final dots = _motion.contentWidth(_motion.time);
+    final dots = _motion.contentWidth;
     return Size(
       dots + 2 * MorphPageControlTuning.padding,
       MorphPageControlTuning.height,
@@ -643,11 +641,10 @@ class _PageControlPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final t = motion.time;
     final shown = switch (platter) {
       true => 1.0,
       false => 0.0,
-      null => motion.platter(t),
+      null => motion.platter,
     };
     if (shown > 0) {
       final p = Paint();
@@ -672,7 +669,7 @@ class _PageControlPainter extends CustomPainter {
     final cy = size.height / 2;
     var x = 0.0;
     for (var i = 0; i < motion.count; i++) {
-      final w = motion.width(i, t);
+      final w = motion.width(i);
       var cx = MorphPageControlTuning.padding + (x + w / 2);
       x += w + MorphPageControlTuning.spacing;
       if (rtl) cx = size.width - cx;
@@ -684,7 +681,7 @@ class _PageControlPainter extends CustomPainter {
         ),
         const Radius.circular(dot / 2),
       );
-      final fill = progress == null ? 0.0 : motion.fillOpacity(i, t);
+      final fill = progress == null ? 0.0 : motion.fillOpacity(i);
       final base = Paint();
       base.color = progress == null && i == motion.page
           ? style.currentPageIndicatorColor

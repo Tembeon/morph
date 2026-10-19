@@ -60,8 +60,8 @@ double _d(Map<String, Object?> r, String k) => (r[k]! as num).toDouble();
       motion.advance(t);
       errors.add(
         opacity
-            ? motion.fillOpacity(t) - _d(r, 'a')
-            : motion.fillWidth(t, 300) - _d(r, 'bw'),
+            ? motion.fillOpacity - _d(r, 'a')
+            : motion.fillWidth(300) - _d(r, 'bw'),
       );
     }
     return errors;
@@ -108,31 +108,31 @@ void main() {
       final m = MorphProgressMotion(value: 0.2);
       m.setValue(0, 0.8);
       m.advance(0.3);
-      expect(m.fillWidth(0.3, 300), closeTo(150, 1e-9));
+      expect(m.fillWidth(300), closeTo(150, 1e-9));
       m.advance(0.6);
-      expect(m.fillWidth(0.6, 300), closeTo(240, 1e-6));
+      expect(m.fillWidth(300), closeTo(240, 1e-6));
       m.advance(0.61);
       expect(m.isSettled, isTrue);
     });
 
     test('hides an empty fill, fading over at least 0.2 s', () {
       final m = MorphProgressMotion(value: 0);
-      expect(m.fillOpacity(0), 0);
+      expect(m.fillOpacity, 0);
       m.setValue(0, 0.05);
       m.advance(0.1);
-      expect(m.fillOpacity(0.1), closeTo(0.5, 1e-9));
-      expect(m.fillWidth(0.1, 300), closeTo(11.5, 1e-9));
+      expect(m.fillOpacity, closeTo(0.5, 1e-9));
+      expect(m.fillWidth(300), closeTo(11.5, 1e-9));
       m.advance(0.2);
-      expect(m.fillOpacity(0.2), 1);
+      expect(m.fillOpacity, 1);
     });
 
     test('a change during a change adds on top without a jump', () {
       final m = MorphProgressMotion(value: 0);
       m.setValue(0, 1);
       m.advance(0.5);
-      final before = m.fillWidth(0.5, 300);
+      final before = m.fillWidth(300);
       m.setValue(0.5, 0.2);
-      expect(m.fillWidth(0.5, 300), closeTo(before, 1e-9));
+      expect(m.fillWidth(300), closeTo(before, 1e-9));
     });
 
     test('replays the simulator: 0.2 -> 0.3 -> 1 -> 0 -> 0.05', () {
@@ -227,15 +227,15 @@ void main() {
           return m;
         }
 
-        final m = started();
         final e = <double>[];
         for (final id in ids.take(2)) {
           final i = ids.indexOf(id);
+          final m = started();
           for (final r in indicators[id]!) {
             final t = _d(r, 't') + 1 / 60;
             if (t < start - 0.1) continue;
             m.advance(t);
-            e.add(m.width(i, t) - _d(r, 'w'));
+            e.add(m.width(i) - _d(r, 'w'));
           }
         }
         final f = started();
@@ -244,7 +244,7 @@ void main() {
           final t = _d(r, 't') + 1 / 60;
           if (t < start - 0.1) continue;
           f.advance(t);
-          fade.add(f.fillOpacity(0, t) - _d(r, 'a'));
+          fade.add(f.fillOpacity(0) - _d(r, 'a'));
         }
         return (widths: rms(e), fade: rms(fade));
       }
@@ -312,7 +312,7 @@ void main() {
           } else if (t > _d(events.first, 't') + 1) {
             final shown = t + shift;
             motion.advance(shown);
-            errors.add(motion.platter(shown) - _d(r, 'a'));
+            errors.add(motion.platter - _d(r, 'a'));
           }
         }
         return (

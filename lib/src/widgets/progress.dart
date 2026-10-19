@@ -159,31 +159,22 @@ class MorphProgressMotion {
 
   static double _opacityOf(double value) => value > 0 ? 1 : 0;
 
-  /// The progress the fill shows at time [t], 0 to 1.
-  double shownValue(double t) {
-    var v = _value;
-    for (final a in _fill) {
-      v += a.offset(t, (double x) => x);
-    }
-    return v.clamp(0.0, 1.0);
-  }
-
-  /// The width of the fill on a track [trackWidth] wide at time [t].
-  double fillWidth(double t, double trackWidth) {
+  /// The width of the fill on a track [trackWidth] wide at [time].
+  double fillWidth(double trackWidth) {
     double widthOf(double value) =>
         math.min(trackWidth, math.max(minFillWidth, value * trackWidth));
     var w = widthOf(_value);
     for (final a in _fill) {
-      w += a.offset(t, widthOf);
+      w += a.offset(_now, widthOf);
     }
     return w.clamp(math.min(minFillWidth, trackWidth), trackWidth);
   }
 
-  /// The opacity of the fill at time [t].
-  double fillOpacity(double t) {
+  /// The opacity of the fill at [time].
+  double get fillOpacity {
     var a = _opacityOf(_value);
     for (final s in _alpha) {
-      a += s.offset(t, (double x) => x);
+      a += s.offset(_now, (double x) => x);
     }
     return a.clamp(0.0, 1.0);
   }
@@ -344,10 +335,9 @@ class _ProgressPainter extends CustomPainter {
       );
     }
     final motion = state._motion;
-    final t = motion.time;
-    final opacity = motion.fillOpacity(t);
+    final opacity = motion.fillOpacity;
     if (opacity <= 0) return;
-    final width = motion.fillWidth(t, size.width);
+    final width = motion.fillWidth(size.width);
     final left = rtl ? size.width - width : 0.0;
     final paint = Paint();
     paint.color = fill.withValues(alpha: fill.a * opacity);

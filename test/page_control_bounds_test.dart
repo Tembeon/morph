@@ -85,8 +85,8 @@ void main() {
     motion.setPage(0.3, -4);
     expect(motion.count, 0);
     expect(motion.page, 0);
-    expect(motion.contentWidth(0.3), 0);
-    expect(motion.width(0, 0.3), 0);
-    expect(motion.center(0, 0.3), 0);
+    expect(motion.contentWidth, 0);
+    expect(motion.width(0), 0);
+    expect(motion.center(0), 0);
   });
 }

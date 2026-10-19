@@ -187,18 +187,18 @@ class MorphAlertMotion {
     if (t > _now) _now = t;
   }
 
-  /// The presentation progress at time [t]: 0 hidden, 1 shown.
-  double progress(double t) => _progress.value(t);
+  /// The presentation progress: 0 hidden, 1 shown.
+  double get progress => _progress.value(_now);
 
-  /// The opacity of the alert at time [t].
-  double opacity(double t) => _progress.value(t).clamp(0.0, 1.0);
+  /// The opacity of the alert.
+  double get opacity => progress.clamp(0.0, 1.0);
 
-  /// The opacity of the dimming at time [t], as a fraction of
+  /// The opacity of the dimming, as a fraction of
   /// [MorphAlertTuning.dimmingOpacity].
-  double dimming(double t) => _progress.value(t).clamp(0.0, 1.0);
+  double get dimming => progress.clamp(0.0, 1.0);
 
-  /// The scale of the alert at time [t].
-  double scale(double t) => reducedMotion ? 1 : _scale.value(t);
+  /// The scale of the alert.
+  double get scale => reducedMotion ? 1 : _scale.value(_now);
 }
 
 /// The edge of a popover that points at its source.
@@ -380,16 +380,16 @@ class MorphPopoverMotion {
     if (t > _now) _now = t;
   }
 
-  /// The presentation progress at time [t]: 0 hidden, 1 shown.
-  double progress(double t) => _progress.value(t);
+  /// The presentation progress: 0 hidden, 1 shown.
+  double get progress => _progress.value(_now);
 
-  /// The scale of the popover about its arrow tip at time [t].
-  double scale(double t) => reducedMotion
+  /// The scale of the popover about its arrow tip.
+  double get scale => reducedMotion
       ? 1
-      : math.max(0, hiddenScale + (1 - hiddenScale) * _progress.value(t));
+      : math.max(0, hiddenScale + (1 - hiddenScale) * progress);
 
-  /// The opacity of the popover at time [t].
-  double opacity(double t) => _progress.value(t).clamp(0.0, 1.0);
+  /// The opacity of the popover.
+  double get opacity => progress.clamp(0.0, 1.0);
 }
 
 /// Places a popover of [size] next to [source] inside [screen], the way
