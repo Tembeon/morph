@@ -645,3 +645,10 @@ Local patches (some commits include related package changes):
   the layer adopts in one place (_adopt) for both the painted and the
   retained refresh. It reads the layer through GlassGeometrySource. No
   uniform, matte or pixel change.
+- 2026-10-19 the analytic rest as its own module: geometry/glass_rest.dart
+  holds AnalyticGeometryMode, GlassGeometryFlags (the analytic switches
+  and their debug overrides, analyticGeometryChanges, and the
+  invalidations attached layers follow instead of a static set of layers)
+  and GlassRestWatch (the rest watch in AnalyticGeometryMode.changes, the
+  texture release, restFrames, releaseFrames, debugMatteReleases), which
+  the layer drives through GlassRestHost. No pixel change.

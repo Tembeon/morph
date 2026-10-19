@@ -9,18 +9,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The test reads the renderer's own layers.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show AnalyticGeometryMode, RenderLiquidGlassLayer;
+    show RenderLiquidGlassLayer;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
-/// Flipping `RenderLiquidGlassLayer.debugAnalyticGeometry` while the
+/// Flipping `GlassGeometryFlags.debugAnalyticGeometry` while the
 /// gallery rests on a message page, whose leading bar group the glass
 /// container fuses: the layer takes merged boxes or the sampled field with
 /// each flip, and draws what a fresh mount in that mode draws.
@@ -39,10 +41,10 @@ void main() {
     addTearDown(tester.view.reset);
     // These tests pin analytic shading on every frame it can; the
     // `changes` mode has its own test (analytic_mode_host_test.dart).
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
@@ -123,19 +125,19 @@ void main() {
       );
     }
 
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     await open();
     expectLayer(analytic: true);
     final freshOn = await bars();
-    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    GlassGeometryFlags.debugAnalyticGeometry = false;
     await frames(5);
     expectLayer(analytic: false);
     final flippedOff = await bars();
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     await frames(5);
     expectLayer(analytic: true);
     final flippedOn = await bars();
-    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    GlassGeometryFlags.debugAnalyticGeometry = false;
     await open();
     expectLayer(analytic: false);
     final freshOff = await bars();

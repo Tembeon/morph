@@ -8,10 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The test reads which geometry path the renderer takes.
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/pass/final_pass.dart';
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer;
+import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
@@ -32,7 +31,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.runAsync(GlassBuiltInPainter.precache);
     if (!MorphTheme.liquidGlassAvailable) return;
-    if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
+    if (GlassGeometryFlags.analyticGeometryEnabled) {
       await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
     }
     final boundary = GlobalKey();
@@ -89,7 +88,7 @@ void main() {
     // grid to share, so a member's rim matches its own layer's within the
     // rasterization of the two passes (NEAR, glass-renderer.md "Glass
     // container") instead of bit for bit.
-    final analytic = RenderLiquidGlassLayer.analyticGeometryEnabled;
+    final analytic = GlassGeometryFlags.analyticGeometryEnabled;
     final worstAt = <double, int>{};
     for (final device in <double>[
       60.49,

@@ -9,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The A/B toggles the renderer's own paths.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
@@ -24,7 +26,7 @@ import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show AnalyticGeometryMode, RenderLiquidGlassLayer;
+    show RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/morph.dart';
@@ -422,11 +424,11 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
 
     final reports = <String>[];
@@ -492,11 +494,11 @@ void main() {
       // fake zone otherwise, whose futures never complete in the next test.
       await tester.runAsync(GlassBuiltInPainter.precache);
       await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
-      RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
-      RenderLiquidGlassLayer.debugAnalyticGeometry = analytic;
+      GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
+      GlassGeometryFlags.debugAnalyticGeometry = analytic;
       addTearDown(() {
-        RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-        RenderLiquidGlassLayer.debugAnalyticMode = null;
+        GlassGeometryFlags.debugAnalyticGeometry = null;
+        GlassGeometryFlags.debugAnalyticMode = null;
       });
 
       for (final glassCase in _cases) {

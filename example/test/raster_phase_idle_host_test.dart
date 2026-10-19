@@ -6,6 +6,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/morph.dart';
 // The test drives the renderer's own layer.
@@ -13,7 +15,7 @@ import 'package:morph/morph.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show AnalyticGeometryMode, RenderLiquidGlassLayer;
+    show RenderLiquidGlassLayer;
 import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// A resting liquid layer that holds a matte lets the app go idle, on the
@@ -75,16 +77,16 @@ void main() {
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
       addTearDown(() {
-        RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-        RenderLiquidGlassLayer.debugAnalyticMode = null;
+        GlassGeometryFlags.debugAnalyticGeometry = null;
+        GlassGeometryFlags.debugAnalyticMode = null;
       });
       await tester.runAsync(GlassBuiltInPainter.precache);
       if (!MorphTheme.liquidGlassAvailable) return;
       if (mode.analytic) {
         await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
-        RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.changes;
+        GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.changes;
       }
-      RenderLiquidGlassLayer.debugAnalyticGeometry = mode.analytic;
+      GlassGeometryFlags.debugAnalyticGeometry = mode.analytic;
 
       await tester.pumpWidget(scene());
       await frames(tester, 6);

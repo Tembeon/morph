@@ -9,6 +9,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The A/B toggles the renderer's own analytic path.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/geometry/glass_geometry.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
@@ -16,7 +18,7 @@ import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show AnalyticGeometryMode, RenderLiquidGlassLayer;
+    show RenderLiquidGlassLayer;
 
 import '../integration_test/support/shader_harness.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
@@ -189,13 +191,13 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
-      RenderLiquidGlassLayer.debugAnalyticFlatFace = true;
-      RenderLiquidGlassLayer.debugAnalyticCapsule = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticFlatFace = true;
+      GlassGeometryFlags.debugAnalyticCapsule = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
@@ -244,24 +246,24 @@ void main() {
     }
 
     for (final glassCase in harnessCasesNamed(_only)) {
-      RenderLiquidGlassLayer.debugAnalyticFlatFace = false;
+      GlassGeometryFlags.debugAnalyticFlatFace = false;
       await harness.show(glassCase, ShaderVariant.candidate);
       final analytic = layerAnalytic();
       final solved = await harness.shoot();
-      RenderLiquidGlassLayer.debugAnalyticFlatFace = true;
+      GlassGeometryFlags.debugAnalyticFlatFace = true;
       await harness.show(glassCase, ShaderVariant.candidate);
       expect(layerAnalytic(), analytic, reason: glassCase.name);
       check(glassCase.name, solved, await harness.shoot());
     }
     for (final capsule in [false, true]) {
-      RenderLiquidGlassLayer.debugAnalyticCapsule = capsule;
+      GlassGeometryFlags.debugAnalyticCapsule = capsule;
       for (final scene in _scenes) {
         final name = '${scene.$1}${capsule ? '-capsule' : ''}';
         if (_only.isNotEmpty && !_only.split(',').contains(name)) continue;
-        RenderLiquidGlassLayer.debugAnalyticFlatFace = false;
+        GlassGeometryFlags.debugAnalyticFlatFace = false;
         final solved = await shootScene(scene);
         expect(layerAnalytic(), isTrue, reason: name);
-        RenderLiquidGlassLayer.debugAnalyticFlatFace = true;
+        GlassGeometryFlags.debugAnalyticFlatFace = true;
         check(name, solved, await shootScene(scene));
       }
     }

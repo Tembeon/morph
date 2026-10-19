@@ -9,12 +9,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The report reads the renderer's own layers.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show AnalyticGeometryMode, RenderLiquidGlassLayer;
+    show RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/morph.dart';
@@ -42,14 +44,14 @@ void main() {
     addTearDown(tester.view.reset);
     // These tests pin analytic shading on every frame it can; the
     // `changes` mode has its own test (analytic_mode_host_test.dart).
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
 
     Future<void> frames(int count) async {
       for (var i = 0; i < count; i++) {
@@ -147,15 +149,15 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    GlassGeometryFlags.debugAnalyticMode = AnalyticGeometryMode.always;
     addTearDown(() {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
-      RenderLiquidGlassLayer.debugAnalyticMode = null;
+      GlassGeometryFlags.debugAnalyticGeometry = null;
+      GlassGeometryFlags.debugAnalyticMode = null;
     });
     await tester.runAsync(GlassBuiltInPainter.precache);
     if (!MorphTheme.liquidGlassAvailable) return;
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
 
     Future<void> frames(int count) async {
       for (var i = 0; i < count; i++) {
@@ -200,7 +202,7 @@ void main() {
     // The menus whose rows leave the shrunk source (12 pt, inside the
     // open menu) uncovered: the middle one and a corner one.
     for (final index in [0, 4]) {
-      RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+      GlassGeometryFlags.debugAnalyticGeometry = true;
       await tester.tapAt(
         tester.getCenter(find.byType(MorphMenuButton).at(index)),
       );
@@ -238,7 +240,7 @@ void main() {
       final width = tester.view.physicalSize.width.round();
       final region = source.inflate(2);
       final analytic = await shot();
-      RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+      GlassGeometryFlags.debugAnalyticGeometry = false;
       await frames(2);
       final matte = await shot();
       var over = 0;

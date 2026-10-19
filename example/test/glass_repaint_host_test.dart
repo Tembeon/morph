@@ -9,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The test drives and reads the renderer's own layers.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/pass/final_pass.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -97,11 +99,11 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    addTearDown(() => GlassGeometryFlags.debugAnalyticGeometry = null);
     await tester.runAsync(GlassBuiltInPainter.precache);
     if (!MorphTheme.liquidGlassAvailable) return null;
     await tester.runAsync(GlassFinalPass.precacheAnalyticShaders);
-    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    GlassGeometryFlags.debugAnalyticGeometry = true;
 
     final navigator = GlobalKey<NavigatorState>();
     await tester.pumpWidget(GalleryApp(navigatorKey: navigator));
