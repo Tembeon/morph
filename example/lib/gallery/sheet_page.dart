@@ -3,6 +3,8 @@ import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/knobs.dart';
 
+final _zoomLink = MorphSourceLink();
+
 /// Sheets the way UIKit presents them: a floating glass sheet at the
 /// medium detent that docks edge to edge at the large one, a large-only
 /// sheet, an undimmed medium detent over a live page, a sheet with a
@@ -76,7 +78,7 @@ class _SheetPageState extends State<SheetPage> {
     List<MorphSheetDetent> detents, {
     MorphSheetDetent? undimmed,
     bool list = false,
-    Object? from,
+    MorphSourceLink? from,
   }) async {
     final result = await showMorphSheet<String>(
       context,
@@ -309,14 +311,14 @@ class _SheetPageState extends State<SheetPage> {
         padding: const .only(bottom: 12),
         child: SizedBox(
           height: 48,
-          child: MorphTag(
-            id: 'zoom',
+          child: MorphSource(
+            link: _zoomLink,
             shape: const StadiumBorder(),
             child: MorphGlassButton(
               onPressed: () => _present('Zoomed from its button', const [
                 MorphSheetDetent.medium,
                 MorphSheetDetent.large,
-              ], from: 'zoom'),
+              ], from: _zoomLink),
               child: const Text('Zoom from this button'),
             ),
           ),

@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
+final _cardLink = MorphSourceLink();
+
 const _screen = Size(402, 874);
 
 /// Every text on screen that fell through to the fallback text style (the
@@ -298,13 +300,13 @@ void main() {
         home: Builder(
           builder: (BuildContext context) {
             home = context;
-            return const Center(
+            return Center(
               child: SizedBox(
                 width: 100,
                 height: 100,
                 child: MorphTag(
-                  id: 'card',
-                  child: ColoredBox(color: Color(0xFFFF00FF)),
+                  id: _cardLink,
+                  child: const ColoredBox(color: Color(0xFFFF00FF)),
                 ),
               ),
             );
@@ -315,7 +317,7 @@ void main() {
     unawaited(
       pushMorphZoom<void>(
         home,
-        from: 'card',
+        from: _cardLink,
         builder: (BuildContext context) => _page('Photo'),
       ),
     );

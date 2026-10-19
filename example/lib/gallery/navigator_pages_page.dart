@@ -131,7 +131,10 @@ class _DemoState extends State<_Demo> {
   late List<Page<Object?>> _pages = _build();
   int _next = 0;
 
-  static Object _photoTag(int i) => 'navigator-pages-photo-$i';
+  static final _photoLinks = <int, MorphSourceLink>{};
+
+  static MorphSourceLink _photoTag(int i) =>
+      _photoLinks.putIfAbsent(i, MorphSourceLink.new);
 
   void _set(List<_Entry> path) => setState(() {
     _path = path;
@@ -245,8 +248,8 @@ class _Library extends StatelessWidget {
                           context,
                           () => state._push(.photo, i),
                         ),
-                        child: MorphTag(
-                          id: _DemoState._photoTag(i),
+                        child: MorphSource(
+                          link: _DemoState._photoTag(i),
                           shape: const RoundedRectangleBorder(
                             borderRadius: .all(.circular(12)),
                           ),

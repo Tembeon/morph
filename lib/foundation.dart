@@ -32,7 +32,14 @@ export 'src/flight.dart'
 export 'src/motion.dart';
 export 'src/presentation.dart';
 export 'src/scope.dart'
-    show MorphScope, MorphScopeState, MorphSurfaceSpec, MorphTag, MorphTagState;
+    show
+        MorphScope,
+        MorphScopeState,
+        MorphSource,
+        MorphSourceLink,
+        MorphSurfaceSpec,
+        MorphTag,
+        MorphTagState;
 export 'src/scrim.dart' show MorphScrimMotion;
 export 'src/show.dart';
 export 'src/spring.dart';

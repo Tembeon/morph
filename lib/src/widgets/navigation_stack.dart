@@ -676,7 +676,7 @@ class _Observer extends NavigatorObserver {
 /// dims with black up to [MorphNavigationTuning.underDimOpacity] as the
 /// page on top covers it (measured alpha and progress law).
 ///
-/// With a [from] the page instead zooms out of that tag, as a UIKit
+/// With a [from] the page instead zooms out of that source, as a UIKit
 /// page pushed with `preferredTransition = .zoom`: the source hides, a
 /// container grows from its frame to the screen while the source's look
 /// crossfades into the page, the page underneath dims and stays put. A
@@ -698,10 +698,10 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   /// Builds the page.
   final WidgetBuilder builder;
 
-  /// The source tag's id, or null for a page that slides in.
+  /// The source the page zooms out of, or null for a page that slides in.
   ///
   /// An absent or unlaid-out tag shows the page in place.
-  final Object? from;
+  final MorphSourceLink? from;
 
   MorphZoomSource? _zoomSource;
   late final _NavigationZoomHost<T> _zoomHost = _NavigationZoomHost<T>(this);
@@ -984,8 +984,8 @@ class MorphNavigationRoute<T> extends PageRoute<T>
 }
 
 /// Pushes the page [builder] builds onto the navigator around [context],
-/// zoomed out of the [MorphTag] with id [from] under the [MorphScope]
-/// around [context], as UIKit pushes a view controller whose
+/// zoomed out of the source [from] is attached to, as UIKit pushes a view
+/// controller whose
 /// `preferredTransition` is `.zoom`; see [MorphNavigationRoute.from].
 ///
 /// An absent or unlaid-out source shows the page in place. If the source
@@ -994,7 +994,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
 Future<T?> pushMorphZoom<T>(
   BuildContext context, {
   required WidgetBuilder builder,
-  required Object from,
+  required MorphSourceLink from,
   MorphPushZoomTuning zoom = MorphPushZoomTuning.standard,
   RouteSettings? settings,
 }) {
@@ -1035,7 +1035,7 @@ class _NavigationDim extends CustomPainter {
 
 /// A page of a [MorphNavigationStack.pages] stack (or of any Navigator 2
 /// navigator) that shows [child] in a [MorphNavigationRoute]: it slides in
-/// and pops by the edge swipe, or with a [from] zooms out of that tag.
+/// and pops by the edge swipe, or with a [from] zooms out of that source.
 ///
 /// A router builds one per screen, keyed so the navigator matches it to
 /// its route when the list changes; an updated page with the same key
@@ -1055,9 +1055,8 @@ class MorphNavigationPage<T> extends Page<T> {
   /// The screen, usually a [MorphNavigationScaffold].
   final Widget child;
 
-  /// The source tag's id the page zooms out of, or null for a page that
-  /// slides in; see [MorphNavigationRoute.from].
-  final Object? from;
+  /// The source the page zooms out of, or null for a page that slides in; see [MorphNavigationRoute.from].
+  final MorphSourceLink? from;
 
   /// The measured zoom used when there is a [from].
   final MorphPushZoomTuning zoom;

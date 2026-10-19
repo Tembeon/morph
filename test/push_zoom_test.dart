@@ -8,6 +8,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph/motion.dart';
 
+final _cardLink = MorphSourceLink();
+
 Rect _rect(List<Object?> v) => Rect.fromLTRB(
   (v[0]! as num).toDouble(),
   (v[1]! as num).toDouble(),
@@ -224,12 +226,12 @@ void main() {
                       ),
                       Positioned.fromRect(
                         rect: _card,
-                        child: const MorphTag(
-                          id: 'card',
-                          shape: RoundedRectangleBorder(
+                        child: MorphTag(
+                          id: _cardLink,
+                          shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(Radius.circular(16)),
                           ),
-                          child: ColoredBox(
+                          child: const ColoredBox(
                             key: ValueKey<String>('card'),
                             color: Color(0xFFFF00FF),
                           ),
@@ -253,7 +255,7 @@ void main() {
     );
 
     Future<void> pushDetail(WidgetTester tester, BuildContext home) async {
-      unawaited(pushMorphZoom<void>(home, builder: detail, from: 'card'));
+      unawaited(pushMorphZoom<void>(home, builder: detail, from: _cardLink));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
     }
@@ -344,7 +346,7 @@ void main() {
           home,
           builder: (BuildContext context) =>
               GestureDetector(onTap: () {}, child: detail(context)),
-          from: 'card',
+          from: _cardLink,
         ),
       );
       await tester.pumpAndSettle();
@@ -375,7 +377,7 @@ void main() {
           home,
           builder: (BuildContext context) =>
               PopScope<void>(canPop: false, child: detail(context)),
-          from: 'card',
+          from: _cardLink,
         ),
       );
       await tester.pumpAndSettle();
@@ -398,7 +400,7 @@ void main() {
                 PopScope<void>(canPop: value, child: child!),
             child: detail(context),
           ),
-          from: 'card',
+          from: _cardLink,
         ),
       );
       await tester.pumpAndSettle();

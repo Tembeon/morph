@@ -9,6 +9,8 @@ import 'package:morph/src/widgets/sheet.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/widgets/zoom_source.dart';
 
+final _sourceLink = MorphSourceLink();
+
 void main() {
   for (final direction in TextDirection.values) {
     testWidgets('zoom radius resolves the source $direction', (tester) async {
@@ -21,16 +23,16 @@ void main() {
             home: Builder(
               builder: (c) {
                 context = c;
-                return const Center(
+                return Center(
                   child: MorphTag(
-                    id: 'source',
-                    shape: RoundedRectangleBorder(
+                    id: _sourceLink,
+                    shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadiusDirectional.only(
                         topStart: Radius.circular(8),
                         topEnd: Radius.circular(24),
                       ),
                     ),
-                    child: SizedBox(width: 100, height: 80),
+                    child: const SizedBox(width: 100, height: 80),
                   ),
                 );
               },
@@ -38,7 +40,7 @@ void main() {
           ),
         ),
       );
-      final source = MorphZoomSource(MorphScope.of(context).tryTagOf('source'));
+      final source = MorphZoomSource(_sourceLink.tag);
       expect(source.capture(context), isNotNull);
       expect(
         source.radius(const Size(100, 80)),
@@ -62,9 +64,9 @@ void main() {
               update = setState;
               return Center(
                 child: show
-                    ? const MorphTag(
-                        id: 'source',
-                        child: SizedBox(width: 100, height: 80),
+                    ? MorphTag(
+                        id: _sourceLink,
+                        child: const SizedBox(width: 100, height: 80),
                       )
                     : const SizedBox(),
               );
@@ -73,7 +75,7 @@ void main() {
         ),
       ),
     );
-    final source = MorphZoomSource(MorphScope.of(context).tryTagOf('source'));
+    final source = MorphZoomSource(_sourceLink.tag);
     final rect = source.capture(context);
     source.hide();
     await tester.pump();
@@ -108,9 +110,9 @@ void main() {
                   update = setState;
                   return Center(
                     child: show
-                        ? const MorphTag(
-                            id: 'source',
-                            child: SizedBox(
+                        ? MorphTag(
+                            id: _sourceLink,
+                            child: const SizedBox(
                               width: 100,
                               height: 80,
                               child: Text('replica'),
@@ -127,7 +129,7 @@ void main() {
           unawaited(
             showMorphSheet<void>(
               context,
-              from: 'source',
+              from: _sourceLink,
               detents: const [MorphSheetDetent.medium],
               builder: (_) => const Text('content'),
             ),
@@ -135,7 +137,7 @@ void main() {
         } else {
           final result = pushMorphZoom<void>(
             context,
-            from: 'source',
+            from: _sourceLink,
             builder: (_) => const SizedBox.expand(child: Text('content')),
           );
           result.ignore();
@@ -170,10 +172,14 @@ void main() {
           home: Builder(
             builder: (c) {
               context = c;
-              return const Center(
+              return Center(
                 child: MorphTag(
-                  id: 'source',
-                  child: SizedBox(width: 100, height: 80, child: Text('look')),
+                  id: _sourceLink,
+                  child: const SizedBox(
+                    width: 100,
+                    height: 80,
+                    child: Text('look'),
+                  ),
                 ),
               );
             },
@@ -183,7 +189,7 @@ void main() {
     );
     final result = pushMorphZoom<void>(
       context,
-      from: 'source',
+      from: _sourceLink,
       builder: (_) => const SizedBox.expand(child: Text('content')),
     );
     result.ignore();
@@ -219,10 +225,10 @@ void main() {
               home: Builder(
                 builder: (c) {
                   context = c;
-                  return const Center(
+                  return Center(
                     child: MorphTag(
-                      id: 'source',
-                      child: SizedBox(
+                      id: _sourceLink,
+                      child: const SizedBox(
                         width: 100,
                         height: 80,
                         child: Text('look'),
@@ -245,7 +251,7 @@ void main() {
           unawaited(
             showMorphSheet<void>(
               context,
-              from: 'source',
+              from: _sourceLink,
               detents: const [MorphSheetDetent.medium],
               builder: (_) => const Text('content'),
             ),
@@ -253,7 +259,7 @@ void main() {
         } else {
           pushMorphZoom<void>(
             context,
-            from: 'source',
+            from: _sourceLink,
             builder: (_) => const SizedBox.expand(child: Text('content')),
           ).ignore();
         }
@@ -292,7 +298,7 @@ void main() {
                   update = setState;
                   return Center(
                     child: MorphTag(
-                      id: 'source',
+                      id: _sourceLink,
                       child: SizedBox(
                         width: 100,
                         height: 80,
@@ -309,7 +315,7 @@ void main() {
           unawaited(
             showMorphSheet<void>(
               context,
-              from: 'source',
+              from: _sourceLink,
               detents: const [MorphSheetDetent.medium],
               builder: (_) => const Text('content'),
             ),
@@ -317,7 +323,7 @@ void main() {
         } else {
           pushMorphZoom<void>(
             context,
-            from: 'source',
+            from: _sourceLink,
             builder: (_) => const SizedBox.expand(child: Text('content')),
           ).ignore();
         }

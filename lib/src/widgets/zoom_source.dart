@@ -16,8 +16,10 @@ class MorphZoomSource {
           : null;
 
   /// Resolves [id] in the scope around [context], tolerating an absent tag.
-  factory MorphZoomSource.resolve(BuildContext context, Object? id) =>
-      MorphZoomSource(id == null ? null : MorphScope.of(context).tryTagOf(id));
+  factory MorphZoomSource.resolve(
+    BuildContext context,
+    MorphSourceLink? from,
+  ) => MorphZoomSource(from?.tag);
 
   /// The source tag, or null when no source is available.
   final MorphTagState? tag;

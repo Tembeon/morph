@@ -5,6 +5,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/widgets.dart';
 
+final _cardLink = MorphSourceLink();
+
 void main() {
   Future<_Recorder> pumpPage(WidgetTester tester, Widget body) async {
     await tester.binding.setSurfaceSize(const Size(402, 874));
@@ -176,7 +178,7 @@ void main() {
                     children: [
                       Positioned.fromRect(
                         rect: const Rect.fromLTWH(40, 300, 160, 120),
-                        child: MorphTag(id: 'card', child: _Probe(seen)),
+                        child: MorphTag(id: _cardLink, child: _Probe(seen)),
                       ),
                     ],
                   ),
@@ -193,7 +195,7 @@ void main() {
       pushMorphZoom<void>(
         home,
         builder: (BuildContext context) => const SizedBox.expand(),
-        from: 'card',
+        from: _cardLink,
       ),
     );
     await tester.pump();

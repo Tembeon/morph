@@ -78,6 +78,19 @@ class MorphScrimMotion
   final MorphMotion motion
   final Duration openDelay
   overrides: ==, hashCode, toString
+class MorphSource extends StatelessWidget
+  const MorphSource({
+    required MorphSourceLink link,
+    required Widget child,
+    ShapeBorder shape = const RoundedRectangleBorder(),
+    Key? key,
+  })
+  final Widget child
+  final MorphSourceLink link
+  final ShapeBorder shape
+  overrides: build
+final class MorphSourceLink
+  MorphSourceLink()
 class MorphSpring
   const MorphSpring(double response, double dampingRatio)
   double get damping
@@ -131,7 +144,7 @@ class MorphTagState extends State<MorphTag>
   ShapeBorder get shape
   Color? get surfaceColor
   MorphSurfaceSpec get surfaceSpec
-  overrides: activate, build, deactivate, didChangeDependencies, didUpdateWidget, dispose
+  overrides: activate, build, deactivate, didChangeDependencies, didUpdateWidget, dispose, initState
 class MorphTargetSpec
   MorphTargetSpec.vessel({
     required Rect Function(Size, EdgeInsets) rectFor,
@@ -1624,7 +1637,7 @@ class MorphNavigationConfig
 class MorphNavigationPage<T> extends Page<T>
   const MorphNavigationPage({
     required Widget child,
-    Object? from,
+    MorphSourceLink? from,
     MorphPushZoomTuning zoom = MorphPushZoomTuning.standard,
     LocalKey? key,
     String? name,
@@ -1632,18 +1645,18 @@ class MorphNavigationPage<T> extends Page<T>
     String? restorationId,
   })
   final Widget child
-  final Object? from
+  final MorphSourceLink? from
   final MorphPushZoomTuning zoom
   overrides: createRoute
 class MorphNavigationRoute<T> extends PageRoute<T> with MorphMotionRouteMixin<T>
   MorphNavigationRoute({
     required Widget Function(BuildContext) builder,
-    Object? from,
+    MorphSourceLink? from,
     MorphPushZoomTuning zoom = MorphPushZoomTuning.standard,
     RouteSettings? settings,
   })
   final Widget Function(BuildContext) builder
-  final Object? from
+  final MorphSourceLink? from
   final MorphPushZoomTuning zoom
   overrides: barrierColor, barrierLabel, buildPage, buildTransitions, canTransitionTo, didPop, didPush, leaveMotionRoute, maintainState, opaque, popGestureEnabled, reverseTransitionDuration, transitionDuration, usesMotionRoute
 class MorphNavigationScaffold extends StatefulWidget
@@ -2279,7 +2292,7 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T>, Gl
   MorphSheetRoute({
     required Widget Function(BuildContext) builder,
     required List<MorphSheetDetent> detents,
-    Object? from,
+    MorphSourceLink? from,
     MorphZoomTuning zoom = MorphZoomTuning.standard,
     MorphSheetDetent? initialDetent,
     MorphSheetDetent? largestUndimmedDetent,
@@ -2296,7 +2309,7 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T>, Gl
   final Widget Function(BuildContext) builder
   final List<MorphSheetDetent> detents
   final bool dismissible
-  final Object? from
+  final MorphSourceLink? from
   final bool grabberVisible
   final MorphSheetDetent? initialDetent
   final MorphSheetDetent? largestUndimmedDetent
@@ -2381,6 +2394,8 @@ class MorphSliverListSection extends StatelessWidget
   final Widget Function(BuildContext, int) itemBuilder
   final int itemCount
   overrides: build
+class MorphSource (see package:morph/foundation.dart)
+class MorphSourceLink (see package:morph/foundation.dart)
 class MorphSpring (see package:morph/foundation.dart)
 class MorphStepper extends StatefulWidget
   const MorphStepper({
@@ -2732,7 +2747,7 @@ function morphPresentationOverlayOf (see package:morph/foundation.dart)
 Future<T?> pushMorphZoom<T>(
   BuildContext context, {
   required Widget Function(BuildContext) builder,
-  required Object from,
+  required MorphSourceLink from,
   MorphPushZoomTuning zoom = MorphPushZoomTuning.standard,
   RouteSettings? settings,
 })
@@ -2759,7 +2774,7 @@ Future<MorphAlertAction?> showMorphAlert(
 Future<T?> showMorphSheet<T>(
   BuildContext context, {
   required Widget Function(BuildContext) builder,
-  Object? from,
+  MorphSourceLink? from,
   MorphZoomTuning zoom = MorphZoomTuning.standard,
   List<MorphSheetDetent> detents = const [MorphSheetDetent.large],
   MorphSheetDetent? initialDetent,

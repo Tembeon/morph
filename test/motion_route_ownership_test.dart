@@ -8,6 +8,8 @@ import 'package:morph/src/widgets/navigation_stack.dart';
 import 'package:morph/src/widgets/sheet.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 
+final _sourceLink = MorphSourceLink();
+
 Route<void> _cover() => RawDialogRoute<void>(
   pageBuilder: (_, _, _) => const Center(child: Text('cover')),
   transitionDuration: Duration.zero,
@@ -109,10 +111,10 @@ void main() {
           home: Builder(
             builder: (context) {
               sourceContext = context;
-              return const Center(
+              return Center(
                 child: MorphTag(
-                  id: 'source',
-                  child: SizedBox(
+                  id: _sourceLink,
+                  child: const SizedBox(
                     width: 120,
                     height: 80,
                     child: Text('source'),
@@ -127,7 +129,7 @@ void main() {
     unawaited(
       pushMorphZoom<void>(
         sourceContext,
-        from: 'source',
+        from: _sourceLink,
         builder: (_) => const SizedBox.expand(child: Text('zoom page')),
       ),
     );

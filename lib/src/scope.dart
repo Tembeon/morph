@@ -319,6 +319,53 @@ class MorphSurfaceSpec {
       'MorphSurfaceSpec(shape: $shape, color: $color, elevation: $elevation)';
 }
 
+/// Names a widget as the source a presentation morphs out of and back
+/// into.
+///
+/// A control that can be a source takes one as `source:`; [MorphSource]
+/// attaches one to any widget. A presentation shown `from:` the link
+/// reads the source's geometry and themes, hides it while it stands in
+/// for it and dissolves on closing when the source is gone. A link needs
+/// no scope and no dispose.
+final class MorphSourceLink {
+  /// Creates a link with no source attached.
+  MorphSourceLink();
+
+  MorphTagState? _tag;
+
+  /// The attached source, or null when none is mounted.
+  @internal
+  MorphTagState? get tag {
+    final tag = _tag;
+    return tag != null && tag.mounted ? tag : null;
+  }
+}
+
+/// Attaches [link] to [child], so presentations shown from the link morph
+/// out of and back into [child].
+class MorphSource extends StatelessWidget {
+  /// Attaches [link] to [child], whose outline is [shape].
+  const MorphSource({
+    required this.link,
+    required this.child,
+    this.shape = const RoundedRectangleBorder(),
+    super.key,
+  });
+
+  /// The link presentations name as their source.
+  final MorphSourceLink link;
+
+  /// The source's outline, the corner a zoom starts from.
+  final ShapeBorder shape;
+
+  /// The widget that is the source.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      MorphTag(id: link, shape: shape, child: child);
+}
+
 /// The identity marker: registers its RenderBox in the scope and hands
 /// the engine a (rect, shape) pair. The shape is declared, never
 /// inferred from decoration.
@@ -481,9 +528,25 @@ class MorphTagState extends State<MorphTag> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _attachLink(widget.id);
+  }
+
+  void _attachLink(Object id) {
+    if (id is MorphSourceLink) id._tag = this;
+  }
+
+  void _detachLink(Object id) {
+    if (id is MorphSourceLink && identical(id._tag, this)) id._tag = null;
+  }
+
+  @override
   void didUpdateWidget(MorphTag oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.id != widget.id) {
+      _detachLink(oldWidget.id);
+      _attachLink(widget.id);
       _scope?.unregisterTag(oldWidget.id, this);
       _scope?.registerTag(widget.id, this);
       _scope?.retagFlight(oldWidget.id, this);
@@ -494,6 +557,7 @@ class MorphTagState extends State<MorphTag> {
 
   @override
   void dispose() {
+    _detachLink(widget.id);
     _scope?.unregisterTag(widget.id, this);
     _revisions?.dispose();
     super.dispose();

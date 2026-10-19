@@ -5,6 +5,8 @@ import 'package:morph/src/widgets/navigation_stack.dart';
 import 'package:morph/src/widgets/sheet.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 
+final _sourceLink = MorphSourceLink();
+
 void main() {
   for (final sheet in [true, false]) {
     for (final kind in ['missing', 'empty', 'direct']) {
@@ -22,7 +24,7 @@ void main() {
                   context = c;
                   return Center(
                     child: MorphTag(
-                      id: 'source',
+                      id: _sourceLink,
                       child: SizedBox(
                         width: kind == 'empty' ? 0 : 100,
                         height: kind == 'empty' ? 0 : 80,
@@ -34,7 +36,7 @@ void main() {
             ),
           ),
         );
-        final id = kind == 'missing' ? 'unknown' : 'source';
+        final id = kind == 'missing' ? MorphSourceLink() : _sourceLink;
         final Future<void> result;
         if (kind == 'direct') {
           result = nav.currentState!.push<void>(

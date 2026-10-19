@@ -290,7 +290,12 @@ class _NavigationBarPageState extends State<NavigationBarPage> {
 class _ZoomTiles extends StatelessWidget {
   const _ZoomTiles();
 
-  static Object _id(int i) => 'navigation-bar-zoom-$i';
+  static final _links = List<MorphSourceLink>.generate(
+    3,
+    (_) => MorphSourceLink(),
+  );
+
+  static MorphSourceLink _id(int i) => _links[i];
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -315,8 +320,8 @@ class _ZoomTiles extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: MorphTag(
-                    id: _id(i),
+                  child: MorphSource(
+                    link: _id(i),
                     shape: const RoundedRectangleBorder(
                       borderRadius: .all(.circular(16)),
                     ),

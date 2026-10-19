@@ -7,6 +7,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph/motion.dart';
 
+final _sourceLink = MorphSourceLink();
+
 Rect _rect(List<Object?> v) => Rect.fromLTRB(
   (v[0]! as num).toDouble(),
   (v[1]! as num).toDouble(),
@@ -52,7 +54,7 @@ Widget _app(void Function(BuildContext context) onPresent) => MaterialApp(
               width: 140,
               height: 48,
               child: MorphTag(
-                id: 'source',
+                id: _sourceLink,
                 shape: const StadiumBorder(),
                 child: GestureDetector(
                   onTap: () => onPresent(context),
@@ -155,7 +157,7 @@ void main() {
       _app(
         (BuildContext context) => showMorphSheet<void>(
           context,
-          from: 'source',
+          from: _sourceLink,
           detents: const [MorphSheetDetent.medium],
           builder: _sheet,
         ),
@@ -202,7 +204,7 @@ void main() {
       _app(
         (BuildContext context) => showMorphSheet<void>(
           context,
-          from: 'source',
+          from: _sourceLink,
           detents: const [MorphSheetDetent.medium],
           builder: _sheet,
         ),

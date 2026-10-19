@@ -3,6 +3,8 @@ import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 
+final _photoLinks = List<MorphSourceLink>.generate(4, (_) => MorphSourceLink());
+
 /// A small mail app on the gallery's measured navigation stack: a
 /// large-title list with a subtitle and badged bar buttons (a count and a
 /// dot), a detail screen with a subtitle under its inline title, bar
@@ -187,11 +189,11 @@ class _Photos extends StatelessWidget {
               child: GestureDetector(
                 onTap: () => pushMorphZoom<void>(
                   context,
-                  from: 'photo-$i',
+                  from: _photoLinks[i],
                   builder: (_) => _Photo(index: i),
                 ),
-                child: MorphTag(
-                  id: 'photo-$i',
+                child: MorphSource(
+                  link: _photoLinks[i],
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),

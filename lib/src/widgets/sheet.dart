@@ -142,8 +142,8 @@ class MorphSheetAppearance implements MorphAppearance {
 /// expands the sheet before the content scrolls. `Navigator.pop` closes
 /// the sheet with a result.
 ///
-/// With [from], the id of a [MorphTag] under the [MorphScope] around
-/// [context], the sheet zooms out of that source instead of sliding up,
+/// With [from], a [MorphSourceLink] attached to a source, the sheet zooms
+/// out of that source instead of sliding up,
 /// as a UIKit sheet presented with `preferredTransition = .zoom`: the
 /// source hides, a container grows from its frame into the sheet's while
 /// the source's look crossfades into the sheet's content, and every
@@ -164,7 +164,7 @@ class MorphSheetAppearance implements MorphAppearance {
 Future<T?> showMorphSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
-  Object? from,
+  MorphSourceLink? from,
   MorphZoomTuning zoom = MorphZoomTuning.standard,
   List<MorphSheetDetent> detents = const [MorphSheetDetent.large],
   MorphSheetDetent? initialDetent,
@@ -245,10 +245,11 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   /// Builds the sheet's content.
   final WidgetBuilder builder;
 
-  /// The source tag's id, or null for a sheet that slides up from below.
+  /// The source the sheet zooms out of, or null for a sheet that slides up
+  /// from below.
   ///
   /// An absent or unlaid-out tag presents a sliding sheet.
-  final Object? from;
+  final MorphSourceLink? from;
 
   MorphZoomSource? _zoomSource;
   MorphThemeCarrier? _themes;
