@@ -309,12 +309,7 @@ void main() {
       ),
       isNull,
     );
-    expect(
-      morphGlassOutlineMergedBoxes(
-        frame.partsFor(MorphGlassTier.fake).fused.single.$2,
-      ),
-      isNull,
-    );
+    expect(morphGlassOutlineMergedBoxes(frame.parts.fused.single.$2), isNull);
     MorphFlatBodyShader.debugEnabled = false;
     expect(
       morphGlassOutlineMergedBoxes(

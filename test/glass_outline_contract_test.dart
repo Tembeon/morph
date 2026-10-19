@@ -78,7 +78,7 @@ void main() {
         for (final (_, outline) in frame.partsFor(MorphGlassTier.flat).fused) {
           expect(morphGlassOutlineField(outline), isNull);
         }
-        for (final (_, outline) in frame.partsFor(MorphGlassTier.fake).fused) {
+        for (final (_, outline) in frame.parts.fused) {
           expect(morphGlassOutlineField(outline), isNotNull);
         }
         final liquid = frame.partsFor(MorphGlassTier.liquid);

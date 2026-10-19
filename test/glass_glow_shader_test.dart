@@ -348,7 +348,7 @@ void main() {
     });
   });
 
-  group('the flat and fake tiers draw no glow', () {
+  group('the flat tier draws no glow', () {
     Future<ui.Image> paint(
       WidgetTester tester,
       MorphGlassTier tier, {
@@ -382,24 +382,6 @@ void main() {
       final after = await tester.runAsync(() => pixels(lit));
       expect(before!.any((byte) => byte != 0), isTrue);
       expect(after, before);
-    });
-
-    // Host tests cannot draw fake glass (its surface is a shader), so the
-    // fake tier is checked by what it builds: no glow input, no extra
-    // paint.
-    testWidgets('fake', (tester) async {
-      await paint(tester, MorphGlassTier.fake, lit: false);
-      final paints = find.byType(CustomPaint).evaluate().length;
-      await paint(tester, MorphGlassTier.fake, lit: true);
-      final layers = tester.widgetList<LiquidGlassLayer>(
-        find.byType(LiquidGlassLayer),
-      );
-      expect(layers, isNotEmpty);
-      for (final layer in layers) {
-        expect(layer.fake, isTrue);
-        expect(layer.glowOf, isNull);
-      }
-      expect(find.byType(CustomPaint).evaluate(), hasLength(paints));
     });
   });
 }

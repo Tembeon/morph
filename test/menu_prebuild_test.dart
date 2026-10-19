@@ -168,7 +168,6 @@ void main() {
   setUpAll(() async {
     isLocalTest = true;
     await MultiShaderBuilder.precacheShaders([
-      ShaderKeys.fakeGlassSurface,
       ...ShaderKeys.liquidGlassRenders,
     ]);
   });

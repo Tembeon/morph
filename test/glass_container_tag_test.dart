@@ -10,7 +10,7 @@ import 'package:morph/morph.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 
-const MorphGlassTier _tier = MorphGlassTier.fake;
+const MorphGlassTier _tier = MorphGlassTier.liquid;
 
 void main() {
   setUpAll(() => isLocalTest = true);
@@ -188,8 +188,8 @@ void main() {
       worst,
       lessThanOrEqualTo(4),
       reason:
-          'the fake tier draws round shapes in one layer up to 4 steps '
-          'off on the rim, as for any circular glass button',
+          'one layer draws round shapes up to 4 steps off on the rim, '
+          'as for any circular glass button',
     );
   });
 }

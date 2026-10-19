@@ -1,46 +1,23 @@
-import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/morph.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
-/// The backdrop keys of every filter painted on screen, in paint order
-/// (null for a filter that takes a copy of its own). The glass's opacity
-/// seed layer, a subclass that adds a pass only inside a fractional
-/// opacity, is not one.
-List<BackdropKey?> _keys() {
-  final out = <BackdropKey?>[];
-  void walk(Layer layer) {
-    if (layer.runtimeType == BackdropFilterLayer) {
-      out.add((layer as BackdropFilterLayer).backdropKey);
-    }
-    if (layer is ContainerLayer) {
-      for (
-        var child = layer.firstChild;
-        child != null;
-        child = child.nextSibling
-      ) {
-        walk(child);
-      }
-    }
-  }
-
-  for (final view in RendererBinding.instance.renderViews) {
-    final root = view.debugLayer;
-    if (root != null) walk(root);
-  }
-  return out;
-}
+import 'support/glass_backdrop_keys.dart';
 
 void main() {
+  setUpAll(() => isLocalTest = true);
+  tearDownAll(() => isLocalTest = false);
+
   testWidgets('G3 adaptive glass installs one shared backdrop group', (
     tester,
   ) async {
     late BackdropKey? key;
     await tester.pumpWidget(
       MorphTheme(
-        data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
+        data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
         child: Builder(
           builder: (context) {
             key = BackdropGroup.of(context)?.backdropKey;
@@ -60,7 +37,7 @@ void main() {
       BackdropGroup(
         backdropKey: shared,
         child: MorphTheme(
-          data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
           child: Builder(
             builder: (context) {
               key = BackdropGroup.of(context)?.backdropKey;
@@ -74,7 +51,7 @@ void main() {
     expect(find.byType(BackdropGroup), findsOneWidget);
   });
 
-  testWidgets('G4 fake separate and fused bodies share a backdrop key', (
+  testWidgets('G4 separate and fused bodies share a backdrop key', (
     tester,
   ) async {
     final shared = BackdropKey();
@@ -95,7 +72,7 @@ void main() {
                   brightness: Brightness.light,
                 );
                 return const GlassBuiltInPainter(
-                  tier: MorphGlassTier.fake,
+                  tier: MorphGlassTier.liquid,
                 ).buildLayer(context, [
                   capsule(0),
                   capsule(55),
@@ -109,7 +86,7 @@ void main() {
     );
     tester.takeException();
     await tester.pump();
-    final keys = _keys();
+    final keys = glassBackdropKeys(tester);
     expect(keys, hasLength(2));
     expect(keys.every((key) => identical(key, shared)), isTrue);
   });
@@ -126,7 +103,7 @@ void main() {
           child: BackdropGroup(
             backdropKey: root,
             child: MorphGlassScope(
-              painter: const GlassBuiltInPainter(tier: MorphGlassTier.fake),
+              painter: const GlassBuiltInPainter(tier: MorphGlassTier.liquid),
               child: MorphNavigationScaffold(
                 title: 'Page',
                 trailing: [
@@ -159,14 +136,14 @@ void main() {
     );
     tester.takeException();
     await tester.pump(const Duration(milliseconds: 100));
-    final keys = _keys();
+    final keys = glassBackdropKeys(tester);
     final bars = keys.where((k) => !identical(k, root)).toSet();
     expect(keys.where((k) => identical(k, root)), isNotEmpty);
     expect(bars, hasLength(1));
     expect(bars.single, isNotNull);
   });
 
-  testWidgets('G6 fake chrome surfaces take a backdrop copy of their own', (
+  testWidgets('G6 chrome surfaces take a backdrop copy of their own', (
     tester,
   ) async {
     final shared = BackdropKey();
@@ -181,7 +158,7 @@ void main() {
             child: Builder(
               builder: (context) =>
                   const GlassBuiltInPainter(
-                    tier: MorphGlassTier.fake,
+                    tier: MorphGlassTier.liquid,
                   ).buildSurface(
                     context,
                     const MorphGlassSurface(
@@ -198,9 +175,8 @@ void main() {
     );
     tester.takeException();
     await tester.pump();
-    final keys = _keys();
+    final keys = glassBackdropKeys(tester);
     expect(keys, hasLength(1));
-    expect(keys.single, isNotNull);
     expect(keys.single, isNot(same(shared)));
   });
 }

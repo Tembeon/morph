@@ -28,8 +28,9 @@ import 'support/glass_scenes.dart';
 /// often.
 ///
 /// flutter_test has no Impeller, so the liquid tier builds its real widget
-/// and render tree but paints through the renderer's fallback: captures
-/// are the fallback's, the widget and paint counts are the liquid tier's.
+/// and render tree but its layers paint their content without glass: the
+/// widget and paint counts are the liquid tier's, and it captures no glass
+/// backdrop there.
 void main() {
   final fixture = File('test/fixtures/perf/counts.json');
   final update = Platform.environment['PERF_COUNTS_UPDATE'] == 'true';
