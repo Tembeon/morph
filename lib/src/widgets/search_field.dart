@@ -9,6 +9,7 @@ import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/edit_menu.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_container.dart';
@@ -395,6 +396,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
       autocorrect: false,
       enableSuggestions: false,
       rendererIgnoresPointer: true,
+      contextMenuBuilder: morphEditMenuBuilder(context),
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
     );

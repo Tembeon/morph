@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/themes.dart';
+import 'package:morph/src/widgets/edit_menu.dart';
 import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
@@ -1636,8 +1637,21 @@ class _AlertField extends StatefulWidget {
   State<_AlertField> createState() => _AlertFieldState();
 }
 
-class _AlertFieldState extends State<_AlertField> {
+class _AlertFieldState extends State<_AlertField>
+    implements TextSelectionGestureDetectorBuilderDelegate {
   final FocusNode _focus = FocusNode(debugLabel: 'MorphAlertTextField');
+  final GlobalKey<EditableTextState> _editable = GlobalKey<EditableTextState>();
+  late final TextSelectionGestureDetectorBuilder _gestures =
+      TextSelectionGestureDetectorBuilder(delegate: this);
+
+  @override
+  GlobalKey<EditableTextState> get editableTextKey => _editable;
+
+  @override
+  bool get forcePressEnabled => false;
+
+  @override
+  bool get selectionEnabled => true;
 
   // The placeholder builds again only when the field turns empty or stops
   // being empty, not on every keystroke, caret move or composing change.
@@ -1700,23 +1714,29 @@ class _AlertFieldState extends State<_AlertField> {
             ),
           Semantics(
             label: widget.field.semanticLabel ?? placeholder,
-            child: EditableText(
-              controller: controller,
-              focusNode: _focus,
-              autofocus: widget.autofocus,
-              obscureText: widget.field.obscureText,
-              keyboardType: widget.field.keyboardType,
-              onChanged: widget.field.onChanged,
-              autocorrect: widget.field.autocorrect,
-              enableSuggestions: widget.field.enableSuggestions,
-              textCapitalization: widget.field.textCapitalization,
-              inputFormatters: widget.field.inputFormatters,
-              style: text,
-              cursorColor: style.preferredColor,
-              backgroundCursorColor: style.placeholderColor,
-              maxLines: 1,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => widget.onSubmit(),
+            child: _gestures.buildGestureDetector(
+              behavior: HitTestBehavior.translucent,
+              child: EditableText(
+                key: _editable,
+                controller: controller,
+                focusNode: _focus,
+                autofocus: widget.autofocus,
+                obscureText: widget.field.obscureText,
+                keyboardType: widget.field.keyboardType,
+                onChanged: widget.field.onChanged,
+                autocorrect: widget.field.autocorrect,
+                enableSuggestions: widget.field.enableSuggestions,
+                textCapitalization: widget.field.textCapitalization,
+                inputFormatters: widget.field.inputFormatters,
+                style: text,
+                cursorColor: style.preferredColor,
+                backgroundCursorColor: style.placeholderColor,
+                maxLines: 1,
+                textInputAction: TextInputAction.done,
+                rendererIgnoresPointer: true,
+                contextMenuBuilder: morphEditMenuBuilder(context),
+                onSubmitted: (_) => widget.onSubmit(),
+              ),
             ),
           ),
         ],
