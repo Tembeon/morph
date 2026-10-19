@@ -14,7 +14,7 @@ import 'package:morph/morph.dart';
 
 import 'support/painted_colors.dart';
 import 'package:morph/src/flight.dart';
-import 'package:morph/src/motion.dart';
+import 'package:morph/src/flight_springs.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
@@ -1934,8 +1934,8 @@ void deviceMorph() {
       // The generic flight springs miss the same frames by several
       // percent of the travel.
       for (final MorphSpring other in <MorphSpring>[
-        MorphMotion.liquid.openSpring,
-        MorphMotion.liquid.closeSpring,
+        FlightSprings.liquid.openSpring,
+        FlightSprings.liquid.closeSpring,
       ]) {
         expect(
           _springFit(
@@ -2127,7 +2127,7 @@ void deviceMorph() {
   test('the dimming is black at 0.2 in light and 0.48 in dark, on the same '
       'springs in both appearances', () {
     expect(dimCases, hasLength(4));
-    final MorphMotion dim = MorphContextMenuRegion.measuredDim.motion;
+    final FlightSprings dim = MorphContextMenuRegion.measuredDim.motion;
     for (final c in dimCases) {
       final String name = c['name']! as String;
       final bool dark = name.contains('dark');

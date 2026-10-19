@@ -59,6 +59,11 @@ const _rules = ArchitectureRules(
       mayNotImport: {'api', 'engine', 'widgets'},
     ),
     Module(
+      'motion',
+      'lib/src/motion/',
+      mayNotImport: {'api', 'engine', 'glass', 'theme', 'widgets'},
+    ),
+    Module(
       'theme',
       'lib/src/theme/',
       mayNotImport: {'api', 'engine', 'glass', 'widgets'},

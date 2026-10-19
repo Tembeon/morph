@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:morph/src/gesture.dart';
+import 'package:morph/src/motion/motion.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -312,7 +313,9 @@ abstract final class MorphSheetTuning {
 /// otherwise. The settle carries [MorphSheetTuning.releaseVelocityGain]
 /// times the finger's velocity. A tap on the grabber band cycles to the
 /// next detent.
-class MorphSheetMotion {
+class MorphSheetMotion
+    with MorphMotionEvents<MorphSheetEvent>
+    implements MorphMotion<MorphSheetEvent> {
   /// Creates a motion with the given detent [heights] (ascending), resting
   /// hidden below the screen until [present].
   ///
@@ -400,16 +403,6 @@ class MorphSheetMotion {
   double? _dragFrom;
   double _dragTop = 0;
 
-  /// Called with the detent index whenever a settle picks a new one.
-  ValueChanged<int>? onDetentChanged;
-
-  /// Called when a released drag dismisses the sheet.
-  VoidCallback? onDismiss;
-
-  /// Called when a released drag would have dismissed a sheet that is not
-  /// [dismissible]; the sheet returns to its smallest detent.
-  VoidCallback? onDismissAttempt;
-
   /// The detent heights, ascending.
   List<double> get heights => _heights;
 
@@ -422,8 +415,17 @@ class MorphSheetMotion {
   /// Whether a drag holds the sheet.
   bool get isDragging => _dragFrom != null && !_released;
 
-  /// The time the motion was last advanced to.
+  @override
   double get time => _now;
+
+  // The sheet ticks every frame while anything moves; a pending grabber
+  // tap or swell waits under a moving sheet.
+  @override
+  double? get wakeTime => null;
+
+  // [advance] already lands every spring within its visible rest.
+  @override
+  void settle() {}
 
   double get _floatingBelowDocked {
     final docked = dockedIndex;
@@ -450,6 +452,7 @@ class MorphSheetMotion {
   /// swing less than [MorphRest.length], the press and the stretch less
   /// than [MorphRest.scale] of the sheet's longer side and the fill less
   /// than [MorphRest.opacity].
+  @override
   bool get isSettled =>
       _dragFrom == null &&
       _height.isWithin(_now, MorphRest.length) &&
@@ -649,10 +652,15 @@ class MorphSheetMotion {
   /// Animates to detent [index], as UIKit's animateChanges does.
   void animateTo(double t, int index) {
     advance(t);
-    _transition(t, index.clamp(0, _heights.length - 1));
+    _transition(t, index.clamp(0, _heights.length - 1), byUser: false);
   }
 
-  void _transition(double t, int index, {double? velocity}) {
+  void _transition(
+    double t,
+    int index, {
+    double? velocity,
+    bool byUser = true,
+  }) {
     final h = _heightAt(t);
     final d = _dockFor(h);
     final corner = _cornerBlendAt(t);
@@ -672,7 +680,7 @@ class MorphSheetMotion {
     }
     if (velocity != null) _height.setState(t, h, velocity);
     _height.retarget(t, _heights[index]);
-    if (changed) onDetentChanged?.call(index);
+    if (changed) emit(MorphSheetDetentChanged(index, byUser: byUser));
   }
 
   double get _top => _height.value(_now) - _offset.value(_now);
@@ -831,14 +839,14 @@ class MorphSheetMotion {
               ? MorphSheetTuning.flickDismissSpring
               : MorphSheetTuning.spring,
         );
-        onDismiss?.call();
+        emit(const MorphSheetDismissed());
         return;
       }
       if (!dismissible &&
           below >
               MorphSheetTuning.refusedPullExtent *
                   MorphSheetTuning.dismissAttemptShare) {
-        onDismissAttempt?.call();
+        emit(const MorphSheetDismissRefused());
       }
       _offset.setState(t, below, velocity * gain);
       _offset.retarget(t, 0, spring: MorphSheetTuning.spring);
@@ -869,6 +877,7 @@ class MorphSheetMotion {
 
   /// Advances the motion to time [t]; a spring whose remaining swing is
   /// invisible ([isSettled]'s thresholds) comes to rest on its target.
+  @override
   void advance(double t) {
     if (t > _now) _now = t;
     final pressAt = _pressAt;
@@ -903,4 +912,35 @@ class MorphSheetMotion {
       bottom,
     );
   }
+}
+
+/// What a [MorphSheetMotion] tells its host.
+sealed class MorphSheetEvent {
+  const MorphSheetEvent();
+}
+
+/// A settle picked detent [index]; [byUser] when a drag or a grabber tap
+/// picked it, not the app.
+final class MorphSheetDetentChanged extends MorphSheetEvent {
+  /// Creates the event.
+  const MorphSheetDetentChanged(this.index, {required this.byUser});
+
+  /// The detent index, in the motion's ascending order.
+  final int index;
+
+  /// Whether the user picked the detent.
+  final bool byUser;
+}
+
+/// A released drag dismisses the sheet.
+final class MorphSheetDismissed extends MorphSheetEvent {
+  /// Creates the event.
+  const MorphSheetDismissed();
+}
+
+/// A released drag would have dismissed a sheet that is not dismissible;
+/// the sheet returns to its smallest detent.
+final class MorphSheetDismissRefused extends MorphSheetEvent {
+  /// Creates the event.
+  const MorphSheetDismissRefused();
 }

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'package:morph/src/motion.dart';
+import 'package:morph/src/flight_springs.dart';
 
 /// A single retargetable scalar spring from which all derived morph
 /// values are computed. An interruption (open during close and vice
@@ -14,7 +14,7 @@ class MorphController extends ChangeNotifier {
   /// the first zero crossing.
   MorphController({
     required TickerProvider vsync,
-    MorphMotion motion = .liquid,
+    FlightSprings motion = .liquid,
     this.onHandoff,
   }) : _userMotion = motion {
     _ticker = vsync.createTicker(_tick);
@@ -25,7 +25,7 @@ class MorphController extends ChangeNotifier {
   late final Ticker _ticker;
   Simulation? _sim;
 
-  MorphMotion _userMotion;
+  FlightSprings _userMotion;
   bool _disableAnimations = false;
 
   double _value = 0;
@@ -75,16 +75,16 @@ class MorphController extends ChangeNotifier {
   }
 
   /// The configured motion profile.
-  MorphMotion get motion => _userMotion;
+  FlightSprings get motion => _userMotion;
 
-  /// The profile actually driving simulations: [MorphMotion.instant]
+  /// The profile actually driving simulations: [FlightSprings.instant]
   /// under reduced motion, [motion] otherwise.
-  MorphMotion get effectiveMotion =>
+  FlightSprings get effectiveMotion =>
       _disableAnimations ? .instant : _userMotion;
 
   /// Swaps the profile; a live simulation retargets onto it with the
   /// current velocity carried over.
-  set motion(MorphMotion next) {
+  set motion(FlightSprings next) {
     if (_userMotion == next) {
       return;
     }

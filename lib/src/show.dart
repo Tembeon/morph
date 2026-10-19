@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/scrim.dart';
-import 'package:morph/src/motion.dart';
+import 'package:morph/src/flight_springs.dart';
 import 'package:morph/src/target.dart';
 
 /// The public entry point: all the plumbing (Ticker, listener, Overlay
@@ -40,7 +40,7 @@ MorphFlight showMorph(
   Object? from,
   required MorphTargetSpec target,
   required MorphContentBuilder builder,
-  MorphMotion? motion,
+  FlightSprings? motion,
   bool modal = true,
   bool barrierDismissible = true,
   double maxScrimOpacity = 0.45,

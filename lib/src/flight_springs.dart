@@ -12,9 +12,9 @@ import 'package:morph/src/spring.dart';
 ///
 /// Character can only be changed as a whole profile; a mid-flight profile
 /// swap retargets the simulation.
-class MorphMotion {
+class FlightSprings {
   /// Creates a profile from two UIKit-style springs.
-  const MorphMotion({
+  const FlightSprings({
     required this.name,
     required this.openSpring,
     required this.closeSpring,
@@ -30,14 +30,14 @@ class MorphMotion {
   final MorphSpring closeSpring;
 
   /// UIKit's liquid morph, measured on the simulator and on device.
-  static const MorphMotion liquid = MorphMotion(
+  static const FlightSprings liquid = FlightSprings(
     name: 'liquid',
     openSpring: MorphSpring(0.35, 0.75),
     closeSpring: MorphSpring(0.49, 0.80),
   );
 
   /// [liquid] five times slower, for inspecting a transition by eye.
-  static const MorphMotion glacial = MorphMotion(
+  static const FlightSprings glacial = FlightSprings(
     name: 'glacial',
     openSpring: MorphSpring(1.75, 0.75),
     closeSpring: MorphSpring(2.45, 0.80),
@@ -45,7 +45,7 @@ class MorphMotion {
 
   /// A short critically damped spring both ways, used under reduced
   /// motion.
-  static const MorphMotion instant = MorphMotion(
+  static const FlightSprings instant = FlightSprings(
     name: 'instant',
     openSpring: MorphSpring(0.281, 1),
     closeSpring: MorphSpring(0.281, 1),
@@ -56,7 +56,7 @@ class MorphMotion {
   // controller's motion setter short-circuits on an equal profile.
   @override
   bool operator ==(Object other) {
-    return other is MorphMotion &&
+    return other is FlightSprings &&
         other.name == name &&
         other.openSpring == openSpring &&
         other.closeSpring == closeSpring;
@@ -66,5 +66,5 @@ class MorphMotion {
   int get hashCode => Object.hash(name, openSpring, closeSpring);
 
   @override
-  String toString() => 'MorphMotion.$name';
+  String toString() => 'FlightSprings.$name';
 }

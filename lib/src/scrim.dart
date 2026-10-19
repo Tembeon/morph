@@ -4,7 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
-import 'package:morph/src/motion.dart';
+import 'package:morph/src/flight_springs.dart';
 
 /// The scrim of a flight as its own degree of freedom: a spring of its
 /// own, retargeted toward 1 when the flight opens and toward 0 when it
@@ -22,7 +22,7 @@ import 'package:morph/src/motion.dart';
 /// re-open mid-close). It outlives the handoff latch: past it the
 /// flight keeps only the scrim until the
 /// dimming rests, and the flight lands once both are at rest. Under
-/// reduced motion it rides [MorphMotion.instant] with no delays.
+/// reduced motion it rides [FlightSprings.instant] with no delays.
 @immutable
 class MorphScrimMotion {
   /// Creates a scrim motion from its springs and delays.
@@ -33,7 +33,7 @@ class MorphScrimMotion {
   });
 
   /// The springs the scrim opens and closes on.
-  final MorphMotion motion;
+  final FlightSprings motion;
 
   /// How long after the flight turns toward open the scrim follows.
   final Duration openDelay;
@@ -132,7 +132,7 @@ class MorphScrimChannel extends ChangeNotifier {
     final Simulation? running = _sim;
     final double start = running?.x(at - _simStart) ?? _value;
     final double velocity = running?.dx(at - _simStart) ?? 0;
-    final MorphMotion motion = reducedMotion() ? .instant : scrim.motion;
+    final FlightSprings motion = reducedMotion() ? .instant : scrim.motion;
     final Simulation next = SpringSimulation(
       (target >= 1 ? motion.openSpring : motion.closeSpring).description,
       start,

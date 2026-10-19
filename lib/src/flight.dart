@@ -11,7 +11,7 @@ import 'package:morph/src/controller.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/scrim.dart';
-import 'package:morph/src/motion.dart';
+import 'package:morph/src/flight_springs.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/themes.dart';
@@ -67,7 +67,7 @@ class MorphFlight {
     required this.scrimColor,
     required this.scrimMotion,
     required this._overlay,
-    required MorphMotion motion,
+    required FlightSprings motion,
     required bool disableAnimations,
   }) {
     controller = MorphController(
@@ -379,7 +379,7 @@ class MorphFlight {
     required Object from,
     required MorphTargetSpec target,
     required MorphContentBuilder builder,
-    MorphMotion? motion,
+    FlightSprings? motion,
     bool modal = true,
     bool barrierDismissible = true,
     required double maxScrimOpacity,

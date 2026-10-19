@@ -159,6 +159,11 @@ mixin MorphClock<T extends StatefulWidget>
   /// Advances the motion to [t].
   void advanceMotion(double t);
 
+  /// Delivers the events the motion raised: after each frame's
+  /// [advanceMotion], before the frame is published, and from an input
+  /// handler after each command, before the handler returns.
+  void deliverMotionEvents() {}
+
   /// Whether the motion has nothing left to animate.
   bool get motionSettled;
 
@@ -233,6 +238,7 @@ mixin MorphClock<T extends StatefulWidget>
     _ticking = true;
     _stampFrom = null;
     advanceMotion(_clock);
+    deliverMotionEvents();
     final settled = motionSettled;
     if (settled) settleMotion();
     _frames.value++;

@@ -71,7 +71,7 @@ it.
   `moreOrLessEquals` with an epsilon, never equality.
 - `find.byKey(heroKey).last` in a context-menu test is the shuttle's GHOST replica; the
   slot copy is the one under the menu's Column.
-- `MorphMotion.instant` is a 281 ms critically damped spring, not a cut.
+- `FlightSprings.instant` is a 281 ms critically damped spring, not a cut.
 - A live widget that replaces a stock one subclasses it; tests find it with
   `find.bySubtype`, or by the live type when it is a new widget (for example
   `MorphLiveTransform`). A test that looks for `Transform` or `AnimatedBuilder` breaks

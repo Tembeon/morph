@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/flight.dart';
-import 'package:morph/src/motion.dart';
+import 'package:morph/src/flight_springs.dart';
 import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -323,7 +323,7 @@ class MorphMenuController implements MorphMenuHost {
             ),
             builder: (BuildContext context, MorphFlight flight) =>
                 MorphMenuLayer(host: this, flight: flight),
-            motion: MorphMotion(
+            motion: FlightSprings(
               name: 'menu',
               openSpring: tuning.openSpring,
               closeSpring: tuning.closeSpring,

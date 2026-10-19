@@ -15,11 +15,10 @@ What is where:
 `MorphSpring(response, dampingRatio)` - UIKit vocabulary (engine-flight.md).
 Internal; the public API names no springs.
 
-### motion.dart - MorphMotion
-- A pair of `Motion`s from motor (`openMotion` / `closeMotion` getters).
-  `MorphMotion.springs(open:, close:)` builds one from MorphSprings and
-  exposes `openSpring` / `closeSpring`; the public constructor takes any
-  Motions (Material tokens, curves, custom springs).
+### flight_springs.dart - FlightSprings
+- The flight's pair of springs, `openSpring` and `closeSpring`
+  (MorphSprings). The controls' motions are `MorphMotion<E>`
+  (`lib/src/motion/motion.dart`).
 - Built-in profiles:
   - `liquid` - the default everywhere a motion resolves (controller,
     showMorph*, MorphTheme unset): UIKit's liquid morph progress spring.

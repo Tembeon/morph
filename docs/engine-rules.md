@@ -196,7 +196,7 @@ and the approaches that are rejected on purpose.
    targets draw neither.
 6. closeMotion must be able to go below zero (a spring), otherwise the
    latch degrades; `snapToEnd` stays false. Enforced in debug by
-   `MorphMotion.debugContractViolation`, asserted whenever a profile is
+   `FlightSprings.debugContractViolation`, asserted whenever a profile is
    installed into a controller. The open may overshoot.
 
 ## Motion design principles
@@ -221,7 +221,7 @@ and the approaches that are rejected on purpose.
   normal-modulated smin.
 - Deformation comes from UIKit's flex loop (acceleration, not velocity),
   never from a hand-made squash.
-- For the eye: `MorphMotion.glacial` for flights, the gallery's slow-mo
+- For the eye: `FlightSprings.glacial` for flights, the gallery's slow-mo
   (`timeDilation`) for widgets; both preserve the curves.
 
 ## Rejected approaches

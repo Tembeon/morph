@@ -597,14 +597,29 @@ class _SheetViewState extends State<_SheetView>
     final i = detents.indexOf(detent);
     final motion = _motion;
     if (i < 0 || motion == null) return;
-    _userDetent = false;
     motion.animateTo(clock, _sortedIndex(i));
-    _userDetent = true;
+    deliverMotionEvents();
     wake();
   }
 
-  // UIKit reports a detent the user picks, not one set from code.
-  bool _userDetent = true;
+  @override
+  void deliverMotionEvents() {
+    final motion = _motion;
+    if (motion == null) return;
+    for (final event in motion.drainEvents()) {
+      if (!mounted) return;
+      switch (event) {
+        case MorphSheetDetentChanged(:final index, :final byUser):
+          setState(() => _index = _order[index]);
+          // UIKit reports a detent the user picks, not one set from code.
+          if (byUser) _route.onDetentChanged?.call(detent);
+        case MorphSheetDismissed():
+          if (!_leaving) _route.popMotionRoute();
+        case MorphSheetDismissRefused():
+          _attempted();
+      }
+    }
+  }
 
   List<int> _order = const [];
 
@@ -716,15 +731,6 @@ class _SheetViewState extends State<_SheetView>
         undimmedIndex: undimmedAt == null || undimmedAt < 0 ? null : undimmedAt,
         dismissible: _route.dismissible,
       );
-      created.onDetentChanged = (int sorted) {
-        if (!mounted) return;
-        setState(() => _index = _order[sorted]);
-        if (_userDetent) _route.onDetentChanged?.call(detent);
-      };
-      created.onDismissAttempt = _attempted;
-      created.onDismiss = () {
-        if (mounted && !_leaving) _route.popMotionRoute();
-      };
       if (_source.capture(context) != null && !_source.isLost) {
         created.presentInPlace(clock);
         final zoom = MorphZoomMotion(tuning: _route.zoom);
@@ -809,6 +815,7 @@ class _SheetViewState extends State<_SheetView>
       if (motion.isDragging) motion.dragCancel(_stamp);
       motion.tapGrabber(_stamp);
     }
+    deliverMotionEvents();
     wake();
   }
 
@@ -905,6 +912,7 @@ class _SheetViewState extends State<_SheetView>
     final motion = _motion;
     if (motion == null || !motion.isDragging) return;
     motion.dragEnd(_stamp, velocity);
+    deliverMotionEvents();
     wake();
   }
 

@@ -21,7 +21,7 @@ import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/theme/theme.dart';
 import 'package:morph/src/flight.dart';
-import 'package:morph/src/motion.dart';
+import 'package:morph/src/flight_springs.dart';
 import 'package:morph/src/scrim.dart';
 import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
@@ -297,7 +297,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// handoff latch fires on the close's zero crossing and the held view
   /// lands with UIKit's own undershoot.
   @internal
-  static const MorphMotion measuredMotion = MorphMotion(
+  static const FlightSprings measuredMotion = FlightSprings(
     name: 'contextMenu',
     openSpring: measuredSpring,
     closeSpring: measuredSpring,
@@ -326,7 +326,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// the way out, the same in both appearances.
   @internal
   static const MorphScrimMotion measuredDim = MorphScrimMotion(
-    motion: MorphMotion(
+    motion: FlightSprings(
       name: 'contextMenuDim',
       openSpring: MorphSpring(0.32, 0.80),
       closeSpring: MorphSpring(0.35, 0.85),
