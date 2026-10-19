@@ -10,6 +10,38 @@ release, following the API parity audit
 and option names, written in Flutter idioms. BREAKING throughout, with
 no behaviour or pixel change: every rename keeps what the old name did.
 
+- The foundation (docs/standalone-library-plan.md, units 1 to 5.2 in
+  part). BREAKING; no pixel change except where noted:
+  - morph no longer needs Material. `MorphTheme` is a plain
+    `InheritedTheme` over `MorphThemeData` (`brightness`, `tint`,
+    `haptics`, `appearances`); every `Morph*Appearance` implements
+    `MorphAppearance` and is found in `appearances` by its type.
+    `MorphWidgetsTheme`, `MorphWidgetsThemeScope` and the engine's
+    `MorphTheme` extension are gone. Brightness comes from the theme, else
+    from the platform: an app on `MaterialApp` passes its brightness to a
+    `MorphTheme` in `MaterialApp.builder`.
+  - `MorphLocalizations` (English by default) supplies the dismiss, search,
+    close and back labels; the widgets' `placeholder`, `closeLabel`,
+    `searchLabel` and `backButtonSemanticLabel` default to it.
+  - A presentation names its source with a `MorphSourceLink`, attached by
+    `MorphSource(link:, child:)`: `showMorphSheet`, `MorphNavigationRoute`,
+    `MorphNavigationPage` and `pushMorphZoom` take it as `from:` instead of
+    a tag id, and need no `MorphScope`.
+  - Sheets, alerts and zoomed pages give their route the motion's
+    lifecycle: `route.animation` is forward until the open rests,
+    completed at rest, reverse while leaving; a `pushReplacement` keeps the
+    replaced route until the new one is in place. Its value stays 1 from
+    push to gone.
+  - The legacy engine is gone: `showMorphRoute`, `MorphPageRoute`,
+    `MorphAnchor`, `MorphSkin` and its pieces, links and strokes,
+    `MorphSharedElement`, `MorphFrame`, the sheet and dialog flight
+    presets, every `MorphTargetSpec` form but `vessel`, the drag API, the
+    scrub API, `MorphPhase`, `MorphSkinStyle` and the `motor` re-exports.
+    `MorphMotion` is a pair of `MorphSpring`s.
+  - Dependencies: `motor`, `flutter_shaders` and `equatable` removed;
+    `material_ui` is a dev dependency only.
+  - The minimizing tab bar stamps scroll input on the current frame, so
+    its springs no longer start a frame early or late with ticker order.
 - Search and tab bars follow the native sweep of 2026-10-14 (pixel
   changes, declared in the search, search tab bar and minimize
   passports):
