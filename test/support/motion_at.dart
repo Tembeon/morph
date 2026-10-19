@@ -1,7 +1,9 @@
 import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/date_picker_motion.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
+import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
+import 'package:morph/src/widgets/tab_bar_minimize.dart';
 import 'package:morph/src/widgets/zoom_motion.dart';
 
 /// Replays read a motion at their rows' time stamps: [at] advances the
@@ -54,6 +56,24 @@ extension MorphPushZoomMotionAt on MorphPushZoomMotion {
 extension MorphDatePickerMotionAt on MorphDatePickerMotion {
   /// Advances to [t] and returns this motion.
   MorphDatePickerMotion at(double t) {
+    advance(t);
+    return this;
+  }
+}
+
+/// See [MorphAlertMotionAt].
+extension MorphSearchMotionAt on MorphSearchMotion {
+  /// Advances to [t] and returns this motion.
+  MorphSearchMotion at(double t) {
+    advance(t);
+    return this;
+  }
+}
+
+/// See [MorphAlertMotionAt].
+extension MorphTabBarMinimizeMotionAt on MorphTabBarMinimizeMotion {
+  /// Advances to [t] and returns this motion.
+  MorphTabBarMinimizeMotion at(double t) {
     advance(t);
     return this;
   }

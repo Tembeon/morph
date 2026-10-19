@@ -755,11 +755,11 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
 
   @override
   bool get motionSettled =>
-      _motion.isSettled(_motion.time, extent: _geometry?.size.width ?? 400);
+      _motion.isSettled(extent: _geometry?.size.width ?? 400);
 
   @override
   double? get motionWakeTime =>
-      _motion.wakeTime(_motion.time, extent: _geometry?.size.width ?? 400);
+      _motion.wakeTime(extent: _geometry?.size.width ?? 400);
 
   @override
   void settleMotion() => _motion.settle(_motion.time);
@@ -850,9 +850,8 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
 
   _Structure _readFrame() {
     final geometry = _geometry!;
-    final t = _motion.time;
-    final shape = _motion.shape(t);
-    final content = _motion.content(t);
+    final shape = _motion.shape;
+    final content = _motion.content;
     _bar = Rect.lerp(geometry.bar, geometry.collapsed, shape)!;
     _accessory = Rect.lerp(
       geometry.accessory,
@@ -867,7 +866,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
     _searchShown = q;
     _labelShown.value = (1 - q * 2).clamp(0.0, 1.0) > 0.01;
     _collapsedEnabled.value = _motion.minimized;
-    final resting = _motion.restsExpanded(t);
+    final resting = _motion.restsExpanded;
     return (
       resting: resting,
       minimized: _motion.minimized,
@@ -893,7 +892,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
   }
 
   void _writeHint(Matrix4 into) {
-    final scale = _motion.hint(_motion.time);
+    final scale = _motion.hint;
     if (scale == 1) return;
     into.scaleByDouble(scale, scale, 1, 1);
   }
@@ -1107,7 +1106,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
           live: _ticks,
           items: widget.items,
           selected: selected,
-          progress: () => _motion.content(_motion.time),
+          progress: () => _motion.content,
           restRect: geometry.bar,
           rect: () => _bar,
           labelShown: _labelShown,

@@ -513,7 +513,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
             live: frames,
             writeInto: (Matrix4 into) {
               if (!widget.enabled || !widget.glass) return;
-              final scale = _motion.pressScale(_motion.time);
+              final scale = _motion.pressScale;
               into.scaleByDouble(scale, scale, 1, 1);
             },
             child: SizedBox(
@@ -1125,7 +1125,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
     final rest = layouts.rest;
     final focused = layouts.focused;
     final virtual = layouts.virtual;
-    final p = _motion.progress(_motion.time);
+    final p = _motion.progress;
     final focusing = _motion.isFocused;
     final closeRect =
         _frozenClose ?? morphLerpRect(rest.close, focused.close, p);

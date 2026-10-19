@@ -225,7 +225,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       _focusMotion.isSettled &&
       _keyboardWait == null &&
       _activateAt == null &&
-      _minimize.isSettled(_now, extent: _geometry?.bar.width ?? 400);
+      _minimize.isSettled(extent: _geometry?.bar.width ?? 400);
 
   @override
   void settleMotion() => _minimize.settle(_now);
@@ -351,8 +351,8 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
   _TabStructure _readFrame() {
     final geometry = _geometry!;
     final q = _morph.value(_now);
-    final p = _focusMotion.progress(_now);
-    final m = _minimize.shape(_now);
+    final p = _focusMotion.progress;
+    final m = _minimize.shape;
     final focused = _focusMotion.isFocused;
     final settled = (q - 1).abs() < 0.001 && widget.active;
     final fieldRect = morphLerpRect(geometry.field, geometry.focusedField, p);
@@ -368,7 +368,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       MorphSearchTuning.height,
       MorphSearchTuning.height,
     );
-    final content = math.max(q, _minimize.content(_now));
+    final content = math.max(q, _minimize.content);
     _frame = _TabFrame(
       q: q,
       p: p,
@@ -385,7 +385,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     );
     final shown = q.clamp(0.0, 1.0);
     final searchIdle = q.abs() < 0.001 && !widget.active;
-    final resting = searchIdle && _minimize.restsExpanded(_now);
+    final resting = searchIdle && _minimize.restsExpanded;
     final minimized = _minimize.minimized;
     final tabIgnoring = !(widget.active || minimized) || p >= 0.5;
     // Each of these rebuilds only the part that reads it.
@@ -444,7 +444,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
   double _width = 0;
 
   Matrix4 _hintMatrix() {
-    final scale = _minimize.hint(_now);
+    final scale = _minimize.hint;
     final into = Matrix4.identity();
     if (scale == 1) return into;
     final geometry = _geometry!;

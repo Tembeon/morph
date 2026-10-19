@@ -6,6 +6,7 @@ import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/tab_bar_chrome.dart';
 import 'package:morph/src/widgets/tab_collapse.dart';
 import 'package:morph/src/widgets/tab_bar_minimize.dart';
+import 'support/motion_at.dart';
 
 const _items = [
   MorphTabItem(icon: Icons.home, label: 'Home'),
@@ -132,10 +133,10 @@ void main() {
       final away = motion.scrollAway;
       _drag(away, 32);
       motion.advance(1);
-      expect(motion.hint(1), closeTo(1 - 0.5 * 0.05, 1e-6));
+      expect(motion.at(1).hint, closeTo(1 - 0.5 * 0.05, 1e-6));
       away.endDrag(decelerates: false);
       motion.advance(3);
-      expect(motion.hint(3), closeTo(1, 1e-6));
+      expect(motion.at(3).hint, closeTo(1, 1e-6));
       expect(motion.minimized, isFalse);
     });
 
@@ -149,21 +150,21 @@ void main() {
       expect(motion.minimized, isTrue);
       expect(changes, [true]);
       motion.advance(0.04);
-      expect(motion.shape(0.04), greaterThan(0));
-      expect(motion.content(0.04), 0);
+      expect(motion.at(0.04).shape, greaterThan(0));
+      expect(motion.at(0.04).content, 0);
       motion.advance(0.1);
-      expect(motion.content(0.1), greaterThan(0));
+      expect(motion.at(0.1).content, greaterThan(0));
       motion.advance(3);
-      expect(motion.isSettled(3), isTrue);
+      expect(motion.at(3).isSettled(), isTrue);
       motion.settle(3);
-      expect(motion.shape(3), 1);
-      expect(motion.content(3), 1);
+      expect(motion.at(3).shape, 1);
+      expect(motion.at(3).content, 1);
       motion.setMinimized(3, minimized: false);
       expect(changes, [true, false]);
       motion.advance(6);
-      expect(motion.restsExpanded(6), isFalse);
+      expect(motion.at(6).restsExpanded, isFalse);
       motion.settle(6);
-      expect(motion.restsExpanded(6), isTrue);
+      expect(motion.at(6).restsExpanded, isTrue);
     });
 
     MorphTabBarMinimizeMotion minimized() {
@@ -181,7 +182,7 @@ void main() {
       motion.pressDown(3, 50);
       motion.advance(3.2);
       expect(motion.minimized, isTrue);
-      expect(motion.wakeTime(3.2), closeTo(3.22, 1e-9));
+      expect(motion.at(3.2).wakeTime(), closeTo(3.22, 1e-9));
       motion.advance(3.23);
       expect(motion.minimized, isFalse);
       expect(motion.pressMove(3.3, 53), isFalse);

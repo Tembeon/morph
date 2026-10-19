@@ -10,6 +10,7 @@ import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/morph.dart';
+import 'support/motion_at.dart';
 
 const _dir = 'test/fixtures/ios27/search';
 
@@ -141,7 +142,7 @@ void main() {
             if (_d(r, 't') > from && _d(r, 't') < to)
               ...() {
                 final t = _d(r, 't') + frame;
-                final p = motion.progress(t);
+                final p = motion.at(t).progress;
                 final model = Rect.lerp(rest.field, focused.field, p)!;
                 final seen = _rect(r);
                 return [
@@ -154,7 +155,6 @@ void main() {
         MorphSearchMotion focusAt(double call) {
           final motion = MorphSearchMotion(size: Size(restWidth, 48));
           motion.focus(call);
-          motion.advance(call + 0.5);
           return motion;
         }
 
@@ -166,23 +166,28 @@ void main() {
         // The field travels over 300 points; 2 points rms is 0.6 percent,
         // the gap between the read spring and the free fits.
         expect(focusRms, lessThan(2));
-        final motion = focusAt(focusFit);
-        List<double> closeErrors(int lagFrames) => [
-          for (final r in close)
-            if (_d(r, 't') < cancelCall && _d(r, 'ea') > 0)
-              ...() {
-                final t = _d(r, 't') + frame;
-                final p = motion.progress(t);
-                final lagged = motion.progress(t - lagFrames * frame);
-                final model = Rect.lerp(rest.close, focused.close, lagged)!;
-                return [
-                  (MorphSearchMotion.appearScaleFor(p) - _d(r, 'w') / 48) * 48,
-                  (p.clamp(0.0, 1.0) - _d(r, 'ea')) * 48,
-                  model.center.dx - _d(r, 'x'),
-                  model.center.dy - _d(r, 'y'),
-                ];
-              }(),
-        ];
+        List<double> closeErrors(int lagFrames) {
+          final motion = focusAt(focusFit);
+          final lagging = focusAt(focusFit);
+          return [
+            for (final r in close)
+              if (_d(r, 't') < cancelCall && _d(r, 'ea') > 0)
+                ...() {
+                  final t = _d(r, 't') + frame;
+                  final p = motion.at(t).progress;
+                  final lagged = lagging.at(t - lagFrames * frame).progress;
+                  final model = Rect.lerp(rest.close, focused.close, lagged)!;
+                  return [
+                    (MorphSearchMotion.appearScaleFor(p) - _d(r, 'w') / 48) *
+                        48,
+                    (p.clamp(0.0, 1.0) - _d(r, 'ea')) * 48,
+                    model.center.dx - _d(r, 'x'),
+                    model.center.dy - _d(r, 'y'),
+                  ];
+                }(),
+          ];
+        }
+
         final closeRms = [
           for (var lag = 0; lag <= 4; lag++) _rms(closeErrors(lag)),
         ].reduce(math.min);
@@ -191,7 +196,6 @@ void main() {
           final m = MorphSearchMotion(size: Size(restWidth, 48));
           m.snap(0, focused: true);
           m.unfocus(call);
-          m.advance(call + 0.5);
           return fieldErrors(m, cancelCall, double.infinity);
         }
 
@@ -247,14 +251,13 @@ void main() {
       List<double> fieldErrors(double call) {
         final m = MorphSearchMotion(size: const Size(264, 48));
         m.focus(call);
-        m.advance(call + 0.5);
         return [
           for (final r in fieldRows)
             if (_d(r, 't') > focusCall && _d(r, 't') < cancelCall)
               Rect.lerp(
                     items.field,
                     itemsFocused.field,
-                    m.progress(_d(r, 't') + _frame),
+                    m.at(_d(r, 't') + _frame).progress,
                   )!.left -
                   _rect(r).left,
         ];
@@ -264,7 +267,6 @@ void main() {
       expect(fieldRms, lessThan(1.5));
       final leaving = MorphSearchMotion(size: const Size(264, 48));
       leaving.focus(focusFit);
-      leaving.advance(focusFit + 0.5);
       final firstSeen = <int, double>{};
       for (final r in glass) {
         if (_d(r, 't') > focusCall) {
@@ -279,7 +281,7 @@ void main() {
         final seen = _rect(r);
         final isLead = seen.center.dx < _w / 2;
         if (seen.center.dy < 700) continue;
-        final p = leaving.progress(t);
+        final p = leaving.at(t).progress;
         final home = isLead ? items.leading.single : items.trailing.single;
         out.add(home.center.dx - seen.center.dx);
         out.add(home.center.dy - seen.center.dy);
@@ -293,14 +295,13 @@ void main() {
         final m = MorphSearchMotion(size: const Size(264, 48));
         m.snap(0, focused: true);
         m.unfocus(call);
-        m.advance(call + 0.5);
         return [
           for (final r in glass)
             if (_d(r, 't') > cancelCall && _rect(r).center.dy > 700)
               ...() {
                 final seen = _rect(r);
                 final isLead = seen.center.dx < _w / 2;
-                final p = m.progress(_d(r, 't') + _frame);
+                final p = m.at(_d(r, 't') + _frame).progress;
                 final from = isLead
                     ? virtual.leading.single
                     : virtual.trailing.single;
@@ -344,7 +345,7 @@ void main() {
         for (final r in field) {
           final t = _d(r, 't') + _frame;
           motion.advance(t);
-          out.add((motion.pressScale(t) - _d(r, 'w') / 384) * 384);
+          out.add((motion.at(t).pressScale - _d(r, 'w') / 384) * 384);
         }
         return out;
       }
@@ -387,7 +388,7 @@ void main() {
         for (final r in field)
           if (_d(r, 't') > from && _d(r, 't') < to)
             ...() {
-              final p = motion.progress(_d(r, 't'));
+              final p = motion.at(_d(r, 't')).progress;
               final model = Rect.lerp(rest.field, focused.field, p)!;
               return [model.top - _d(r, 'y') + 24];
             }(),
@@ -400,7 +401,6 @@ void main() {
         } else {
           motion.unfocus(start - MorphSearchTuning.transitionDelay);
         }
-        motion.advance(start + 0.6);
         return motion;
       }
 
@@ -449,7 +449,7 @@ void main() {
         for (final r in field) {
           final t = _d(r, 't');
           motion.advance(t);
-          out.add((motion.pressScale(t) - _d(r, 'w') / width) * width);
+          out.add((motion.at(t).pressScale - _d(r, 'w') / width) * width);
         }
         return out;
       }
@@ -508,7 +508,7 @@ void main() {
           if (_d(r, 't') > close && _d(r, 't') < close + 0.6)
             ...() {
               motion.advance(_d(r, 't'));
-              final p = motion.progress(_d(r, 't'));
+              final p = motion.at(_d(r, 't')).progress;
               return [restY + (focusedY - restY) * p - _d(r, 'y')];
             }(),
       ];
@@ -555,7 +555,7 @@ void main() {
           if (_d(r, 't') > from && _d(r, 't') < to)
             ...() {
               motion.advance(_d(r, 't'));
-              final p = motion.progress(_d(r, 't'));
+              final p = motion.at(_d(r, 't')).progress;
               return [restY + (focusedY - restY) * p - _d(r, 'y')];
             }(),
       ];
@@ -585,9 +585,9 @@ void main() {
       final motion = MorphSearchMotion();
       motion.focus(0);
       motion.advance(MorphSearchTuning.transitionDelay - 0.001);
-      expect(motion.progress(motion.time), 0);
+      expect(motion.at(motion.time).progress, 0);
       motion.advance(1);
-      expect(motion.progress(1), closeTo(1, 1e-3));
+      expect(motion.at(1).progress, closeTo(1, 1e-3));
       expect(motion.isSettled, isTrue);
     });
 
@@ -595,30 +595,30 @@ void main() {
       final motion = MorphSearchMotion();
       motion.focus(0);
       motion.advance(0.15);
-      final p = motion.progress(0.15);
+      final p = motion.at(0.15).progress;
       motion.unfocus(0.15);
       motion.advance(0.15 + MorphSearchTuning.transitionDelay);
       expect(
-        motion.progress(0.15 + MorphSearchTuning.transitionDelay),
+        motion.at(0.15 + MorphSearchTuning.transitionDelay).progress,
         greaterThan(p),
       );
       motion.advance(2);
-      expect(motion.progress(2), closeTo(0, 1e-3));
+      expect(motion.at(2).progress, closeTo(0, 1e-3));
     });
 
     test('a quick tap barely lifts; reduced motion never does', () {
       final motion = MorphSearchMotion(size: const Size(384, 48));
       motion.pointerDown(0);
       motion.advance(0.04);
-      expect(motion.pressScale(0.04), 1);
+      expect(motion.at(0.04).pressScale, 1);
       motion.pointerUp(0.04);
       motion.advance(1);
-      expect(motion.pressScale(1), closeTo(1, 1e-4));
+      expect(motion.at(1).pressScale, closeTo(1, 1e-4));
       final calm = MorphSearchMotion(size: const Size(384, 48));
       calm.reducedMotion = true;
       calm.pointerDown(0);
       calm.advance(0.5);
-      expect(calm.pressScale(0.5), 1);
+      expect(calm.at(0.5).pressScale, 1);
     });
   });
 

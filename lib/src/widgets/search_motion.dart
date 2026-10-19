@@ -425,11 +425,15 @@ class MorphSearchMotion {
   /// The touch was cancelled at time [t].
   void pointerCancel(double t) => pointerUp(t);
 
-  /// The focus progress at time [t]: 0 at rest, 1 focused.
-  double progress(double t) => _progress.value(t);
+  /// The focus progress: 0 at rest, 1 focused.
+  double get progress => _progressAt(_now);
 
-  /// The lift scale of the field at time [t].
-  double pressScale(double t) => _lift.scale(t);
+  double _progressAt(double t) => _progress.value(t);
+
+  /// The lift scale of the field.
+  double get pressScale => _pressScaleAt(_now);
+
+  double _pressScaleAt(double t) => _lift.scale(t);
 
   /// The scale of an item that is [presence] there (0 gone, 1 fully
   /// there): [MorphSearchTuning.appearScale] at nothing.

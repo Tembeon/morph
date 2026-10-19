@@ -519,14 +519,14 @@ class MorphTabBarMinimizeMotion {
   }
 
   /// The time the motion next changes on its own (a held finger's
-  /// expansion) while every spring rests at time [t] within [MorphRest]
-  /// for a bar group [extent] points wide, or null.
-  double? wakeTime(double t, {double extent = 400}) {
+  /// expansion) while every spring rests within [MorphRest] for a bar
+  /// group [extent] points wide, or null.
+  double? wakeTime({double extent = 400}) {
     final due = _timeline.nextDue;
     if (due == null) return null;
-    return _hint.isWithin(t, MorphRest.scale(extent)) &&
-            _shape.isWithin(t, MorphRest.scale(extent)) &&
-            _content.isWithin(t, MorphRest.scale(extent))
+    return _hint.isWithin(_now, MorphRest.scale(extent)) &&
+            _shape.isWithin(_now, MorphRest.scale(extent)) &&
+            _content.isWithin(_now, MorphRest.scale(extent))
         ? due
         : null;
   }
@@ -537,21 +537,29 @@ class MorphTabBarMinimizeMotion {
     if (t > _now) _now = t;
   }
 
-  /// The scale of the bar group at time [t]: 1, or less while a scroll
+  /// The scale of the bar group: 1, or less while a scroll
   /// hints at minimizing.
-  double hint(double t) => _hint.value(t);
+  double get hint => _hintAt(_now);
+
+  double _hintAt(double t) => _hint.value(t);
 
   /// The glass's way from the expanded bar (0) to the minimized circle
-  /// (1) at time [t].
-  double shape(double t) => _shape.value(t);
+  /// (1).
+  double get shape => _shapeAt(_now);
+
+  double _shapeAt(double t) => _shape.value(t);
 
   /// The content's way from the expanded bar (0) to the minimized circle
-  /// (1) at time [t].
-  double content(double t) => _content.value(t);
+  /// (1).
+  double get content => _contentAt(_now);
 
-  /// Whether the bar rests expanded at time [t]: nothing of the morph
+  double _contentAt(double t) => _content.value(t);
+
+  /// Whether the bar rests expanded: nothing of the morph
   /// moves and nothing is pending.
-  bool restsExpanded(double t) =>
+  bool get restsExpanded => _restsExpandedAt(_now);
+
+  bool _restsExpandedAt(double t) =>
       !_minimized &&
       _timeline.isEmpty &&
       _shape.target == 0 &&
@@ -559,14 +567,14 @@ class MorphTabBarMinimizeMotion {
       _shape.value(t) == 0 &&
       _content.value(t) == 0;
 
-  /// Whether nothing moves at time [t]: every spring is within its visible
-  /// rest ([MorphRest]) for a bar group [extent] points wide, and nothing
-  /// is pending.
-  bool isSettled(double t, {double extent = 400}) =>
+  /// Whether nothing moves: every spring is within its visible rest
+  /// ([MorphRest]) for a bar group [extent] points wide, and nothing is
+  /// pending.
+  bool isSettled({double extent = 400}) =>
       _timeline.isEmpty &&
-      _hint.isWithin(t, MorphRest.scale(extent)) &&
-      _shape.isWithin(t, MorphRest.scale(extent)) &&
-      _content.isWithin(t, MorphRest.scale(extent));
+      _hint.isWithin(_now, MorphRest.scale(extent)) &&
+      _shape.isWithin(_now, MorphRest.scale(extent)) &&
+      _content.isWithin(_now, MorphRest.scale(extent));
 
   /// Puts every spring onto its target at time [t] (NEAR, invisible: the
   /// motion has settled within [MorphRest]).
