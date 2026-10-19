@@ -1,15 +1,39 @@
 import 'dart:async';
 import 'dart:developer' show Timeline;
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter, SceneBuilder;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart'
-    show BoxHitTestResult, RenderRepaintBoundary, RenderTransform;
+    show
+        BackdropFilterLayer,
+        BoxHitTestResult,
+        ClipRectLayer,
+        ContainerLayer,
+        ImageFilterLayer,
+        Layer,
+        LayerHandle,
+        PipelineOwner,
+        PlatformViewLayer,
+        RenderAbsorbPointer,
+        RenderIgnorePointer,
+        RenderMouseRegion,
+        RenderOffstage,
+        RenderPointerListener,
+        RenderProxyBox,
+        RenderProxyBoxWithHitTestBehavior,
+        RenderRepaintBoundary,
+        RenderSemanticsAnnotations,
+        RenderStack,
+        RenderTransform,
+        StackParentData;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart' show PredictiveBackEvent;
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/glass_composition_probe.dart'
+    show readsBackdrop;
 import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/bar_items.dart';
@@ -17,6 +41,7 @@ import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/navigation_bar.dart';
+import 'package:morph/src/widgets/navigation_card_reach.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
@@ -899,6 +924,18 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   Object? _transitionInputs;
   Widget? _transition;
 
+  // The route above, whose card may cover this page, and this route's own
+  // card while it slides.
+  Route<Object?>? _next;
+  _RenderSlideCard? _card;
+  double _cardRadius = MorphNavigationTuning.fallbackCardRadius;
+
+  @override
+  void didChangeNext(Route<Object?>? nextRoute) {
+    _next = nextRoute;
+    super.didChangeNext(nextRoute);
+  }
+
   // The route's scope builds the transition on every tick of either
   // animation and hands it a fresh wrapper of the same page each time.
   // Handing back the transition built before stops the rebuild there: the
@@ -926,6 +963,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
             Directionality.maybeOf(context),
             _crossFades(context),
             _cardRadiusOf(context),
+            MediaQuery.maybeDevicePixelRatioOf(context),
           );
     final kept = _transition;
     if (inputs != null && kept != null && inputs == _transitionInputs) {
@@ -961,7 +999,8 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     }
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     final slid = _EdgePop(key: _edgeKey, route: this, child: child);
-    final radius = Radius.circular(_cardRadiusOf(context));
+    _cardRadius = _cardRadiusOf(context);
+    final radius = Radius.circular(_cardRadius);
     final slide = _slideOf(animation, secondaryAnimation);
     var pageSize = Size.zero;
     // The page's own width, the unit the edge swipe measures the finger
@@ -976,22 +1015,21 @@ class MorphNavigationRoute<T> extends PageRoute<T>
                 MorphNavigationTuning.parallax * secondaryAnimation.value);
         into.setTranslationRaw(rtl ? -x : x, 0, 0);
       },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          MorphLiveBox(
-            live: animation,
-            clip: () => animation.isAnimating
-                ? RRect.fromRectAndRadius(Offset.zero & pageSize, radius)
-                : null,
-            continuous: true,
-            child: slid,
-          ),
-          CustomPaint(
-            key: const ValueKey<String>('morph.navigation.dim'),
-            painter: _NavigationDim(secondaryAnimation),
-          ),
-        ],
+      child: _SlideCard(
+        key: const ValueKey<String>('morph.navigation.dim'),
+        route: this,
+        slide: slide,
+        dim: secondaryAnimation,
+        rtl: rtl,
+        devicePixelRatio: MediaQuery.maybeDevicePixelRatioOf(context) ?? 1,
+        child: MorphLiveBox(
+          live: animation,
+          clip: () => animation.isAnimating
+              ? RRect.fromRectAndRadius(Offset.zero & pageSize, radius)
+              : null,
+          continuous: true,
+          child: slid,
+        ),
       ),
     );
   }
@@ -1003,29 +1041,344 @@ class MorphNavigationRoute<T> extends PageRoute<T>
       MorphNavigationTuning.fallbackCardRadius;
 }
 
-class _NavigationDim extends CustomPainter {
-  _NavigationDim(this.animation) : super(repaint: animation);
+/// Whether a sliding page under the opaque card of the route above paints
+/// only the strip that card leaves visible; host pixel tests turn it off
+/// to compare.
+@visibleForTesting
+bool debugNavigationCoverCut = true;
 
-  final Animation<double> animation;
+/// The dim opacity of a sliding page's card, the strip of the page it
+/// would paint now (null for all of it) and the page clip it last put in
+/// the scene (null for none), when [renderObject] is one; for tests.
+@visibleForTesting
+({double dim, Rect? shown, Rect? clip})? debugNavigationCardOf(
+  RenderObject renderObject,
+) => renderObject is _RenderSlideCard
+    ? (
+        dim: renderObject._dimOpacity,
+        shown: renderObject._shown(),
+        clip: renderObject._clip.layer?.clipRect,
+      )
+    : null;
+
+// A sliding page's card and the dim over it. Under the opaque card of a
+// navigation route above, it paints only the strip that card leaves
+// visible: a rect clip, which Impeller applies as a scissor, so the page
+// and the dim the card hides cost no fill.
+class _SlideCard extends SingleChildRenderObjectWidget {
+  const _SlideCard({
+    required this.route,
+    required this.slide,
+    required this.dim,
+    required this.rtl,
+    required this.devicePixelRatio,
+    super.key,
+    super.child,
+  });
+
+  final MorphNavigationRoute<Object?> route;
+  final Listenable slide;
+  final Animation<double> dim;
+  final bool rtl;
+  final double devicePixelRatio;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final opacity = MorphNavigationTuning.underDimOpacity * animation.value;
+  _RenderSlideCard createRenderObject(BuildContext context) => _RenderSlideCard(
+    route: route,
+    slide: slide,
+    dim: dim,
+    rtl: rtl,
+    devicePixelRatio: devicePixelRatio,
+  );
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderSlideCard renderObject,
+  ) => renderObject.update(
+    route: route,
+    slide: slide,
+    dim: dim,
+    rtl: rtl,
+    devicePixelRatio: devicePixelRatio,
+  );
+}
+
+class _RenderSlideCard extends RenderProxyBox with MorphLiveBinding {
+  _RenderSlideCard({
+    required this._route,
+    required Listenable slide,
+    required this._dim,
+    required this._rtl,
+    required this._devicePixelRatio,
+  }) {
+    bindLive(slide, markNeedsPaint, now: false);
+  }
+
+  MorphNavigationRoute<Object?> _route;
+  Animation<double> _dim;
+  bool _rtl;
+  double _devicePixelRatio;
+  final _clip = LayerHandle<_CutLayer>();
+
+  void update({
+    required MorphNavigationRoute<Object?> route,
+    required Listenable slide,
+    required Animation<double> dim,
+    required bool rtl,
+    required double devicePixelRatio,
+  }) {
+    if (!identical(route, _route)) {
+      if (identical(_route._card, this)) _route._card = null;
+      _route = route;
+      if (attached) route._card = this;
+    }
+    _dim = dim;
+    _rtl = rtl;
+    _devicePixelRatio = devicePixelRatio;
+    bindLive(slide, markNeedsPaint);
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _route._card = this;
+  }
+
+  @override
+  void detach() {
+    if (identical(_route._card, this)) _route._card = null;
+    super.detach();
+  }
+
+  @override
+  void dispose() {
+    _clip.layer = null;
+    super.dispose();
+  }
+
+  double get _dimOpacity => MorphNavigationTuning.underDimOpacity * _dim.value;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final child = this.child;
+    if (child == null) return;
+    final shown = debugNavigationCoverCut ? _shown() : null;
+    if (shown == null) {
+      _clip.layer = null;
+      context.paintChild(child, offset);
+    } else {
+      final layer = _clip.layer ?? _CutLayer();
+      layer.cut = shown.shift(offset);
+      layer.whole = offset & size;
+      _clip.layer =
+          context.pushClipRect(
+                needsCompositing,
+                offset,
+                shown,
+                (PaintingContext context, Offset offset) =>
+                    context.paintChild(child, offset),
+                oldLayer: layer,
+              )
+              as _CutLayer?;
+    }
+    final opacity = _dimOpacity;
     if (opacity <= 0) return;
     final paint = Paint();
     // Match the former opacity layer's eight-bit alpha exactly.
     paint.color = const Color(
       0xFF000000,
     ).withAlpha(Color.getAlphaFromOpacity(opacity.clamp(0.0, 1.0)));
-    canvas.drawRect(Offset.zero & size, paint);
+    context.canvas.drawRect((shown ?? Offset.zero & size).shift(offset), paint);
+  }
+
+  // The strip of this page, in its own coordinates, that the card of the
+  // navigation route above leaves visible on this frame, or null to paint
+  // the whole page. Only on Impeller, whose 4x MSAA clip the card's edge
+  // reach is measured against, with the card's top and bottom on device
+  // pixel rows.
+  Rect? _shown() {
+    if (!ImageFilter.isShaderFilterSupported || !hasSize) return null;
+    final next = _route._next;
+    if (next is! MorphNavigationRoute<Object?> || next._zooms) return null;
+    final cover = next._card;
+    if (cover == null ||
+        !cover.attached ||
+        !cover.hasSize ||
+        cover.size != size ||
+        cover._rtl != _rtl ||
+        !cover._opaque) {
+      return null;
+    }
+    final (ownIn, ownOut, nextIn, nextOut) = (
+      _route.animation,
+      _route.secondaryAnimation,
+      next.animation,
+      next.secondaryAnimation,
+    );
+    if (ownIn == null || ownOut == null || nextIn == null || nextOut == null) {
+      return null;
+    }
+    if (!_onPixelRows()) return null;
+    final width = size.width;
+    // Where each route's own transition puts its page this frame.
+    double slid(Animation<double> animation, Animation<double> secondary) =>
+        width *
+        ((1 - animation.value) -
+            MorphNavigationTuning.parallax * secondary.value);
+    final x = slid(nextIn, nextOut) - slid(ownIn, ownOut);
+    final reach = navigationCardEdgeReach(
+      size,
+      next._cardRadius,
+      _devicePixelRatio,
+    );
+    final ratio = _devicePixelRatio;
+    if (_rtl) {
+      final left = ((width - x - reach) * ratio).floorToDouble() / ratio;
+      return left <= 0 ? null : Rect.fromLTRB(left, 0, width, size.height);
+    }
+    final right = ((x + reach) * ratio).ceilToDouble() / ratio;
+    return right >= width ? null : Rect.fromLTRB(0, 0, right, size.height);
+  }
+
+  // Whether this card hides all it covers outside its corners: its page
+  // starts with an opaque scaffold fill the size of the card, under
+  // nothing that changes how it paints.
+  bool get _opaque {
+    final card = child;
+    if (card is! RenderMorphLiveBox || card.opacityOf != null) return false;
+    RenderObject? node = card.child;
+    while (node is RenderBox && node.hasSize && node.size == size) {
+      if (node.runtimeType == _RenderPageFill) {
+        return (node as _RenderPageFill).color.a == 1;
+      }
+      if (node.runtimeType == RenderStack) {
+        final first = (node as RenderStack).firstChild;
+        final data = first?.parentData;
+        if (data is! StackParentData || data.offset != Offset.zero) {
+          return false;
+        }
+        node = first;
+        continue;
+      }
+      if (!_passThrough.contains(node.runtimeType) ||
+          (node is RenderOffstage && node.offstage)) {
+        return false;
+      }
+      node = (node as RenderProxyBox).child;
+    }
+    return false;
+  }
+
+  // Proxies between a route's card and its page that paint their child as
+  // it is, where it is.
+  static const _passThrough = <Type>{
+    RenderAbsorbPointer,
+    RenderIgnorePointer,
+    RenderMouseRegion,
+    RenderOffstage,
+    RenderPointerListener,
+    RenderRepaintBoundary,
+    RenderSemanticsAnnotations,
+  };
+
+  // The edge reach assumes the 1/8 pixel deep first sample row under a
+  // pixel-aligned edge, which holds under translations only.
+  bool _onPixelRows() {
+    final m = getTransformTo(null);
+    if (m.entry(0, 1) != 0 ||
+        m.entry(1, 0) != 0 ||
+        m.entry(3, 0) != 0 ||
+        m.entry(3, 1) != 0 ||
+        m.entry(3, 3) != 1) {
+      return false;
+    }
+    final scale = m.entry(1, 1);
+    final ratio = _devicePixelRatio;
+    final perPixel = (scale - ratio).abs() < 1e-6
+        ? 1.0
+        : (scale - 1).abs() < 1e-6
+        ? ratio
+        : 0.0;
+    if (perPixel == 0) return false;
+    bool onRow(double y) {
+      final pixels = y * perPixel;
+      return (pixels - pixels.roundToDouble()).abs() < 1e-3;
+    }
+
+    final top = m.entry(1, 3);
+    return onRow(top) && onRow(top + scale * size.height);
+  }
+}
+
+// The clip of a page under a covering card. A backdrop read, image filter
+// or platform view in the page may sample it beyond the strip, so the page
+// stays whole then (the dim under the card still goes). Decided as the
+// layer goes into the scene, once the glass in the page has settled
+// whether it reads its backdrop on this frame.
+class _CutLayer extends ClipRectLayer {
+  Rect cut = Rect.zero;
+  Rect whole = Rect.zero;
+
+  @override
+  void addToScene(SceneBuilder builder) {
+    clipRect = _readsAround(this) ? whole : cut;
+    super.addToScene(builder);
+  }
+
+  static bool _readsAround(Layer layer) {
+    if (layer is BackdropFilterLayer) return readsBackdrop(layer);
+    if (layer is ImageFilterLayer || layer is PlatformViewLayer) return true;
+    if (layer is ContainerLayer) {
+      for (
+        var child = layer.firstChild;
+        child != null;
+        child = child.nextSibling
+      ) {
+        if (_readsAround(child)) return true;
+      }
+    }
+    return false;
+  }
+}
+
+// The scaffold's background. It paints as a ColoredBox does; a covering
+// navigation card reads its color to know the page under it is opaque.
+class _PageFill extends SingleChildRenderObjectWidget {
+  const _PageFill({required this.color, super.child});
+
+  final Color color;
+
+  @override
+  _RenderPageFill createRenderObject(BuildContext context) =>
+      _RenderPageFill(color);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderPageFill renderObject) =>
+      renderObject.color = color;
+}
+
+class _RenderPageFill extends RenderProxyBoxWithHitTestBehavior {
+  _RenderPageFill(this._color) : super(behavior: HitTestBehavior.opaque);
+
+  Color get color => _color;
+  Color _color;
+  set color(Color value) {
+    if (value == _color) return;
+    _color = value;
+    markNeedsPaint();
   }
 
   @override
-  bool hitTest(Offset position) => false;
-
-  @override
-  bool shouldRepaint(_NavigationDim oldDelegate) =>
-      oldDelegate.animation != animation;
+  void paint(PaintingContext context, Offset offset) {
+    if (size > Size.zero) {
+      final paint = Paint();
+      paint.color = color;
+      context.canvas.drawRect(offset & size, paint);
+    }
+    final child = this.child;
+    if (child != null) context.paintChild(child, offset);
+  }
 }
 
 /// A page of a [MorphNavigationStack.pages] stack (or of any Navigator 2
@@ -1951,7 +2304,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold>
     final shift = _extended ? _shift : 0.0;
     content = _BarContent(live: _hiding, shift: shift, child: content);
     final search = widget.search;
-    Widget body = ColoredBox(
+    Widget body = _PageFill(
       color: background,
       child: DefaultTextStyle(
         style: MorphTypography.resolve(

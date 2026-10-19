@@ -86,6 +86,12 @@ class GlassCompositionProbe {
   void dispose() => _layer.layer = null;
 }
 
+/// Whether [layer] reads its backdrop when it goes into the scene: every
+/// backdrop filter does, except an opacity seed while it does not seed.
+@internal
+bool readsBackdrop(BackdropFilterLayer layer) =>
+    layer is! _OpacitySeedLayer || layer.seeded;
+
 class _OpacitySeedLayer extends BackdropFilterLayer {
   bool _seeded = false;
   bool get seeded => _seeded;
