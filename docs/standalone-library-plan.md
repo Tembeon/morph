@@ -154,13 +154,13 @@ morph даёт приложению полный набор Liquid Glass-ком�
 - **Зависит от.** 2, 3, P1.
 - **Файлы.** `lib/src/presentation/`, `sheet.dart`, `sheet_motion.dart`, `zoom_source.dart`, `presentation.dart`.
 - **Сделать.**
-  - [ ] Перенести из P1 `MorphMotionRoute`, `MorphRouteAnimation`, `MorphSettleSignal` и `MorphPopupRoute`.
-  - [ ] `MorphSourceLink` и `MorphSource`, параметр `source:` у контролов, которые показывают sheet.
+  - [ ] Перенести из P1 `MorphMotionRoute`, `MorphRouteAnimation`, `MorphSettleSignal` и `MorphPopupRoute`. Сделано внутри `MorphMotionRouteMixin` (`a46da818`): route проецирует фазы движения, значение держится 1 от push до ухода, потому что движущееся значение поднимало счётчики сборок выше потолков (запасной вариант P1).
+  - [x] `MorphSourceLink` и `MorphSource`, параметр `source:` у контролов, которые показывают sheet. `2e03a8cf`; `from:` у sheet, `MorphNavigationRoute`, `MorphNavigationPage`, `pushMorphZoom`. Параметр `source:` у контролов не добавлен: `MorphSource` оборачивает любой контрол.
   - [ ] `morphPresentationNavigatorOf(context, level)` с уровнем как свойством семейства.
-  - [ ] Перевести sheet.
+  - [x] Перевести sheet. Жизненный цикл route у sheet, alert и zoom-страницы.
 - **Видно.** Zoom sheet не меняется. Страница под sheet видна во время zoom.
 - **Проверка, unit.**
-  - [ ] Предикат P1 на продуктовом sheet.
+  - [x] Предикат P1 на продуктовом sheet. `test/motion_route_lifecycle_test.dart`: фазы, удержание при `pushReplacement`, replace. Сборки на кадр в потолках `perf_counts.json`.
   - [ ] Редактор во вложенном Navigator сохраняет State и IME при открытии, закрытии, изменении insets и покрытии другим route.
   - [ ] Источник исчезает раньше редактора.
   - [ ] Replay zoom.
