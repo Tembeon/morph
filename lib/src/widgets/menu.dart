@@ -1525,7 +1525,6 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     final host = widget.host;
     final motion = host.menuMotion;
     if (motion == null || !motion.isOpen) return KeyEventResult.ignored;
-    final t = host.menuClock;
     final top = motion.topCard;
     final layout = motion.cards[top].layout;
     final order = [for (var i = 0; i < layout.targets.length; i++) i];
@@ -1544,7 +1543,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       final next = at < 0
           ? (step > 0 ? 0 : order.length - 1)
           : (at + step).clamp(0, order.length - 1);
-      host.menuCommand((motion, t) => motion.highlight(t, order[next]), at: t);
+      host.menuCommand((motion, t) => motion.highlight(t, order[next]));
     }
 
     final KeyEventResult result;
@@ -1558,7 +1557,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         key == LogicalKeyboardKey.numpadEnter ||
         key == LogicalKeyboardKey.space) {
       if (current == null) return KeyEventResult.ignored;
-      host.menuCommand((motion, t) => motion.select(t, current), at: t);
+      host.menuCommand((motion, t) => motion.select(t, current));
       result = KeyEventResult.handled;
     } else if (key ==
         (rtl ? LogicalKeyboardKey.arrowLeft : LogicalKeyboardKey.arrowRight)) {
@@ -1566,7 +1565,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           layout.targets[current].kind != MorphMenuTargetKind.submenu) {
         return KeyEventResult.ignored;
       }
-      host.menuCommand((motion, t) => motion.select(t, current), at: t);
+      host.menuCommand((motion, t) => motion.select(t, current));
       result = KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.escape ||
         key ==
@@ -1574,7 +1573,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                 ? LogicalKeyboardKey.arrowRight
                 : LogicalKeyboardKey.arrowLeft)) {
       var back = false;
-      host.menuCommand((motion, t) => back = motion.back(t), at: t);
+      host.menuCommand((motion, t) => back = motion.back(t));
       if (!back) return KeyEventResult.ignored;
       result = KeyEventResult.handled;
     } else {

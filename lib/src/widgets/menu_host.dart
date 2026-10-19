@@ -366,8 +366,8 @@ class MorphMenuController implements MorphMenuHost {
   /// Closes the motion and its flight, including any pending opening,
   /// from where the motion stands: never before its last sample.
   void close() {
-    final motion = _motion;
     if (_disposed) return;
+    final motion = _motion;
     if (motion != null) {
       menuCommand(
         (motion, t) => motion.close(t),
@@ -523,8 +523,8 @@ class MorphMenuController implements MorphMenuHost {
       menuCommand((motion, t) => motion.open(t));
     } else {
       _pointer = pointer;
-      final at = _local(position);
-      menuCommand((motion, t) => motion.holdOpen(t, at));
+      final local = _local(position);
+      menuCommand((motion, t) => motion.holdOpen(t, local));
     }
     menuWake();
   }
@@ -546,15 +546,15 @@ class MorphMenuController implements MorphMenuHost {
       return;
     }
     _pointer = event.pointer;
-    final at = _local(event.position);
-    menuCommand((motion, t) => motion.pointerDown(t, at), at: stamp(event));
+    final local = _local(event.position);
+    menuCommand((motion, t) => motion.pointerDown(t, local), at: stamp(event));
   }
 
   @override
   void menuPointerMove(PointerMoveEvent event) {
     if (_disposed || event.pointer != _pointer) return;
-    final at = _local(event.position);
-    menuCommand((motion, t) => motion.pointerMove(t, at), at: stamp(event));
+    final local = _local(event.position);
+    menuCommand((motion, t) => motion.pointerMove(t, local), at: stamp(event));
   }
 
   @override
@@ -563,8 +563,8 @@ class MorphMenuController implements MorphMenuHost {
     _pointer = null;
     final motion = _motion;
     if (motion == null) return;
-    final at = _local(event.position);
-    menuCommand((motion, t) => motion.pointerUp(t, at), at: stamp(event));
+    final local = _local(event.position);
+    menuCommand((motion, t) => motion.pointerUp(t, local), at: stamp(event));
     if (motion.isOpenPending) _route();
   }
 
