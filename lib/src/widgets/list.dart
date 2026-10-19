@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/theme/localizations.dart';
 import 'package:morph/src/widgets/clock.dart';
@@ -36,12 +37,15 @@ abstract final class MorphListMetrics {
   /// content's trailing margin, both 8).
   static const double gap = 8;
 
-  /// The height of a single-line row.
+  /// The height of a single-line row: the least height of a row, its
+  /// content centered in it.
   static const double minRowHeight = 53;
 
-  /// The space above and below a row's content: a two-line row is its
-  /// content plus twice this (69.33 for a 17 pt title over a 15 pt
-  /// subtitle).
+  /// The space above and below a row's text: a two-line row is its labels
+  /// plus twice this (69.33 for a 20.33 pt title over an 18 pt subtitle).
+  /// A trailing control and the accessory get none: UIKit centers an
+  /// accessory view in the row (a 28 pt switch 12.67 below the top of a
+  /// 53 pt row, list-tree fixtures).
   static const double rowPadding = 15.5;
 
   /// The width of the leading slot that centers a row's symbol 28 pt from
@@ -355,7 +359,7 @@ Widget _sectionHeader(MorphListAppearance look, Widget? header) =>
             style: MorphTypography.resolve(
               MorphTypography.listHeader.copyWith(color: look.secondaryColor),
             ),
-            child: header,
+            child: _LabelBox(child: header),
           ),
         ),
       );
@@ -374,7 +378,7 @@ Widget _sectionFooter(MorphListAppearance look, Widget? footer) =>
           style: MorphTypography.resolve(
             MorphTypography.listFooter.copyWith(color: look.secondaryColor),
           ),
-          child: footer,
+          child: _LabelBox(child: footer),
         ),
       );
 
@@ -513,8 +517,14 @@ enum MorphListAccessory {
 /// area and wrapping past it; a [leading] symbol is centered in a
 /// slot 28 pt from the card's edge and moves the text and the separator
 /// to 56 pt; a [trailing] control (a switch, say) and the
-/// [accessory] end 20 pt from the card's edge. A single-line row
-/// is 53 pt tall. Instead of a title, a [child] can fill the row's text
+/// [accessory] end 20 pt from the card's edge, centered in the row's
+/// height as UIKit centers an accessory view: they take none of the
+/// text's padding, so a row with a switch is 53 pt tall like a plain one
+/// (a control taller than the row makes it as tall as the control). A
+/// single-line row is 53 pt tall. Each line of text is as tall as UIKit
+/// makes a label, its font's line height rounded up to the device pixel
+/// (20.33 pt for 17 pt SF Pro at 3x), where the text engine rounds it to
+/// a whole point. Instead of a title, a [child] can fill the row's text
 /// area with any content.
 ///
 /// With [onTap] the row is a button: it fills with the highlight color
@@ -682,48 +692,62 @@ class _MorphListRowState extends State<MorphListRow>
             : MorphListMetrics.leadingWidth + MorphListMetrics.leadingGap);
     Widget content(double width) => Row(
       children: [
-        if (leading != null) ...[
-          SizedBox(
-            width: MorphListMetrics.leadingWidth,
-            child: Center(
-              child: IconTheme.merge(
-                data: IconThemeData(
-                  size: MorphListMetrics.leadingIconSize,
-                  color: look.iconColor,
-                ),
-                child: leading,
-              ),
-            ),
-          ),
-          const SizedBox(width: MorphListMetrics.leadingGap),
-        ],
         Expanded(
-          child: DefaultTextStyle(
-            style: titleStyle,
-            child:
-                widget.child ??
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ?title,
-                    if (subtitle != null)
-                      DefaultTextStyle(style: subtitleStyle, child: subtitle),
-                  ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: MorphListMetrics.rowPadding,
+            ),
+            child: Row(
+              children: [
+                if (leading != null) ...[
+                  SizedBox(
+                    width: MorphListMetrics.leadingWidth,
+                    child: Center(
+                      child: IconTheme.merge(
+                        data: IconThemeData(
+                          size: MorphListMetrics.leadingIconSize,
+                          color: look.iconColor,
+                        ),
+                        child: leading,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: MorphListMetrics.leadingGap),
+                ],
+                Expanded(
+                  child: DefaultTextStyle(
+                    style: titleStyle,
+                    child:
+                        widget.child ??
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (title != null) _LabelBox(child: title),
+                            if (subtitle != null)
+                              DefaultTextStyle(
+                                style: subtitleStyle,
+                                child: _LabelBox(child: subtitle),
+                              ),
+                          ],
+                        ),
+                  ),
                 ),
+                if (detail != null) ...[
+                  const SizedBox(width: MorphListMetrics.gap),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: width / 2),
+                    child: DefaultTextStyle(
+                      style: secondary,
+                      textAlign: TextAlign.end,
+                      child: _LabelBox(child: detail),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
-        if (detail != null) ...[
-          const SizedBox(width: MorphListMetrics.gap),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: width / 2),
-            child: DefaultTextStyle(
-              style: secondary,
-              textAlign: TextAlign.end,
-              child: detail,
-            ),
-          ),
-        ],
         if (accessory) const SizedBox(width: MorphListMetrics.gap),
         ?trailing,
         if (trailing != null && mark)
@@ -751,13 +775,11 @@ class _MorphListRowState extends State<MorphListRow>
         minHeight: MorphListMetrics.minRowHeight,
       ),
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(
-          MorphListMetrics.contentInset,
-          MorphListMetrics.rowPadding,
-          accessory
+        padding: EdgeInsetsDirectional.only(
+          start: MorphListMetrics.contentInset,
+          end: accessory
               ? MorphListMetrics.accessoryInset
               : MorphListMetrics.contentInset,
-          MorphListMetrics.rowPadding,
         ),
         child: Center(
           widthFactor: 1,
@@ -825,6 +847,102 @@ class _MorphListRowState extends State<MorphListRow>
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Sizes a text label as UIKit sizes a `UILabel`: its lines' height
+/// before rounding, rounded up to the device pixel. The text engine
+/// rounds each line to a whole point instead (20 for 17 pt SF Pro, where
+/// UIKit lays out 20.33; list-tree fixtures), which would drift a list by
+/// a third of a point per such label. The difference lies below the text.
+/// A child that is not a paragraph of lines of one height keeps its own
+/// height.
+class _LabelBox extends SingleChildRenderObjectWidget {
+  const _LabelBox({required super.child});
+
+  static double _pixelRatio(BuildContext context) =>
+      MediaQuery.maybeDevicePixelRatioOf(context) ??
+      View.maybeOf(context)?.devicePixelRatio ??
+      1;
+
+  @override
+  _RenderLabelBox createRenderObject(BuildContext context) =>
+      _RenderLabelBox(_pixelRatio(context));
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderLabelBox renderObject) {
+    renderObject.pixelRatio = _pixelRatio(context);
+  }
+}
+
+class _RenderLabelBox extends RenderProxyBox {
+  _RenderLabelBox(this._pixelRatio);
+
+  /// The engine reports line heights in single precision: a line of
+  /// exactly 47 pixels can come back a millionth of a pixel over.
+  static const double _pixelTolerance = 1e-3;
+
+  double get pixelRatio => _pixelRatio;
+  double _pixelRatio;
+  set pixelRatio(double value) {
+    if (value == _pixelRatio) return;
+    _pixelRatio = value;
+    markNeedsLayout();
+  }
+
+  /// The unrounded line height of the paragraph found by the last layout.
+  double? _line;
+
+  double _height(double height) {
+    final line = _line;
+    if (line == null) return height;
+    final rounded = line.roundToDouble();
+    if (rounded <= 0) return height;
+    final lines = (height / rounded).round();
+    if (lines < 1 || (lines * rounded - height).abs() > 0.01) return height;
+    return (lines * line * _pixelRatio - _pixelTolerance).ceilToDouble() /
+        _pixelRatio;
+  }
+
+  static RenderParagraph? _paragraph(RenderBox child) {
+    RenderObject? box = child;
+    while (box is RenderProxyBox) {
+      box = box.child;
+    }
+    return box is RenderParagraph && box.size == child.size ? box : null;
+  }
+
+  @override
+  double computeMinIntrinsicHeight(double width) =>
+      _height(super.computeMinIntrinsicHeight(width));
+
+  @override
+  double computeMaxIntrinsicHeight(double width) =>
+      _height(super.computeMaxIntrinsicHeight(width));
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    final child = this.child;
+    if (child == null) return constraints.smallest;
+    final size = child.getDryLayout(constraints);
+    return constraints.constrain(Size(size.width, _height(size.height)));
+  }
+
+  @override
+  void performLayout() {
+    final child = this.child;
+    if (child == null) {
+      _line = null;
+      size = constraints.smallest;
+      return;
+    }
+    child.layout(constraints, parentUsesSize: true);
+    _line = _paragraph(
+      child,
+    )?.getFullHeightForCaret(const TextPosition(offset: 0));
+    size = constraints.constrain(
+      Size(child.size.width, _height(child.size.height)),
     );
   }
 }

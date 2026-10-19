@@ -2,7 +2,8 @@
 
 Status: measured simulator (layout + colors, light and dark); ported
 (`MorphListSection`, `MorphListRow`, `MorphListAppearance`, `MorphListMetrics`);
-pinned by test/list_test.dart; rows' glass in one layer per section
+pinned by test/list_test.dart and test/list_layout_replay_test.dart (the
+dumped trees replayed, 0.5 pt); rows' glass in one layer per section
 (test/list_glass_stage_test.dart). Highlight timing measured on the
 simulator (2026-10-14, see Spec).
 
@@ -19,13 +20,23 @@ grouped style), cells configured with `UIListContentConfiguration`
 - Card: 20 pt from the screen edges (table layout margin), corner radius 26
   (fitted to the screenshot outline within 0.3 pt; the layer reports
   continuous corners).
-- Row: 53 pt single line; content margins 15 / 16 / 15 / 8 (top, leading,
-  bottom, trailing); a 17 pt title over a 15 pt subtitle is 69.33 pt
-  (content + 2 x 15.5). Title text starts 16 pt into the card.
+- Row: 53 pt single line (the least height, the content centered in it);
+  content margins 15 / 16 / 15 / 8 (top, leading, bottom, trailing); a 17
+  pt title over a 15 pt subtitle is 69.33 pt (labels 20.33 + 18, plus 2 x
+  15.5). Title text starts 16 pt into the card.
+- Labels: a UILabel is its font's line height rounded up to the pixel
+  (17 pt SF Pro 20.33, 15 pt 18, 13 pt footer 15.67 at 3x). Flutter rounds
+  each text line to a whole point (20, 18, 16), which drifted the list
+  0.33 pt per header and per two-line row; morph sizes the labels of rows,
+  headers and footers as UIKit does, from the engine's unrounded line
+  height (replay: whole list max 0.013 pt).
 - Value cell: detail 17 pt at the trailing edge, 16 pt from the card edge
   without an accessory; title-to-detail 8 (`textToSecondaryTextHorizontalPadding`).
 - Accessories end 20 pt from the card edge (chevron 10.33 x 14 glyph box,
-  UISwitch 63 x 28); the text stops 8 pt before them.
+  UISwitch 63 x 28); the text stops 8 pt before them. An accessory view
+  is centered in the row and takes none of the content margins: a row
+  with a switch is 53 pt, the switch 12.67 below its top (morph 12.5, the
+  center UIKit rounds to the pixel).
 - Leading symbol: 22 pt glyph in a 28.67 pt image view centered 28 pt from
   the card edge, text and separator from 56 pt (`imageToTextPadding` 16).
 - Separator: 1 pt (3 px at 3x), from the text leading edge to 16 pt before
@@ -51,8 +62,10 @@ grouped style), cells configured with `UIListContentConfiguration`
 ## Fixtures
 
 `test/fixtures/ios27/list/list-tree-{light,dark}.txt` (manifest.txt),
-screenshots `references/list/native-list-{light,dark}.png`. No test loads
-the trees: test/list_test.dart asserts positions transcribed from them.
+screenshots `references/list/native-list-{light,dark}.png`.
+test/list_layout_replay_test.dart rebuilds the dumped table (light and
+dark) and compares rows, labels, accessories, the switch and separators
+at 0.5 pt; test/list_test.dart asserts positions transcribed from them.
 The highlight timing runs (sim) are not kept as fixtures.
 
 ## Recapture
@@ -123,6 +136,9 @@ section does not repaint its rows).
   highlight at once (unmeasured). test/highlight_motion_test.dart,
   test/list_test.dart.
 - Disabled cell look (no change drawn).
+- An accessory view taller than the row (not read): morph makes the row as
+  tall as the control. A label of several lines is taken as that many
+  line heights rounded up to the pixel (only single lines read).
 - A value cell whose title and detail do not fit side by side stacks them
   (`prefersSideBySideTextAndSecondaryText`); morph keeps them side by side
   and wraps the detail within half the row.
