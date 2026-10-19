@@ -668,7 +668,10 @@ void main() {
         ], solid ? unorderedEquals([3, 2]) : isEmpty);
         expect(_filters(), solid ? 1 : 3);
         await gesture.up();
-        await _settle(tester);
+        // The released button keeps its own layer while its touch glow
+        // falls (MorphTouchGlowMotion.fallSpring, about half a second, 32
+        // of these frames), then rejoins the stage.
+        await _settle(tester, 60);
         expect(_filters(), solid ? 0 : 2);
       }
       for (final (i, moment) in ['rest', 'scrolled'].indexed) {
