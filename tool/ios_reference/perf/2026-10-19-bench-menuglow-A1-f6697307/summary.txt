@@ -1,0 +1,10 @@
+f6697307  runs 5  fixed-perf False  2026-10-19 15:59
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/m/menu/held            984   3.7   8.2   8.2  11.3   5.1   0.7   19   642  raster-cpu:5 ui-layout:1 ui-other:1 bad raster: SurfaceFrame::Encode 7.5, QueueSubmit 4.3, Canvas::saveLayer 3.0
+nav/nav-navigation-steady-liquid    451   2.1   3.7   9.4  11.9   4.9   0.0    1   705    [power_mw 795->705]
+nav/nav-navigation-toolbar-liquid   293   4.1   8.4   8.9  11.1   4.9   1.0    7   526  ui-build:3 bad ui: build 11.2, compositing 3.0, layout 2.3  [ui 5.465->8.434, gpu 4.144->4.874, over_pct 0->1, power_mw 653->526]
+nav/nav-navigation-enter-liquid     293   5.1   8.2   9.3  12.2   9.2   1.7    7   578  ui-layout:5 bad ui: layout 11.2, build 5.3, paint 2.9  [gpu 5.642->9.179, power_mw 700->578]
+nav/nav-navigation-nested-push-liq  295   6.5  12.6   8.6  12.3   9.3   2.4   11   613  ui-layout:4 ui-build:3 bad ui: layout 12.6, build 5.0, paint 3.7  [ui 10.68->12.63, gpu 6.831->9.34, power_mw 711->613]
+nav/nav-navigation-nested-pop-liqu  279   6.6  11.9   9.0  12.9   7.0   1.8    5   556  ui-layout:3 ui-paint:1 raster-cpu:1 bad ui: layout 15.8, paint 5.2, build 4.2  [ui 8.576->11.9, raster 10.98->12.86, gpu 5.442->7.048, power_mw 715->556]

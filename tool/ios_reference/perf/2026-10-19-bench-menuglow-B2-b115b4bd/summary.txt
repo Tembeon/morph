@@ -1,0 +1,10 @@
+b115b4bd  runs 5  fixed-perf False  2026-10-19 16:08
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/m/menu/held           1039   3.9   9.0   8.1  11.7   6.4   0.7   22   618  raster-cpu:5 raster-sched:1 ui-other:1 bad raster: SurfaceFrame::Encode 7.4, QueueSubmit 3.6, Canvas::saveLayer 3.2
+nav/nav-navigation-steady-liquid    451   2.2   3.5   9.3  12.6   4.9   0.2    2   673  raster-cpu:1 bad raster: waitForBufferRelease 6.7, SurfaceFrame::Encode 4.0, QueueSubmit 2.4  [power_mw 795->673]
+nav/nav-navigation-toolbar-liquid   293   3.8   8.4   8.7  10.5   4.7   1.7    9   488  ui-build:3 raster-cpu:1 ui-layout:1 bad ui: build 9.2, layout 4.4, compositing 2.1  [ui 5.465->8.423, gpu 4.144->4.708, over_pct 0->1.7, power_mw 653->488]
+nav/nav-navigation-enter-liquid     289   5.1   8.6   9.0  12.3   8.4   1.7    8   545  ui-layout:3 ui-gc:1 ui-paint:1 bad ui: layout 9.2, paint 5.9, build 5.3  [gpu 5.642->8.362, power_mw 700->545]
+nav/nav-navigation-nested-push-liq  296   6.4  12.4   8.6  12.5   9.6   2.7   11   559  ui-build:5 ui-layout:3 bad ui: layout 11.3, build 6.2, paint 3.5  [ui 10.68->12.4, gpu 6.831->9.616, power_mw 711->559]
+nav/nav-navigation-nested-pop-liqu  280   6.4  11.6   8.8  12.8   7.2   1.8    9   518  ui-layout:3 raster-cpu:2 bad ui: layout 16.7, paint 6.7, build 4.9  [ui 8.576->11.59, raster 10.98->12.79, gpu 5.442->7.168, power_mw 715->518]
