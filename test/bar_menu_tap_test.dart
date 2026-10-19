@@ -3,8 +3,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/widgets/menu_motion.dart';
 
 const _screen = Size(402, 874);
 const _fixture = 'test/fixtures/ios27-device/menu/navbar-tap.json';

@@ -56,9 +56,11 @@ anything themselves.
 
 ## Where things are
 
-- `lib/foundation.dart` - the engine export; `lib/widgets.dart` - the widget layer, which
-  re-exports the engine. Public names are `Morph*`. `lib/motion.dart` - the pure motion
-  objects, measured tunings and layout types; `lib/glass_painter.dart` - the painter seam.
+- `lib/morph.dart` - the one public library: controls, presentations, theme and glass
+  choice. `lib/glass_painter.dart` - the custom painter seam. Public names are `Morph*`.
+  Tests and the example's dev tools import `lib/src/` directly. `test/api/public_api.txt`
+  is the reviewed API; its test also rejects internal types in public signatures, so
+  tunings, metrics and test hooks on public widgets are `@internal` parameters.
 - `lib/src/` engine (flights, targets, routes, liquid skin, scope), `lib/src/widgets/`
   measured controls (pure motion class + thin host + appearance tables),
   `lib/src/glass/renderer/` the one vendored glass renderer (tiers flat / fake / liquid).

@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/src/widgets/clock.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 class _Glass extends MorphGlassPainter {
   final Map<MorphGlassKind, MorphGlassSurface> surfaces = {};

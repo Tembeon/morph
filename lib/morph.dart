@@ -1,36 +1,14 @@
-/// The widget layer: controls that move like iOS Liquid Glass, measured
-/// from UIKit and reproduced, plus the recipes that put the morph engine
-/// to work - a held surface becoming its own context menu.
+/// iOS 27 Liquid Glass widgets for Flutter: the measured controls, their
+/// presentations and the theme that picks their glass.
 ///
-/// Every motion value here is read from UIKit's tuning on iOS 27 or
-/// fitted to frame-by-frame recordings of the real controls, and each
-/// control is checked against those recordings: the selection lens of
-/// [MorphSegmentedControl] and [MorphTabBar], [MorphSwitch],
-/// [MorphSlider], [MorphStepper], the press of [MorphGlassButton] and
-/// the button that becomes its own menu, [MorphMenuButton], and any
-/// widget that does, [MorphMenuSource]. The motion objects behind them
-/// (`MorphLensMotion`, `MorphGlassButtonMotion`, `MorphMenuMotion` and
-/// their kin) are pure functions of explicit time, usable without the
-/// widgets; they live in `package:morph/motion.dart` with the measured
-/// tuning and layout types. A custom glass painter finds the surface
-/// description it shades in `package:morph/glass_painter.dart`.
-///
-/// Everything here is built on `package:morph/foundation.dart` and
-/// the package's glass renderer; the engine never depends on this layer.
-/// The controls draw flat fills by default; [GlassBuiltInPainter]
-/// installed with [MorphGlassScope] (or [GlassAdaptiveScope], which picks
-/// its quality tier once by the device's GPU) draws them as liquid, fake or
-/// flat glass, and any other [MorphGlassPainter] can take its place. The
-/// package computes every shape once - fused silhouettes included - so
-/// each tier and each painter shades the same outlines. Their looks
-/// resolve from an `appearance` argument, then [MorphTheme], then light
-/// and dark tables.
+/// Wrap the app in a [MorphTheme] above its navigator and await
+/// [MorphTheme.precacheGlass] before `runApp`; see the package README.
 library;
 
-export 'foundation.dart';
+export 'src/scope.dart' show MorphSource, MorphSourceLink;
+export 'src/theme/glass.dart' show MorphGlassRenderer, MorphGlassTier;
 export 'src/theme/localizations.dart'
     show DefaultMorphLocalizations, MorphLocalizations;
-export 'src/theme/glass.dart' show MorphGlassRenderer, MorphGlassTier;
 export 'src/theme/theme.dart' show MorphAppearance, MorphThemeData;
 export 'src/widgets/activity_indicator.dart'
     show
@@ -42,7 +20,6 @@ export 'src/widgets/alert.dart'
         MorphAlertAction,
         MorphAlertActionStyle,
         MorphAlertAppearance,
-        MorphAlertRoute,
         MorphAlertTextField,
         showMorphActionSheet,
         showMorphAlert;
@@ -52,9 +29,7 @@ export 'src/widgets/bar_items.dart'
         MorphBarAppearance,
         MorphBarButton,
         MorphBarButtonGroup,
-        MorphBarButtonStyle,
-        MorphBarMenuTuning,
-        MorphBarMetrics;
+        MorphBarButtonStyle;
 export 'src/widgets/date_picker.dart'
     show
         MorphDatePicker,
@@ -62,20 +37,16 @@ export 'src/widgets/date_picker.dart'
         MorphDatePickerLocalizations,
         MorphDatePickerMode,
         MorphDatePickerStyle;
-export 'src/widgets/glass.dart' show MorphGlassPainter, MorphGlassScope;
 export 'src/widgets/glass_button.dart'
     show MorphGlassButton, MorphGlassButtonAppearance;
 export 'src/widgets/glass_container.dart' show MorphGlassContainer;
 export 'src/widgets/glass_effect.dart' show MorphGlassEffect;
-export 'src/widgets/glass_inspector.dart'
-    show MorphGlassCensus, MorphGlassHint, MorphGlassInspector;
 export 'src/widgets/glass_renderer.dart' show MorphGlassStyle;
 export 'src/widgets/list.dart'
     show
         MorphListAccessory,
         MorphListAppearance,
         MorphListBackground,
-        MorphListMetrics,
         MorphListRow,
         MorphListSection,
         MorphSliverListSection;
@@ -98,16 +69,11 @@ export 'src/widgets/menu_entries.dart'
         MorphMenuState,
         MorphMenuWidget,
         MorphSubmenu;
-export 'src/widgets/menu_motion.dart' show MorphMenuTuning;
-export 'src/widgets/morph_theme.dart' show MorphTheme;
 export 'src/widgets/morph_context_menu.dart'
     show MorphContextMenuRegion, MorphSatellite;
+export 'src/widgets/morph_theme.dart' show MorphTheme;
 export 'src/widgets/navigation_bar.dart'
-    show
-        MorphLargeTitle,
-        MorphLargeTitleScrollPhysics,
-        MorphNavigationBar,
-        MorphNavigationBarMetrics;
+    show MorphLargeTitle, MorphNavigationBar;
 export 'src/widgets/navigation_stack.dart'
     show
         MorphBackButtonDisplayMode,
@@ -117,8 +83,7 @@ export 'src/widgets/navigation_stack.dart'
         MorphNavigationPage,
         MorphNavigationRoute,
         MorphNavigationScaffold,
-        MorphNavigationStack,
-        pushMorphZoom;
+        MorphNavigationStack;
 export 'src/widgets/page_control.dart'
     show
         MorphPageControl,
@@ -126,14 +91,12 @@ export 'src/widgets/page_control.dart'
         MorphPageControlBackgroundStyle;
 export 'src/widgets/progress.dart'
     show MorphProgressView, MorphProgressViewAppearance, MorphProgressViewStyle;
-export 'src/widgets/push_zoom_motion.dart' show MorphPushZoomTuning;
 export 'src/widgets/scroll_edge_effect.dart'
     show
         MorphScrollEdgeEffect,
         MorphScrollEdgeEffectAppearance,
         MorphScrollEdgeEffectStyle;
-export 'src/widgets/scroll_indicator.dart'
-    show MorphScrollIndicator, MorphScrollIndicatorTuning;
+export 'src/widgets/scroll_indicator.dart' show MorphScrollIndicator;
 export 'src/widgets/search_field.dart'
     show MorphSearchField, MorphSearchFieldAppearance, MorphSearchToolbar;
 export 'src/widgets/search_stacked.dart' show MorphNavigationSearch;
@@ -154,6 +117,5 @@ export 'src/widgets/tab_bar_chrome.dart'
         MorphContentScrollScope,
         MorphTabAccessoryEnvironment;
 export 'src/widgets/tab_bar_minimize.dart' show MorphTabBarMinimizeBehavior;
-export 'src/widgets/toolbar.dart' show MorphToolbar, MorphToolbarMetrics;
+export 'src/widgets/toolbar.dart' show MorphToolbar;
 export 'src/widgets/typography.dart' show MorphTypography;
-export 'src/widgets/zoom_motion.dart' show MorphZoomTuning;

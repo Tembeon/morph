@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/menu.dart';
@@ -43,8 +44,8 @@ class MorphToolbar extends StatelessWidget {
     this.trailing = const [],
     this.appearance,
     this.menuAppearance,
-    this.menuTuning = MorphBarMenuTuning.standard,
-    this.menuOverlay,
+    @internal this.menuTuning = MorphBarMenuTuning.standard,
+    @internal this.menuOverlay,
     this.sideInset = MorphToolbarMetrics.sideInset,
     this.bottomInset = MorphToolbarMetrics.bottomInset,
     this.keyboardInset = MorphToolbarMetrics.keyboardInset,
@@ -64,10 +65,12 @@ class MorphToolbar extends StatelessWidget {
   final MorphMenuAppearance? menuAppearance;
 
   /// The bar buttons' menu recognition, opening delay and menu motion.
+  @internal
   final MorphBarMenuTuning menuTuning;
 
   /// The overlay the buttons' menus fly in; null uses
   /// [morphPresentationOverlayOf].
+  @internal
   final OverlayState? menuOverlay;
 
   /// The space between the screen's sides and the outer capsules.

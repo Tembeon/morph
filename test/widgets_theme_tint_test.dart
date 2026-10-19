@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _tint = Color(0xFFFF2D55);
 

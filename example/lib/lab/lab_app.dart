@@ -12,11 +12,17 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/clock.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/menu_layout.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/lab/lab_clocks.dart';
 import 'package:morph_example/lab/lab_trace_writer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_renderer.dart';
+// ignore: implementation_imports
+import 'package:morph/src/scope.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/glass.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/menu_motion.dart';
 
 /// Builds a custom scenario control and emits its observable events.
 typedef LabWidgetBuilder =

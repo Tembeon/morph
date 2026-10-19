@@ -7,7 +7,7 @@ import 'package:material_ui/material_ui.dart';
 // The A/B toggles the renderer's own composition.
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/scope.dart';
 
 class _State {
   bool switchOn = false;

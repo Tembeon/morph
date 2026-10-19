@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _step = Duration(milliseconds: 8);
 

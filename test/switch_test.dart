@@ -2,10 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import 'support/trace.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/src/widgets/small_lens.dart';
+import 'package:morph/src/widgets/switch_motion.dart';
 
 const _dir = 'test/fixtures/ios27/controls';
 const _device = 'test/fixtures/ios27-device/controls';

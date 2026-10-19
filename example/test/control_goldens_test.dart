@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import '../integration_test/support/control_matrix.dart';
 

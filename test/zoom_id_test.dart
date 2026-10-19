@@ -60,10 +60,11 @@ void main() {
             builder: (_) => const Text('content'),
           );
         } else {
-          result = pushMorphZoom<void>(
-            context,
-            from: id,
-            builder: (_) => const SizedBox.expand(child: Text('content')),
+          result = Navigator.of(context).push<void>(
+            MorphNavigationRoute<void>(
+              from: id,
+              builder: (_) => const SizedBox.expand(child: Text('content')),
+            ),
           );
         }
         await tester.pumpAndSettle();

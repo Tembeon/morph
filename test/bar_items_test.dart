@@ -5,8 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/bar_items.dart' show MorphBarItemId;
 import 'package:morph/src/widgets/glyph_scale.dart';
-import 'package:morph/widgets.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/bar_motion.dart';
+import 'package:morph/src/widgets/toolbar.dart';
 
 MorphBarButton _icon(Object id) => MorphBarButton(
   id: id,

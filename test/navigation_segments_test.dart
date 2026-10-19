@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _screen = Size(402, 874);
 

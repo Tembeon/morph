@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/internal/liquid_capability.dart';
 import 'package:morph/src/widgets/glass_liquid_web.dart' as web;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
 void main() {

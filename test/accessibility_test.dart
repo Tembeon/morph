@@ -1,11 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/slider_motion.dart';
 import 'package:morph/src/widgets/switch_motion.dart';
+import 'package:morph/src/scope.dart';
 
 Future<T> _resolve<T>(
   WidgetTester tester,

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _fixture = 'test/fixtures/ios27-device/tracking/release-outside.jsonl';
 

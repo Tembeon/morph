@@ -199,18 +199,18 @@ or energy optimization. Native optical shaders remain unchanged.
   line lifted black by lift / 6 and made dark fake glass 15 - 24 channel
   steps brighter than liquid over the gallery's black page.
 
-## Adaptive policy (`MorphAdaptiveGlass`, glass_tier.dart)
+## Adaptive policy (`GlassAdaptiveScope`, glass_tier.dart)
 
 Installs the renderer at ONE tier for the session (owner decision
 2026-10-05: the glass never switches tier while the app runs). An
-explicit `tier` wins; else `MorphAdaptiveGlass.tierFor(deviceClass,
+explicit `tier` wins; else `GlassAdaptiveScope.tierFor(deviceClass,
 best)`, a pure function, decides once the liquid capability resolves
 (`MorphGlassRenderer.precache` before `runApp` makes that the first
 frame; without it the first frames draw the fake glass fallback):
 
 - `skia` (a native runtime without Impeller: Android before API 29, or
   Impeller turned off; `ImageFilter.isShaderFilterSupported` false, known
-  at once) -> `MorphAdaptiveGlass.cheapTier`, whatever `best` is. Before
+  at once) -> `GlassAdaptiveScope.cheapTier`, whatever `best` is. Before
   2026-10-11 Skia fell through to `best`, which is fake glass there (the
   liquid tier never initializes), and fake glass blurs through Skia's
   multi-pass blur: Redmi 6A (Android 9, PowerVR GE8320), the gallery's
@@ -225,7 +225,7 @@ frame; without it the first frames draw the fake glass fallback):
 - `gles` (Flutter GPU `doesSupportFramebufferRenderMipmap` false - only
   the GLES backend lacks it) and `appleBeforeA13` (iOS and
   `supportsTextureCompression(astcHdr)` false - Metal reports HDR ASTC
-  from GPU family Apple 6 = A13 on) -> `MorphAdaptiveGlass.cheapTier`,
+  from GPU family Apple 6 = A13 on) -> `GlassAdaptiveScope.cheapTier`,
   ONE constant, flat (fake glass measured and rejected for it, below).
 
 Why flat and not frosted as the cheap tier: Pixel 6a forced to GLES
@@ -463,7 +463,7 @@ reference. Contact sheets (liquid | fake | frosted | flat):
   own `BackdropGroup` - free by default, correct where the app asks.
   (D) status quo (72 / 43 max channel in the repro).
   DECIDED (owner, 2026-10-05): C. The package groups nothing on its own;
-  the recipe lives in MorphAdaptiveGlass's dartdoc (pointed to from
+  the recipe lives in GlassAdaptiveScope's dartdoc (pointed to from
   MorphGlassRenderer's): a section whose glass paints after other content
   (a card over a list, a second control row over content painted after
   the first) goes in `BackdropGroup(child: section)`, which gives it a
@@ -906,7 +906,7 @@ pixels; base vs base 0).
 liquid capability resolved, draws every pipeline the first glass frame
 needs, offscreen:
 
-- Liquid, only when `MorphAdaptiveGlass.tierFor(deviceClass, liquid)` is
+- Liquid, only when `GlassAdaptiveScope.tierFor(deviceClass, liquid)` is
   liquid (not on GLES or pre-A13, which draw flat): two 8 x 8 geometry
   renders through the real `FlutterGpuGeometryRenderer.render` - shapes +
   full material map, then field + tint-only map - which fetch all four
@@ -2441,7 +2441,7 @@ census for app developers - filters, captures, owners and container hints
 of the last frame on screen, `MorphGlassInspector.census()` in tests; the
 gallery's Glass renderer page toggles it. A release build removes it (the
 macOS release App binary holds none of its strings).
-Gallery: the root installs `MorphAdaptiveGlass` with the session's
+Gallery: the root installs `GlassAdaptiveScope` with the session's
 `MorphGlassRenderer` (GalleryGlassSettings / GalleryGlassScope,
 glass_settings.dart, tier null = auto, in GalleryApp's State); the Glass
 renderer page edits them and shows the tier being drawn.

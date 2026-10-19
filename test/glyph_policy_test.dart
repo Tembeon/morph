@@ -6,8 +6,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass.dart';
 
 /// Records the canvas transform each paint starts with.
 class _Recorder extends CustomPainter {

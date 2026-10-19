@@ -3,11 +3,13 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import 'support/slider_feed.dart';
 import 'support/trace.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/slider_motion.dart';
+import 'package:morph/src/widgets/small_lens.dart';
 
 const _dir = 'test/fixtures/ios27/controls';
 

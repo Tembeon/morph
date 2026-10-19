@@ -37,7 +37,7 @@ import 'package:morph/src/widgets/menu_fusion_worker.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/scroll_edge_effect.dart'
     show debugMorphEdgeEffectBoundsBlur;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/perf/bench_args.dart';
@@ -45,6 +45,7 @@ import 'package:morph_example/perf/bench_args.dart';
 import 'support/control_matrix.dart';
 import 'support/layer_census.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
+import 'package:morph/src/scope.dart';
 
 /// The glass audit on a device: the gallery in dark mode, the states the
 /// UIKit references in tool/ios_reference/references/dark show (resting

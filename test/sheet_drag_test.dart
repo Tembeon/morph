@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/src/widgets/sheet_motion.dart';
 
 const _dir = 'test/fixtures/ios27/sheet-drag';
 const _deviceDir = 'test/fixtures/ios27-device/sheet-drag';

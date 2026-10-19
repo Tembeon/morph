@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import '../integration_test/support/blur_harness.dart';
 import '../integration_test/support/shader_harness.dart';

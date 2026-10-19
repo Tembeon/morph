@@ -10,9 +10,14 @@ import 'package:material_ui/material_ui.dart';
 import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/menu.dart' show MorphMenuLayer;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import 'support/painted_colors.dart';
+import 'package:morph/src/flight.dart';
+import 'package:morph/src/motion.dart';
+import 'package:morph/src/scope.dart';
+import 'package:morph/src/spring.dart';
+import 'package:morph/src/widgets/menu_motion.dart';
 
 /// Rows of a device-sized menu: one free-form row filling a menu [height]
 /// points tall with its 10-point insets.
@@ -100,11 +105,10 @@ class _HostState extends State<_Host> {
                   onClose: () => closes++,
                   accessory: MorphSatellite(
                     height: _accessoryHeight,
-                    builder: (BuildContext context, MorphFlight flight) =>
-                        const SizedBox(
-                          height: _accessoryHeight,
-                          child: Text('above'),
-                        ),
+                    builder: (BuildContext context) => const SizedBox(
+                      height: _accessoryHeight,
+                      child: Text('above'),
+                    ),
                   ),
                   menu: <MorphMenuEntry>[
                     MorphMenuItem(
@@ -1070,7 +1074,7 @@ class _LiveHostState extends State<_LiveHost> {
                   opensOnSecondaryTap: widget.opensOnSecondaryTap,
                   onOpen: (MorphFlight f) => flight = f,
                   accessory: MorphSatellite(
-                    builder: (BuildContext context, MorphFlight flight) =>
+                    builder: (BuildContext context) =>
                         ValueListenableBuilder<bool>(
                           valueListenable: widget.expanded,
                           builder: (BuildContext context, bool on, Widget? _) =>
@@ -1282,7 +1286,7 @@ void accessory() {
               return Center(
                 child: MorphContextMenuRegion(
                   accessory: MorphSatellite(
-                    builder: (BuildContext context, MorphFlight flight) =>
+                    builder: (BuildContext context) =>
                         Text(changed ? 'new-above' : 'old-above'),
                   ),
                   menu: <MorphMenuEntry>[

@@ -13,7 +13,7 @@ What is where:
 
 ### spring.dart
 `MorphSpring(response, dampingRatio)` - UIKit vocabulary (engine-flight.md).
-`widgets.dart` re-exports it.
+Internal; the public API names no springs.
 
 ### motion.dart - MorphMotion
 - A pair of `Motion`s from motor (`openMotion` / `closeMotion` getters).

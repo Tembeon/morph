@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/bar_items.dart' show MorphBarItems;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// The object lifecycle of bar items during a transition, as UIKit runs
 /// it on iOS 27 (lab captures of push, pop and item-set changes on an

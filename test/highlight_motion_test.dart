@@ -1,8 +1,8 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/motion.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/highlight_motion.dart';
 
 void main() {
   group('list row', () {

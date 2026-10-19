@@ -8,8 +8,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph/src/scope.dart';
 
 /// Records the menu morph on a device: frame timings of every launch, a
 /// timeline of two launches, and the painted geometry of both shapes on

@@ -29,4 +29,34 @@ void main() {
       '  dart run tool/api/public_api.dart > test/api/public_api.txt',
     );
   }, timeout: const Timeout(Duration(minutes: 2)));
+
+  test('public signatures name only public morph types', () async {
+    final api = await publicApi(Directory.current);
+    final declaration = RegExp(
+      r'^(?:\[[^\]]+\] )?(?:[a-z ]*?)(?:class|enum|mixin|typedef|extension type|extension) (\w+)|^[\w<>?, ]*? (\w+)(?:<[^>]*>)?\(',
+    );
+    final listed = <String>{
+      for (final line in api.split('\n'))
+        if (line.isNotEmpty && !line.startsWith(' ') && !line.startsWith('#'))
+          if (declaration.firstMatch(line) case final match?)
+            match.group(1) ?? match.group(2)!,
+    };
+    final leaks = <String>{
+      for (final line in api.split('\n'))
+        for (final name in RegExp(r'\b[Mm]orph[A-Z]\w*').allMatches(
+          line
+              .replaceAll(RegExp(r' = [^,})]+'), '')
+              .replaceAll(RegExp(r' with .*$'), ''),
+        ))
+          if (!listed.contains(name.group(0))) name.group(0)!,
+    };
+    expect(
+      leaks,
+      isEmpty,
+      reason:
+          'These types appear in public signatures but no entry point '
+          'exports them; export them or mark the member @internal. Mixins '
+          'and default values may name internal types.',
+    );
+  }, timeout: const Timeout(Duration(minutes: 2)));
 }

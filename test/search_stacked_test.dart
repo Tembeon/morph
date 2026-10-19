@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// An iPhone 17 Pro's screen, 402 x 874 points, status bar 62.
 Future<void> _pump(

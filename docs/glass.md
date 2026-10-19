@@ -138,7 +138,7 @@ scenes (home-scroll, segmented, tab-bar, controls, menu, sheet, list).
   (pictures carry no drawn bounds).
 - There is no automatic grouping. The app wraps a section painted over
   earlier glass in its own `BackdropGroup(child: section)`
-  (MorphAdaptiveGlass dartdoc, backdrop_section_test; options and device
+  (GlassAdaptiveScope dartdoc, backdrop_section_test; options and device
   costs in glass-renderer.md).
 - The scroll edge effect keeps its own copy: in the bars' group the
   capsules would miss its fade.
@@ -221,10 +221,10 @@ and settings, and hosts inside a container kept out by a blocker.
     layer: no refraction, no Flutter GPU. The fallback before the liquid
     capability resolves, and the web's tier;
   - liquid.
-- `MorphAdaptiveGlass` picks the tier once per session, never at runtime.
+- `GlassAdaptiveScope` picks the tier once per session, never at runtime.
   There is no tier switching from frame timings. An explicit tier wins;
-  otherwise `MorphAdaptiveGlass.tierFor(deviceClass, best)`: liquid on
-  Vulkan / Metal, the single `MorphAdaptiveGlass.cheapTier` (flat) on the
+  otherwise `GlassAdaptiveScope.tierFor(deviceClass, best)`: liquid on
+  Vulkan / Metal, the single `GlassAdaptiveScope.cheapTier` (flat) on the
   GLES fallback, on Apple GPUs before the A13 and on Skia (a native
   runtime without Impeller, known at once from
   `ImageFilter.isShaderFilterSupported`). The device class is probed from

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// Whether [painter] drew a stroked rounded rectangle whose color passes
 /// [test]: the rim of a lifted lens.

@@ -127,10 +127,11 @@ void main() {
       ),
     );
     unawaited(
-      pushMorphZoom<void>(
-        sourceContext,
-        from: _sourceLink,
-        builder: (_) => const SizedBox.expand(child: Text('zoom page')),
+      Navigator.of(sourceContext).push<void>(
+        MorphNavigationRoute<void>(
+          from: _sourceLink,
+          builder: (_) => const SizedBox.expand(child: Text('zoom page')),
+        ),
       ),
     );
     await tester.pumpAndSettle();

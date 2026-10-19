@@ -3,8 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/glyph_scale.dart'
     show MorphGlyphs, MorphVeiledGlyphs;
-import 'package:morph/widgets.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/navigation_motion.dart';
 
 const _screen = Size(402, 874);
 

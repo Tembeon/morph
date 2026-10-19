@@ -13,7 +13,7 @@ import 'package:morph/src/liquid_field.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 

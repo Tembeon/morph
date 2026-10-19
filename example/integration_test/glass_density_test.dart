@@ -14,7 +14,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/glass_container.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// The glass density audit on a device: N standalone [MorphGlassButton]s
 /// on one plane over a scrolling page of coloured rows, N in

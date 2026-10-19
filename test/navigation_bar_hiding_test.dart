@@ -1,9 +1,9 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/src/widgets/scroll_indicator.dart'
-    show morphScrollIndicatorFrame;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/navigation_bar.dart';
+import 'package:morph/src/widgets/scroll_indicator.dart';
 
 const _screen = Size(402, 874);
 

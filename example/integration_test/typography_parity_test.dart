@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// UIKit's label widths on iOS 27.0.1 (iPhone 16 Pro) for the texts of
 /// the probe's `fonts` scene (tool/ios_reference/Sources/Typography.swift),

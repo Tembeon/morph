@@ -11,7 +11,7 @@ import 'package:morph/src/widgets/glass_liquid_native.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
 void main() {

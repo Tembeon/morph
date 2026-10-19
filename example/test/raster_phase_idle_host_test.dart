@@ -5,7 +5,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 // The test drives the renderer's own layer.
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';

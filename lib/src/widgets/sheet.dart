@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/presentation.dart';
@@ -165,7 +166,7 @@ Future<T?> showMorphSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
   MorphSourceLink? from,
-  MorphZoomTuning zoom = MorphZoomTuning.standard,
+  @internal MorphZoomTuning zoom = MorphZoomTuning.standard,
   List<MorphSheetDetent> detents = const [MorphSheetDetent.large],
   MorphSheetDetent? initialDetent,
   MorphSheetDetent? largestUndimmedDetent,
@@ -213,7 +214,7 @@ class MorphSheetRoute<T> extends PopupRoute<T>
     required this.builder,
     required this.detents,
     this.from,
-    this.zoom = MorphZoomTuning.standard,
+    @internal this.zoom = MorphZoomTuning.standard,
     this.initialDetent,
     this.largestUndimmedDetent,
     this.grabberVisible = false,
@@ -255,6 +256,7 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   MorphThemeCarrier? _themes;
 
   /// The measured zoom used when there is a [from].
+  @internal
   final MorphZoomTuning zoom;
 
   /// The heights the sheet rests at.

@@ -5,7 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/glass_painter.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_body_shadow.dart';
@@ -14,8 +14,8 @@ import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
-import 'package:morph/widgets.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/menu_motion.dart';
 
 void main() {
   test('nested material replays the native dark face levels', () {

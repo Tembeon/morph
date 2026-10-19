@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/gallery/knobs.dart';
+// The inspector is a development overlay, not public API.
+// ignore: implementation_imports
+import 'package:morph/src/widgets/glass_inspector.dart';
 
 /// Glass effects in every shape, style and tint, interactive or not, with
 /// and without a shared glass container.

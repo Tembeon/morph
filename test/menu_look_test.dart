@@ -1,7 +1,7 @@
 import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _items = [
   MorphMenuItem(title: 'Copy', icon: Icon(Icons.copy)),

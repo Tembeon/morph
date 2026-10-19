@@ -190,6 +190,7 @@ class MorphNavigationBarHiding {
   final ValueListenable<bool> hidden;
 
   /// The spring the content and the bar move on (fit, see the class).
+  @internal
   static const MorphSpring spring = MorphSpring(0.36, 0.76);
 
   /// How fast the large title fades: its opacity is
@@ -242,8 +243,8 @@ class MorphNavigationStack extends StatefulWidget {
     required Widget this.home,
     this.appearance,
     this.menuAppearance,
-    this.menuTuning = MorphBarMenuTuning.standard,
-    this.menuOverlay,
+    @internal this.menuTuning = MorphBarMenuTuning.standard,
+    @internal this.menuOverlay,
     this.backButtonSemanticLabel,
     this.navigatorKey,
     this.observers = const [],
@@ -267,8 +268,8 @@ class MorphNavigationStack extends StatefulWidget {
     required void Function(Page<Object?> page) this.onDidRemovePage,
     this.appearance,
     this.menuAppearance,
-    this.menuTuning = MorphBarMenuTuning.standard,
-    this.menuOverlay,
+    @internal this.menuTuning = MorphBarMenuTuning.standard,
+    @internal this.menuOverlay,
     this.backButtonSemanticLabel,
     this.navigatorKey,
     this.observers = const [],
@@ -318,10 +319,12 @@ class MorphNavigationStack extends StatefulWidget {
   final MorphMenuAppearance? menuAppearance;
 
   /// The bar buttons' menu recognition, opening delay and menu motion.
+  @internal
   final MorphBarMenuTuning menuTuning;
 
   /// The overlay the bars' menus fly in; null uses
   /// [morphPresentationOverlayOf], the overlay around the stack.
+  @internal
   final OverlayState? menuOverlay;
 
   /// The label screen readers announce for the back button; null
@@ -691,7 +694,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   MorphNavigationRoute({
     required this.builder,
     this.from,
-    this.zoom = MorphPushZoomTuning.standard,
+    @internal this.zoom = MorphPushZoomTuning.standard,
     super.settings,
   });
 
@@ -707,6 +710,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   late final _NavigationZoomHost<T> _zoomHost = _NavigationZoomHost<T>(this);
 
   /// The measured zoom used when there is a [from].
+  @internal
   final MorphPushZoomTuning zoom;
 
   bool _interactivePop = false;
@@ -986,31 +990,6 @@ class MorphNavigationRoute<T> extends PageRoute<T>
       MorphNavigationTuning.fallbackCardRadius;
 }
 
-/// Pushes the page [builder] builds onto the navigator around [context],
-/// zoomed out of the source [from] is attached to, as UIKit pushes a view
-/// controller whose
-/// `preferredTransition` is `.zoom`; see [MorphNavigationRoute.from].
-///
-/// An absent or unlaid-out source shows the page in place. If the source
-/// disappears while the page is open, its content stays usable and its
-/// dismissal dissolves instead of landing on the old source frame.
-Future<T?> pushMorphZoom<T>(
-  BuildContext context, {
-  required WidgetBuilder builder,
-  required MorphSourceLink from,
-  MorphPushZoomTuning zoom = MorphPushZoomTuning.standard,
-  RouteSettings? settings,
-}) {
-  final route = MorphNavigationRoute<T>(
-    builder: builder,
-    from: from,
-    zoom: zoom,
-    settings: settings,
-  );
-  route._zoomSource = MorphZoomSource.resolve(context, from);
-  return Navigator.of(context).push<T>(route);
-}
-
 class _NavigationDim extends CustomPainter {
   _NavigationDim(this.animation) : super(repaint: animation);
 
@@ -1048,7 +1027,7 @@ class MorphNavigationPage<T> extends Page<T> {
   const MorphNavigationPage({
     required this.child,
     this.from,
-    this.zoom = MorphPushZoomTuning.standard,
+    @internal this.zoom = MorphPushZoomTuning.standard,
     super.key,
     super.name,
     super.arguments,
@@ -1062,6 +1041,7 @@ class MorphNavigationPage<T> extends Page<T> {
   final MorphSourceLink? from;
 
   /// The measured zoom used when there is a [from].
+  @internal
   final MorphPushZoomTuning zoom;
 
   @override

@@ -5,10 +5,9 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 
-import 'package:morph/foundation.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/target.dart' show morphTargetPaddingOf;
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
@@ -21,6 +20,14 @@ import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/theme/theme.dart';
+import 'package:morph/src/flight.dart';
+import 'package:morph/src/motion.dart';
+import 'package:morph/src/scrim.dart';
+import 'package:morph/src/show.dart';
+import 'package:morph/src/target.dart';
+import 'package:morph/src/presentation.dart';
+import 'package:morph/src/scope.dart';
+import 'package:morph/src/spring.dart';
 
 /// A block standing above a context menu's preview, as UIKit's
 /// accessory views do - a reactions capsule over a message bubble -
@@ -45,9 +52,9 @@ class MorphSatellite {
   /// height the content had when the menu last showed.
   final double? height;
 
-  /// Builds the content; receives the flight, so a reaction closes the
-  /// menu with `flight.close()` after its action.
-  final MorphContentBuilder builder;
+  /// Builds the content; a reaction closes the menu with
+  /// [MorphContextMenuRegion.close] after its action.
+  final WidgetBuilder builder;
 }
 
 /// A surface that becomes its own context menu when HELD, as a view
@@ -97,14 +104,14 @@ class MorphContextMenuRegion extends StatefulWidget {
     this.lifts = true,
     this.enabled = true,
     this.opensOnSecondaryTap = true,
-    this.tagId,
+    @internal this.tagId,
     this.maxScrimOpacity,
     this.scrimColor,
-    this.scrimMotion,
-    this.overlay,
+    @internal this.scrimMotion,
+    @internal this.overlay,
     this.semanticLabel,
     this.onHold,
-    this.onOpen,
+    @internal this.onOpen,
     this.onClose,
   });
 
@@ -280,6 +287,7 @@ class MorphContextMenuRegion extends StatefulWidget {
 
   /// An explicit tag id instead of identity-by-State, for consumers
   /// that must find the flight by name. Stable for the region's life.
+  @internal
   final Object? tagId;
 
   /// UIKit's context-menu morph, measured on an iPhone 16 Pro (iOS 27):
@@ -289,6 +297,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// overshoots and the close dips below its rest by 1.3 percent, so the
   /// handoff latch fires on the close's zero crossing and the held view
   /// lands with UIKit's own undershoot.
+  @internal
   static const MorphMotion measuredMotion = MorphMotion(
     name: 'contextMenu',
     openSpring: measuredSpring,
@@ -296,6 +305,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   );
 
   /// The spring of [measuredMotion].
+  @internal
   static const MorphSpring measuredSpring = MorphSpring(0.284, 0.81);
 
   /// Scrim ceiling; null resolves MorphTheme, then
@@ -306,6 +316,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   final Color? scrimColor;
 
   /// The scrim's own springs; null is [measuredDim].
+  @internal
   final MorphScrimMotion? scrimMotion;
 
   /// UIKit's context-menu dimming, measured on an iPhone 16 Pro (iOS
@@ -314,6 +325,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// 0.32 s damping 0.80, close 0.35 s / 0.85 (0.001 rms of alpha) -
   /// starting 14.5 ms after the preview on the way in and 12.5 ms on
   /// the way out, the same in both appearances.
+  @internal
   static const MorphScrimMotion measuredDim = MorphScrimMotion(
     motion: MorphMotion(
       name: 'contextMenuDim',
@@ -337,6 +349,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// above the bars of a navigation stack the region sits in. A floating
   /// bar layered over a nested navigator wants the navigator's owner's
   /// overlay.
+  @internal
   final OverlayState? overlay;
 
   /// Accessibility name of the open menu.
@@ -354,6 +367,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// The menu opened, whichever door opened it (`willDisplayMenu`):
   /// receives the flight that carries the preview, the menu and the dim -
   /// subscribe to [MorphFlight.events] here for the landing haptic.
+  @internal
   final void Function(MorphFlight flight)? onOpen;
 
   /// The menu started closing, however it closes (`willEndMenu`): a row
@@ -363,6 +377,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// Opens the menu of the nearest enclosing region - the visible door:
   /// a "more" glyph inside the held view calls this with its own context.
   /// Inside the open preview it retargets the live flight.
+  @internal
   static MorphFlight open(BuildContext context) {
     final _RegionScope? scope = context
         .getInheritedWidgetOfExactType<_RegionScope>();
@@ -831,7 +846,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   MorphFlight _launch() {
     final _Placement placement = _placement ??= _place();
     final MorphFlight flight = showMorph(
-      context,
+      _driver.currentContext ?? context,
       from: _tagId,
       motion: MorphContextMenuRegion.measuredMotion,
       maxScrimOpacity:
@@ -975,10 +990,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
             child: _RegionScope(
               state: this,
               child: MorphChromeBackdrop(
-                child: Builder(
-                  builder: (BuildContext context) =>
-                      accessory.builder(context, flight),
-                ),
+                child: Builder(builder: accessory.builder),
               ),
             ),
           ),
@@ -1012,7 +1024,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         child: tagged,
       ),
     );
-    return Semantics(
+    final region = Semantics(
       onLongPress: widget.enabled ? _open : null,
       child: _MenuDriver(
         key: _driver,
@@ -1027,6 +1039,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         ),
       ),
     );
+    if (MorphScope.maybeOf(context) != null) return region;
+    return MorphScope(child: region);
   }
 }
 

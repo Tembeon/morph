@@ -1,8 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/src/spring.dart';
+import 'package:morph/src/widgets/flex_spec.dart';
 
 void main() {
   group('MorphSpring', () {

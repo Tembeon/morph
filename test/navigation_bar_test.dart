@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/bar_items.dart' show MorphBackChevronPainter;
 import 'package:morph/src/widgets/glyph_scale.dart' show RenderMorphGlyphs;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _screen = Size(402, 874);
 

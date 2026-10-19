@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/glass_painter.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/scope.dart';
 
 final _cardLink = MorphSourceLink();
 
@@ -192,10 +193,11 @@ void main() {
     await tester.pumpAndSettle();
     seen.clear();
     unawaited(
-      pushMorphZoom<void>(
-        home,
-        builder: (BuildContext context) => const SizedBox.expand(),
-        from: _cardLink,
+      Navigator.of(home).push<void>(
+        MorphNavigationRoute<void>(
+          builder: (BuildContext context) => const SizedBox.expand(),
+          from: _cardLink,
+        ),
       ),
     );
     await tester.pump();

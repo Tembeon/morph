@@ -2,9 +2,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/menu.dart' show MorphMenuLayer;
-import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/menu_motion.dart';
 
 Widget _app(Widget body) => WidgetsApp(
   color: const Color(0xFF007AFF),

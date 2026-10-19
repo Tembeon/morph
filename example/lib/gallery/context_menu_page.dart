@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/knobs.dart';
 
@@ -113,7 +113,7 @@ class _ContextMenuPageState extends State<ContextMenuPage> {
   MorphSatellite? _capsule(String subject) => !_accessory
       ? null
       : MorphSatellite(
-          builder: (BuildContext context, MorphFlight flight) => _Reactions(
+          builder: (BuildContext context) => _Reactions(
             reactions: _reactions,
             onPicked: (String reaction) {
               _picked('$reaction on $subject');

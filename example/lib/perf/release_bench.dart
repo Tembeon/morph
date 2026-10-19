@@ -3,13 +3,14 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:morph/widgets.dart';
 // The bench measures package INTERNALS by design - it is an instrument
 // of the package, living in the example only to get an AOT build.
 // ignore: implementation_imports
 import 'package:morph/src/benchmark_scenes.dart';
 // ignore: implementation_imports
 import 'package:morph/src/liquid_field.dart';
+// ignore: implementation_imports
+import 'package:morph/src/scope.dart';
 
 const Object _benchSourceId = 'bench-card';
 

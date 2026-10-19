@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/navigation_bar.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 Widget _host(Widget child) => MediaQuery(
   data: const MediaQueryData(),

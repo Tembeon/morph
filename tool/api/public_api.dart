@@ -17,9 +17,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 /// The libraries whose exports make up the public API, in section order.
 const entryPoints = [
-  'package:morph/foundation.dart',
-  'package:morph/widgets.dart',
-  'package:morph/motion.dart',
+  'package:morph/morph.dart',
   'package:morph/glass_painter.dart',
 ];
 
@@ -276,7 +274,8 @@ String _parameters(List<FormalParameterElement> parameters, String? wrap) {
   ];
   final optional = [
     for (final parameter in parameters)
-      if (!parameter.isRequiredPositional) describe(parameter),
+      if (!parameter.isRequiredPositional && !parameter.metadata.hasInternal)
+        describe(parameter),
   ];
   final (open, close) = parameters.any((parameter) => parameter.isNamed)
       ? ('{', '}')

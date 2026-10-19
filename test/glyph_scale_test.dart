@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import 'support/glyph_scale_frames.dart';
 

@@ -8,7 +8,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// Where the UI thread's frame goes on a device: the framework's own
 /// BUILD, LAYOUT, PAINT and COMPOSITING blocks (FlutterTimeline, profile

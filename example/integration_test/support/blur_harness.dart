@@ -26,10 +26,11 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
 // ignore: implementation_imports
 import 'package:morph/src/widgets/scroll_edge_effect.dart'
     show debugMorphEdgeEffectBoundsBlur;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import 'shader_harness.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass.dart';
 
 /// One blur case: what is drawn over the backdrop.
 class BlurCase {

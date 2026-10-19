@@ -275,12 +275,11 @@ and every widget takes it as `appearance:` (UIKit precedent:
 Cupertino names (`activeTrackColor`, `inactiveTrackColor`, `thumbColor`)
 and the dartdoc names the UIKit property.
 
-Libraries: `widgets.dart` exports the controls, their appearances and
-the tunings they take as parameters (`MorphMenuTuning`,
-`MorphBarMenuTuning`, `MorphPushZoomTuning`, `MorphZoomTuning`);
-`motion.dart` the pure motion objects, the other measured tunings and
-the layout types; `glass_painter.dart` the surface description a custom
-`MorphGlassPainter` shades. Menu layout types are package-internal.
+Libraries: `morph.dart` exports the controls, their appearances, the
+presentations and the theme; `glass_painter.dart` the surface description a
+custom `MorphGlassPainter` shades. Motion objects, tunings, metrics and
+layout types are package-internal; a control's tuning parameter is
+`@internal`.
 
 Typography: every label a control paints goes through
 `MorphTypography.resolve(style)` (opsz, wght 510/590, CoreText tracking;

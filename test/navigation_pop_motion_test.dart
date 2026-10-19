@@ -4,7 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/physics.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/src/widgets/navigation_motion.dart';
 
 void main() {
   final fixture =

@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/scope.dart';
 
 /// The bars of a [MorphNavigationStack] over a high-contrast page scrolled
 /// under them, for comparing builds that group the scroll edge effect's

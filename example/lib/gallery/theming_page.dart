@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/gallery/knobs.dart';
@@ -104,7 +104,7 @@ class _ThemingPageState extends State<ThemingPage> {
   Widget _card(BuildContext context, Widget child) => DecoratedBox(
     decoration: BoxDecoration(
       color: galleryCardColor(context),
-      borderRadius: const .all(.circular(MorphListMetrics.cornerRadius)),
+      borderRadius: const .all(.circular(26)),
     ),
     child: Padding(padding: const .all(16), child: child),
   );

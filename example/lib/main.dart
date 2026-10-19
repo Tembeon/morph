@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph_example/autodemo.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/perf/release_bench.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// Autodemo mode: walks every gallery page with synthetic gestures and
 /// exits, the exception-scan gate of the verification workflow.

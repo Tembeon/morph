@@ -81,7 +81,6 @@ const _ratchet = <Rule, Set<String>>{
     'lib/src/glass/renderer/rendering/consolidated_fake_glass_layer.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/rendering/liquid_glass_layer.dart imports lib/src/liquid_field.dart',
     'lib/src/glass/renderer/rendering/liquid_glass_layer.dart imports lib/src/live.dart',
-    'lib/src/widgets/morph_context_menu.dart imports lib/foundation.dart',
   },
 };
 

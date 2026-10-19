@@ -1,6 +1,5 @@
-import 'package:morph/motion.dart';
-
 import 'trace.dart';
+import 'package:morph/src/widgets/slider_motion.dart';
 
 /// How long after its stamp a touch of a device recording reaches the
 /// slider: every valueChanged of the device recordings reflects a touch

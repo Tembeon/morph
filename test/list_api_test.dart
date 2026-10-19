@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/list.dart';
 
 Widget _scene(Widget child) => MediaQuery(
   data: const MediaQueryData(),

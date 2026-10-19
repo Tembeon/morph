@@ -10,7 +10,7 @@ import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import 'support/glass_scenes.dart';
 

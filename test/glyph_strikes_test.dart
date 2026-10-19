@@ -7,8 +7,9 @@ import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_liquid_draw.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass.dart';
 
 /// The device pixel ratio of the Pixel 6a the matrix cells run on.
 const double _ratio = 2.625;

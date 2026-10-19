@@ -7,7 +7,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/scope.dart';
 
 /// Lifecycle passports of the controls: per frame of a programmatic
 /// interaction, the main-thread work morph does, next to the same window

@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/scope.dart';
 
 /// One scene of the perf counts and the glass frame identity tests: a page
 /// and the gesture that animates its glass.
@@ -170,7 +171,7 @@ MorphBarButton _barIcon(String id) => MorphBarButton(
 class _ContextMenuHero extends StatelessWidget {
   const _ContextMenuHero();
 
-  static Widget _capsule(BuildContext context, MorphFlight flight) => Align(
+  static Widget _capsule(BuildContext context) => Align(
     alignment: Alignment.centerLeft,
     child: DecoratedBox(
       decoration: const BoxDecoration(

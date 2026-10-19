@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _items = [
   MorphTabItem(icon: Icons.home, label: 'Home'),

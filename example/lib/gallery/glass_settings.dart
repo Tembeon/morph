@@ -6,7 +6,8 @@ import 'package:material_ui/material_ui.dart';
 // ignore_for_file: implementation_imports
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/glass_painter.dart';
 
 /// The display refresh rate the gallery asks the system for.
 ///

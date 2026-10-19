@@ -1,7 +1,7 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// The backdrop keys of every filter painted on screen (null for a
 /// filter that takes a copy of its own). The glass's opacity seed layer, a

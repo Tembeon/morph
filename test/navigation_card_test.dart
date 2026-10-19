@@ -6,8 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/widgets.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/navigation_motion.dart';
 
 const _screen = Size(402, 874);
 

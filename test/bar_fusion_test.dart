@@ -2,7 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/src/liquid_field.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/bar_items.dart';
 
 const _screen = Size(402, 874);
 

@@ -5,8 +5,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_inspector.dart';
 
 Map<String, Object?> _json(String path) =>
     (jsonDecode(File(path).readAsStringSync()) as Map).cast<String, Object?>();

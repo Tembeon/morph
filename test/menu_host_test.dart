@@ -6,8 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_host.dart';
-import 'package:morph/widgets.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/flight.dart';
+import 'package:morph/src/scope.dart';
+import 'package:morph/src/widgets/menu_motion.dart';
 
 Widget _app(Widget child) => MaterialApp(
   builder: (BuildContext context, Widget? child) => MorphScope(child: child!),

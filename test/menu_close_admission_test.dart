@@ -1,8 +1,6 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/motion.dart';
-import 'package:morph/src/widgets/menu_motion.dart'
-    show morphMenuSetCloseAdmission;
+import 'package:morph/src/widgets/menu_motion.dart';
 
 const _button = Rect.fromLTWH(24, 80, 44, 44);
 const _outside = Offset(350, 500);

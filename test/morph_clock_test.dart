@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/src/spring.dart';
 
 class _Host extends StatefulWidget {
   const _Host({required this.stamps, required this.advances, super.key});

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _items = [
   MorphTabItem(icon: IconData(0xe318), label: 'One'),

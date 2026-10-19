@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/motion.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/slider_motion.dart';
 
 // The fill end of a 300 pt glass UISlider after setValue(0.9, animated:
 // true) from 0.1, per display-link tick (seconds after the call, points),

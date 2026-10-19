@@ -8,7 +8,7 @@ import 'package:material_ui/material_ui.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show debugMorphShaderFrost;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';

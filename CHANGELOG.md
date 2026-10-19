@@ -11,7 +11,19 @@ and option names, written in Flutter idioms. BREAKING throughout, with
 no behaviour or pixel change: every rename keeps what the old name did.
 
 - The foundation (docs/standalone-library-plan.md, units 1 to 5.2 in
-  part). BREAKING; no pixel change except where noted:
+  part, 4 and 7). BREAKING; no pixel change except where noted:
+  - One import: `package:morph/morph.dart` (about 100 names: controls,
+    appearances, menu entries, presentations, theme, glass choice,
+    `MorphSource`). `package:morph/glass_painter.dart` keeps the custom
+    painter seam and now holds `MorphGlassScope`. `widgets.dart`,
+    `foundation.dart` and `motion.dart` are gone, and with them the
+    public engine (`showMorph`, `MorphFlight`, `MorphScope`, `MorphTag`,
+    `MorphSpring`, `MorphMotion`), the motion objects, tunings, metrics,
+    `MorphAlertRoute`, `MorphGlassInspector` and `pushMorphZoom` (push a
+    `MorphNavigationRoute(from:)`). Tuning, metrics and flight-hook
+    parameters of the widgets are internal; `MorphSatellite.builder` is a
+    `WidgetBuilder`. Menus install their own scope, so no `MorphScope`
+    wraps the app.
   - morph no longer needs Material. `MorphTheme` applies a
     `MorphThemeData` (`brightness`, `tint`, `haptics`, `glass`,
     `appearances`) and carries it into routes; every `Morph*Appearance` implements

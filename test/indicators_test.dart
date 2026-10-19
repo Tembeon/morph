@@ -5,8 +5,10 @@ import 'dart:math' as math;
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/activity_indicator.dart';
+import 'package:morph/src/widgets/page_control.dart';
+import 'package:morph/src/widgets/progress.dart';
 
 const _progress = 'test/fixtures/ios27/progress';
 const _deviceProgress = 'test/fixtures/ios27-device/progress';

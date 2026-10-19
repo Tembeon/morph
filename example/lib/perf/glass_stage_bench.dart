@@ -14,7 +14,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _runs = int.fromEnvironment('STAGE_RUNS', defaultValue: 3);
 const _warmMs = int.fromEnvironment('STAGE_WARM_MS', defaultValue: 600);

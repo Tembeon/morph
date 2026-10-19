@@ -8,7 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import 'support/glass_scenes.dart';
 

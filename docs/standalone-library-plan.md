@@ -133,7 +133,7 @@ morph даёт приложению полный набор Liquid Glass-ком�
 - **Файлы.** `widgets_theme.dart`, `lib/src/theme.dart`, `show.dart`, `flight.dart`, `glass_tier.dart`, `glass_renderer.dart`, `glass.dart` (`MorphGlassScope`), 17 классов appearance, `typography.dart`, `example/lib/main.dart`, `pubspec.yaml`. Цель `lib/src/theme/`.
 - **Сделать.**
   - [x] `MorphTheme` как `InheritedTheme`, `MorphThemeData.appearances` по типу, `morphAppearanceOf`, `static const tables`, `lerp` у каждого appearance. Сделано в `b474652e`: `MorphThemeData.appearances` по типу, `MorphAppearance`, `morphResolveAppearance`. `lerp` у appearance не делается: в `WidgetsApp` нет анимированной темы.
-  - [ ] Sealed `MorphGlassRenderer` в `lib/src/theme/`: `adaptive`, `tier`, `painted`. До единицы 6 `painted` принимает текущий painter. В том же commit старый `class MorphGlassRenderer extends MorphGlassPainter` (glass_renderer.dart:113) становится внутренним `GlassBuiltInPainter`. Перенесено в единицу 6 вместе с painter-швом, чтобы не переделывать тесты дважды.
+  - [x] Sealed `MorphGlassRenderer` в `lib/src/theme/`: `adaptive`, `tier`. Сделано в `408a7267`: `MorphThemeData.glass`, null наследует стекло темы выше; `MorphTheme` стал виджетом слоя widgets над внутренним `MorphThemeScope`, потому что модуль theme не импортирует widgets. Старый класс стал `GlassBuiltInPainter`, `MorphAdaptiveGlass` стал внутренним `GlassAdaptiveScope`. `painted` придёт в единице 6 вместе с типами painter в theme; до тех пор свой painter ставит `MorphGlassScope` из `glass_painter.dart`.
   - [x] В flight.dart и show.dart заменить `Theme.of(context).colorScheme` (flight.dart:1699) и чтения `MorphTheme.default*` (flight.dart:579-582) на `MorphThemeData`, затем удалить все импорты Material. Сделано в `725b5f4b` и `b474652e`; в `lib/` нет импортов Material.
   - [x] `MorphLocalizations` с английскими строками по умолчанию. `b474652e`, `f1a1b2bc`.
   - [x] Перенести `setFloatUniforms` из `flutter_shaders` в `scene/shaders.dart`. `46218a27`, `3d8c575c`: `lib/src/glass/renderer/internal/shader_uniforms.dart`, квантование как у `flutter_shaders`.
@@ -236,13 +236,13 @@ morph даёт приложению полный набор Liquid Glass-ком�
 
 ## Единица 7. Публичный срез
 
-- **Зависит от.** 6.
+- **Зависит от.** 6. Выполнена раньше 5.3 и 6 (2026-10-19): после среза 5.3 и 6 меняют только `src/`. Painter-шов `glass_painter.dart` остаётся прежним до единицы 6.
 - **Файлы.** `lib/morph.dart`, `lib/glass_painter.dart`, `lib/widgets.dart`, `lib/foundation.dart`, `lib/motion.dart`, example, тесты, `docs/`, `CLAUDE.md`, паспорта, `tem_tools/plugins/morph`, `README.md`, `CHANGELOG.md`.
 - **Сделать.**
-  - [ ] `morph.dart` около 100 имён и `glass_painter.dart` 5 имён. Example импортирует только их, тесты replay импортируют `src/`.
-  - [ ] Перегенерировать golden API.
-  - [ ] Переписать документы из приложения D, таблицу документов в `CLAUDE.md`, ссылки на код в паспортах и skill use-morph.
-  - [ ] Рецепт подключения в README: зависимость по тегу, `MorphTheme`, GPU-флаги, прогрев, поведение без liquid. `CHANGELOG.md` прочитать перед записью.
+  - [x] `morph.dart` около 100 имён и `glass_painter.dart` 5 имён. Example импортирует только их, тесты replay импортируют `src/`. `morph.dart` 105 имён: к эскизу добавлены `MorphSheet`, `MorphSheetRoute`, `MorphDatePickerLocalizations`, `MorphContentScroll`, `MorphTabAccessoryEnvironment`, `DefaultMorphLocalizations`, без них галерея и параметры контролов теряют функции; `MorphGlassShape` не введён, `MorphGlassEffect` берёт `ShapeBorder`. `glass_painter.dart` 7 имён, с `MorphGlassScope`. Tunings, metrics и хуки flight у публичных виджетов стали `@internal` параметрами. Галерея импортирует `src/` только в инструментах разработчика (инспектор, лаборатория рендерера, spec inspector).
+  - [x] Перегенерировать golden API. Тест API также запрещает внутренние типы в публичных сигнатурах.
+  - [ ] Переписать документы из приложения D, таблицу документов в `CLAUDE.md`, ссылки на код в паспортах и skill use-morph. Сделано частично: точки входа в `CLAUDE.md`, `engine-rules.md`, `widgets.md`, `testing.md`, имена в паспортах стекла. Полная переписка `engine.md` ждёт 5.3; skill use-morph живёт в другом репозитории.
+  - [x] Рецепт подключения в README: зависимость по тегу, `MorphTheme`, GPU-флаги, прогрев, поведение без liquid. `CHANGELOG.md` прочитать перед записью. Код README проверен анализатором.
 - **Видно.** Новый импорт `package:morph/morph.dart`.
 - [ ] **Проверка, unit.** Diff golden просмотрен.
 - [ ] **Проверка, устройство.** macOS release build, web build, autodemo.

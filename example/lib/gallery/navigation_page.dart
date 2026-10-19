@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 
@@ -187,10 +187,11 @@ class _Photos extends StatelessWidget {
             child: AspectRatio(
               aspectRatio: 1,
               child: GestureDetector(
-                onTap: () => pushMorphZoom<void>(
-                  context,
-                  from: _photoLinks[i],
-                  builder: (_) => _Photo(index: i),
+                onTap: () => Navigator.of(context).push<void>(
+                  MorphNavigationRoute<void>(
+                    from: _photoLinks[i],
+                    builder: (_) => _Photo(index: i),
+                  ),
                 ),
                 child: MorphSource(
                   link: _photoLinks[i],

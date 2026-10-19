@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/navigation_bar.dart'
     show morphInlineTitleBounds, morphInlineTitleFrame;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 // Native rows (iPhone 17 Pro simulator, iOS 27.0, 402 pt): a chevron back
 // capsule 16 - 60, an icon pair capsule 282 - 386, the heart/share pair

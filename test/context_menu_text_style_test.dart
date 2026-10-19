@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/flight.dart';
+import 'package:morph/src/scope.dart';
 
 /// The page's text style, shorter than the default body style.
 const _page = TextStyle(fontSize: 13, height: 1.3, color: Color(0xFF000000));

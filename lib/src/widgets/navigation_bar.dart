@@ -279,15 +279,15 @@ class MorphNavigationBar extends StatefulWidget {
     this.animate = true,
     this.edgeEffect = MorphScrollEdgeEffectStyle.hard,
     this.edgeEffectAppearance,
-    this.titleExitShift = -MorphNavigationTuning.parallax,
-    this.drift,
+    @internal this.titleExitShift = -MorphNavigationTuning.parallax,
+    @internal this.drift,
     this.appearance,
     this.menuAppearance,
-    this.menuTuning = MorphBarMenuTuning.standard,
-    this.menuOverlay,
+    @internal this.menuTuning = MorphBarMenuTuning.standard,
+    @internal this.menuOverlay,
     this.sideInset = MorphNavigationBarMetrics.sideInset,
-    this.hiding,
-    this.hidden,
+    @internal this.hiding,
+    @internal this.hidden,
     super.key,
   });
 
@@ -334,10 +334,12 @@ class MorphNavigationBar extends StatefulWidget {
   /// (-0.3), on a pop the page that leaves (1). The new title fades in
   /// where it stands. Both ride [MorphNavigationTuning.pushSpring].
   @internal
+  @internal
   final double titleExitShift;
 
   /// The bar the capsules lean toward during an interactive pop; null
   /// keeps them in place.
+  @internal
   @internal
   final MorphNavigationBarDrift? drift;
 
@@ -349,10 +351,12 @@ class MorphNavigationBar extends StatefulWidget {
   final MorphMenuAppearance? menuAppearance;
 
   /// The bar buttons' menu recognition, opening delay and menu motion.
+  @internal
   final MorphBarMenuTuning menuTuning;
 
   /// The overlay the buttons' menus fly in; null uses
   /// [morphPresentationOverlayOf].
+  @internal
   final OverlayState? menuOverlay;
 
   /// The space between the screen's sides and the outer capsules.
@@ -362,9 +366,11 @@ class MorphNavigationBar extends StatefulWidget {
   /// its edge effect; null keeps it shown. A [MorphNavigationScaffold]
   /// drives it.
   @internal
+  @internal
   final Animation<double>? hiding;
 
   /// Whether the bar is hidden or hiding: it takes no touches then.
+  @internal
   @internal
   final ValueListenable<bool>? hidden;
 

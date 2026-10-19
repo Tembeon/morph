@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 class _Probe extends StatefulWidget {
   const _Probe({this.enabled = true, this.stampUpdates = true});

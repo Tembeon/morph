@@ -4,9 +4,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/menu_layout.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/menu_morph_spec.dart';
+import 'package:morph/src/widgets/menu_motion.dart';
 
 const Offset _held = Offset(201, 300);
 const Size _screen = Size(402, 874);

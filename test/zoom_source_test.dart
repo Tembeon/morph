@@ -135,10 +135,11 @@ void main() {
             ),
           );
         } else {
-          final result = pushMorphZoom<void>(
-            context,
-            from: _sourceLink,
-            builder: (_) => const SizedBox.expand(child: Text('content')),
+          final result = Navigator.of(context).push<void>(
+            MorphNavigationRoute<void>(
+              from: _sourceLink,
+              builder: (_) => const SizedBox.expand(child: Text('content')),
+            ),
           );
           result.ignore();
         }
@@ -187,10 +188,11 @@ void main() {
         ),
       ),
     );
-    final result = pushMorphZoom<void>(
-      context,
-      from: _sourceLink,
-      builder: (_) => const SizedBox.expand(child: Text('content')),
+    final result = Navigator.of(context).push<void>(
+      MorphNavigationRoute<void>(
+        from: _sourceLink,
+        builder: (_) => const SizedBox.expand(child: Text('content')),
+      ),
     );
     result.ignore();
     await tester.pumpAndSettle();
@@ -257,11 +259,14 @@ void main() {
             ),
           );
         } else {
-          pushMorphZoom<void>(
-            context,
-            from: _sourceLink,
-            builder: (_) => const SizedBox.expand(child: Text('content')),
-          ).ignore();
+          Navigator.of(context)
+              .push<void>(
+                MorphNavigationRoute<void>(
+                  from: _sourceLink,
+                  builder: (_) => const SizedBox.expand(child: Text('content')),
+                ),
+              )
+              .ignore();
         }
         await tester.pump();
         final looks = <double>{};
@@ -321,11 +326,14 @@ void main() {
             ),
           );
         } else {
-          pushMorphZoom<void>(
-            context,
-            from: _sourceLink,
-            builder: (_) => const SizedBox.expand(child: Text('content')),
-          ).ignore();
+          Navigator.of(context)
+              .push<void>(
+                MorphNavigationRoute<void>(
+                  from: _sourceLink,
+                  builder: (_) => const SizedBox.expand(child: Text('content')),
+                ),
+              )
+              .ignore();
         }
         await tester.pumpAndSettle();
         nav.currentState!.pop();

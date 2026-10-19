@@ -1,7 +1,7 @@
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import 'package:morph_example/gallery/alert_page.dart';
 import 'package:morph_example/gallery/context_menu_page.dart';
@@ -25,6 +25,9 @@ import 'package:morph_example/gallery/sheet_page.dart';
 import 'package:morph_example/gallery/spec_inspector.dart';
 import 'package:morph_example/gallery/tab_bar_page.dart';
 import 'package:morph_example/gallery/theming_page.dart';
+// The inspector is a development overlay, not public API.
+// ignore: implementation_imports
+import 'package:morph/src/widgets/glass_inspector.dart';
 
 /// The example app: widgets that move exactly like UIKit, each checked
 /// against recordings of the real controls.
@@ -205,9 +208,7 @@ class _GalleryChrome extends StatelessWidget {
           ),
           child: MorphGlassInspector(
             enabled: GalleryGlassScope.of(context, .inspector).inspector,
-            child: GalleryGlassTuning(
-              child: BackdropGroup(child: MorphScope(child: child)),
-            ),
+            child: GalleryGlassTuning(child: BackdropGroup(child: child)),
           ),
         ),
       ),

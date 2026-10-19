@@ -9,7 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _dir = 'test/fixtures/ios27/search';
 

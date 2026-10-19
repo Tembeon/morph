@@ -1,6 +1,5 @@
 dartdoc:
-  # widgets.dart re-exports the whole engine, so every src library has
-  # two public homes. Symbol pages are pinned to foundation via
-  # {@canonicalFor} directives there; this silences the scorer's
-  # remaining coin-toss warnings about the library entities themselves.
+  # morph.dart and glass_painter.dart share no names, so every symbol has
+  # one home; this silences the scorer's coin-toss warnings about the src
+  # library entities themselves.
   ambiguousReexportScorerMinConfidence: 0.0

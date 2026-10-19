@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_color_model.dart';
 import 'package:morph/src/widgets/glass_liquid_draw.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
 class _Recording extends MorphGlassPainter {

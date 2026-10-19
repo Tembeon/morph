@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart' show MaterialApp;
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 Widget _scene(Widget child) => MediaQuery(
   data: const MediaQueryData(),

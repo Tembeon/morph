@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/gallery/knobs.dart';
@@ -272,7 +272,7 @@ class _AlertPageState extends State<AlertPage> {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: galleryCardColor(context),
-          borderRadius: const .all(.circular(MorphListMetrics.cornerRadius)),
+          borderRadius: const .all(.circular(26)),
         ),
         child: SizedBox(
           height: 120,

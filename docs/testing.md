@@ -20,8 +20,7 @@ Scope the run to the change:
 
 `flutter analyze` from the package root also covers `example`; it stays at zero. Use
 `nice -n 10 flutter test -j 2` when the Mac is shared. `dart doc --dry-run` reports zero
-warnings (a new engine export needs its line in the `{@canonicalFor}` block of
-`foundation.dart`; `dartdoc_options.yaml` silences the scorer for the src library).
+warnings.
 
 Autodemo (`--dart-define=MORPH_AUTODEMO=true`): every gallery page in turn - push, center
 tap, horizontal drag, upward scroll, pop home - then the app exits. Green means no
@@ -42,7 +41,7 @@ it.
 - A SLOW-MO toggle cycles `timeDilation` 1x/5x/10x. Motion runs on ticker time, the flex
   filters step on the sub-clock in the same time and touches are stamped on it, so the
   widgets slow down as a whole; only the finger keeps real time.
-- The gallery root installs `MorphAdaptiveGlass` with the session's
+- The gallery root installs `GlassAdaptiveScope` with the session's
   `MorphGlassRenderer` (`glass_settings.dart`); `liquid_glass.dart` keeps only
   `precacheLiquidGlass()`.
 - A morph must TRANSFORM IDENTITY (the thing you touch becomes the surface you use);

@@ -23,7 +23,7 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show AnalyticGeometryMode, RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_container.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 import '../integration_test/support/shader_harness.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';

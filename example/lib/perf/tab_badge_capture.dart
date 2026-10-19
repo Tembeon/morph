@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+// ignore: implementation_imports
+import 'package:morph/src/scope.dart';
 
 /// Captures count and dot badges under a held and dragged liquid lens.
 ///

@@ -14,10 +14,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 import 'package:vm_service/vm_service_io.dart';
+import 'package:morph/src/flight.dart';
+import 'package:morph/src/scope.dart';
 
 /// The menu scene of the glass audit frame by frame: every FrameTiming of
 /// every timed run, the timeline of that run (the framework's BUILD,

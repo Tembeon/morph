@@ -9,8 +9,8 @@ import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
-import 'package:morph/widgets.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/widgets/date_picker_motion.dart';
 
 const _dir = 'test/fixtures/ios27/date_picker';
 const double _frame = 1 / 60;

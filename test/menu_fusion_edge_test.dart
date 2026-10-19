@@ -6,7 +6,7 @@ import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// Menus from 120 x 80 to 300 x 600 over a 48 pt button that overlaps
 /// them, touches them, is bridged by the blur, is far, sits at a corner,

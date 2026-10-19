@@ -5,8 +5,9 @@ import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
-import 'package:morph/motion.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/scope.dart';
+import 'package:morph/src/widgets/push_zoom_motion.dart';
 
 final _cardLink = MorphSourceLink();
 
@@ -255,7 +256,11 @@ void main() {
     );
 
     Future<void> pushDetail(WidgetTester tester, BuildContext home) async {
-      unawaited(pushMorphZoom<void>(home, builder: detail, from: _cardLink));
+      unawaited(
+        Navigator.of(home).push<void>(
+          MorphNavigationRoute<void>(builder: detail, from: _cardLink),
+        ),
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
     }
@@ -342,11 +347,12 @@ void main() {
     ) async {
       final home = await pumpStack(tester);
       unawaited(
-        pushMorphZoom<void>(
-          home,
-          builder: (BuildContext context) =>
-              GestureDetector(onTap: () {}, child: detail(context)),
-          from: _cardLink,
+        Navigator.of(home).push<void>(
+          MorphNavigationRoute<void>(
+            builder: (BuildContext context) =>
+                GestureDetector(onTap: () {}, child: detail(context)),
+            from: _cardLink,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -373,11 +379,12 @@ void main() {
     ) async {
       final home = await pumpStack(tester);
       unawaited(
-        pushMorphZoom<void>(
-          home,
-          builder: (BuildContext context) =>
-              PopScope<void>(canPop: false, child: detail(context)),
-          from: _cardLink,
+        Navigator.of(home).push<void>(
+          MorphNavigationRoute<void>(
+            builder: (BuildContext context) =>
+                PopScope<void>(canPop: false, child: detail(context)),
+            from: _cardLink,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -392,15 +399,16 @@ void main() {
       final canPop = ValueNotifier<bool>(true);
       addTearDown(canPop.dispose);
       unawaited(
-        pushMorphZoom<void>(
-          home,
-          builder: (BuildContext context) => ValueListenableBuilder<bool>(
-            valueListenable: canPop,
-            builder: (BuildContext context, bool value, Widget? child) =>
-                PopScope<void>(canPop: value, child: child!),
-            child: detail(context),
+        Navigator.of(home).push<void>(
+          MorphNavigationRoute<void>(
+            builder: (BuildContext context) => ValueListenableBuilder<bool>(
+              valueListenable: canPop,
+              builder: (BuildContext context, bool value, Widget? child) =>
+                  PopScope<void>(canPop: value, child: child!),
+              child: detail(context),
+            ),
+            from: _cardLink,
           ),
-          from: _cardLink,
         ),
       );
       await tester.pumpAndSettle();

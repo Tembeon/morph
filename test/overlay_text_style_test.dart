@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
+import 'package:morph/src/scope.dart';
 
 final _cardLink = MorphSourceLink();
 
@@ -315,10 +316,11 @@ void main() {
       ),
     );
     unawaited(
-      pushMorphZoom<void>(
-        home,
-        from: _cardLink,
-        builder: (BuildContext context) => _page('Photo'),
+      Navigator.of(home).push<void>(
+        MorphNavigationRoute<void>(
+          from: _cardLink,
+          builder: (BuildContext context) => _page('Photo'),
+        ),
       ),
     );
     expect(await _watch(tester), isEmpty);

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/ancestor_clip.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 const _contentKey = Key('content');
 

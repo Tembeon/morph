@@ -29,16 +29,12 @@ and the approaches that are rejected on purpose.
   expose MorphSprings, not motor Motions.
 - `MorphMenuItem` names `MorphMenuButton`'s rows (`title`, `icon`,
   `destructive`, `onSelected`).
-- Export diet: foundation.dart is the whole engine surface; liquid_field
-  internals, RenderMorphSkin and the shared-element machinery are not
-  exported (package-internal tests import src/ directly). widgets.dart
-  exports by explicit `show` lists the controls, their `*Appearance`
-  tables and the tunings they take as parameters; motion.dart the pure
-  motion objects, the other measured tunings and layout types;
-  glass_painter.dart the painter seam; the widget machinery (clock,
-  integrator, timeline, spring state, lens driver, focus, glass layer) is
-  @internal. The minimal motor vocabulary (Motion, CupertinoMotion,
-  MaterialSpringMotion, CurvedMotion) is re-exported.
+- Export diet: morph.dart is the whole public surface, by explicit `show` lists
+  (controls, appearances, presentations, theme and glass choice);
+  glass_painter.dart the custom painter seam. Engine types (flights, scope, springs,
+  motion objects, tunings, metrics) stay in src/, which package tests import directly.
+  Tunings, metrics and test hooks on public widgets are `@internal` parameters;
+  test/api/public_api_test.dart rejects an internal type in a public signature.
 - Engine seams that must stay public for cross-file use are annotated
   `@internal` (scope registries, tag machinery, controller.notifyFrame,
   flight route/shared plumbing) so the analyzer warns consumers off.

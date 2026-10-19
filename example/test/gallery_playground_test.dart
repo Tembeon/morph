@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph/src/widgets/glass_inspector.dart';
 
 /// Every text on screen that fell through to the app's error text style.
 List<String> _unstyledTexts(WidgetTester tester) => [

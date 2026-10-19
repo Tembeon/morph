@@ -9,7 +9,7 @@ import 'support/material_bridge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/glass_painter.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 final Map<String, Object?> _fixture =
     (jsonDecode(

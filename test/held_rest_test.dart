@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 /// A control held still under a finger rests: no frame is scheduled once
 /// its press motion settles, and the next move wakes it and is followed

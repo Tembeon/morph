@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/control_focus.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/morph.dart';
 
 Future<void> _settle(WidgetTester tester) => tester.pumpAndSettle(
   const Duration(milliseconds: 100),
