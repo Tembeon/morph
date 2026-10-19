@@ -3072,6 +3072,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         offsetY: boundsInMatteSpace.top * devicePixelRatio,
         field: _field,
         fieldScale: devicePixelRatio,
+        mergeMinWidth: liquidMinMergeWidth,
       );
       return (
         analytic: false,

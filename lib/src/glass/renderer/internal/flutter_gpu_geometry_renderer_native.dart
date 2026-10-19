@@ -34,6 +34,10 @@ class FlutterGpuGeometryRenderer {
     _fieldTextureSlot = resources.fieldTextureSlot;
     _fieldUniformData = ByteData(resources.fieldUniformSize);
     _fieldOffsets = resources.fieldOffsets;
+    _fusedPipeline = resources.fusedPipeline;
+    _fusedUniformSlot = resources.fusedUniformSlot;
+    _fusedUniformData = ByteData(resources.fusedUniformSize);
+    _fusedOffsets = resources.fusedOffsets;
     _materialGradientPipeline = resources.materialGradientPipeline;
     _materialTintGradientPipeline = resources.materialTintGradientPipeline;
     _uniformSlot = resources.uniformSlot;
@@ -73,6 +77,7 @@ class FlutterGpuGeometryRenderer {
       final vertexShader = library?['GeometryVertex'];
       final fragmentShader = library?['GeometryFragment'];
       final fieldFragmentShader = library?['GeometryFieldFragment'];
+      final fusedFragmentShader = library?['GeometryFusedFragment'];
       final materialGradientFragmentShader =
           library?['MaterialGradientFragment'];
       final materialTintGradientFragmentShader =
@@ -80,6 +85,7 @@ class FlutterGpuGeometryRenderer {
       if (vertexShader == null ||
           fragmentShader == null ||
           fieldFragmentShader == null ||
+          fusedFragmentShader == null ||
           materialGradientFragmentShader == null ||
           materialTintGradientFragmentShader == null) {
         throw StateError(
@@ -91,6 +97,7 @@ class FlutterGpuGeometryRenderer {
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
         fieldFragmentShader: fieldFragmentShader,
+        fusedFragmentShader: fusedFragmentShader,
         materialGradientFragmentShader: materialGradientFragmentShader,
         materialTintGradientFragmentShader: materialTintGradientFragmentShader,
       );
@@ -213,6 +220,10 @@ class FlutterGpuGeometryRenderer {
   late final ByteData _fieldUniformData;
   late final _FieldUniformOffsets _fieldOffsets;
   final _FieldTextures _fieldTextures = _FieldTextures();
+  late final gpu.RenderPipeline _fusedPipeline;
+  late final gpu.UniformSlot _fusedUniformSlot;
+  late final ByteData _fusedUniformData;
+  late final _FusedUniformOffsets _fusedOffsets;
   late final gpu.RenderPipeline _materialGradientPipeline;
   late final gpu.RenderPipeline _materialTintGradientPipeline;
 
@@ -276,7 +287,11 @@ class FlutterGpuGeometryRenderer {
   /// Renders a new geometry matte and returns it as a [ui.Image].
   ///
   /// The matte fills the top-left `width` x `height` of the image, which is
-  /// `textureWidth` x `textureHeight`. The returned image is a non-owning
+  /// `textureWidth` x `textureHeight`. A [GlassBoxField] body is encoded by
+  /// its merge law per pixel, with [mergeMinWidth] logical pixels the
+  /// narrowest merge width that blends, exactly the body the analytic final
+  /// shaders shade, and its samples are never read; any other [field] is
+  /// encoded from its samples. The returned image is a non-owning
   /// wrapper - do NOT dispose it. Its texture is written again
   /// [reuseAfterFrames] frames after a later render replaces it.
   ({ui.Image image, int width, int height, int textureWidth, int textureHeight})
@@ -299,6 +314,7 @@ class FlutterGpuGeometryRenderer {
     List<double> boundsData = const <double>[],
     GlassField? field,
     double fieldScale = 1,
+    double mergeMinWidth = 0,
   }) {
     assert(() {
       debugRenderCount++;
@@ -405,8 +421,9 @@ class FlutterGpuGeometryRenderer {
       geometryAaHalfWidth: _geometryAaHalfWidth,
       numShapes: numShapes.toDouble(),
     );
-    // A field pass reads only the header, copied into its own block; the
-    // shape rows matter only to the shape pass and the material pass.
+    // A field or fused pass reads only the header, copied into its own
+    // block; the shape rows matter only to the shape pass and the material
+    // pass.
     final readsShapeRows = field == null || writeMaterials;
     gpu.BufferView? uniformView;
     if (readsShapeRows) {
@@ -419,16 +436,30 @@ class FlutterGpuGeometryRenderer {
       uniformView = _emplaceUniforms(_uniformData, _uniformSize);
     }
 
+    // A fused body of boxes is encoded by its merge law per pixel, never
+    // from its sampled field.
+    final body = field is GlassBoxField ? field : null;
+    final sampled = body == null ? field : null;
+    gpu.BufferView? fusedUniformView;
+    if (body != null) {
+      _packFusedUniformData(
+        body: body,
+        scale: fieldScale,
+        minWidth: mergeMinWidth,
+      );
+      fusedUniformView = _emplaceUniforms(_fusedUniformData, _uniformSize);
+    }
+
     final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
     gpu.Texture? fieldTexture;
     gpu.BufferView? fieldUniformView;
     try {
-      fieldTexture = field == null
+      fieldTexture = sampled == null
           ? null
-          : _uploadField(field, geometryCommandBuffer);
-      if (field != null && fieldTexture != null) {
+          : _uploadField(sampled, geometryCommandBuffer);
+      if (sampled != null && fieldTexture != null) {
         _packFieldUniformData(
-          field: field,
+          field: sampled,
           fieldScale: fieldScale,
           texture: fieldTexture,
         );
@@ -439,7 +470,12 @@ class FlutterGpuGeometryRenderer {
       rethrow;
     }
     final geometryPass = geometryCommandBuffer.createRenderPass(_renderTarget!);
-    if (fieldTexture == null || fieldUniformView == null) {
+    if (fusedUniformView != null) {
+      geometryPass.bindPipeline(_fusedPipeline);
+      geometryPass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
+      geometryPass.bindUniform(_fusedUniformSlot, fusedUniformView);
+      geometryPass.bindVertexBuffer(_vertexBufferView);
+    } else if (fieldTexture == null || fieldUniformView == null) {
       geometryPass
         ..bindPipeline(_pipeline)
         ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
@@ -876,6 +912,45 @@ class FlutterGpuGeometryRenderer {
     to[size + 3] = 1 / texture.height;
   }
 
+  /// Writes the fused pass's uniforms: the geometry pass's optical values
+  /// (already packed for the shape pass), the merge law of [body] with
+  /// [minWidth] its narrowest blending width, and its boxes, in matte
+  /// pixels ([scale] per logical pixel).
+  void _packFusedUniformData({
+    required GlassBoxField body,
+    required double scale,
+    required double minWidth,
+  }) {
+    final from = _uniformData.buffer.asFloat32List();
+    final to = _fusedUniformData.buffer.asFloat32List();
+    void copy(int fromOffset, int toOffset, int count) {
+      for (var i = 0; i < count; i++) {
+        to[toOffset ~/ 4 + i] = from[fromOffset ~/ 4 + i];
+      }
+    }
+
+    final offsets = _fusedOffsets;
+    copy(_offsetUOffset, offsets.offset, 2);
+    copy(_offsetUTextureSize, offsets.textureSize, 2);
+    copy(_offsetOpticalProps, offsets.opticalProps, 4);
+    copy(_offsetContourProps, offsets.contourProps, 4);
+    final law = offsets.fusedLaw ~/ 4;
+    to[law] = body.boxes.length.toDouble();
+    to[law + 1] = body.spacing * scale;
+    to[law + 2] = minWidth * scale;
+    final boxes = offsets.fusedBoxes ~/ 4;
+    for (final (i, box) in body.boxes.indexed) {
+      final hx = box.width / 2;
+      final hy = box.height / 2;
+      final at = boxes + i * 8;
+      to[at] = box.center.dx * scale;
+      to[at + 1] = box.center.dy * scale;
+      to[at + 2] = hx * scale;
+      to[at + 3] = hy * scale;
+      to[at + 4] = math.min(box.tlRadiusX, math.min(hx, hy)) * scale;
+    }
+  }
+
   /// Whether this renderer holds matte or material textures, in use or
   /// spare.
   bool get holdsOutput =>
@@ -1084,6 +1159,16 @@ typedef _FieldUniformOffsets = ({
   int fieldSize,
 });
 
+/// Byte offsets of the members of the fused pass's uniform block.
+typedef _FusedUniformOffsets = ({
+  int offset,
+  int textureSize,
+  int opticalProps,
+  int contourProps,
+  int fusedLaw,
+  int fusedBoxes,
+});
+
 /// Field textures in GPU memory, each with the host buffer its samples are
 /// staged in, reused after three frames.
 ///
@@ -1189,6 +1274,7 @@ class _SharedGeometryResources {
     required gpu.Shader vertexShader,
     required gpu.Shader fragmentShader,
     required gpu.Shader fieldFragmentShader,
+    required gpu.Shader fusedFragmentShader,
     required gpu.Shader materialGradientFragmentShader,
     required gpu.Shader materialTintGradientFragmentShader,
   }) {
@@ -1212,6 +1298,22 @@ class _SharedGeometryResources {
       contourProps: member('uContourProps'),
       fieldFrame: member('uFieldFrame'),
       fieldSize: member('uFieldSize'),
+    );
+    fusedPipeline = gpu.gpuContext.createRenderPipeline(
+      vertexShader,
+      fusedFragmentShader,
+    );
+    fusedUniformSlot = fusedFragmentShader.getUniformSlot('FusedUniforms');
+    fusedUniformSize = fusedUniformSlot.sizeInBytes ?? 0;
+    int fusedMember(String name) =>
+        fusedUniformSlot.getMemberOffsetInBytes(name) ?? 0;
+    fusedOffsets = (
+      offset: fusedMember('uOffset'),
+      textureSize: fusedMember('uTextureSize'),
+      opticalProps: fusedMember('uOpticalProps'),
+      contourProps: fusedMember('uContourProps'),
+      fusedLaw: fusedMember('uFusedLaw'),
+      fusedBoxes: fusedMember('uFusedBoxes'),
     );
     materialGradientPipeline = gpu.gpuContext.createRenderPipeline(
       vertexShader,
@@ -1258,6 +1360,10 @@ class _SharedGeometryResources {
   late final gpu.UniformSlot fieldTextureSlot;
   late final int fieldUniformSize;
   late final _FieldUniformOffsets fieldOffsets;
+  late final gpu.RenderPipeline fusedPipeline;
+  late final gpu.UniformSlot fusedUniformSlot;
+  late final int fusedUniformSize;
+  late final _FusedUniformOffsets fusedOffsets;
   late final gpu.RenderPipeline materialGradientPipeline;
   late final gpu.RenderPipeline materialTintGradientPipeline;
   late final gpu.UniformSlot uniformSlot;

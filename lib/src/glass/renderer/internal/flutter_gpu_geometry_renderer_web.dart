@@ -82,6 +82,7 @@ class FlutterGpuGeometryRenderer {
     List<double> boundsData = const <double>[],
     GlassField? field,
     double fieldScale = 1,
+    double mergeMinWidth = 0,
   }) => throw UnsupportedError('Flutter GPU is not available on the web.');
 
   /// Nothing is held on the web.

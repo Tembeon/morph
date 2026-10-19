@@ -4,7 +4,7 @@
 Compiles every runtime .frag of the package (the glass renderer's and the
 widgets' shaders, and the frozen baseline in example/shader_audit/baseline) with the SDK's impellerc for the three
 runtime stages the engine loads - Vulkan (SPIR-V), Metal (MSL) and GLES 3
-(GLSL ES) - and the Flutter GPU bundle fragments (geometry, field, material)
+(GLSL ES) - and the Flutter GPU bundle fragments (geometry, field, fused, material)
 for Vulkan and GLES 3.00 as the build hook does, then reports:
 
 - static counts of what each backend's driver receives: SPIR-V instructions
@@ -73,6 +73,7 @@ RUNTIME = [
 BUNDLE = [
     'gpu/geometry_fragment.glsl',
     'gpu/geometry_field_fragment.glsl',
+    'gpu/geometry_fused_fragment.glsl',
     'gpu/material_gradient_fragment.glsl',
     'gpu/material_tint_gradient_fragment.glsl',
 ]

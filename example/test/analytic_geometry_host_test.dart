@@ -196,11 +196,12 @@ List<HarnessCase> _fusedCases() {
   return cases;
 }
 
-/// The mean difference a merged-box body may show against its sampled
-/// field over the covered pixels: the field's 4 pt grid bends the normals
-/// along curves, which striped and noisy backdrops amplify (host run
-/// 2026-10-09: up to 9.1 over noise, 0.2 - 0.6 over the gradient).
-const double _fusedMeanBound = 12;
+/// The mean difference a merged-box body's matte may show against its
+/// analytic frame over the covered pixels: the geometry pass merges the
+/// boxes by the same law, so only the matte's quantization is left, as for
+/// separate shapes (host run 2026-10-19: 0.07 - 0.48, the highest over the
+/// noise; the field sampled every 4 pt it replaced showed up to 9.3).
+const double _fusedMeanBound = 0.6;
 
 /// The mean difference a merged-box body may show against the package's
 /// fusion sampled eight times finer than it ships (host run 2026-10-09:
@@ -278,8 +279,6 @@ void main() {
           glassCase.name != 'mixed-models';
       expect(analytic, eligible, reason: glassCase.name);
       if (analytic && glassCase.field is GlassBoxField) {
-        // The sampled field itself strays from the exact shapes along
-        // curves (see the far-apart test), so this is the field's error.
         expect(
           entry['mean_covered']! as double,
           lessThanOrEqualTo(_fusedMeanBound),
@@ -514,16 +513,21 @@ void main() {
         const LiquidGlassSettings(frost: 0),
         shapes,
       );
+      final boxes = [
+        for (final rect in rects)
+          ui.RRect.fromRectAndRadius(rect, ui.Radius.circular(radius)),
+      ];
       final merged = HarnessCase(
         'far-$name',
         const LiquidGlassSettings(frost: 0),
         shapes,
-        field: morphGlassOutlineField(
-          morphGlassContainerBoxOutline([
-            for (final rect in rects)
-              ui.RRect.fromRectAndRadius(rect, ui.Radius.circular(radius)),
-          ], 12),
-        ),
+        field: morphGlassOutlineField(morphGlassContainerBoxOutline(boxes, 12)),
+      );
+      final sampled = HarnessCase(
+        'far-$name',
+        const LiquidGlassSettings(frost: 0),
+        shapes,
+        field: morphGlassOutlineField(morphGlassContainerOutline(boxes, 12)),
       );
       Future<HarnessShot> shot(HarnessCase c, {required bool analytic}) async {
         RenderLiquidGlassLayer.debugAnalyticGeometry = analytic;
@@ -533,7 +537,7 @@ void main() {
 
       final exact = await shot(separate, analytic: true);
       final shader = await shot(merged, analytic: true);
-      final field = await shot(merged, analytic: false);
+      final field = await shot(sampled, analytic: false);
       final covered = _covered(merged, dpr);
       final analyticVsExact = _compare(exact, shader, covered);
       final fieldVsExact = _compare(exact, field, covered);
