@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'package:code_assets/code_assets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks/hooks.dart';
+import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 
 import '../hook/build.dart';
 
@@ -31,6 +34,64 @@ void main() {
   test('G6 the pubspec asset directory is the one the hook writes', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     expect(pubspec, contains('- build/shaderbundles/'));
+  });
+
+  test('the final pass is built from the variant table alone', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    expect(pubspec, isNot(contains('liquid_glass_final_render')));
+    final wrappers = Directory('lib/src/glass/renderer/shaders')
+        .listSync()
+        .map((file) => file.uri.pathSegments.last)
+        .where((name) => name.startsWith('liquid_glass_final_render'));
+    expect(wrappers, {
+      'liquid_glass_final_render.frag',
+      'liquid_glass_final_render_core.glsl',
+    });
+    final names = {
+      for (final variant in LiquidShaderVariant.values) variant.fileName,
+    };
+    expect(names, hasLength(LiquidShaderVariant.values.length));
+    expect(
+      {
+        ...ShaderKeys.liquidGlassRenders,
+        ...ShaderKeys.liquidGlassAnalyticRenders,
+        ...ShaderKeys.liquidGlassAnalyticFusedRenders,
+      },
+      {
+        for (final variant in LiquidShaderVariant.values)
+          ShaderKeys.finalRender(variant),
+      },
+    );
+    for (final variant in LiquidShaderVariant.values) {
+      expect(
+        variant.directModel || variant.ios27Models,
+        isTrue,
+        reason: variant.name,
+      );
+      expect(!variant.fused || variant.analyticGeometry, isTrue);
+      expect(
+        ShaderKeys.finalRender(variant),
+        endsWith('build/shaderbundles/${variant.fileName}.iplr'),
+      );
+    }
+  });
+
+  test('each target gets the runtime stages it loads', () {
+    expect(runtimeStagesFor(OS.iOS), ['--runtime-stage-metal']);
+    // The host tests load the Skia stub, or Vulkan under Impeller.
+    expect(runtimeStagesFor(OS.macOS), [
+      '--sksl',
+      '--runtime-stage-metal',
+      '--runtime-stage-vulkan',
+    ]);
+    for (final os in [OS.android, OS.linux, OS.windows]) {
+      expect(runtimeStagesFor(os), [
+        '--sksl',
+        '--runtime-stage-gles',
+        '--runtime-stage-gles3',
+        '--runtime-stage-vulkan',
+      ]);
+    }
   });
 
   test(

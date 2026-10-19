@@ -595,3 +595,24 @@ Local patches (some commits include related package changes):
   device pixel over a rect snapped to the pass's pixel grid, its encoded
   distances still in layer device pixels; it is encoded again when the
   scale or the pass phase moves.
+- 2026-10-19 final pass built by the hook, as upstream b5f5df0 does:
+  hook/build.dart compiles shaders/liquid_glass_final_render.frag with
+  impellerc --iplr once per LiquidShaderVariant
+  (liquid_shader_variants.dart, defining WITH_<switch> for each switch on)
+  into build/shaderbundles/<name>.iplr, for the target OS's runtime stages
+  (iOS Metal; macOS Skia stub, Metal and Vulkan for the host tests;
+  others Skia stub, GLES, GLES 3 and Vulkan). The 13 wrapper .frag files
+  and their pubspec entries are gone; ShaderKeys.finalRender, the layer's
+  shader lists and morphWarmLiquidPipelines derive from the table.
+- 2026-10-19 final pass register diet (tool/audit/2026-10-19-shader-diet):
+  a FROST switch: the one-appearance and tint-only matte variants come
+  frosted and unfrosted (`_unfrosted`, 32 Mali-G78 work registers), the
+  layer picking by shaderFrostDeviceSigma; the shader frost reads its 24
+  taps unmirrored where all lie inside the backdrop and runs a rolled
+  mirrored loop at its edge (the mixed-appearance variant keeps one
+  mirrored loop); the light direction, the highlight color, the contour
+  offset and transmittance, the glint wrap and opposite strength and the
+  bevel directionality and size response are shader constants (their
+  uniform slots stay); coverage and contour direction are derived after
+  the refraction; the one-model variants compute one tint tone; the
+  mixed-appearance variant lights the touch glow. No spill on Vulkan.

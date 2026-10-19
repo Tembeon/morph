@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Offline gate for the glass shaders: no device, no GPU.
 
-Compiles every runtime .frag of the package (the glass renderer's and the
-widgets' shaders, and the frozen baseline in example/shader_audit/baseline) with the SDK's impellerc for the three
+Compiles every runtime shader of the package (the liquid final pass once
+per variant of lib/src/glass/renderer/liquid_shader_variants.dart, as
+hook/build.dart does, the other glass and widget shaders, and the frozen
+baseline in example/shader_audit/baseline) with the SDK's impellerc for the three
 runtime stages the engine loads - Vulkan (SPIR-V), Metal (MSL) and GLES 3
 (GLSL ES) - and the Flutter GPU bundle fragments (geometry, field, fused, material)
 for Vulkan and GLES 3.00 as the build hook does, then reports:
@@ -24,7 +26,11 @@ for Vulkan and GLES 3.00 as the build hook does, then reports:
                                                   # (copies of lib/src/glass/
                                                   # renderer/shaders)
     tool/audit/shader/offline.py --only final     # names containing 'final'
-    tool/audit/shader/offline.py --define NAME=V  # extra define (repeatable)
+    tool/audit/shader/offline.py --define NAME    # extra define (repeatable;
+                                                  # impellerc takes no value)
+
+A tree whose final pass has one wrapper .frag per variant (an older copy,
+the baseline) compiles those wrappers instead of the variant table.
 
 malioc comes from PATH or MALIOC=<path>; MALIOC_CORE=<core> picks the GPU (default
 Mali-G78) and MALIOC_KEEP=<dir> keeps the compiled GLES source and SPIR-V; without it only the static counts
@@ -51,21 +57,11 @@ TREES = {
     'widgets': os.path.join(ROOT, 'lib/src/widgets/shaders'),
     'baseline': os.path.join(ROOT, 'example/shader_audit/baseline'),
 }
+FINAL_ENTRY = 'liquid_glass_final_render.frag'
+# A wrapper only the per-variant layout has.
+LEGACY_MARKER = 'liquid_glass_final_render_material.frag'
 RUNTIME = [
-    'liquid_glass_final_render.frag',
-    'liquid_glass_final_render_ios27.frag',
-    'liquid_glass_final_render_tint.frag',
-    'liquid_glass_final_render_tint_ios27.frag',
-    'liquid_glass_final_render_material.frag',
     'glass_shadow.frag',
-    'liquid_glass_final_render_analytic.frag',
-    'liquid_glass_final_render_analytic_ios27.frag',
-    'liquid_glass_final_render_analytic_tint.frag',
-    'liquid_glass_final_render_analytic_tint_ios27.frag',
-    'liquid_glass_final_render_analytic_fused.frag',
-    'liquid_glass_final_render_analytic_fused_ios27.frag',
-    'liquid_glass_final_render_analytic_fused_tint.frag',
-    'liquid_glass_final_render_analytic_fused_tint_ios27.frag',
     'flat_fused_body.frag',
     'glyph_reduce.frag',
     'glyph_blur.frag',
@@ -100,9 +96,27 @@ def impellerc(args, tree):
                    check=True, capture_output=True)
 
 
-def compile_runtime(tree, entry, stage, out, defines):
+def final_variants():
+    """(name, defines) of every final-pass variant, from the Dart table."""
+    result = subprocess.run(['dart', os.path.join(ROOT, 'tool/audit/shader/variants.dart')],
+                            cwd=ROOT, check=True, capture_output=True, text=True)
+    return [(v['name'], [f'--define={d}' for d in v['defines']])
+            for v in json.loads(result.stdout)]
+
+
+def final_sources(tree, variants):
+    """(entry, source file, its own defines) of each final-pass variant the tree holds."""
+    if os.path.exists(os.path.join(tree, LEGACY_MARKER)):
+        return [(f'{name}.frag', f'{name}.frag', []) for name, _ in variants
+                if os.path.exists(os.path.join(tree, f'{name}.frag'))]
+    if not os.path.exists(os.path.join(tree, FINAL_ENTRY)):
+        return []
+    return [(f'{name}.frag', FINAL_ENTRY, defines) for name, defines in variants]
+
+
+def compile_runtime(tree, entry, stage, out, defines, source=None):
     base = os.path.join(out, f'{os.path.basename(entry)}.{stage}')
-    impellerc([f'--runtime-stage-{stage}', f'--input={os.path.join(tree, entry)}',
+    impellerc([f'--runtime-stage-{stage}', f'--input={os.path.join(tree, source or entry)}',
                f'--sl={base}.iplr', f'--spirv={base}.spv'] + defines, tree)
     return open(f'{base}.iplr', 'rb').read()
 
@@ -209,13 +223,14 @@ def malioc(path, api):
     }
 
 
-def analyze_runtime(tree, entry, out, defines, dis):
+def analyze_runtime(tree, entry, out, defines, dis, source=None):
     row = {}
-    spirv = embedded_spirv(compile_runtime(tree, entry, 'vulkan', out, defines))
+    spirv = embedded_spirv(compile_runtime(tree, entry, 'vulkan', out, defines, source))
     if dis:
         row['vulkan'] = spirv_counts(spirv, dis)
-    row['metal'] = text_counts(embedded_text(compile_runtime(tree, entry, 'metal', out, defines)))
-    gles_text = embedded_text(compile_runtime(tree, entry, 'gles3', out, defines))
+    row['metal'] = text_counts(embedded_text(
+        compile_runtime(tree, entry, 'metal', out, defines, source)))
+    gles_text = embedded_text(compile_runtime(tree, entry, 'gles3', out, defines, source))
     row['gles3'] = text_counts(gles_text)
     gles_path = os.path.join(out, 'runtime.frag')
     open(gles_path, 'w').write(gles_text)
@@ -316,12 +331,20 @@ def main():
     default_trees = not trees
     trees = trees or TREES
     dis = spirv_dis()
+    variants = final_variants()
+    finals = [f'{name}.frag' for name, _ in variants]
     report = {}
     found = set()
     with tempfile.TemporaryDirectory() as out:
         for tree_name, tree in trees.items():
             if not os.path.isdir(tree):
                 continue
+            for entry, source, own in final_sources(tree, variants):
+                if only and only not in entry:
+                    continue
+                found.add(entry)
+                report[f'{tree_name}/{entry}'] = analyze_runtime(
+                    tree, entry, out, own + defines, dis, source)
             for entry in RUNTIME + BUNDLE:
                 if only and only not in entry:
                     continue
@@ -333,7 +356,8 @@ def main():
     if json_out:
         json.dump(report, open(json_out, 'w'), indent=2)
     print_tables(report)
-    missing = [e for e in RUNTIME + BUNDLE if (not only or only in e) and e not in found]
+    missing = [e for e in finals + RUNTIME + BUNDLE
+               if (not only or only in e) and e not in found]
     if missing:
         print(f'\nnot found in any tree: {", ".join(missing)}', file=sys.stderr)
         # Custom trees may hold only part of the package; the default ones

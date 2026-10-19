@@ -10,9 +10,7 @@ import 'package:flutter/painting.dart';
 /// multiplies the channels by `1 + gain * exp(-0.5 * (r / radius)^2)` at
 /// `r` from [center], clamped at white, both inside [clip], over everything
 /// the glass shows and under the content painted after the layer
-/// (shaders/glass_glow.glsl). A layer whose shapes mix appearances beyond
-/// tint draws no glow (its final shader variant leaves the glow out to
-/// stay within its registers).
+/// (shaders/glass_glow.glsl), in every final shader variant.
 @immutable
 class LiquidGlassGlow {
   /// Creates a glow.

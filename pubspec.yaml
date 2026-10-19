@@ -8,6 +8,8 @@ environment:
   flutter: ">=3.47.0"
 
 dependencies:
+  # hook/build.dart reads the target OS to compile only its runtime stages.
+  code_assets: '>=1.2.1 <3.0.0'
   flutter:
     sdk: flutter
   flutter_gpu:
@@ -26,24 +28,11 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 flutter:
-  # The glass renderer (lib/src/glass/renderer). Every fragment shader
-  # compiles for the web too, where it is a stub: the web draws frosted or
-  # flat glass. The Flutter GPU bundle is written into build/shaderbundles/
-  # by hook/build.dart, which creates the directory on every build.
+  # The liquid glass final pass is not listed here: hook/build.dart compiles
+  # its variants (lib/src/glass/renderer/liquid_shader_variants.dart) into
+  # build/shaderbundles/*.iplr, next to the Flutter GPU bundle, and creates
+  # the directory on every build.
   shaders:
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_material.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_tint.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_ios27.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_tint_ios27.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_analytic.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_analytic_ios27.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_analytic_tint.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_analytic_tint_ios27.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_analytic_fused.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_analytic_fused_ios27.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_analytic_fused_tint.frag
-    - lib/src/glass/renderer/shaders/liquid_glass_final_render_analytic_fused_tint_ios27.frag
     - lib/src/glass/renderer/shaders/glass_shadow.frag
     - lib/src/widgets/shaders/glyph_blur.frag
     - lib/src/widgets/shaders/glyph_reduce.frag

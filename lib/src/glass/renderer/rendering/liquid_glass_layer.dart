@@ -30,6 +30,7 @@ import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_bou
 import 'package:morph/src/glass/renderer/liquid_glass_glow.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_render_scope.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_settings.dart';
+import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
@@ -329,11 +330,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
                   child,
                 ) {
                   return _RawShapes(
-                    defaultRenderShader: shaders[0],
-                    ios27RenderShader: shaders[1],
-                    materialRenderShader: shaders[2],
-                    tintRenderShader: shaders[3],
-                    tintIos27RenderShader: shaders[4],
+                    matteShaders: shaders,
                     backdropKey: backdropKey,
                     blursOwnBackdrop: widget.blursOwnBackdrop,
                     solidBackdrop: widget.solidBackdrop,
@@ -362,11 +359,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
 
 class _RawShapes extends SingleChildRenderObjectWidget {
   const _RawShapes({
-    required this.defaultRenderShader,
-    required this.ios27RenderShader,
-    required this.materialRenderShader,
-    required this.tintRenderShader,
-    required this.tintIos27RenderShader,
+    required this.matteShaders,
     required this.backdropKey,
     required this.blursOwnBackdrop,
     required this.solidBackdrop,
@@ -382,11 +375,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     this.gpuGeometryRenderer,
   });
 
-  final FragmentShader defaultRenderShader;
-  final FragmentShader ios27RenderShader;
-  final FragmentShader materialRenderShader;
-  final FragmentShader tintRenderShader;
-  final FragmentShader tintIos27RenderShader;
+  final List<FragmentShader> matteShaders;
   final BackdropKey? backdropKey;
   final bool blursOwnBackdrop;
   final Color? solidBackdrop;
@@ -405,11 +394,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     final layer = RenderLiquidGlassLayer(
       field: fieldOf(),
       devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
-      defaultRenderShader: defaultRenderShader,
-      ios27RenderShader: ios27RenderShader,
-      materialRenderShader: materialRenderShader,
-      tintRenderShader: tintRenderShader,
-      tintIos27RenderShader: tintIos27RenderShader,
+      matteShaders: matteShaders,
       backdropKey: backdropKey,
       settings: settingsOf(),
       defaultAppearance: defaultAppearance,
@@ -490,11 +475,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     with TransformTrackingRenderObjectMixin, MorphLiveBinding
     implements LiquidGlassLayerRenderObject {
   RenderLiquidGlassLayer({
-    required this.defaultRenderShader,
-    required this.ios27RenderShader,
-    required this.materialRenderShader,
-    required this.tintRenderShader,
-    required this.tintIos27RenderShader,
+    required List<FragmentShader> matteShaders,
     required super.backdropKey,
     required super.devicePixelRatio,
     required super.settings,
@@ -502,9 +483,18 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     required super.link,
     this._gpuGeometryRenderer,
     this._field,
-  }) {
+  }) : _matteShaders = {
+         for (final (index, variant) in _matteVariants.indexed)
+           variant: matteShaders[index],
+       } {
     _updateShaderSettings();
   }
+
+  /// The matte variants, in the order of [ShaderKeys.liquidGlassRenders].
+  static final List<LiquidShaderVariant> _matteVariants = [
+    for (final variant in LiquidShaderVariant.values)
+      if (!variant.analyticGeometry) variant,
+  ];
 
   GlassField? _field;
 
@@ -561,20 +551,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   void _onGlows() => _glowsApply?.call();
 
-  /// One appearance for the layer, the direct color model.
-  final FragmentShader defaultRenderShader;
+  /// The layer's matte final shaders by variant.
+  final Map<LiquidShaderVariant, FragmentShader> _matteShaders;
 
-  /// One appearance for the layer, an iOS 27 color model.
-  final FragmentShader ios27RenderShader;
-
-  /// Shapes with their own appearances, any color models.
-  final FragmentShader materialRenderShader;
-
-  /// Shapes that differ only by tint, the direct color model.
-  final FragmentShader tintRenderShader;
-
-  /// Shapes that differ only by tint, an iOS 27 color model.
-  final FragmentShader tintIos27RenderShader;
+  FragmentShader _matte(LiquidShaderVariant variant) => _matteShaders[variant]!;
 
   /// The analytic final shaders of this layer for separate shapes, in the
   /// order of [ShaderKeys.liquidGlassAnalyticRenders], or null until
@@ -1003,15 +983,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     return null;
   }
 
-  /// The final shader the current appearances draw with: each variant
-  /// compiles only the color models it can meet, which keeps the
-  /// one-appearance and tint-only matte variants inside the register
-  /// budget of full thread occupancy on a Mali-G78. The analytic variants,
-  /// built for [analyticMaxShapes] shapes, run at half occupancy there.
+  /// The final shader the current appearances and frost draw with: each
+  /// variant compiles only the color models it can meet, and the
+  /// one-appearance and tint-only matte variants without the shader frost
+  /// fit the register budget of full thread occupancy on a Mali-G78. The
+  /// frosted, mixed-appearance and analytic variants run at half occupancy
+  /// there.
   FragmentShader get renderShader {
     final ios27 =
         (_uniformAppearance ?? defaultAppearance).colorModel
             is! DirectLiquidGlassColorModel;
+    final frost = shaderFrostDeviceSigma > 0;
     final shader = switch ((
       _usesShapeAppearances,
       _usesTintOnlyAppearance,
@@ -1021,11 +1003,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       (false, _, true) when _analytic => _analyticSet[1],
       (true, true, false) when _analytic => _analyticSet[2],
       (true, true, true) when _analytic => _analyticSet[3],
-      (false, _, false) => defaultRenderShader,
-      (false, _, true) => ios27RenderShader,
-      (true, true, false) => tintRenderShader,
-      (true, true, true) => tintIos27RenderShader,
-      (true, false, _) => materialRenderShader,
+      (false, _, false) => _matte(frost ? .direct : .directUnfrosted),
+      (false, _, true) => _matte(frost ? .ios27 : .ios27Unfrosted),
+      (true, true, false) => _matte(frost ? .tint : .tintUnfrosted),
+      (true, true, true) => _matte(frost ? .tintIos27 : .tintIos27Unfrosted),
+      (true, false, _) => _matte(.material),
     };
     _writeStaleShaderSettings(shader);
     return shader;
@@ -1092,11 +1074,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   void _updateShaderSettings() {
     _shaderInputsChanged = true;
-    _staleShaders.add(defaultRenderShader);
-    _staleShaders.add(ios27RenderShader);
-    _staleShaders.add(materialRenderShader);
-    _staleShaders.add(tintRenderShader);
-    _staleShaders.add(tintIos27RenderShader);
+    _staleShaders.addAll(_matteShaders.values);
     if (_analyticShaders case final shaders?) _staleShaders.addAll(shaders);
     if (_analyticFusedShaders case final shaders?) {
       _staleShaders.addAll(shaders);
@@ -1122,6 +1100,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           1 - settings.effectiveBackdropShrink,
           appearance.saturation,
         ])
+        // The final pass folds the light direction, the highlight color
+        // and the rim values written below as literals or GlassRim
+        // constants (test/glass_rim_constants_test.dart).
         ..setOffset(const Offset(0, 1))
         ..setColor(const Color.fromARGB(255, 255, 255, 255))
         ..setColor(

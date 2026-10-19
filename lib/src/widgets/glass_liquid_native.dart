@@ -49,7 +49,7 @@ Future<void> _warmPipelines() async {
       : null;
   if (geometry == null) return;
   try {
-    await morphWarmLiquidPipelines(geometry, _finalShaders);
+    await morphWarmLiquidPipelines(geometry);
   } finally {
     geometry.dispose();
   }

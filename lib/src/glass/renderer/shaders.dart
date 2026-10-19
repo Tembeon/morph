@@ -2,6 +2,7 @@
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/liquid_shader_variants.dart';
 
 @internal
 bool isLocalTest = false;
@@ -12,29 +13,28 @@ final String _shadersRoot = !kIsWeb && isLocalTest ? '' : 'packages/morph/';
 abstract class ShaderKeys {
   const ShaderKeys._();
 
-  /// The asset folder the runtime-effect shaders load from instead of the
-  /// package's own, for a harness that renders a second copy of them in
-  /// the same app; null loads the package's.
+  /// The asset folder the final-pass variants load from instead of the
+  /// package's own, as `<fileName>.frag` (a harness that renders a second
+  /// copy of them in the same app lists them as shaders); null loads the
+  /// package's.
   @visibleForTesting
   static String? debugRuntimeRoot;
 
-  static String get _runtimeRoot =>
-      debugRuntimeRoot ?? '${_shadersRoot}lib/src/glass/renderer/shaders/';
+  /// The asset key of [variant]'s compiled final pass: the library
+  /// hook/build.dart writes into the package's `build/shaderbundles/`, or
+  /// its copy under [debugRuntimeRoot].
+  static String finalRender(LiquidShaderVariant variant) =>
+      switch (debugRuntimeRoot) {
+        final root? => '$root${variant.fileName}.frag',
+        null => '${_shadersRoot}build/shaderbundles/${variant.fileName}.iplr',
+      };
 
-  static String get liquidGlassRender =>
-      '${_runtimeRoot}liquid_glass_final_render.frag';
-
-  static String get liquidGlassMaterialRender =>
-      '${_runtimeRoot}liquid_glass_final_render_material.frag';
-
-  static String get liquidGlassTintRender =>
-      '${_runtimeRoot}liquid_glass_final_render_tint.frag';
-
-  static String get liquidGlassIos27Render =>
-      '${_runtimeRoot}liquid_glass_final_render_ios27.frag';
-
-  static String get liquidGlassTintIos27Render =>
-      '${_runtimeRoot}liquid_glass_final_render_tint_ios27.frag';
+  static List<String> _finalRenders(
+    bool Function(LiquidShaderVariant variant) test,
+  ) => [
+    for (final variant in LiquidShaderVariant.values)
+      if (test(variant)) finalRender(variant),
+  ];
 
   /// Whether liquid layers evaluate their geometry in the final shader
   /// instead of rendering a geometry matte: up to eight separate shapes,
@@ -67,40 +67,12 @@ abstract class ShaderKeys {
     'MORPH_ANALYTIC_CAPSULE',
   );
 
-  static String get liquidGlassAnalyticRender =>
-      '${_runtimeRoot}liquid_glass_final_render_analytic.frag';
-
-  static String get liquidGlassAnalyticIos27Render =>
-      '${_runtimeRoot}liquid_glass_final_render_analytic_ios27.frag';
-
-  static String get liquidGlassAnalyticTintRender =>
-      '${_runtimeRoot}liquid_glass_final_render_analytic_tint.frag';
-
-  static String get liquidGlassAnalyticTintIos27Render =>
-      '${_runtimeRoot}liquid_glass_final_render_analytic_tint_ios27.frag';
-
-  static String get liquidGlassAnalyticFusedRender =>
-      '${_runtimeRoot}liquid_glass_final_render_analytic_fused.frag';
-
-  static String get liquidGlassAnalyticFusedIos27Render =>
-      '${_runtimeRoot}liquid_glass_final_render_analytic_fused_ios27.frag';
-
-  static String get liquidGlassAnalyticFusedTintRender =>
-      '${_runtimeRoot}liquid_glass_final_render_analytic_fused_tint.frag';
-
-  static String get liquidGlassAnalyticFusedTintIos27Render =>
-      '${_runtimeRoot}liquid_glass_final_render_analytic_fused_tint_ios27.frag';
-
   /// The final shaders that merge a fused body of boxes analytically, in
   /// the order of [liquidGlassAnalyticRenders]; only a layer whose field
   /// is a `GlassBoxField` draws with them, so the separate-shape variants
   /// carry none of the merge law.
-  static List<String> get liquidGlassAnalyticFusedRenders => [
-    liquidGlassAnalyticFusedRender,
-    liquidGlassAnalyticFusedIos27Render,
-    liquidGlassAnalyticFusedTintRender,
-    liquidGlassAnalyticFusedTintIos27Render,
-  ];
+  static List<String> get liquidGlassAnalyticFusedRenders =>
+      _finalRenders((variant) => variant.fused);
 
   /// The final shaders that evaluate their shapes analytically: one
   /// appearance with the direct and with an iOS 27 color model, shapes that
@@ -109,24 +81,15 @@ abstract class ShaderKeys {
   /// Not part of [liquidGlassRenders]: they load only while analytic
   /// geometry is enabled, and a copy of the runtime shaders under
   /// [debugRuntimeRoot] without them leaves its layers on the matte path.
-  static List<String> get liquidGlassAnalyticRenders => [
-    liquidGlassAnalyticRender,
-    liquidGlassAnalyticIos27Render,
-    liquidGlassAnalyticTintRender,
-    liquidGlassAnalyticTintIos27Render,
-  ];
+  static List<String> get liquidGlassAnalyticRenders =>
+      _finalRenders((variant) => variant.analyticGeometry && !variant.fused);
 
   /// The final liquid glass shaders in the order a layer binds them: one
   /// appearance with the direct and with an iOS 27 color model, shapes with
   /// their own appearances, shapes that differ only by tint with the direct
   /// and with an iOS 27 color model.
-  static List<String> get liquidGlassRenders => [
-    liquidGlassRender,
-    liquidGlassIos27Render,
-    liquidGlassMaterialRender,
-    liquidGlassTintRender,
-    liquidGlassTintIos27Render,
-  ];
+  static List<String> get liquidGlassRenders =>
+      _finalRenders((variant) => !variant.analyticGeometry);
 
   /// The single-pass Gaussian the bar glyphs blur with.
   static String get glyphBlur =>

@@ -304,6 +304,43 @@ On by default. `MORPH_FLAT_SHADER_BODIES=false` restores the traced path.
 - Its path is traced only if something reads it.
 - Qualified on Skia (Redmi 6A).
 
+### Final pass budget
+
+The final pass compiles into the variants of
+lib/src/glass/renderer/liquid_shader_variants.dart (one table; the hook,
+the asset keys, the warm-up and offline.py read it). Mali-G78 figures from
+tool/audit/shader/offline.py; before and after the 2026-10-19 diet in
+tool/audit/2026-10-19-shader-diet/.
+
+- The shader frost (24 unrolled taps) holds a variant at 64 work
+  registers, half occupancy, whatever else it does: the taps fill 32 alone
+  and anything live across them tips the allocation. A rolled loop fits
+  32 but costs about 24 more arithmetic cycles a frosted pixel. So the
+  one-appearance and tint-only matte variants come twice, frosted (64) and
+  unfrosted (32, full occupancy, for no frost, the softening kernel or a
+  blur pass); the layer picks by `shaderFrostDeviceSigma`. The
+  mixed-appearance and analytic variants always carry the frost (64
+  either way).
+- Where every tap lies inside the backdrop texture (all but the pixels
+  near its edge), the frost reads its taps unmirrored: about a third of
+  the frosted path's arithmetic. The edge pixels run a rolled, mirrored
+  loop. NEAR: host Impeller within one channel step on the frosted harness
+  cases. The mixed-appearance variant keeps one mirrored loop (split, it
+  spills).
+- No variant spills on Vulkan. The rim values the layer always writes the
+  same (light along +y, white highlight, contour offset and transmittance
+  0, glint wrap 0.5 at full strength on both walls, bevel directionality
+  0.5 without size response) are shader constants; held as uniforms they
+  pushed the analytic variants into spills. The coverage and contour
+  direction are derived again after the refraction; the one-model variants
+  compute only the tint tone of their model. All IDENTICAL on the host
+  harness.
+- `mediump` buys nothing: impellerc does write RelaxedPrecision for
+  mediump arithmetic into the Vulkan stage (Flutter 3.47.7 and 3.50 beta,
+  with or without the file's `precision highp float`), but the color, tint,
+  light and glow math in mediump moves no variant's registers (fp16 1 - 2
+  percent of the arithmetic).
+
 ### Touch glow
 
 On the liquid tier the final pass of a layer applies the glow of its lit
@@ -326,11 +363,8 @@ paint layer.
 - One glow per layer pass: the first lit surface of the layer's shapes
   (a control lights at most one). A fused body keeps the glow inside its
   lit member's box, so the menu's neck and button stay unlit.
-- The variant for mixed appearances (shapes of one layer that differ by
-  more than tint) compiles the glow out: there it spills to stack on the
-  Mali-G78 wherever it is placed (4 - 24 bytes). The lit controls never
-  mix appearances in a layer; an app layer that mixes clear and regular
-  `MorphGlassEffect` shapes shows no glow.
+- Every variant lights it, the one for mixed appearances (shapes of one
+  layer that differ by more than tint) included.
 - The glow is not structure: it enters `LiquidGlassLayer.live` through
   `glowOf` every frame and rebuilds nothing. A glowing host joins no glass
   container (`morphGlassJoinLook`): the container's pass carries no glow.
@@ -353,12 +387,9 @@ paint layer.
   at a six-sigma square (a step of `gain e^-4.5`: 0.9 level on the tab bar,
   1.6 on the menu, up to 3.2 on a small dark button) is gone. A glass that
   fades out while lit fades its glow with it.
-- Cost (tool/audit/shader/offline.py, malioc Mali-G78): every final
-  variant keeps 64 work registers on Vulkan, 50 % occupancy and main's
-  spill (analytic 4, analytic_ios27 4, analytic_fused_tint_ios27 16 bytes,
-  the rest 0); the lit path costs about +1 arithmetic and +3 load/store
-  cycles a fragment, total arithmetic +0.75 - 1.1. `mediump` buys nothing
-  here: impellerc writes no RelaxedPrecision into the Vulkan stage.
+- Cost (tool/audit/shader/offline.py, malioc Mali-G78): the lit path
+  costs about +1 arithmetic and +3 load/store cycles a fragment, total
+  arithmetic +0.75 - 1.1.
 
 ## Shadows
 
@@ -376,5 +407,11 @@ again on every frame the shape resizes.
   must stay. Flutter 3.47.2 does not request data assets from hooks, so a
   data-asset-only bundle silently loses liquid glass on the device.
   Verify packaging on a native device.
+- The final pass is no pubspec shader: the hook compiles it with
+  impellerc --iplr once per variant of the one table
+  (lib/src/glass/renderer/liquid_shader_variants.dart) into
+  `build/shaderbundles/<name>.iplr`, for the target's runtime stages; an
+  edit to any file under shaders/ reruns it. Its Skia stage is an empty
+  stub only the host tests load.
 - The web build compiles: the liquid tier sits behind a conditional
-  import, and its final-render shaders compile to stubs under Skia.
+  import, and the hook compiles no final pass for the web.
