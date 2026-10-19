@@ -74,9 +74,12 @@ class MorphGlassContainer extends StatefulWidget {
   /// members over the color itself instead of reading the backdrop: no
   /// backdrop filter at all, the most expensive part of glass on a phone's
   /// GPU. The container trusts the color: glass over anything else shows
-  /// this color instead. A member that leaves the container reads its
-  /// backdrop in its own layer as before. Ignored unless the color is
-  /// fully opaque.
+  /// this color instead. A member that leaves the container - pressed,
+  /// lifted, glowing, or unlike the others - lies on the color as much as
+  /// its resting neighbours and is shaded over it in its own layer too;
+  /// read from the backdrop group's one copy, it would move that copy above
+  /// whatever paints between the container and the group's next glass.
+  /// Ignored unless the color is fully opaque.
   final Color? solidBackdrop;
 
   @override
@@ -125,8 +128,9 @@ class MorphGlassStage extends StatefulWidget {
   /// are inset from the fill's edges by more than their refraction reaches
   /// - the stage shades its members over the color itself instead of
   /// reading the backdrop: no backdrop filter at all. A member that leaves
-  /// the stage reads its backdrop in its own layer as before. Ignored
-  /// unless the color is fully opaque.
+  /// the open stage is shaded over the color in its own layer too
+  /// ([morphGlassContainerSolidBackdrop]). Ignored unless the color is
+  /// fully opaque.
   final Color? solidBackdrop;
 
   /// Whether the stage closes while its glass would blur: for a stage
@@ -298,6 +302,7 @@ Widget _containerLayer(
           link: link,
           renderer: painter,
           settings: settings,
+          solidBackdrop: solidBackdrop,
           open:
               open &&
               MorphGlassContainerGate.openAt(context) &&
@@ -342,6 +347,27 @@ bool morphGlassContainerReaches(Element host) {
     return false;
   });
   return clear;
+}
+
+/// The color the open glass container above [host] is painted directly
+/// over, for body glass [host] shades in a layer of its own: glass the
+/// container reaches but does not shade - a pressed, lifted or glowing
+/// member, or one unlike the others - lies on that color as much as its
+/// resting neighbours do.
+///
+/// Read from the backdrop group's one copy instead, such a layer would be
+/// the group's first reader whenever it paints before the group's other
+/// glass, and would move that copy above whatever paints between them (a
+/// picture other glass sits on) for as long as it is out. Null without an
+/// open container, when the container declares no color, or when anything
+/// between them keeps the host out ([morphGlassContainerReaches]).
+@internal
+Color? morphGlassContainerSolidBackdrop(BuildContext host) {
+  final scope = host
+      .dependOnInheritedWidgetOfExactType<MorphGlassContainerScope>();
+  final solid = scope?.solidBackdrop;
+  if (scope == null || !scope.open || solid == null) return null;
+  return morphGlassContainerReaches(host as Element) ? solid : null;
 }
 
 /// The nearest ancestor of [host] below [until] that keeps its glass out of
@@ -413,6 +439,7 @@ class MorphGlassContainerScope extends InheritedWidget {
     required this.renderer,
     required this.settings,
     required super.child,
+    this.solidBackdrop,
     this.open = true,
     super.key,
   });
@@ -420,6 +447,10 @@ class MorphGlassContainerScope extends InheritedWidget {
   /// Whether the container takes members now; a closed one is no
   /// container to them.
   final bool open;
+
+  /// The opaque color the container is painted directly over, or null
+  /// ([MorphGlassContainer.solidBackdrop]).
+  final Color? solidBackdrop;
 
   /// The container's admission record.
   final MorphGlassContainerLink link;
@@ -440,6 +471,7 @@ class MorphGlassContainerScope extends InheritedWidget {
   @override
   bool updateShouldNotify(MorphGlassContainerScope oldWidget) =>
       oldWidget.open != open ||
+      oldWidget.solidBackdrop != solidBackdrop ||
       oldWidget.link != link ||
       oldWidget.renderer != renderer ||
       oldWidget.settings != settings;
