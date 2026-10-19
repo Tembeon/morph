@@ -25,7 +25,7 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets('menu submenu video', (WidgetTester tester) async {
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     runApp(const GalleryApp());
     await tester.pump(const Duration(seconds: 2));
     final navigator = tester.state<NavigatorState>(

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/internal/liquid_capability.dart';
 import 'package:morph/src/widgets/glass_liquid_web.dart' as web;
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -62,15 +63,15 @@ void main() {
     FlutterError.onError = reports.add;
     addTearDown(() => FlutterError.onError = previous);
     expect(
-      const MorphGlassRenderer(tier: MorphGlassTier.flat).effectiveTier,
+      const GlassBuiltInPainter(tier: MorphGlassTier.flat).effectiveTier,
       MorphGlassTier.flat,
     );
     expect(
-      const MorphGlassRenderer(tier: MorphGlassTier.fake).effectiveTier,
+      const GlassBuiltInPainter(tier: MorphGlassTier.fake).effectiveTier,
       MorphGlassTier.fake,
     );
     await Future<void>.value();
-    expect(MorphGlassRenderer.liquidUnavailableReason, isNull);
+    expect(GlassBuiltInPainter.liquidUnavailableReason, isNull);
     expect(reports, isEmpty);
   });
 
@@ -79,15 +80,15 @@ void main() {
     final previous = FlutterError.onError;
     FlutterError.onError = reports.add;
     addTearDown(() => FlutterError.onError = previous);
-    await MorphGlassRenderer.precache();
-    expect(MorphGlassRenderer.liquidAvailable, isFalse);
-    expect(const MorphGlassRenderer().effectiveTier, MorphGlassTier.fake);
-    final reason = MorphGlassRenderer.liquidUnavailableReason;
+    await GlassBuiltInPainter.precache();
+    expect(GlassBuiltInPainter.liquidAvailable, isFalse);
+    expect(const GlassBuiltInPainter().effectiveTier, MorphGlassTier.fake);
+    final reason = GlassBuiltInPainter.liquidUnavailableReason;
     expect(reason, isNotEmpty);
     expect(reports.single.library, 'morph glass');
     expect(reports.single.exception.toString(), contains(reason!));
-    await MorphGlassRenderer.precache();
-    expect(MorphGlassRenderer.liquidUnavailableReason, reason);
+    await GlassBuiltInPainter.precache();
+    expect(GlassBuiltInPainter.liquidUnavailableReason, reason);
     expect(reports, hasLength(1));
   });
 

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/theme/theme.dart';
 import 'package:morph/src/widgets/stepper.dart';
+import 'package:morph/src/widgets/morph_theme.dart';
 
 void main() {
   testWidgets('MorphTheme resolves appearance, brightness and changes', (

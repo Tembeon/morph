@@ -19,9 +19,9 @@ Future<void> main() async {
   await File(
     '${out.path}/result.json',
   ).writeAsString(jsonEncode({'complete': false}));
-  await MorphGlassRenderer.precache();
+  await MorphTheme.precacheGlass();
   await RenderLiquidGlassLayer.precacheAnalyticShaders();
-  if (!MorphGlassRenderer.liquidAvailable) {
+  if (!MorphTheme.liquidGlassAvailable) {
     throw StateError('The capture requires liquid glass.');
   }
   final keys = List.generate(6, (_) => GlobalKey());
@@ -31,8 +31,8 @@ Future<void> main() async {
     MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(brightness: Brightness.light),
-      builder: (_, child) => MorphAdaptiveGlass(
-        tier: MorphGlassTier.liquid,
+      builder: (_, child) => MorphTheme(
+        data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
         child: BackdropGroup(child: MorphScope(child: child!)),
       ),
       home: ColoredBox(

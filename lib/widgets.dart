@@ -17,8 +17,8 @@
 ///
 /// Everything here is built on `package:morph/foundation.dart` and
 /// the package's glass renderer; the engine never depends on this layer.
-/// The controls draw flat fills by default; [MorphGlassRenderer]
-/// installed with [MorphGlassScope] (or [MorphAdaptiveGlass], which picks
+/// The controls draw flat fills by default; [GlassBuiltInPainter]
+/// installed with [MorphGlassScope] (or [GlassAdaptiveScope], which picks
 /// its quality tier once by the device's GPU) draws them as liquid, fake or
 /// flat glass, and any other [MorphGlassPainter] can take its place. The
 /// package computes every shape once - fused silhouettes included - so
@@ -30,7 +30,8 @@ library;
 export 'foundation.dart';
 export 'src/theme/localizations.dart'
     show DefaultMorphLocalizations, MorphLocalizations;
-export 'src/theme/theme.dart' show MorphAppearance, MorphTheme, MorphThemeData;
+export 'src/theme/glass.dart' show MorphGlassRenderer, MorphGlassTier;
+export 'src/theme/theme.dart' show MorphAppearance, MorphThemeData;
 export 'src/widgets/activity_indicator.dart'
     show
         MorphActivityIndicator,
@@ -68,14 +69,7 @@ export 'src/widgets/glass_container.dart' show MorphGlassContainer;
 export 'src/widgets/glass_effect.dart' show MorphGlassEffect;
 export 'src/widgets/glass_inspector.dart'
     show MorphGlassCensus, MorphGlassHint, MorphGlassInspector;
-export 'src/widgets/glass_renderer.dart'
-    show
-        MorphGlassMaterial,
-        MorphGlassRenderer,
-        MorphGlassStyle,
-        MorphGlassTier;
-export 'src/widgets/glass_tier.dart'
-    show MorphAdaptiveGlass, MorphGlassDeviceClass;
+export 'src/widgets/glass_renderer.dart' show MorphGlassStyle;
 export 'src/widgets/list.dart'
     show
         MorphListAccessory,
@@ -105,6 +99,7 @@ export 'src/widgets/menu_entries.dart'
         MorphMenuWidget,
         MorphSubmenu;
 export 'src/widgets/menu_motion.dart' show MorphMenuTuning;
+export 'src/widgets/morph_theme.dart' show MorphTheme;
 export 'src/widgets/morph_context_menu.dart'
     show MorphContextMenuRegion, MorphSatellite;
 export 'src/widgets/navigation_bar.dart'

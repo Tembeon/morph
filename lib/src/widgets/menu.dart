@@ -158,7 +158,7 @@ class MorphMenuAppearance implements MorphAppearance {
     MorphMenuAppearance? explicit,
   ) =>
       explicit ??
-      MorphTheme.maybeOf(context)?.appearance<MorphMenuAppearance>() ??
+      MorphThemeScope.maybeOf(context)?.appearance<MorphMenuAppearance>() ??
       switch (morphBrightnessOf(context)) {
         Brightness.dark => dark,
         Brightness.light => light,

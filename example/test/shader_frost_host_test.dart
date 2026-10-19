@@ -11,6 +11,7 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Frosted glass blurring its backdrop in the final pass against the blur
 /// pass, on the host's Impeller with the liquid tier:
@@ -36,8 +37,8 @@ void _main() {
       addTearDown(tester.view.reset);
       final frostBefore = debugMorphShaderFrost;
       addTearDown(() => debugMorphShaderFrost = frostBefore);
-      await tester.runAsync(MorphGlassRenderer.precache);
-      if (!MorphGlassRenderer.liquidAvailable) return;
+      await tester.runAsync(GlassBuiltInPainter.precache);
+      if (!MorphTheme.liquidGlassAvailable) return;
 
       Future<void> frames(int count) async {
         for (var i = 0; i < count; i++) {

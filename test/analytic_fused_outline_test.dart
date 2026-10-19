@@ -10,7 +10,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/theme/glass.dart';
 
 RRect _capsule(double left, double top, double width) => RRect.fromLTRBR(
   left,

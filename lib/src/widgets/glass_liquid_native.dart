@@ -38,7 +38,7 @@ Future<void>? _warmUp;
 /// `BlitCopyBufferToTextureCommandGLES::Encode` under
 /// `Rasterizer::MakeImpellerSnapshot`).
 Future<void> _warmPipelines() async {
-  if (MorphAdaptiveGlass.deviceClass != MorphGlassDeviceClass.capable) {
+  if (GlassAdaptiveScope.deviceClass != MorphGlassDeviceClass.capable) {
     return;
   }
   final liquid = _capability.value;

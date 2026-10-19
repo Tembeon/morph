@@ -14,7 +14,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/widgets.dart' show MorphGlassRenderer;
+import 'package:morph/widgets.dart';
 
 const _runs = int.fromEnvironment('STAGE_RUNS', defaultValue: 3);
 const _warmMs = int.fromEnvironment('STAGE_WARM_MS', defaultValue: 600);
@@ -277,10 +277,10 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
         throw StateError('Stage timings require a profile or release build');
       }
       final cases = _cases();
-      await MorphGlassRenderer.precache();
-      if (!MorphGlassRenderer.liquidAvailable) {
+      await MorphTheme.precacheGlass();
+      if (!MorphTheme.liquidGlassAvailable) {
         throw StateError(
-          'Liquid unavailable: ${MorphGlassRenderer.liquidUnavailableReason}',
+          'Liquid unavailable: ${MorphTheme.liquidGlassUnavailableReason}',
         );
       }
       for (final c in cases) {
@@ -374,7 +374,7 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
       'budget_ms': budget,
       'device_pixel_ratio': view.devicePixelRatio,
       'physical_size': [view.physicalSize.width, view.physicalSize.height],
-      'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'liquid_available': MorphTheme.liquidGlassAvailable,
       'runs': _runs,
       'warm_ms': _warmMs,
       'sample_ms': _sampleMs,

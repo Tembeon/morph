@@ -91,7 +91,7 @@ void main() {
     final previous = FlutterError.onError;
     FlutterError.onError = (_) {};
     try {
-      await MorphGlassRenderer.precache();
+      await MorphTheme.precacheGlass();
     } finally {
       FlutterError.onError = previous;
     }

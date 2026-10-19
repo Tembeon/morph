@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph/widgets.dart';
 
 import '../integration_test/support/control_matrix.dart';
 
@@ -34,7 +34,7 @@ void _main() {
     final previous = FlutterError.onError;
     FlutterError.onError = (FlutterErrorDetails details) {};
     try {
-      await MorphGlassRenderer.precache();
+      await MorphTheme.precacheGlass();
     } finally {
       FlutterError.onError = previous;
     }

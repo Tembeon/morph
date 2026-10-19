@@ -20,7 +20,7 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets('gallery navigation video', (WidgetTester tester) async {
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     final navigator = GlobalKey<NavigatorState>();
     runApp(GalleryApp(navigatorKey: navigator));
     await tester.pump(const Duration(seconds: 1));

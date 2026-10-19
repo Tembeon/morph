@@ -21,9 +21,10 @@ import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
+import 'package:morph/src/theme/glass.dart';
 
 MorphGlassMaterial _materialOf(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   MorphGlassSurface surface,
 ) => switch (surface.style) {
   null => renderer.material,
@@ -32,7 +33,7 @@ MorphGlassMaterial _materialOf(
 };
 
 LiquidGlassSettings _preset(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   MorphGlassSurface surface,
 ) => switch (_materialOf(renderer, surface)) {
   MorphGlassMaterial.regular => LiquidGlassSettings(
@@ -53,7 +54,7 @@ LiquidGlassSettings _preset(
 /// interpolated by its lift.
 @internal
 LiquidGlassSettings morphLiquidSettings(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   MorphGlassSurface surface,
 ) {
   final preset = _preset(renderer, surface);
@@ -72,13 +73,13 @@ LiquidGlassSettings morphLiquidSettings(
           : 0.0);
   final amount = optics == null
       ? preset.refractionAmount
-      : optics.displacementAt(lift) * MorphGlassRenderer.lensRefraction;
+      : optics.displacementAt(lift) * GlassBuiltInPainter.lensRefraction;
   return preset.copyWith(
     frost: frost * renderer.blur,
     refractionAmount: amount * renderer.refraction,
     dispersion: optics == null
         ? preset.dispersion
-        : MorphGlassRenderer.lensDispersion * lift,
+        : GlassBuiltInPainter.lensDispersion * lift,
     highlight:
         preset.highlight *
         renderer.light *
@@ -93,9 +94,9 @@ LiquidGlassSettings morphLiquidSettings(
 /// brightness, as through UIKit's lifted lens.
 @internal
 LiquidGlassAppearance morphLiquidAppearance(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   MorphGlassSurface surface,
-) => MorphGlassRenderer.floats(surface.kind)
+) => GlassBuiltInPainter.floats(surface.kind)
     ? const LiquidGlassAppearance()
     : (switch (_materialOf(renderer, surface)) {
         MorphGlassMaterial.regular => LiquidGlassAppearance.ios27Regular(
@@ -128,7 +129,7 @@ Offset morphShrinkAxis(Rect bounds, double rim) {
 double morphBackdropScale(MorphGlassSurface surface, double shrink) =>
     1 +
     (1 / (1 - shrink) - 1) *
-        MorphGlassRenderer.glassness(surface) *
+        GlassBuiltInPainter.glassness(surface) *
         surface.opacity.clamp(0.0, 1.0);
 
 LiquidShape _shape(RRect shape, {bool exact = false}) {
@@ -164,7 +165,7 @@ List<BoxShadow> _shadows(MorphGlassSurface surface) =>
     };
 
 LiquidGlassShapeFrame _shapeFrame(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   MorphGlassSurface surface, {
   required bool shadows,
   required bool exact,
@@ -175,7 +176,7 @@ LiquidGlassShapeFrame _shapeFrame(
     appearance: base.copyWith(
       visibility:
           base.visibility *
-          MorphGlassRenderer.glassness(surface) *
+          GlassBuiltInPainter.glassness(surface) *
           surface.opacity.clamp(0.0, 1.0),
     ),
     shadows: shadows ? _shadows(surface) : const [],
@@ -192,7 +193,7 @@ LiquidGlassShapeFrame _shapeFrame(
 /// the ones past its pick absent ([_slotShapes]), and reads its settings
 /// from [anchor] while the pick is empty.
 Widget _layer(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   MorphGlassSource source,
   List<MorphGlassSurface> Function(MorphGlassFrame frame) select, {
   bool shared = true,
@@ -259,7 +260,7 @@ Widget _layer(
 /// The shapes of the surfaces [select] picks, registered with the
 /// nearest glass layer above them.
 Widget _shapes(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   MorphGlassSource source,
   List<MorphGlassSurface> Function(MorphGlassFrame frame) select, {
   required int count,
@@ -293,7 +294,7 @@ Widget _shapes(
 /// An absent slot keeps the kind of shadows of [anchor]'s surface, so a
 /// slot that turns present builds nothing.
 Widget _slotShapes(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   MorphGlassSource source,
   List<MorphGlassSurface> Function(MorphGlassFrame frame) select,
   MorphGlassSurface Function(MorphGlassFrame frame) anchor, {
@@ -358,7 +359,7 @@ MorphGlassSurface _local(MorphGlassSurface surface) => MorphGlassSurface(
 /// picks from [source], sized to its bounds.
 @internal
 Widget morphLiquidSurface(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   BuildContext context,
   MorphGlassSource source,
   MorphGlassSurface Function(MorphGlassFrame frame) select,
@@ -381,7 +382,7 @@ Widget morphLiquidSurface(
 /// both tiers.
 @internal
 Widget morphLiquidBody(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   BuildContext context,
   MorphGlassSource source,
   (List<MorphGlassSurface>, MorphGlassOutline) Function(MorphGlassFrame f)
@@ -433,7 +434,7 @@ Widget morphLiquidBody(
 /// field. Its layer holds [count] member slots and reads its settings
 /// from [anchor] while it is empty.
 Widget _slotBody(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   MorphGlassSource source,
   (List<MorphGlassSurface>, MorphGlassOutline)? Function(MorphGlassFrame f)
   select,
@@ -521,7 +522,7 @@ class _LensRects {
 /// rebuild around new content leaves the glass widgets untouched.
 @internal
 Widget morphLiquidLayer(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   BuildContext context,
   MorphGlassSource source, {
   Widget? content,
@@ -538,11 +539,11 @@ Widget morphLiquidLayer(
   final chrome = body.any(_chrome);
   final joined =
       MorphGlassContainerScope.maybeOf(context)?.holds(context) ?? false;
-  bool lifted(MorphGlassSurface s) => s.lift > MorphGlassRenderer.restingLift;
+  bool lifted(MorphGlassSurface s) => s.lift > GlassBuiltInPainter.restingLift;
   final overBar = body.any((s) => s.kind == MorphGlassKind.bar);
   ({double magnification, double shrink, double rim}) optics(
     MorphGlassSurface s,
-  ) => MorphGlassRenderer.liftedOptics(s.kind, overBar: overBar);
+  ) => GlassBuiltInPainter.liftedOptics(s.kind, overBar: overBar);
   double shrinkOf(MorphGlassSurface s) =>
       optics(s).shrink * s.lift.clamp(0.0, 1.0);
   final lensed = [
@@ -629,7 +630,7 @@ Widget morphLiquidLayer(
             ),
           ),
       for (final (i, surface) in floating.indexed)
-        if (MorphGlassRenderer.glassness(surface) < 1)
+        if (GlassBuiltInPainter.glassness(surface) < 1)
           at(
             ('platter', i),
             (f) => f.partsFor(tier).floating[i].bounds,
@@ -734,7 +735,7 @@ Widget _content(
 /// layer first under the key of a layer without fused bodies, so a change
 /// that starts or ends at rest keeps its layers.
 Widget _slottedLayer(
-  MorphGlassRenderer renderer,
+  GlassBuiltInPainter renderer,
   BuildContext context,
   MorphGlassSource source, {
   Widget? content,
@@ -817,7 +818,7 @@ class _Platter extends StatelessWidget {
     live: source.pick((f) {
       final surface = select(f);
       final shape = surface.localShape;
-      final opacity = 1 - MorphGlassRenderer.glassness(surface);
+      final opacity = 1 - GlassBuiltInPainter.glassness(surface);
       return BoxDecoration(
         color: surface.color.withValues(alpha: surface.color.a * opacity),
         borderRadius: BorderRadius.only(

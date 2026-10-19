@@ -14,7 +14,7 @@ import 'package:morph/src/theme/theme.dart';
 ///
 /// The glass fills the box [child] lays out in, under [child], in
 /// [shape]. It is the material of a glass button at rest: the installed
-/// [MorphGlassPainter] draws it ([MorphGlassRenderer] as liquid, fake or
+/// [MorphGlassPainter] draws it ([GlassBuiltInPainter] as liquid, fake or
 /// flat glass), and without one it is a flat fill from the
 /// [MorphGlassButtonAppearance]. Resting glass effects inside a
 /// [MorphGlassContainer] are shaded in the container's one layer, as

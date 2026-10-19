@@ -138,7 +138,7 @@ class LayerCensus {
     'MorphChromeBackdropScope',
     'MorphBarItems',
     'MorphGlassScope',
-    'MorphAdaptiveGlass',
+    'GlassAdaptiveScope',
     'MorphScope',
     'MorphControlFocus',
   };

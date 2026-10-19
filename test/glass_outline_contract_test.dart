@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph/glass_painter.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 void main() {
   test(
@@ -133,11 +134,11 @@ void main() {
         width: 300,
         height: 80,
         child: Builder(
-          builder: (context) => const MorphGlassRenderer().buildLayer(context, [
-            surface(a),
-            surface(b),
-            if (separate) surface(c),
-          ], spacing: 12),
+          builder: (context) => const GlassBuiltInPainter().buildLayer(
+            context,
+            [surface(a), surface(b), if (separate) surface(c)],
+            spacing: 12,
+          ),
         ),
       ),
     );

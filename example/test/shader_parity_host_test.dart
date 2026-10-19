@@ -10,9 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show RenderLiquidGlassLayer, debugMorphShaderFrost;
-import 'package:morph/widgets.dart';
 
 import '../integration_test/support/shader_harness.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The shader harness on the host, as an exact parity oracle without a
 /// device: flutter_tester's Impeller renders the same runtime-effect SPIR-V
@@ -50,7 +50,7 @@ void main() {
     final shaderFrost = debugMorphShaderFrost;
     debugMorphShaderFrost = false;
     addTearDown(() => debugMorphShaderFrost = shaderFrost);
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     if (_out.isNotEmpty) Directory(_out).createSync(recursive: true);
     final report = await runShaderParity(
       ShaderHarness(tester),

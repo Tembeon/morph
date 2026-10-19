@@ -55,15 +55,15 @@ void main() {
     final previous = FlutterError.onError;
     FlutterError.onError = reports.add;
     try {
-      await MorphGlassRenderer.precache();
+      await MorphTheme.precacheGlass();
     } finally {
       FlutterError.onError = previous;
     }
-    expect(MorphGlassRenderer.liquidAvailable, isFalse);
+    expect(MorphTheme.liquidGlassAvailable, isFalse);
     expect(reports.single.library, 'morph glass');
     expect(
       reports.single.exception.toString(),
-      contains(MorphGlassRenderer.liquidUnavailableReason!),
+      contains(MorphTheme.liquidGlassUnavailableReason!),
     );
   });
 

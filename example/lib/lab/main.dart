@@ -12,8 +12,8 @@ Future<void> main() async {
   final scenario =
       (jsonDecode(utf8.decode(base64Decode(encoded))) as Map<String, Object?>)
           .cast<String, Object?>();
-  await MorphGlassRenderer.precache();
-  if (!MorphGlassRenderer.liquidAvailable) {
+  await MorphTheme.precacheGlass();
+  if (!MorphTheme.liquidGlassAvailable) {
     throw StateError('The liquid renderer is unavailable for this capture');
   }
   runApp(LabApp(scenario: scenario));

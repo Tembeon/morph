@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The frame every glyph scale scene is drawn in.
 /// The key of the scene's repaint boundary.
@@ -29,7 +30,7 @@ Widget glyphApp(Widget body) => WidgetsApp(
     child: ColoredBox(color: const Color(0xFF000000), child: child),
   ),
   home: MorphGlassScope(
-    painter: const MorphGlassRenderer(tier: MorphGlassTier.liquid),
+    painter: const GlassBuiltInPainter(tier: MorphGlassTier.liquid),
     child: Center(child: body),
   ),
 );

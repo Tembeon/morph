@@ -587,7 +587,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
   bool get _rowsApart =>
       motion.chromeGrowth == 0 &&
       (morphGlassKeepsContentLive(_glass) ||
-          motion.lift <= MorphGlassRenderer.restingLift);
+          motion.lift <= GlassBuiltInPainter.restingLift);
 
   Widget _tabRow(List<Widget> children) => _TabRow(
     changes: _rowChanges,

@@ -11,6 +11,7 @@ import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/theme/glass.dart';
 
 /// Everything a control hands the glass painter in one frame.
 @internal
@@ -235,7 +236,7 @@ Listenable? morphRepaintOn<T>(
 /// render objects of that tree follow the channel. A host its parent
 /// rebuilds with a new frame pushes it without building at all, and so
 /// does a host driven by [frames]. A painter other than
-/// [MorphGlassRenderer] itself is called every frame, as before.
+/// [GlassBuiltInPainter] itself is called every frame, as before.
 @internal
 class MorphGlassHost extends Widget {
   /// Hosts the glass of [mode] for the frames [frame] returns.
@@ -281,7 +282,7 @@ class _MorphGlassHostElement extends ComponentElement {
 
   MorphGlassChannel? _channel;
   Object? _structure;
-  MorphGlassRenderer? _renderer;
+  GlassBuiltInPainter? _renderer;
   Widget? _tree;
   Widget? _content;
   MorphGlassContainerLink? _container;
@@ -375,7 +376,7 @@ class _MorphGlassHostElement extends ComponentElement {
 
   /// The structure of [frame] drawn by [renderer], with whether the
   /// nearest glass container shades it.
-  Object _structureOf(MorphGlassRenderer renderer, MorphGlassFrame frame) {
+  Object _structureOf(GlassBuiltInPainter renderer, MorphGlassFrame frame) {
     final container = MorphGlassContainerScope.maybeOf(this);
     if (!identical(container, _container)) {
       _container?.release(this);
@@ -424,7 +425,7 @@ class _MorphGlassHostElement extends ComponentElement {
         renderer == null ||
         !identical(_host.content, _content) ||
         debugMorphGlassRebuildEveryFrame ||
-        _host.painter.runtimeType != MorphGlassRenderer ||
+        _host.painter.runtimeType != GlassBuiltInPainter ||
         renderer != _host.painter) {
       return false;
     }
@@ -462,7 +463,7 @@ class _MorphGlassHostElement extends ComponentElement {
   Widget build() {
     final frame = _host.frame();
     final painter = _host.painter;
-    if (painter.runtimeType != MorphGlassRenderer ||
+    if (painter.runtimeType != GlassBuiltInPainter ||
         debugMorphGlassRebuildEveryFrame) {
       _container?.release(this);
       _container = null;
@@ -471,7 +472,7 @@ class _MorphGlassHostElement extends ComponentElement {
       _structure = null;
       return _painted(frame);
     }
-    final renderer = painter as MorphGlassRenderer;
+    final renderer = painter as GlassBuiltInPainter;
     final content = _host.content;
     final structure = _structureOf(renderer, frame);
     final channel = _channel;

@@ -4,6 +4,7 @@ import 'package:morph/glass_painter.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_color_model.dart';
 import 'package:morph/src/widgets/glass_liquid_draw.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 class _Recording extends MorphGlassPainter {
   final List<MorphGlassSurface> surfaces = [];
@@ -151,7 +152,7 @@ void main() {
   });
 
   test('a clear surface draws the clear material on a regular renderer', () {
-    const renderer = MorphGlassRenderer();
+    const renderer = GlassBuiltInPainter();
     MorphGlassSurface surface(MorphGlassStyle? style) => MorphGlassSurface(
       kind: MorphGlassKind.button,
       shape: RRect.fromLTRBR(0, 0, 80, 40, const Radius.circular(20)),

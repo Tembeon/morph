@@ -26,6 +26,8 @@ import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/widgets.dart';
 
 import '../integration_test/support/shader_harness.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 
 /// Glass over a declared solid backdrop against the backdrop filter over
 /// the same color, on the host's Impeller.
@@ -284,8 +286,8 @@ Widget _section({
 }) => MaterialApp(
   debugShowCheckedModeBanner: false,
   theme: ThemeData(platform: TargetPlatform.iOS, brightness: brightness),
-  home: MorphAdaptiveGlass(
-    renderer: const MorphGlassRenderer(),
+  home: GlassAdaptiveScope(
+    renderer: const GlassBuiltInPainter(),
     tier: MorphGlassTier.liquid,
     child: RepaintBoundary(
       key: _sectionShot,
@@ -359,8 +361,8 @@ Widget _cluster({
 }) => MaterialApp(
   debugShowCheckedModeBanner: false,
   theme: ThemeData(platform: TargetPlatform.iOS, brightness: brightness),
-  home: MorphAdaptiveGlass(
-    renderer: const MorphGlassRenderer(),
+  home: GlassAdaptiveScope(
+    renderer: const GlassBuiltInPainter(),
     tier: MorphGlassTier.liquid,
     child: Builder(
       builder: (BuildContext context) {
@@ -414,7 +416,7 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = _dpr;
     addTearDown(tester.view.reset);
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
     RenderLiquidGlassLayer.debugAnalyticGeometry = true;
@@ -484,7 +486,7 @@ void main() {
       addTearDown(tester.view.reset);
       // Load first: the override's setter starts the loads in this test's
       // fake zone otherwise, whose futures never complete in the next test.
-      await tester.runAsync(MorphGlassRenderer.precache);
+      await tester.runAsync(GlassBuiltInPainter.precache);
       await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
       RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
       RenderLiquidGlassLayer.debugAnalyticGeometry = analytic;
@@ -554,7 +556,7 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = _dpr;
     addTearDown(tester.view.reset);
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final base = _cases[1];
 
@@ -609,7 +611,7 @@ void main() {
       tester.view.physicalSize = const ui.Size(1080, 2400);
       tester.view.devicePixelRatio = _dpr;
       addTearDown(tester.view.reset);
-      await tester.runAsync(MorphGlassRenderer.precache);
+      await tester.runAsync(GlassBuiltInPainter.precache);
       await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
 
       final shots = <bool, List<HarnessShot>>{};
@@ -699,7 +701,7 @@ void main() {
       tester.view.physicalSize = const ui.Size(1080, 2400);
       tester.view.devicePixelRatio = _dpr;
       addTearDown(tester.view.reset);
-      await tester.runAsync(MorphGlassRenderer.precache);
+      await tester.runAsync(GlassBuiltInPainter.precache);
       await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
 
       final variants = <String, Color? Function(Color page)>{

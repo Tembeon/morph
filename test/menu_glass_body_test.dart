@@ -15,6 +15,7 @@ import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 void main() {
   test('nested material replays the native dark face levels', () {
@@ -26,7 +27,7 @@ void main() {
             )
             as Map<String, Object?>;
     final appearance = morphLiquidAppearance(
-      const MorphGlassRenderer(),
+      const GlassBuiltInPainter(),
       MorphGlassSurface(
         kind: MorphGlassKind.menu,
         shape: const RRect.fromLTRBXY(0, 0, 250, 208, 32, 32),
@@ -70,7 +71,7 @@ void main() {
             as Map<String, Object?>;
     const tuning = MorphMenuTuning.standard;
     final settings = morphLiquidSettings(
-      const MorphGlassRenderer(),
+      const GlassBuiltInPainter(),
       MorphGlassSurface(
         kind: MorphGlassKind.menu,
         shape: const RRect.fromLTRBXY(0, 0, 250, 208, 32, 32),
@@ -206,7 +207,7 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: MorphGlassScope(
-          painter: MorphGlassRenderer(),
+          painter: GlassBuiltInPainter(),
           child: Scaffold(
             body: Center(
               child: MorphMenuButton(
@@ -227,7 +228,7 @@ void main() {
     final layer = find.byType(MorphMenuLayer);
     expect(
       MorphGlassScope.maybeOf(tester.element(layer)),
-      isA<MorphGlassRenderer>(),
+      isA<GlassBuiltInPainter>(),
     );
     expect(
       find.descendant(of: layer, matching: find.byType(LiquidGlassLayer)),
@@ -251,7 +252,7 @@ void main() {
       addTearDown(() => isLocalTest = false);
       await tester.pumpWidget(
         MorphGlassScope(
-          painter: const MorphGlassRenderer(),
+          painter: const GlassBuiltInPainter(),
           child: BackdropGroup(
             child: const MaterialApp(
               home: Scaffold(
@@ -352,7 +353,7 @@ void main() {
   );
 
   test('submenu blur overrides the preset without replacing lens optics', () {
-    const renderer = MorphGlassRenderer();
+    const renderer = GlassBuiltInPainter();
     const shape = RRect.fromLTRBXY(0, 0, 250, 208, 32, 32);
     const surface = MorphGlassSurface(
       kind: MorphGlassKind.menu,
@@ -386,7 +387,7 @@ void main() {
             dimension: 320,
             child: Builder(
               builder: (BuildContext context) =>
-                  const MorphGlassRenderer().buildLayer(context, [
+                  const GlassBuiltInPainter().buildLayer(context, [
                     const MorphGlassSurface(
                       kind: MorphGlassKind.button,
                       shape: button,

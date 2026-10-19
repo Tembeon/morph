@@ -5,6 +5,11 @@ import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/gallery/knobs.dart';
+// The renderer lab reads the built-in renderer's internal knobs.
+// ignore: implementation_imports
+import 'package:morph/src/widgets/glass_renderer.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/glass_tier.dart';
 
 /// The gallery's glass settings and a sample of every control over a
 /// colorful backdrop.
@@ -210,7 +215,7 @@ class _GlassPageState extends State<GlassPage> {
   Widget build(BuildContext context) {
     final settings = GalleryGlassScope.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final drawn = MorphAdaptiveGlass.tierOf(context);
+    final drawn = GlassAdaptiveScope.tierOf(context);
     final liquid = drawn == MorphGlassTier.liquid;
     return GalleryPage(
       title: 'Glass renderer',

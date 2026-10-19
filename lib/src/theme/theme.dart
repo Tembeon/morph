@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/theme/glass.dart';
 
 /// A control's look as one value: its colors, metrics and materials.
 ///
@@ -7,7 +8,7 @@ import 'package:flutter/widgets.dart';
 /// [MorphThemeData] can carry it in [MorphThemeData.appearances].
 abstract interface class MorphAppearance {}
 
-/// The settings every morph control below a [MorphTheme] reads.
+/// The settings every morph control below a `MorphTheme` reads.
 @immutable
 class MorphThemeData {
   /// Creates theme settings; every field has a working default.
@@ -15,6 +16,7 @@ class MorphThemeData {
     this.brightness,
     this.tint,
     this.haptics = true,
+    this.glass,
     this.appearances = const <MorphAppearance>[],
   });
 
@@ -27,6 +29,10 @@ class MorphThemeData {
 
   /// Whether the controls play haptic feedback.
   final bool haptics;
+
+  /// Which glass the controls draw, or null to keep the glass of the
+  /// theme above; with no glass chosen above, the controls draw flat.
+  final MorphGlassRenderer? glass;
 
   /// Looks that replace a control's built-in tables, at most one per type.
   ///
@@ -46,11 +52,13 @@ class MorphThemeData {
     Brightness? brightness,
     Color? tint,
     bool? haptics,
+    MorphGlassRenderer? glass,
     List<MorphAppearance>? appearances,
   }) => MorphThemeData(
     brightness: brightness ?? this.brightness,
     tint: tint ?? this.tint,
     haptics: haptics ?? this.haptics,
+    glass: glass ?? this.glass,
     appearances: appearances ?? this.appearances,
   );
 
@@ -60,44 +68,47 @@ class MorphThemeData {
       other.brightness == brightness &&
       other.tint == tint &&
       other.haptics == haptics &&
+      other.glass == glass &&
       listEquals(other.appearances, appearances);
 
   @override
-  int get hashCode =>
-      Object.hash(brightness, tint, haptics, Object.hashAll(appearances));
+  int get hashCode => Object.hash(
+    brightness,
+    tint,
+    haptics,
+    glass,
+    Object.hashAll(appearances),
+  );
 }
 
-/// Applies [data] to the morph controls below it.
+/// Publishes a theme's [data] to the controls below it.
 ///
-/// It is an [InheritedTheme], so menus, sheets and alerts shown from a
-/// themed subtree carry the theme into their routes.
-class MorphTheme extends InheritedTheme {
-  /// Themes [child] with [data].
-  const MorphTheme({required this.data, required super.child, super.key});
+/// An [InheritedTheme], so menus, sheets and alerts shown from a themed
+/// subtree carry the theme into their routes.
+@internal
+class MorphThemeScope extends InheritedTheme {
+  /// Publishes [data] to [child].
+  const MorphThemeScope({required this.data, required super.child, super.key});
 
   /// The settings this theme applies.
   final MorphThemeData data;
 
-  /// The nearest theme's settings, or null when there is no [MorphTheme].
+  /// The nearest theme's settings, or null when there is no theme.
   static MorphThemeData? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<MorphTheme>()?.data;
-
-  /// The nearest theme's settings, or the defaults.
-  static MorphThemeData of(BuildContext context) =>
-      maybeOf(context) ?? const MorphThemeData();
+      context.dependOnInheritedWidgetOfExactType<MorphThemeScope>()?.data;
 
   @override
   Widget wrap(BuildContext context, Widget child) =>
-      MorphTheme(data: data, child: child);
+      MorphThemeScope(data: data, child: child);
 
   @override
-  bool updateShouldNotify(MorphTheme oldWidget) => oldWidget.data != data;
+  bool updateShouldNotify(MorphThemeScope oldWidget) => oldWidget.data != data;
 }
 
 /// The brightness the controls at [context] draw in.
 @internal
 Brightness morphBrightnessOf(BuildContext context) =>
-    MorphTheme.maybeOf(context)?.brightness ??
+    MorphThemeScope.maybeOf(context)?.brightness ??
     MediaQuery.maybePlatformBrightnessOf(context) ??
     Brightness.light;
 
@@ -114,11 +125,12 @@ bool morphHighContrastOf(BuildContext context) =>
 /// Whether the controls at [context] play haptics.
 @internal
 bool morphHapticsOf(BuildContext context) =>
-    MorphTheme.maybeOf(context)?.haptics ?? true;
+    MorphThemeScope.maybeOf(context)?.haptics ?? true;
 
 /// The theme's tint at [context], or null.
 @internal
-Color? morphTintOf(BuildContext context) => MorphTheme.maybeOf(context)?.tint;
+Color? morphTintOf(BuildContext context) =>
+    MorphThemeScope.maybeOf(context)?.tint;
 
 final Expando<Map<Color, Object>> _tinted = Expando('morph tinted tables');
 
@@ -136,7 +148,7 @@ T morphResolveAppearance<T extends MorphAppearance>(
   T Function(T table, Color tint)? tinted,
 }) {
   if (explicit != null) return explicit;
-  final theme = MorphTheme.maybeOf(context);
+  final theme = MorphThemeScope.maybeOf(context);
   final own = theme?.appearance<T>();
   if (own != null) return own;
   final isDark = morphBrightnessOf(context) == Brightness.dark;

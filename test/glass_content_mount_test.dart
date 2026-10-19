@@ -4,8 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_liquid_native.dart';
-import 'package:morph/widgets.dart';
 import 'package:morph/glass_painter.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 void main() {
   setUp(() => isLocalTest = true);
@@ -24,7 +24,7 @@ void main() {
         height: 62,
         child: Builder(
           builder: (context) {
-            return const MorphGlassRenderer().buildLayer(
+            return const GlassBuiltInPainter().buildLayer(
               context,
               [
                 const MorphGlassSurface(
@@ -85,7 +85,7 @@ void main() {
           width: 100,
           height: 40,
           child: Builder(
-            builder: (context) => const MorphGlassRenderer().buildLayer(
+            builder: (context) => const GlassBuiltInPainter().buildLayer(
               context,
               [
                 const MorphGlassSurface(

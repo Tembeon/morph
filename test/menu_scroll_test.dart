@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 final _entries = <MorphMenuEntry>[
   for (var i = 0; i < 12; i++) MorphMenuItem(title: 'Row $i'),
@@ -51,7 +52,7 @@ Future<void> _open(WidgetTester tester, {bool liquid = false}) async {
   );
   await tester.pumpWidget(
     liquid
-        ? MorphGlassScope(painter: const MorphGlassRenderer(), child: app)
+        ? MorphGlassScope(painter: const GlassBuiltInPainter(), child: app)
         : app,
   );
   await tester.tap(find.byType(MorphMenuButton));

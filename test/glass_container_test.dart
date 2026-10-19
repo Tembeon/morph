@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 
 Offset _center(int i) => Offset(40 + (i % 8) * 50.0, 60 + (i ~/ 8) * 44.0);
 
@@ -36,7 +37,7 @@ Widget _page(
     debugShowCheckedModeBanner: false,
     themeAnimationDuration: Duration.zero,
     theme: ThemeData(platform: TargetPlatform.iOS, brightness: brightness),
-    home: MorphAdaptiveGlass(
+    home: GlassAdaptiveScope(
       tier: tier,
       child: ColoredBox(
         color: const Color(0xFF203040),
@@ -151,8 +152,8 @@ void main() {
         builder: morphFromMaterial,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-        home: MorphAdaptiveGlass(
-          tier: MorphGlassTier.liquid,
+        home: MorphTheme(
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
           child: ColoredBox(
             color: const Color(0xFF203040),
             child: MorphGlassContainer(
@@ -199,8 +200,8 @@ void main() {
         builder: morphFromMaterial,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-        home: MorphAdaptiveGlass(
-          tier: MorphGlassTier.liquid,
+        home: MorphTheme(
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
           child: ColoredBox(
             color: const Color(0xFF203040),
             child: MorphSearchToolbar(
@@ -249,8 +250,8 @@ void main() {
         builder: morphFromMaterial,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-        home: MorphAdaptiveGlass(
-          tier: MorphGlassTier.liquid,
+        home: MorphTheme(
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
           child: ColoredBox(
             color: const Color(0xFF203040),
             child: MorphGlassContainer(
@@ -373,8 +374,8 @@ void main() {
       MaterialApp(
         builder: morphFromMaterial,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-        home: MorphAdaptiveGlass(
-          tier: MorphGlassTier.fake,
+        home: MorphTheme(
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
           child: ColoredBox(
             color: const Color(0xFF406080),
             child: MorphGlassContainer(
@@ -447,8 +448,8 @@ void main() {
           MaterialApp(
             builder: morphFromMaterial,
             theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-            home: MorphAdaptiveGlass(
-              tier: MorphGlassTier.fake,
+            home: MorphTheme(
+              data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
               child: RepaintBoundary(
                 key: key,
                 child: ColoredBox(
@@ -491,8 +492,8 @@ void main() {
         builder: morphFromMaterial,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-        home: MorphAdaptiveGlass(
-          tier: MorphGlassTier.fake,
+        home: MorphTheme(
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
           child: Builder(
             builder: (BuildContext context) => Center(
               child: TextButton(

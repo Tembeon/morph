@@ -155,8 +155,10 @@ class DensityPage extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-    builder: (BuildContext context, Widget? child) =>
-        MorphAdaptiveGlass(tier: tier, child: child!),
+    builder: (BuildContext context, Widget? child) => MorphTheme(
+      data: MorphThemeData(glass: .tier(tier)),
+      child: child!,
+    ),
     home: Scaffold(
       backgroundColor: const Color(0xFF000000),
       body: Stack(
@@ -309,7 +311,7 @@ class _Density {
     if (outDir.existsSync()) outDir.deleteSync(recursive: true);
     outDir.createSync(recursive: true);
     _clock.start();
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     // ignore: invalid_use_of_internal_member
     if (_stagesOff) debugMorphGlassStagesOpen = false;
     if (_search) {
@@ -574,7 +576,7 @@ class _Density {
 
     return {
       'tier': _tierName,
-      'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'liquid_available': MorphTheme.liquidGlassAvailable,
       'runs': _runs,
       'geometry_failures': geometryFailures,
       'container': _container,

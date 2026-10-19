@@ -71,7 +71,7 @@ class MorphSheetAppearance implements MorphAppearance {
     MorphSheetAppearance? explicit,
   ) =>
       explicit ??
-      MorphTheme.maybeOf(context)?.appearance<MorphSheetAppearance>() ??
+      MorphThemeScope.maybeOf(context)?.appearance<MorphSheetAppearance>() ??
       switch (morphBrightnessOf(context)) {
         Brightness.dark => dark,
         Brightness.light => light,

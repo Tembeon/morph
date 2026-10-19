@@ -12,6 +12,7 @@ import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/list.dart';
 import 'package:morph/src/widgets/search_field.dart';
 import 'package:morph/src/theme/theme.dart';
+import 'package:morph/src/theme/glass.dart';
 
 /// Shades the resting glass of the controls below it in one glass layer:
 /// one geometry pass and one backdrop filter for all of them instead of
@@ -34,7 +35,7 @@ import 'package:morph/src/theme/theme.dart';
 ///
 /// Only glass that looks the same, or within a few channel steps, either
 /// way joins: resting body glass (glass buttons, search capsules) of the
-/// installed [MorphGlassRenderer] on the liquid or fake tier, with the
+/// installed [GlassBuiltInPainter] on the liquid or fake tier, with the
 /// material the container's own resting button has, up to the most shapes
 /// one geometry pass encodes. A member whose glass differs only in tint (a
 /// prominent button) joins too and reads its tint from the layer's material
@@ -264,8 +265,8 @@ Widget _containerLayer(
   Color? solidBackdrop,
 }) {
   final painter = MorphGlassScope.maybeOf(context);
-  if (painter is! MorphGlassRenderer ||
-      painter.runtimeType != MorphGlassRenderer) {
+  if (painter is! GlassBuiltInPainter ||
+      painter.runtimeType != GlassBuiltInPainter) {
     return child;
   }
   return ValueListenableBuilder<bool>(
@@ -429,7 +430,7 @@ class MorphGlassContainerScope extends InheritedWidget {
   final MorphGlassContainerLink link;
 
   /// The renderer the container shades with.
-  final MorphGlassRenderer renderer;
+  final GlassBuiltInPainter renderer;
 
   /// The settings of the container's layer.
   final LiquidGlassSettings settings;
@@ -452,7 +453,7 @@ class MorphGlassContainerScope extends InheritedWidget {
 /// Which glass hosts a container shades, and how many shapes each holds.
 @internal
 class MorphGlassContainerLink {
-  MorphGlassRenderer? _renderer;
+  GlassBuiltInPainter? _renderer;
   LiquidGlassSettings? _settings;
   LiquidGlassAppearance? _default;
   LiquidGlassAppearance? _appearance;
@@ -469,7 +470,7 @@ class MorphGlassContainerLink {
   /// layer's own [appearance]; when any of them changes, the next member
   /// admitted sets the appearance the others must match.
   void configure(
-    MorphGlassRenderer renderer,
+    GlassBuiltInPainter renderer,
     LiquidGlassSettings settings,
     LiquidGlassAppearance appearance,
   ) {
@@ -487,7 +488,7 @@ class MorphGlassContainerLink {
 
   /// Whether [host], drawing [frame] with [renderer], is shaded by the
   /// container; records or releases its shapes accordingly.
-  bool admit(Object host, MorphGlassRenderer renderer, MorphGlassFrame frame) {
+  bool admit(Object host, GlassBuiltInPainter renderer, MorphGlassFrame frame) {
     final count = _joinable(renderer, frame);
     final held = _members[host];
     if (count == 0 || _shapes - (held ?? 0) + count > capacity) {
@@ -509,7 +510,7 @@ class MorphGlassContainerLink {
     if (_members.isEmpty) _appearance = null;
   }
 
-  int _joinable(MorphGlassRenderer renderer, MorphGlassFrame frame) {
+  int _joinable(GlassBuiltInPainter renderer, MorphGlassFrame frame) {
     final settings = _settings;
     if (settings == null || renderer != _renderer) return 0;
     final look = morphGlassJoinLook(renderer, frame);
@@ -530,7 +531,7 @@ class MorphGlassContainerLink {
 /// bar or a menu, or mixes looks.
 @internal
 ({LiquidGlassSettings settings, LiquidGlassAppearance appearance, int shapes})?
-morphGlassJoinLook(MorphGlassRenderer renderer, MorphGlassFrame frame) {
+morphGlassJoinLook(GlassBuiltInPainter renderer, MorphGlassFrame frame) {
   final tier = renderer.effectiveTier;
   if (tier == MorphGlassTier.flat || !frame.still) return null;
   final parts = frame.partsFor(tier);

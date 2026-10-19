@@ -29,6 +29,7 @@ import 'package:morph/src/widgets/scroll_edge_effect.dart'
 import 'package:morph/widgets.dart';
 
 import 'shader_harness.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// One blur case: what is drawn over the backdrop.
 class BlurCase {
@@ -92,7 +93,7 @@ final List<BlurCase> blurCases = [
   BlurCase(
     'tab-bar',
     (BlurVariant variant) => MorphGlassScope(
-      painter: const MorphGlassRenderer(tier: MorphGlassTier.liquid),
+      painter: const GlassBuiltInPainter(tier: MorphGlassTier.liquid),
       child: Align(
         alignment: const Alignment(0, 0.6),
         child: MorphTabBar(

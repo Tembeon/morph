@@ -46,8 +46,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: MorphAdaptiveGlass(
-            tier: MorphGlassTier.fake,
+          home: MorphTheme(
+            data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
             child: BackdropGroup(
               backdropKey: page,
               child: Center(

@@ -27,14 +27,14 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets('navseg video', (WidgetTester tester) async {
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     final navigator = GlobalKey<NavigatorState>();
     runApp(
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(brightness: Brightness.dark),
-        builder: (BuildContext context, Widget? child) => MorphAdaptiveGlass(
-          tier: MorphGlassTier.liquid,
+        builder: (BuildContext context, Widget? child) => MorphTheme(
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
           child: BackdropGroup(child: MorphScope(child: child!)),
         ),
         home: MorphNavigationStack(

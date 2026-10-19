@@ -8,6 +8,7 @@ import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_liquid_draw.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The device pixel ratio of the Pixel 6a the matrix cells run on.
 const double _ratio = 2.625;
@@ -202,7 +203,7 @@ Widget _app(Widget body, MorphGlassTier tier) => WidgetsApp(
             ) => builder(context),
       ),
   home: MorphGlassScope(
-    painter: MorphGlassRenderer(tier: tier),
+    painter: GlassBuiltInPainter(tier: tier),
     child: Center(child: body),
   ),
 );

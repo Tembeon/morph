@@ -7,6 +7,7 @@ import 'package:morph/widgets.dart';
 
 import 'support/blur_harness.dart';
 import 'support/shader_harness.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The synthetic shader harness on a device: every case of
 /// support/shader_harness.dart rendered offscreen through the package's
@@ -53,7 +54,7 @@ void main() {
     out.createSync(recursive: true);
     final stale = File('${out.path}/report.json');
     if (stale.existsSync()) stale.deleteSync();
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     final harness = ShaderHarness(tester);
     if (_blur) {
       final report = await runBlurParity(
@@ -61,7 +62,7 @@ void main() {
         cases: blurCases,
         outDir: out.path,
       );
-      report['liquid_available'] = MorphGlassRenderer.liquidAvailable;
+      report['liquid_available'] = MorphTheme.liquidGlassAvailable;
       report['platform'] = Platform.operatingSystemVersion;
       File(
         '${out.path}/report.json',
@@ -80,7 +81,7 @@ void main() {
             frames: _frames,
           )
         : await runShaderParity(harness, cases: cases, outDir: out.path);
-    report['liquid_available'] = MorphGlassRenderer.liquidAvailable;
+    report['liquid_available'] = MorphTheme.liquidGlassAvailable;
     report['platform'] = Platform.operatingSystemVersion;
     File(
       '${out.path}/report.json',

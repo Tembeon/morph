@@ -71,7 +71,7 @@ class _Painter extends MorphGlassPainter {
       const SizedBox.expand();
 }
 
-class _FlatSubclass extends MorphGlassRenderer {
+class _FlatSubclass extends GlassBuiltInPainter {
   const _FlatSubclass() : super(tier: MorphGlassTier.flat);
 }
 
@@ -163,17 +163,17 @@ void main() {
     expect(morphGlassShadesOutlines(null), isFalse);
     expect(
       morphGlassShadesOutlines(
-        const MorphGlassRenderer(tier: MorphGlassTier.flat),
+        const GlassBuiltInPainter(tier: MorphGlassTier.flat),
       ),
       isFalse,
     );
     expect(
       morphGlassShadesOutlines(
-        const MorphGlassRenderer(tier: MorphGlassTier.fake),
+        const GlassBuiltInPainter(tier: MorphGlassTier.fake),
       ),
       isTrue,
     );
-    expect(morphGlassShadesOutlines(const MorphGlassRenderer()), isTrue);
+    expect(morphGlassShadesOutlines(const GlassBuiltInPainter()), isTrue);
     expect(morphGlassShadesOutlines(const _FlatSubclass()), isTrue);
     expect(morphGlassShadesOutlines(const _Painter()), isTrue);
   });
@@ -189,7 +189,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: MorphGlassScope(
-            painter: MorphGlassRenderer(tier: tier),
+            painter: GlassBuiltInPainter(tier: tier),
             child: const Scaffold(
               body: Center(
                 child: MorphMenuButton(

@@ -67,8 +67,10 @@ void main() {
             navigatorKey: navigator,
             debugShowCheckedModeBanner: false,
             theme: ThemeData(platform: TargetPlatform.iOS),
-            builder: (BuildContext context, Widget? child) =>
-                MorphAdaptiveGlass(tier: tier, child: child!),
+            builder: (BuildContext context, Widget? child) => MorphTheme(
+              data: MorphThemeData(glass: .tier(tier)),
+              child: child!,
+            ),
             home: setup.home,
           ),
         );

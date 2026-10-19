@@ -10,6 +10,7 @@ import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Glass over a page - the floating sheet, an alert, an action sheet
 /// popover, the date picker overlay - over a cached copy of the
@@ -57,8 +58,8 @@ void _main() {
       addTearDown(tester.view.reset);
       final cacheBefore = debugMorphBackdropCache;
       addTearDown(() => debugMorphBackdropCache = cacheBefore);
-      await tester.runAsync(MorphGlassRenderer.precache);
-      if (!MorphGlassRenderer.liquidAvailable) return;
+      await tester.runAsync(GlassBuiltInPainter.precache);
+      if (!MorphTheme.liquidGlassAvailable) return;
 
       Future<void> frames(int count) async {
         for (var i = 0; i < count; i++) {

@@ -12,14 +12,23 @@ no behaviour or pixel change: every rename keeps what the old name did.
 
 - The foundation (docs/standalone-library-plan.md, units 1 to 5.2 in
   part). BREAKING; no pixel change except where noted:
-  - morph no longer needs Material. `MorphTheme` is a plain
-    `InheritedTheme` over `MorphThemeData` (`brightness`, `tint`,
-    `haptics`, `appearances`); every `Morph*Appearance` implements
+  - morph no longer needs Material. `MorphTheme` applies a
+    `MorphThemeData` (`brightness`, `tint`, `haptics`, `glass`,
+    `appearances`) and carries it into routes; every `Morph*Appearance` implements
     `MorphAppearance` and is found in `appearances` by its type.
     `MorphWidgetsTheme`, `MorphWidgetsThemeScope` and the engine's
     `MorphTheme` extension are gone. Brightness comes from the theme, else
     from the platform: an app on `MaterialApp` passes its brightness to a
     `MorphTheme` in `MaterialApp.builder`.
+  - The theme picks the glass: `MorphThemeData.glass` is
+    `MorphGlassRenderer.adaptive()` (liquid where the GPU holds it, flat
+    elsewhere) or `MorphGlassRenderer.tier(...)`; null keeps the glass of
+    the theme above, and with none the controls draw flat.
+    `MorphAdaptiveGlass` is gone, the old renderer class is internal, and
+    `MorphTheme.precacheGlass()`, `liquidGlassAvailable` and
+    `liquidGlassUnavailableReason` replace its statics. `MorphGlassTier`
+    keeps its values; `MorphGlassMaterial` and `MorphGlassDeviceClass` are
+    internal.
   - `MorphLocalizations` (English by default) supplies the dismiss, search,
     close and back labels; the widgets' `placeholder`, `closeLabel`,
     `searchLabel` and `backButtonSemanticLabel` default to it.

@@ -29,13 +29,13 @@ void main() {
     final out = Directory('${Directory.systemTemp.path}/edge-effect');
     if (out.existsSync()) out.deleteSync(recursive: true);
     out.createSync(recursive: true);
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     final tier = ValueNotifier<MorphGlassTier>(MorphGlassTier.liquid);
     final controller = ScrollController();
     await tester.pumpWidget(_App(tier: tier, controller: controller));
     await tester.pump(const Duration(seconds: 2));
     final report = <String, Object?>{
-      'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'liquid_available': MorphTheme.liquidGlassAvailable,
       'dpr': tester.view.devicePixelRatio,
     };
     for (final value in [MorphGlassTier.liquid, MorphGlassTier.fake]) {
@@ -91,11 +91,10 @@ class _App extends StatelessWidget {
           MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: ThemeData(brightness: Brightness.dark),
-            builder: (BuildContext context, Widget? child) =>
-                MorphAdaptiveGlass(
-                  tier: value,
-                  child: MorphScope(child: child!),
-                ),
+            builder: (BuildContext context, Widget? child) => MorphTheme(
+              data: MorphThemeData(glass: .tier(value)),
+              child: MorphScope(child: child!),
+            ),
             home: MorphNavigationStack(
               home: MorphNavigationScaffold(
                 title: 'Edge',

@@ -26,7 +26,7 @@ Future<void> main() async {
   final clock = Stopwatch();
   clock.start();
   WidgetsFlutterBinding.ensureInitialized();
-  await MorphGlassRenderer.precache();
+  await MorphTheme.precacheGlass();
   stdout.writeln('PROBE precache ${clock.elapsedMilliseconds} ms');
   var frames = 0;
   SchedulerBinding.instance.addTimingsCallback((List<FrameTiming> timings) {

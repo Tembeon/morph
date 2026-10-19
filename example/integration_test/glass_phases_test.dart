@@ -51,11 +51,11 @@ void main() {
     binding.platformDispatcher.platformBrightnessTestValue = .dark;
     final timings = <ui.FrameTiming>[];
     SchedulerBinding.instance.addTimingsCallback(timings.addAll);
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     final tier = MorphGlassTier.values.byName(_tierName);
     final report = <String, Object?>{
       'tier': _tierName,
-      'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'liquid_available': MorphTheme.liquidGlassAvailable,
     };
     var pointer = 400;
     Future<void> drag(Offset from, List<Offset> path) async {
@@ -187,8 +187,10 @@ class _App extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-    builder: (BuildContext context, Widget? child) =>
-        MorphAdaptiveGlass(tier: tier, child: child!),
+    builder: (BuildContext context, Widget? child) => MorphTheme(
+      data: MorphThemeData(glass: .tier(tier)),
+      child: child!,
+    ),
     home: Scaffold(
       backgroundColor: const Color(0xFF000000),
       body: Stack(

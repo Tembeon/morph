@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Records the canvas transform each paint starts with.
 class _Recorder extends CustomPainter {
@@ -391,7 +392,7 @@ void main() {
           child: MediaQuery(
             data: const MediaQueryData(devicePixelRatio: 3),
             child: MorphGlassScope(
-              painter: MorphGlassRenderer(tier: tier),
+              painter: GlassBuiltInPainter(tier: tier),
               child: Center(
                 child: MorphTabBar(
                   items: const [

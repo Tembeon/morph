@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 
 Widget _button(double left, String label) => Positioned(
   left: left,
@@ -18,7 +19,7 @@ Widget _app(Widget scene, {bool inspector = false, bool enabled = true}) {
     builder: morphFromMaterial,
     debugShowCheckedModeBanner: false,
     theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-    home: MorphAdaptiveGlass(
+    home: GlassAdaptiveScope(
       tier: MorphGlassTier.fake,
       child: ColoredBox(color: const Color(0xFF406080), child: scene),
     ),

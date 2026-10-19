@@ -1,6 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+// The renderer's material, frost, refraction and light knobs are not
+// public API; this file is the gallery's renderer lab.
+// ignore_for_file: implementation_imports
+import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 import 'package:morph/widgets.dart';
 
 /// The display refresh rate the gallery asks the system for.
@@ -34,8 +39,8 @@ const MethodChannel galleryDisplayChannel = MethodChannel(
 /// The values live as long as the app does; nothing is written to disk.
 ///
 /// The glass tier starts as `--dart-define=GALLERY_GLASS=<name>` says:
-/// auto (the default: [MorphAdaptiveGlass] picks it by the device's
-/// GPU), liquid, fake or flat. A build without the liquid tier
+/// auto (the default: the theme picks it by the device's GPU), liquid,
+/// fake or flat. A build without the liquid tier
 /// (the web) draws fake glass in its place.
 class GalleryGlassSettings extends ChangeNotifier {
   /// The tier name a new settings object starts with; the device benches
@@ -168,8 +173,8 @@ class GalleryGlassSettings extends ChangeNotifier {
 
   /// The renderer these settings describe, at the best tier the build
   /// has; [tier] picks the one drawn.
-  MorphGlassRenderer get renderer => MorphGlassRenderer(
-    tier: MorphGlassRenderer.bestTier,
+  GlassBuiltInPainter get renderer => GlassBuiltInPainter(
+    tier: GlassBuiltInPainter.bestTier,
     material: _material,
     blur: _blur,
     refraction: _refraction,
@@ -271,7 +276,7 @@ class GalleryGlassScope extends InheritedModel<GalleryGlassAspect> {
   /// The settings handed down.
   final GalleryGlassSettings settings;
 
-  final (MorphGlassTier?, MorphGlassRenderer) _glass;
+  final (MorphGlassTier?, GlassBuiltInPainter) _glass;
   final ThemeMode _appearance;
   final bool _rtl;
   final bool _disabled;
@@ -324,4 +329,24 @@ class GalleryGlassScope extends InheritedModel<GalleryGlassAspect> {
   /// [callback] while the gallery's demo controls are enabled, else null.
   static T? enabled<T extends Function>(BuildContext context, T callback) =>
       of(context, .disabled).disabled ? null : callback;
+}
+
+/// Draws the glass below with the renderer settings of the
+/// [GalleryGlassScope], at the tier the theme above installs.
+class GalleryGlassTuning extends StatelessWidget {
+  /// Tunes the glass of [child].
+  const GalleryGlassTuning({required this.child, super.key});
+
+  /// The subtree whose glass is tuned.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final renderer = GalleryGlassScope.of(context, .glass).renderer;
+    final tier = GlassAdaptiveScope.tierOf(context) ?? renderer.tier;
+    return MorphGlassScope(
+      painter: renderer.copyWith(tier: tier),
+      child: child,
+    );
+  }
 }

@@ -5,9 +5,9 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
-import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 import 'package:morph/src/theme/theme.dart';
+import 'package:morph/src/theme/glass.dart';
 
 /// Whether the edge effect blurs a copy of the backdrop around its band;
 /// off blurs the whole pass behind it, for an A/B.
@@ -122,7 +122,7 @@ class MorphScrollEdgeEffectAppearance implements MorphAppearance {
     MorphScrollEdgeEffectAppearance? explicit,
   ) =>
       explicit ??
-      MorphTheme.maybeOf(
+      MorphThemeScope.maybeOf(
         context,
       )?.appearance<MorphScrollEdgeEffectAppearance>() ??
       switch (morphBrightnessOf(context)) {
@@ -318,7 +318,7 @@ class MorphScrollEdgeEffect extends StatelessWidget {
             height: band,
             width: double.infinity,
             child: _EdgePaint(
-              blurs: MorphAdaptiveGlass.tierOf(context) != MorphGlassTier.flat,
+              blurs: GlassAdaptiveScope.tierOf(context) != MorphGlassTier.flat,
               style: style,
               top: top,
               look: look,

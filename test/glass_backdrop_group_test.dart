@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/glass_painter.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The backdrop keys of every filter painted on screen, in paint order
 /// (null for a filter that takes a copy of its own). The glass's opacity
@@ -38,8 +39,8 @@ void main() {
   ) async {
     late BackdropKey? key;
     await tester.pumpWidget(
-      MorphAdaptiveGlass(
-        tier: MorphGlassTier.fake,
+      MorphTheme(
+        data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
         child: Builder(
           builder: (context) {
             key = BackdropGroup.of(context)?.backdropKey;
@@ -58,8 +59,8 @@ void main() {
     await tester.pumpWidget(
       BackdropGroup(
         backdropKey: shared,
-        child: MorphAdaptiveGlass(
-          tier: MorphGlassTier.fake,
+        child: MorphTheme(
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.fake)),
           child: Builder(
             builder: (context) {
               key = BackdropGroup.of(context)?.backdropKey;
@@ -93,7 +94,7 @@ void main() {
                   color: const Color(0xFFFFFFFF),
                   brightness: Brightness.light,
                 );
-                return const MorphGlassRenderer(
+                return const GlassBuiltInPainter(
                   tier: MorphGlassTier.fake,
                 ).buildLayer(context, [
                   capsule(0),
@@ -125,7 +126,7 @@ void main() {
           child: BackdropGroup(
             backdropKey: root,
             child: MorphGlassScope(
-              painter: const MorphGlassRenderer(tier: MorphGlassTier.fake),
+              painter: const GlassBuiltInPainter(tier: MorphGlassTier.fake),
               child: MorphNavigationScaffold(
                 title: 'Page',
                 trailing: [
@@ -179,7 +180,7 @@ void main() {
             height: 80,
             child: Builder(
               builder: (context) =>
-                  const MorphGlassRenderer(
+                  const GlassBuiltInPainter(
                     tier: MorphGlassTier.fake,
                   ).buildSurface(
                     context,

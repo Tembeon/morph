@@ -213,24 +213,6 @@ class MorphActivityIndicatorAppearance implements MorphAppearance
 enum MorphActivityIndicatorSize
   medium,
   large,
-class MorphAdaptiveGlass extends StatefulWidget
-  const MorphAdaptiveGlass({
-    required Widget child,
-    MorphGlassRenderer renderer = const MorphGlassRenderer(),
-    MorphGlassTier? tier,
-    Key? key,
-  })
-  static const MorphGlassTier cheapTier
-  final Widget child
-  static MorphGlassDeviceClass get deviceClass
-  final MorphGlassRenderer renderer
-  final MorphGlassTier? tier
-  static MorphGlassTier tierFor(
-    MorphGlassDeviceClass deviceClass,
-    MorphGlassTier best,
-  )
-  static MorphGlassTier? tierOf(BuildContext context)
-  overrides: createState
 class MorphAlertAction
   const MorphAlertAction({
     required String title,
@@ -833,12 +815,6 @@ class MorphGlassContainer extends StatefulWidget
   final Widget child
   final Color? solidBackdrop
   overrides: createState
-enum MorphGlassDeviceClass
-  capable,
-  gles,
-  appleBeforeA13,
-  skia,
-  unknown,
 class MorphGlassEffect extends StatefulWidget
   const MorphGlassEffect({
     required Widget child,
@@ -880,10 +856,6 @@ class MorphGlassInspector extends StatefulWidget
   final Widget child
   final bool enabled
   overrides: createState
-enum MorphGlassMaterial
-  regular,
-  toolbar,
-  clear,
 abstract class MorphGlassPainter
   const MorphGlassPainter()
   Widget buildBody(
@@ -902,54 +874,10 @@ abstract class MorphGlassPainter
     MorphGlassOutline? outline,
   })
   abstract Widget buildSurface(BuildContext context, MorphGlassSurface surface)
-class MorphGlassRenderer extends MorphGlassPainter
-  const MorphGlassRenderer({
-    MorphGlassTier tier = MorphGlassTier.liquid,
-    MorphGlassMaterial material = MorphGlassMaterial.regular,
-    double blur = 1,
-    double refraction = 1,
-    double light = 1,
-    double tint = 0,
-    bool frostControls = false,
-  })
-  static MorphGlassTier get bestTier
-  final double blur
-  MorphGlassRenderer copyWith({
-    MorphGlassTier? tier,
-    MorphGlassMaterial? material,
-    double? blur,
-    double? refraction,
-    double? light,
-    double? tint,
-    bool? frostControls,
-  })
-  MorphGlassTier get effectiveTier
-  static bool floats(MorphGlassKind kind)
-  final bool frostControls
-  static double glassness(MorphGlassSurface surface)
-  static const double lensDispersion
-  static const double lensRefraction
-  static const double lensShrinkRim
-  static ({double magnification, double rim, double shrink}) liftedOptics(
-    MorphGlassKind kind, {
-    required bool overBar,
-  })
-  final double light
-  static bool get liquidAvailable
-  static String? get liquidUnavailableReason
-  final MorphGlassMaterial material
-  static Future<void> precache()
-  final double refraction
-  static const double restingLift
-  static const double segmentedMagnification
-  static const double segmentedShrink
-  static const double switchKnobShrink
-  static const double tabBarMagnification
-  static const double tabBarShrink
-  static const double tabBarShrinkRim
-  final MorphGlassTier tier
-  final double tint
-  overrides: ==, buildBody, buildLayer, buildSurface, hashCode
+sealed class MorphGlassRenderer
+  const MorphGlassRenderer()
+  const factory MorphGlassRenderer.adaptive()
+  const factory MorphGlassRenderer.tier(MorphGlassTier tier)
 class MorphGlassScope extends InheritedTheme
   const MorphGlassScope({
     required MorphGlassPainter painter,
@@ -2613,21 +2541,26 @@ enum MorphTabRole
 class MorphTag (see package:morph/foundation.dart)
 class MorphTagState (see package:morph/foundation.dart)
 class MorphTargetSpec (see package:morph/foundation.dart)
-class MorphTheme extends InheritedTheme
+class MorphTheme extends StatelessWidget
   const MorphTheme({
     required MorphThemeData data,
     required Widget child,
     Key? key,
   })
+  final Widget child
   final MorphThemeData data
+  static bool get liquidGlassAvailable
+  static String? get liquidGlassUnavailableReason
   static MorphThemeData? maybeOf(BuildContext context)
   static MorphThemeData of(BuildContext context)
-  overrides: updateShouldNotify, wrap
+  static Future<void> precacheGlass()
+  overrides: build
 class MorphThemeData
   const MorphThemeData({
     Brightness? brightness,
     Color? tint,
     bool haptics = true,
+    MorphGlassRenderer? glass,
     List<MorphAppearance> appearances = const <MorphAppearance>[],
   })
   T? appearance<T extends MorphAppearance>()
@@ -2637,8 +2570,10 @@ class MorphThemeData
     Brightness? brightness,
     Color? tint,
     bool? haptics,
+    MorphGlassRenderer? glass,
     List<MorphAppearance>? appearances,
   })
+  final MorphGlassRenderer? glass
   final bool haptics
   final Color? tint
   overrides: ==, hashCode

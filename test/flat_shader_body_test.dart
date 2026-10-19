@@ -15,6 +15,7 @@ import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph/glass_painter.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 const double _spacing = 12;
 const Color _color = Color(0xE6F2F2F7);
@@ -340,7 +341,7 @@ void main() {
               height: _height.toDouble(),
               child: Builder(
                 builder: (context) =>
-                    const MorphGlassRenderer(
+                    const GlassBuiltInPainter(
                       tier: MorphGlassTier.flat,
                     ).buildLayer(context, [
                       for (final s in shapes) _bar(s),

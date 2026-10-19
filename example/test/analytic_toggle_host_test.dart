@@ -16,6 +16,7 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Flipping `RenderLiquidGlassLayer.debugAnalyticGeometry` while the
 /// gallery rests on a message page, whose leading bar group the glass
@@ -41,7 +42,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticGeometry = null;
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
 
     Future<void> frames(int count) async {

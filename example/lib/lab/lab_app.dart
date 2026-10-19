@@ -15,6 +15,8 @@ import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/lab/lab_clocks.dart';
 import 'package:morph_example/lab/lab_trace_writer.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Builds a custom scenario control and emits its observable events.
 typedef LabWidgetBuilder =
@@ -540,7 +542,7 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
         ),
         child: MorphScope(
           child: MorphGlassScope(
-            painter: MorphGlassRenderer(tier: widget.tier),
+            painter: GlassBuiltInPainter(tier: widget.tier),
             child: Stack(
               fit: StackFit.expand,
               children: [

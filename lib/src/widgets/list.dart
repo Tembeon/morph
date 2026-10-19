@@ -258,7 +258,7 @@ class MorphListBackground extends StatelessWidget {
 /// color where it would refract the page around the card. A
 /// [MorphListRow] whose highlight shows draws its glass
 /// in a layer of its own until the highlight goes, so the glass reads the
-/// highlight under it. Frosted controls ([MorphGlassRenderer.frostControls])
+/// highlight under it. Frosted controls ([GlassBuiltInPainter.frostControls])
 /// keep their own backdrop-reading layers: their blur reads the rows
 /// around them. Content a
 /// row's child paints under its own glass belongs in a layer of its own:

@@ -11,6 +11,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show RenderLiquidGlassLayer;
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Glass container members against their own layers on the host's
 /// Impeller, at origins on and around a texel edge of the matte:
@@ -27,8 +28,8 @@ void main() {
     tester.view.physicalSize = const ui.Size(600, 600);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.runAsync(MorphGlassRenderer.precache);
-    if (!MorphGlassRenderer.liquidAvailable) return;
+    await tester.runAsync(GlassBuiltInPainter.precache);
+    if (!MorphTheme.liquidGlassAvailable) return;
     if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
       await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     }
@@ -56,8 +57,8 @@ void main() {
         MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-          home: MorphAdaptiveGlass(
-            tier: MorphGlassTier.liquid,
+          home: MorphTheme(
+            data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
             child: RepaintBoundary(
               key: boundary,
               child: ColoredBox(

@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 Map<String, Object?> _json(String path) =>
     (jsonDecode(File(path).readAsStringSync()) as Map).cast<String, Object?>();
@@ -39,7 +40,7 @@ void main() {
       AxisDirection edge,
     ) => MaterialApp(
       home: MorphGlassScope(
-        painter: MorphGlassRenderer(tier: tier),
+        painter: GlassBuiltInPainter(tier: tier),
         child: RepaintBoundary(
           key: key,
           child: Stack(
@@ -127,7 +128,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: MorphGlassScope(
-              painter: const MorphGlassRenderer(tier: MorphGlassTier.fake),
+              painter: const GlassBuiltInPainter(tier: MorphGlassTier.fake),
               child: Stack(
                 children: [
                   const Positioned.fill(child: ColoredBox(color: Colors.red)),

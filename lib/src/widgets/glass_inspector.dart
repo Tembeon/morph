@@ -320,7 +320,7 @@ const Set<String> _plumbing = {
   'MorphChromeBackdropScope',
   'MorphBarItems',
   'MorphGlassScope',
-  'MorphAdaptiveGlass',
+  'GlassAdaptiveScope',
   'MorphScope',
   'MorphControlFocus',
   'MorphGlassInspector',
@@ -415,8 +415,11 @@ List<MorphGlassHint> _hints(List<Element> hosts, Map<Element, String> named) {
       continue;
     }
     final painter = state.painter;
-    if (painter.runtimeType != MorphGlassRenderer) continue;
-    final look = morphGlassJoinLook(painter as MorphGlassRenderer, state.frame);
+    if (painter.runtimeType != GlassBuiltInPainter) continue;
+    final look = morphGlassJoinLook(
+      painter as GlassBuiltInPainter,
+      state.frame,
+    );
     if (look == null) continue;
     final scope = host
         .getElementForInheritedWidgetOfExactType<MorphGlassContainerScope>();

@@ -144,7 +144,7 @@ class _Frames {
   }
 
   Future<void> run() async {
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     runApp(const GalleryApp());
     await settle(1500);
     await settle(300);
@@ -450,7 +450,7 @@ class _Frames {
   Map<String, Object?> report() => {
     'scene': _scene,
     'tier': const String.fromEnvironment('GALLERY_GLASS', defaultValue: 'auto'),
-    'liquid_available': MorphGlassRenderer.liquidAvailable,
+    'liquid_available': MorphTheme.liquidGlassAvailable,
     'platform': Platform.operatingSystem,
     'refresh_rate':
         ui.PlatformDispatcher.instance.views.first.display.refreshRate,

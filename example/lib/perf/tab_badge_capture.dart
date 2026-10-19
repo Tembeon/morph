@@ -17,8 +17,8 @@ Future<void> main() async {
   out.createSync(recursive: true);
   final result = File('${out.path}/result.json');
   await result.writeAsString(jsonEncode({'complete': false}));
-  await MorphGlassRenderer.precache();
-  if (!MorphGlassRenderer.liquidAvailable) {
+  await MorphTheme.precacheGlass();
+  if (!MorphTheme.liquidGlassAvailable) {
     throw StateError('The capture requires the real liquid renderer.');
   }
   var selected = 0;
@@ -27,8 +27,8 @@ Future<void> main() async {
     MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(brightness: Brightness.light),
-      builder: (_, child) => MorphAdaptiveGlass(
-        tier: MorphGlassTier.liquid,
+      builder: (_, child) => MorphTheme(
+        data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
         child: BackdropGroup(child: MorphScope(child: child!)),
       ),
       home: StatefulBuilder(

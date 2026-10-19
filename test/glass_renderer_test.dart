@@ -12,6 +12,7 @@ import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 void main() {
   setUpAll(() => isLocalTest = true);
@@ -34,7 +35,7 @@ void main() {
               width: 60,
               height: 30,
               child: Builder(
-                builder: (BuildContext context) => MorphGlassRenderer(
+                builder: (BuildContext context) => GlassBuiltInPainter(
                   tier: tier,
                 ).buildSurface(context, surface),
               ),
@@ -51,7 +52,7 @@ void main() {
   });
 
   test('the liquid tier bends a lens by its lift like UIKit', () {
-    const painter = MorphGlassRenderer(refraction: 2, blur: 0.5);
+    const painter = GlassBuiltInPainter(refraction: 2, blur: 0.5);
     MorphGlassSurface lens(MorphGlassOptics optics, double lift) =>
         MorphGlassSurface(
           kind: MorphGlassKind.lens,
@@ -71,7 +72,7 @@ void main() {
     );
     expect(resting.refractionAmount, 0);
     expect(lifted.refractionAmount, 36);
-    expect(lifted.dispersion, MorphGlassRenderer.lensDispersion);
+    expect(lifted.dispersion, GlassBuiltInPainter.lensDispersion);
     expect(lifted.highlight, greaterThan(resting.highlight));
     final frosted = morphLiquidSettings(
       painter,
@@ -110,7 +111,7 @@ void main() {
             width: 300,
             height: 36,
             child: Builder(
-              builder: (BuildContext context) => const MorphGlassRenderer()
+              builder: (BuildContext context) => const GlassBuiltInPainter()
                   .buildLayer(context, surfaces, content: const Text('Label')),
             ),
           ),
@@ -119,8 +120,8 @@ void main() {
     );
     expect(find.byType(LiquidGlassLayer), findsOneWidget);
     expect(find.text('Label'), findsOneWidget);
-    expect(_lensShrink(tester, 0), MorphGlassRenderer.segmentedShrink);
-    expect(_lensShrinkRim(tester, 0), MorphGlassRenderer.lensShrinkRim);
+    expect(_lensShrink(tester, 0), GlassBuiltInPainter.segmentedShrink);
+    expect(_lensShrinkRim(tester, 0), GlassBuiltInPainter.lensShrinkRim);
     final base = tester.getRect(find.text('Label').first);
     final seen = _seenThroughLens(tester, 0, null, 'Label');
     expect(seen.center.dx, moreOrLessEquals(base.center.dx, epsilon: 0.01));
@@ -145,7 +146,7 @@ void main() {
             height: 36,
             child: Builder(
               builder: (BuildContext context) =>
-                  const MorphGlassRenderer().buildLayer(context, const [
+                  const GlassBuiltInPainter().buildLayer(context, const [
                     MorphGlassSurface(
                       kind: MorphGlassKind.track,
                       shape: RRect.fromLTRBXY(0, 0, 300, 36, 18, 18),
@@ -179,7 +180,7 @@ void main() {
           child: SizedBox(
             width: 360,
             child: MorphGlassScope(
-              painter: const MorphGlassRenderer(),
+              painter: const GlassBuiltInPainter(),
               child: MorphSegmentedControl(
                 segments: const [MorphSegment('Day'), MorphSegment('Night')],
                 selectedIndex: 1,
@@ -214,7 +215,7 @@ void main() {
       expect(
         label.width,
         moreOrLessEquals(
-          base.width * (1 + MorphGlassRenderer.segmentedMagnification),
+          base.width * (1 + GlassBuiltInPainter.segmentedMagnification),
           epsilon: 0.01,
         ),
       );
@@ -235,7 +236,7 @@ void main() {
             height: 62,
             child: Builder(
               builder: (BuildContext context) =>
-                  const MorphGlassRenderer().buildLayer(context, const [
+                  const GlassBuiltInPainter().buildLayer(context, const [
                     MorphGlassSurface(
                       kind: MorphGlassKind.bar,
                       shape: RRect.fromLTRBXY(0, 0, 300, 62, 31, 31),
@@ -298,7 +299,7 @@ void main() {
             height: 62,
             child: Builder(
               builder: (BuildContext context) =>
-                  const MorphGlassRenderer().buildLayer(
+                  const GlassBuiltInPainter().buildLayer(
                     context,
                     const [
                       MorphGlassSurface(
@@ -332,7 +333,7 @@ void main() {
         .widgetList<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
         .toList();
     expect(layers.first.settings.backdropShrink, 0);
-    expect(_lensShrink(tester, 0), MorphGlassRenderer.tabBarShrink);
+    expect(_lensShrink(tester, 0), GlassBuiltInPainter.tabBarShrink);
     final base = tester.getRect(find.text('A').first);
     final seen = _seenThroughLens(tester, 0, 0, 'A');
     expect(seen.center.dx, moreOrLessEquals(base.center.dx, epsilon: 0.01));
@@ -340,7 +341,7 @@ void main() {
     expect(
       seen.width,
       moreOrLessEquals(
-        base.width * (1 + MorphGlassRenderer.tabBarMagnification),
+        base.width * (1 + GlassBuiltInPainter.tabBarMagnification),
         epsilon: 0.01,
       ),
     );
@@ -368,7 +369,7 @@ void main() {
       ) async {
         await tester.pumpWidget(
           host(
-            (context) => MorphGlassRenderer(tier: tier).buildLayer(context, [
+            (context) => GlassBuiltInPainter(tier: tier).buildLayer(context, [
               capsule(0, 100),
               capsule(106, 60),
             ], spacing: 12),
@@ -402,7 +403,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         host(
-          (context) => const MorphGlassRenderer().buildLayer(context, [
+          (context) => const GlassBuiltInPainter().buildLayer(context, [
             capsule(0, 100),
             capsule(112, 60),
           ], spacing: 12),
@@ -424,7 +425,7 @@ void main() {
       expect(morphGlassOutlineField(outline), isNotNull);
       await tester.pumpWidget(
         host(
-          (context) => const MorphGlassRenderer().buildLayer(context, [
+          (context) => const GlassBuiltInPainter().buildLayer(context, [
             const MorphGlassSurface(
               kind: MorphGlassKind.button,
               shape: button,
@@ -558,32 +559,32 @@ void main() {
     test('liquid on a capable GPU, the cheap tier on GLES and old Apple', () {
       const liquid = MorphGlassTier.liquid;
       expect(
-        MorphAdaptiveGlass.tierFor(MorphGlassDeviceClass.capable, liquid),
+        GlassAdaptiveScope.tierFor(MorphGlassDeviceClass.capable, liquid),
         liquid,
       );
       expect(
-        MorphAdaptiveGlass.tierFor(MorphGlassDeviceClass.unknown, liquid),
+        GlassAdaptiveScope.tierFor(MorphGlassDeviceClass.unknown, liquid),
         liquid,
       );
       expect(
-        MorphAdaptiveGlass.tierFor(MorphGlassDeviceClass.gles, liquid),
-        MorphAdaptiveGlass.cheapTier,
+        GlassAdaptiveScope.tierFor(MorphGlassDeviceClass.gles, liquid),
+        GlassAdaptiveScope.cheapTier,
       );
       expect(
-        MorphAdaptiveGlass.tierFor(
+        GlassAdaptiveScope.tierFor(
           MorphGlassDeviceClass.appleBeforeA13,
           liquid,
         ),
-        MorphAdaptiveGlass.cheapTier,
+        GlassAdaptiveScope.cheapTier,
       );
-      expect(MorphAdaptiveGlass.cheapTier, MorphGlassTier.flat);
+      expect(GlassAdaptiveScope.cheapTier, MorphGlassTier.flat);
     });
 
     test('Skia, where the best tier is fake glass, gets the cheap tier', () {
       for (final best in MorphGlassTier.values) {
         expect(
-          MorphAdaptiveGlass.tierFor(MorphGlassDeviceClass.skia, best),
-          MorphAdaptiveGlass.cheapTier,
+          GlassAdaptiveScope.tierFor(MorphGlassDeviceClass.skia, best),
+          GlassAdaptiveScope.cheapTier,
         );
       }
     });
@@ -591,13 +592,13 @@ void main() {
     test('never goes above the tier the renderer can draw', () {
       for (final deviceClass in MorphGlassDeviceClass.values) {
         expect(
-          MorphAdaptiveGlass.tierFor(deviceClass, MorphGlassTier.fake),
+          GlassAdaptiveScope.tierFor(deviceClass, MorphGlassTier.fake),
           deviceClass == MorphGlassDeviceClass.skia
-              ? MorphAdaptiveGlass.cheapTier
+              ? GlassAdaptiveScope.cheapTier
               : MorphGlassTier.fake,
         );
         expect(
-          MorphAdaptiveGlass.tierFor(deviceClass, MorphGlassTier.flat),
+          GlassAdaptiveScope.tierFor(deviceClass, MorphGlassTier.flat),
           MorphGlassTier.flat,
         );
       }
@@ -609,8 +610,10 @@ void main() {
     }) async {
       late BuildContext inside;
       await tester.pumpWidget(
-        MorphAdaptiveGlass(
-          tier: tier,
+        MorphTheme(
+          data: MorphThemeData(
+            glass: tier == null ? const .adaptive() : .tier(tier),
+          ),
           child: Builder(
             builder: (BuildContext context) {
               inside = context;
@@ -619,25 +622,25 @@ void main() {
           ),
         ),
       );
-      return MorphAdaptiveGlass.tierOf(inside);
+      return GlassAdaptiveScope.tierOf(inside);
     }
 
     testWidgets('a GLES device starts and stays on the cheap tier', (
       tester,
     ) async {
       morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.gles;
-      expect(await drawn(tester), MorphAdaptiveGlass.cheapTier);
+      expect(await drawn(tester), GlassAdaptiveScope.cheapTier);
       for (var i = 0; i < 120; i++) {
         await tester.pump(const Duration(milliseconds: 50));
       }
-      expect(await drawn(tester), MorphAdaptiveGlass.cheapTier);
+      expect(await drawn(tester), GlassAdaptiveScope.cheapTier);
     });
 
     testWidgets('a Skia runtime starts and stays on the cheap tier', (
       tester,
     ) async {
       morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.skia;
-      expect(await drawn(tester), MorphAdaptiveGlass.cheapTier);
+      expect(await drawn(tester), GlassAdaptiveScope.cheapTier);
     });
 
     testWidgets('a capable device draws liquid', (tester) async {

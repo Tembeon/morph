@@ -9,8 +9,8 @@ import 'package:morph/src/glass/renderer/liquid_glass.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
-import 'package:morph/widgets.dart';
 import 'package:morph/glass_painter.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The frame timing of [MorphFrameSync] and of a [MorphGlassHost] that
 /// follows one: driven by tickers, the structure is read once per frame
@@ -312,7 +312,7 @@ void main() {
                 builder: (BuildContext context, StateSetter setState) {
                   update = setState;
                   return MorphGlassHost(
-                    painter: const MorphGlassRenderer(),
+                    painter: const GlassBuiltInPainter(),
                     mode: MorphGlassMode.layer,
                     frames: sync,
                     frame: () {

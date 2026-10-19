@@ -21,7 +21,7 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets('slider video', (WidgetTester tester) async {
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     runApp(const GalleryApp());
     await tester.pump(const Duration(seconds: 2));
     final settings = GalleryGlassScope.of(

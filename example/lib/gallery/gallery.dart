@@ -30,9 +30,9 @@ import 'package:morph_example/gallery/theming_page.dart';
 /// against recordings of the real controls.
 ///
 /// The gallery follows the system appearance unless its glass page picks
-/// one, and every control below the root draws its glass through the
-/// package's [MorphGlassRenderer] at the tier the [GalleryGlassSettings]
-/// select, or the one [MorphAdaptiveGlass] picks by the device's GPU.
+/// one, and every control below the root draws its glass at the tier the
+/// [GalleryGlassSettings] select, or the one the theme picks by the
+/// device's GPU.
 class GalleryApp extends StatefulWidget {
   /// Creates the app.
   const GalleryApp({this.navigatorKey, this.home, super.key});
@@ -94,6 +94,7 @@ class _GalleryAppState extends State<GalleryApp> {
     Brightness brightness,
     Color? accent,
     bool haptics,
+    MorphGlassTier? tier,
   ) {
     final edge = switch (brightness) {
       Brightness.light => MorphScrollEdgeEffectAppearance(
@@ -105,6 +106,7 @@ class _GalleryAppState extends State<GalleryApp> {
       brightness: brightness,
       tint: accent,
       haptics: haptics,
+      glass: tier == null ? const .adaptive() : .tier(tier),
       appearances: [edge],
     );
   }
@@ -165,17 +167,20 @@ class _GalleryChrome extends StatelessWidget {
 
   /// Built once per look, so the controls below do not rebuild for an
   /// unchanged theme.
-  static final _themes = <(Brightness, Color?, bool), MorphThemeData>{};
+  static final _themes =
+      <(Brightness, Color?, bool, MorphGlassTier?), MorphThemeData>{};
 
   static MorphThemeData _themeData(
     Brightness brightness,
     Color? accent,
     bool haptics,
+    MorphGlassTier? tier,
   ) => _themes.putIfAbsent((
     brightness,
     accent,
     haptics,
-  ), () => _GalleryAppState._morphTheme(brightness, accent, haptics));
+    tier,
+  ), () => _GalleryAppState._morphTheme(brightness, accent, haptics, tier));
 
   @override
   Widget build(BuildContext context) {
@@ -196,12 +201,11 @@ class _GalleryChrome extends StatelessWidget {
             Theme.of(context).brightness,
             theming.accent,
             theming.haptics,
+            glass.tier,
           ),
           child: MorphGlassInspector(
             enabled: GalleryGlassScope.of(context, .inspector).inspector,
-            child: MorphAdaptiveGlass(
-              renderer: glass.renderer,
-              tier: glass.tier,
+            child: GalleryGlassTuning(
               child: BackdropGroup(child: MorphScope(child: child)),
             ),
           ),

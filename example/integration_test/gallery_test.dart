@@ -10,6 +10,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 
 /// A QA walk through every gallery page on a device: realistic gestures,
 /// screenshots between the steps, every framework error and per-page
@@ -154,7 +155,7 @@ class _Qa {
     if (outDir.existsSync()) outDir.deleteSync(recursive: true);
     outDir.createSync(recursive: true);
     _clock.start();
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     runApp(const GalleryApp());
     await settle(1200);
     _enter('home');
@@ -737,7 +738,7 @@ class _Qa {
   }
 
   MorphGlassTier? _tier() =>
-      tester.widget<MorphAdaptiveGlass>(find.byType(MorphAdaptiveGlass)).tier;
+      tester.widget<GlassAdaptiveScope>(find.byType(GlassAdaptiveScope)).tier;
 
   Future<void> _slowMotion() async {
     _enter('slow-motion');

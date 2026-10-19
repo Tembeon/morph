@@ -101,11 +101,11 @@ void main() {
     final previous = FlutterError.onError;
     FlutterError.onError = reports.add;
     try {
-      await MorphGlassRenderer.precache();
+      await MorphTheme.precacheGlass();
     } finally {
       FlutterError.onError = previous;
     }
-    expect(MorphGlassRenderer.liquidAvailable, isFalse);
+    expect(MorphTheme.liquidGlassAvailable, isFalse);
   });
 
   testWidgets('glass effects: shapes, a container and the inspector', (

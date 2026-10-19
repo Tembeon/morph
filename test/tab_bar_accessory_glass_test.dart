@@ -44,8 +44,10 @@ List<({List<Rect> drawn, double spacing})> _glass(Element root) {
 }
 
 Widget _app(MorphGlassTier tier, Widget bar) => MaterialApp(
-  builder: (BuildContext context, Widget? child) =>
-      MorphAdaptiveGlass(tier: tier, child: child!),
+  builder: (BuildContext context, Widget? child) => MorphTheme(
+    data: MorphThemeData(glass: .tier(tier)),
+    child: child!,
+  ),
   home: Scaffold(
     body: MorphContentScrollScope(
       child: Stack(

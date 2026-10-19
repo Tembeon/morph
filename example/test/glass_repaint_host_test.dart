@@ -19,6 +19,7 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.da
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Glass that comes back after a transition is painted by the time the app
 /// goes idle, on the host's Impeller with the liquid tier:
@@ -95,8 +96,8 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
     addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
-    await tester.runAsync(MorphGlassRenderer.precache);
-    if (!MorphGlassRenderer.liquidAvailable) return null;
+    await tester.runAsync(GlassBuiltInPainter.precache);
+    if (!MorphTheme.liquidGlassAvailable) return null;
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     RenderLiquidGlassLayer.debugAnalyticGeometry = true;
 
@@ -125,8 +126,8 @@ void main() {
     tester.view.physicalSize = const ui.Size(600, 600);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.runAsync(MorphGlassRenderer.precache);
-    if (!MorphGlassRenderer.liquidAvailable) return;
+    await tester.runAsync(GlassBuiltInPainter.precache);
+    if (!MorphTheme.liquidGlassAvailable) return;
     final second = ValueNotifier(false);
     addTearDown(second.dispose);
     Widget glass(double left) => Positioned(
@@ -203,8 +204,8 @@ void main() {
     tester.view.physicalSize = const ui.Size(600, 600);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.runAsync(MorphGlassRenderer.precache);
-    if (!MorphGlassRenderer.liquidAvailable) return;
+    await tester.runAsync(GlassBuiltInPainter.precache);
+    if (!MorphTheme.liquidGlassAvailable) return;
     final visible = ValueNotifier(true);
     addTearDown(visible.dispose);
     await tester.pumpWidget(

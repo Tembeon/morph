@@ -27,12 +27,12 @@ void main() {
   ) async {
     final out = Directory('${Directory.systemTemp.path}/backdrop');
     out.createSync(recursive: true);
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     final variant = ValueNotifier<String>('shared');
     await tester.pumpWidget(_Scene(variant: variant));
     await tester.pump(const Duration(seconds: 2));
     final report = <String, Object?>{
-      'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'liquid_available': MorphTheme.liquidGlassAvailable,
       'dpr': tester.view.devicePixelRatio,
       'top': _rect(tester.getRect(find.text('Top'))),
       'bottom': _rect(tester.getRect(find.text('Bottom'))),
@@ -65,8 +65,8 @@ class _Scene extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(brightness: Brightness.dark),
-      builder: (BuildContext context, Widget? child) => MorphAdaptiveGlass(
-        tier: MorphGlassTier.liquid,
+      builder: (BuildContext context, Widget? child) => MorphTheme(
+        data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
         child: BackdropGroup(child: MorphScope(child: child!)),
       ),
       home: ValueListenableBuilder<String>(

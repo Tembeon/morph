@@ -4,48 +4,18 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/live.dart';
+import 'package:morph/src/theme/glass.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
-import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
-
-/// The quality tiers of [MorphGlassRenderer], cheapest first.
-///
-/// Every tier draws the same shapes: the package computes each surface's
-/// outline, the fused silhouettes of a menu and its button or of a bar's
-/// capsules, the lens deformation and the content placement once, and a
-/// tier only decides how the outline is shaded. A device whose GPU cannot
-/// hold liquid glass draws a cheaper tier ([MorphAdaptiveGlass]) and the
-/// controls keep their geometry, their motion and their fusion.
-enum MorphGlassTier {
-  /// A flat fill of each outline in the surface's color, no backdrop
-  /// sampling: the cheapest tier, for weak devices.
-  flat,
-
-  /// Fake glass: the liquid material without refraction. The backdrop is
-  /// frosted and color-filtered as the liquid tier's face transfer does,
-  /// and each surface's rim, bevel and highlight are drawn analytically
-  /// along its shape; a fused body is clipped to its outline, each region
-  /// faced by its largest surface. No lens optics (magnification and
-  /// backdrop shrink), no Flutter GPU, so it runs wherever Flutter runs,
-  /// the web included.
-  fake,
-
-  /// Liquid glass: refraction at the rim, magnification and the measured
-  /// lens optics, frost and rim light, rendered on the GPU by the package's
-  /// glass renderer. Needs Impeller with Flutter GPU (iOS, macOS,
-  /// Android); elsewhere the renderer draws [fake] in its place.
-  liquid,
-}
 
 /// The two Liquid Glass materials an app picks per surface
 /// (`UIGlassEffect.Style`, SwiftUI `Glass.regular` / `Glass.clear`).
 enum MorphGlassStyle {
   /// The regular material: a light wash that keeps content on it legible
-  /// over any backdrop. A [MorphGlassRenderer] draws it with its
-  /// [MorphGlassRenderer.material] preset.
+  /// over any backdrop.
   regular,
 
   /// The clear material, for glass over rich media (photos, video, maps):
@@ -70,9 +40,9 @@ enum MorphGlassMaterial {
 /// The package's glass renderer: draws the surfaces of every measured
 /// control at a quality [tier].
 ///
-/// Install it with [MorphGlassScope], or with [MorphAdaptiveGlass], which picks
-/// the tier once by the device's GPU. Only surfaces that are glass in iOS
-/// 27 become glass: a plain surface
+/// A `MorphTheme` installs it at the tier its `MorphThemeData.glass`
+/// chooses; a [MorphGlassScope] installs one with other settings. Only
+/// surfaces that are glass in iOS 27 become glass: a plain surface
 /// ([MorphGlassSurface.glass] false - the segmented, switch and slider
 /// tracks, the stepper) is a flat fill on every tier.
 ///
@@ -94,25 +64,12 @@ enum MorphGlassMaterial {
 /// kin). Frost is the dearest part of the liquid tier, so only bars,
 /// menus and lifted lenses frost unless [frostControls] is on.
 ///
-/// Enable Flutter GPU with `FLTEnableFlutterGPU` in the Apple app's
-/// Info.plist or `io.flutter.embedding.android.EnableFlutterGPU` in the
-/// Android manifest, and use Impeller. Call [precache] before installing
-/// a fixed renderer; [MorphAdaptiveGlass] follows initialization itself.
 /// Until shaders are ready, or if they fail, liquid draws fake glass and
-/// reports [MorphGlassTier.fake]. An initialization failure is reported
-/// once per isolate through [FlutterError.reportError] in every build mode,
-/// with library `morph glass`; [liquidUnavailableReason] exposes its reason.
-/// Native builds must package the GPU shader bundle from the package's
-/// build hook in `build/shaderbundles/`.
-/// Wrap a fixed renderer's controls in [BackdropGroup] to share backdrop
-/// copies; a section painted over earlier glass and content needs a group
-/// of its own (see [MorphAdaptiveGlass]). Wrap a row or cluster of glass
-/// buttons in a [MorphGlassContainer] to shade their resting glass in one
-/// layer.
+/// reports [MorphGlassTier.fake].
 @immutable
-class MorphGlassRenderer extends MorphGlassPainter {
+class GlassBuiltInPainter extends MorphGlassPainter {
   /// Creates a renderer at [tier] with the liquid tier's settings.
-  const MorphGlassRenderer({
+  const GlassBuiltInPainter({
     this.tier = MorphGlassTier.liquid,
     this.material = MorphGlassMaterial.regular,
     this.blur = 1,
@@ -203,7 +160,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
   }
 
   /// The same renderer at [tier], or with any other setting replaced.
-  MorphGlassRenderer copyWith({
+  GlassBuiltInPainter copyWith({
     MorphGlassTier? tier,
     MorphGlassMaterial? material,
     double? blur,
@@ -211,7 +168,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
     double? light,
     double? tint,
     bool? frostControls,
-  }) => MorphGlassRenderer(
+  }) => GlassBuiltInPainter(
     tier: tier ?? this.tier,
     material: material ?? this.material,
     blur: blur ?? this.blur,
@@ -342,7 +299,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
       ? (surface.lift / MorphGlassDefaults.glassLiftSpan).clamp(0.0, 1.0)
       : 1.0;
 
-  bool get _exact => runtimeType == MorphGlassRenderer;
+  bool get _exact => runtimeType == GlassBuiltInPainter;
 
   @override
   Widget buildSurface(BuildContext context, MorphGlassSurface surface) =>
@@ -683,7 +640,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
 
   @override
   bool operator ==(Object other) =>
-      other is MorphGlassRenderer &&
+      other is GlassBuiltInPainter &&
       other.tier == tier &&
       other.material == material &&
       other.blur == blur &&
@@ -711,7 +668,7 @@ bool morphGlassLayerSlots(MorphGlassFrame frame) =>
     frame.surfaces.every(
       (s) =>
           s.glass &&
-          !MorphGlassRenderer.floats(s.kind) &&
+          !GlassBuiltInPainter.floats(s.kind) &&
           s.glow == null &&
           s.kind != MorphGlassKind.bar &&
           s.kind != MorphGlassKind.menu,
@@ -725,7 +682,7 @@ bool morphGlassLayerSlots(MorphGlassFrame frame) =>
 bool morphGlassKeepsContentLive(MorphGlassPainter? painter) =>
     switch (painter) {
       null => true,
-      final MorphGlassRenderer renderer when renderer._exact =>
+      final GlassBuiltInPainter renderer when renderer._exact =>
         renderer.effectiveTier == MorphGlassTier.flat,
       _ => false,
     };
@@ -733,14 +690,14 @@ bool morphGlassKeepsContentLive(MorphGlassPainter? painter) =>
 /// Whether a control drawing with [painter] needs the field of the
 /// outlines it fuses, or their edge alone.
 ///
-/// Only the package's own [MorphGlassRenderer] on the flat tier, which
+/// Only the package's own [GlassBuiltInPainter] on the flat tier, which
 /// fills a fused body's path, and no painter at all, where the control
 /// fills it itself, need the edge alone; any other painter may shade the
 /// body from its field.
 @internal
 bool morphGlassShadesOutlines(MorphGlassPainter? painter) => switch (painter) {
   null => false,
-  final MorphGlassRenderer renderer when renderer._exact =>
+  final GlassBuiltInPainter renderer when renderer._exact =>
     renderer.effectiveTier != MorphGlassTier.flat,
   _ => true,
 };
@@ -778,11 +735,11 @@ class MorphGlassLayerParts {
   }) {
     final visible = [
       for (final s in surfaces)
-        if (MorphGlassRenderer._visible(s)) s,
+        if (GlassBuiltInPainter._visible(s)) s,
     ];
     final body = [
       for (final s in visible)
-        if (s.glass && !MorphGlassRenderer.floats(s.kind)) s,
+        if (s.glass && !GlassBuiltInPainter.floats(s.kind)) s,
     ];
     final separate = <MorphGlassSurface>[];
     final fused = <(List<MorphGlassSurface>, MorphGlassOutline)>[];
@@ -823,7 +780,7 @@ class MorphGlassLayerParts {
       fused: fused,
       floating: [
         for (final s in visible)
-          if (s.glass && MorphGlassRenderer.floats(s.kind)) s,
+          if (s.glass && GlassBuiltInPainter.floats(s.kind)) s,
       ],
     );
   }

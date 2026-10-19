@@ -10,6 +10,7 @@ import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph/glass_painter.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The glass channel: a frame that keeps a layer's structure reaches the
 /// render objects without a widget build below the host; a frame that
@@ -72,7 +73,7 @@ void main() {
     ) async {
       final (frames, _) = await pumpLayer(
         tester,
-        MorphGlassRenderer(tier: tier),
+        GlassBuiltInPainter(tier: tier),
         (int f) => [track(), lens(10.0 + f * 7, 1)],
       );
       final elements = <Element>{};
@@ -107,7 +108,7 @@ void main() {
   testWidgets('a lens lifting off rebuilds the layer once', (tester) async {
     final (frames, _) = await pumpLayer(
       tester,
-      const MorphGlassRenderer(),
+      const GlassBuiltInPainter(),
       (int f) => [track(), lens(10, f == 0 ? 0 : 1)],
     );
     expect(find.byType(LiquidGlassLayer), findsNothing);
@@ -130,7 +131,7 @@ void main() {
   ) async {
     final (frames, _) = await pumpLayer(
       tester,
-      const MorphGlassRenderer(),
+      const GlassBuiltInPainter(),
       (int f) => [track(), lens(10, f == 0 ? 0.2 : 0.1)],
     );
     LiquidGlassAppearance appearance() =>
@@ -180,7 +181,7 @@ void main() {
               builder: (BuildContext context, StateSetter setState) {
                 update = setState;
                 return MorphGlassHost(
-                  painter: const MorphGlassRenderer(),
+                  painter: const GlassBuiltInPainter(),
                   mode: MorphGlassMode.layer,
                   frame: () => MorphGlassFrame([track(), lens(left, 1)]),
                 );
@@ -223,7 +224,7 @@ void main() {
               builder: (BuildContext context, StateSetter setState) {
                 update = setState;
                 return MorphGlassHost(
-                  painter: const MorphGlassRenderer(),
+                  painter: const GlassBuiltInPainter(),
                   mode: MorphGlassMode.layer,
                   frames: frames,
                   frame: () {
@@ -270,7 +271,7 @@ void main() {
             width: 300,
             height: 60,
             child: MorphGlassHost(
-              painter: const MorphGlassRenderer(),
+              painter: const GlassBuiltInPainter(),
               mode: MorphGlassMode.layer,
               frame: () => MorphGlassFrame([track(), lens(10, 1)]),
             ),

@@ -44,6 +44,7 @@ import 'package:morph_example/perf/bench_args.dart';
 
 import 'support/control_matrix.dart';
 import 'support/layer_census.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 
 /// The glass audit on a device: the gallery in dark mode, the states the
 /// UIKit references in tool/ios_reference/references/dark show (resting
@@ -504,7 +505,7 @@ class _Audit implements MatrixDriver {
     }
     final precache = Stopwatch();
     precache.start();
-    await MorphGlassRenderer.precache();
+    await MorphTheme.precacheGlass();
     _precacheMs = precache.elapsedMicroseconds / 1000;
     _enteredAt = timings.length;
     runApp(const GalleryApp());
@@ -910,7 +911,7 @@ class _Audit implements MatrixDriver {
     final glass = find.byType(MorphScope);
     final drawn = glass.evaluate().isEmpty
         ? null
-        : MorphAdaptiveGlass.tierOf(tester.element(glass.first));
+        : GlassAdaptiveScope.tierOf(tester.element(glass.first));
     double median(List<double> v) {
       final sorted = [...v];
       sorted.sort();
@@ -959,14 +960,14 @@ class _Audit implements MatrixDriver {
 
     return {
       'tier': GalleryGlassSettings.initialTier,
-      'liquid_available': MorphGlassRenderer.liquidAvailable,
-      'liquid_unavailable_reason': MorphGlassRenderer.liquidUnavailableReason,
+      'liquid_available': MorphTheme.liquidGlassAvailable,
+      'liquid_unavailable_reason': MorphTheme.liquidGlassUnavailableReason,
       'platform': Platform.operatingSystem,
       'refresh_rate': rate,
       'cadence_ms': cadence,
       'budget_ms': budget,
       'precache_ms': _precacheMs,
-      'device_class': MorphAdaptiveGlass.deviceClass.name,
+      'device_class': GlassAdaptiveScope.deviceClass.name,
       'drawn_tier': drawn?.name,
       'first_use': {
         for (final MapEntry(key: scene, value: (start, end))

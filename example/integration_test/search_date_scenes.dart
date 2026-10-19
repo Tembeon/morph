@@ -22,7 +22,7 @@ import 'package:morph_example/gallery/glass_settings.dart';
 /// screen.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await MorphGlassRenderer.precache();
+  await MorphTheme.precacheGlass();
   runApp(const GalleryApp());
   WidgetsBinding.instance.addPostFrameCallback((Duration _) {
     NavigatorState? root;

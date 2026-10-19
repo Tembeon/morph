@@ -660,7 +660,7 @@ class _BenchState extends State<_Bench> {
       'budget_ms': budget,
       'device_pixel_ratio': view.devicePixelRatio,
       'physical_size': [view.physicalSize.width, view.physicalSize.height],
-      'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'liquid_available': MorphTheme.liquidGlassAvailable,
       'runs': _runs,
       'warm_ms': _warmMs,
       'sample_ms': _sampleMs,
@@ -763,10 +763,10 @@ class _BenchState extends State<_Bench> {
       if (_phases && kReleaseMode) {
         throw StateError('Framework phase counters require profile mode.');
       }
-      await MorphGlassRenderer.precache();
+      await MorphTheme.precacheGlass();
       final cases = _cases();
       if (cases.any((c) => c.mode == 'liquid') &&
-          !MorphGlassRenderer.liquidAvailable) {
+          !MorphTheme.liquidGlassAvailable) {
         throw StateError('Liquid glass unavailable');
       }
       if (_performanceHints) {

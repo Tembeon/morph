@@ -4,9 +4,10 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_device.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/theme/glass.dart';
 
 /// The GPU class of the device as Flutter GPU reports it, which
-/// [MorphAdaptiveGlass] picks its tier by.
+/// [GlassAdaptiveScope] picks its tier by.
 enum MorphGlassDeviceClass {
   /// Impeller on Vulkan or Metal, an Apple GPU from the A13 on: the
   /// liquid tier.
@@ -20,13 +21,13 @@ enum MorphGlassDeviceClass {
   /// medians at 60 Hz) liquid missed the frame budget on 11 - 69 frames
   /// per scene where Vulkan missed 0 - 22, its raster p95 3 - 6 ms higher,
   /// and fake glass about as many (7 - 112), so the device gets
-  /// [MorphAdaptiveGlass.cheapTier].
+  /// [GlassAdaptiveScope.cheapTier].
   gles,
 
   /// An iPhone or iPad GPU older than the A13, told by the missing HDR
   /// ASTC support that Metal reports from the A13 (GPU family Apple 6)
   /// on. Not measured on such a device; it gets
-  /// [MorphAdaptiveGlass.cheapTier].
+  /// [GlassAdaptiveScope.cheapTier].
   appleBeforeA13,
 
   /// Skia, a native runtime without Impeller (Android before API 29, or an
@@ -37,7 +38,7 @@ enum MorphGlassDeviceClass {
   /// Skia's multi-pass blur: on a Redmi 6A (Android 9, PowerVR GE8320,
   /// 2026-10-11, profile, the gallery's autodemo) every page drew raster
   /// p95 30 - 265 ms with fake glass, so the device gets
-  /// [MorphAdaptiveGlass.cheapTier].
+  /// [GlassAdaptiveScope.cheapTier].
   skia,
 
   /// The class is not known: no Flutter GPU, the web, or the liquid tier
@@ -50,50 +51,27 @@ enum MorphGlassDeviceClass {
 MorphGlassDeviceClass Function() morphGlassDeviceClassProbe =
     morphProbeGlassDeviceClass;
 
-/// Installs a [MorphGlassRenderer] at one tier for the whole session:
+/// Installs a [GlassBuiltInPainter] at one tier for the whole session:
 /// [tier] when given, else the tier the device class allows.
 ///
 /// The automatic choice is made once from the GPU's capabilities
-/// ([deviceClass]), never from frame timings, so the glass never changes
-/// its look while the app runs: liquid on a capable GPU, [cheapTier] on
-/// the OpenGL ES fallback, on Skia and on Apple GPUs older than the A13,
-/// and the [renderer]'s own tier when it is lower or the build has no
-/// liquid tier.
-/// The device class is known once the liquid tier is initialized; call
-/// [MorphGlassRenderer.precache] before `runApp` so the first frame
-/// already draws the chosen tier instead of the fake fallback. The
-/// shapes, motion and fusion of every control are the same on every
-/// tier.
-///
-/// Read the tier in use with [MorphAdaptiveGlass.tierOf]. An ancestor
-/// [BackdropGroup] is reused, otherwise this widget installs one for its
-/// controls.
-///
-/// Resting glass in one [BackdropGroup] shares one copy of the screen,
-/// taken where the group's first glass paints, so glass painted after
-/// other content misses that content - a button on a card drawn over a
-/// list whose own glass painted first shows the list as it stood before
-/// the card. Give such a section a group of its own:
-///
-/// ```dart
-/// BackdropGroup(child: card)
-/// ```
-///
-/// Its glass then reads a copy taken where the section paints, at the
-/// price of one more full-screen copy per frame while anything in it
-/// moves. Bars, menus, sheets and lifted glass already take their own.
-class MorphAdaptiveGlass extends StatefulWidget {
+/// ([deviceClass]), never from frame timings: liquid on a capable GPU,
+/// [cheapTier] on the OpenGL ES fallback, on Skia and on Apple GPUs older
+/// than the A13, and the [renderer]'s own tier when it is lower or the
+/// build has no liquid tier. An ancestor [BackdropGroup] is reused,
+/// otherwise this widget installs one for its controls.
+class GlassAdaptiveScope extends StatefulWidget {
   /// Installs [renderer] for [child] at [tier], or at the tier the device
   /// class allows when [tier] is null.
-  const MorphAdaptiveGlass({
+  const GlassAdaptiveScope({
     required this.child,
-    this.renderer = const MorphGlassRenderer(),
+    this.renderer = const GlassBuiltInPainter(),
     this.tier,
     super.key,
   });
 
   /// The renderer; its tier is the best one the automatic choice uses.
-  final MorphGlassRenderer renderer;
+  final GlassBuiltInPainter renderer;
 
   /// The tier to draw, or null to choose it by the device class.
   final MorphGlassTier? tier;
@@ -133,20 +111,20 @@ class MorphAdaptiveGlass extends StatefulWidget {
     };
   }
 
-  /// The effective tier of the [MorphGlassRenderer] installed above
+  /// The effective tier of the [GlassBuiltInPainter] installed above
   /// [context], or null when the painter above is not one.
   static MorphGlassTier? tierOf(BuildContext context) =>
       switch (MorphGlassScope.maybeOf(context)) {
-        final MorphGlassRenderer renderer => renderer.effectiveTier,
+        final GlassBuiltInPainter renderer => renderer.effectiveTier,
         _ => null,
       };
 
   @override
-  State<MorphAdaptiveGlass> createState() => _MorphAdaptiveGlassState();
+  State<GlassAdaptiveScope> createState() => _GlassAdaptiveScopeState();
 }
 
-class _MorphAdaptiveGlassState extends State<MorphAdaptiveGlass> {
-  MorphGlassDeviceClass _deviceClass = MorphAdaptiveGlass.deviceClass;
+class _GlassAdaptiveScopeState extends State<GlassAdaptiveScope> {
+  MorphGlassDeviceClass _deviceClass = GlassAdaptiveScope.deviceClass;
 
   @override
   void initState() {
@@ -158,7 +136,7 @@ class _MorphAdaptiveGlassState extends State<MorphAdaptiveGlass> {
 
   void _capabilityChanged() {
     if (!mounted) return;
-    setState(() => _deviceClass = MorphAdaptiveGlass.deviceClass);
+    setState(() => _deviceClass = GlassAdaptiveScope.deviceClass);
     if (_deviceClass != MorphGlassDeviceClass.unknown) {
       morphLiquidGlassCapability.removeListener(_capabilityChanged);
     }
@@ -174,7 +152,7 @@ class _MorphAdaptiveGlassState extends State<MorphAdaptiveGlass> {
   Widget build(BuildContext context) {
     final tier =
         widget.tier ??
-        MorphAdaptiveGlass.tierFor(_deviceClass, widget.renderer.effectiveTier);
+        GlassAdaptiveScope.tierFor(_deviceClass, widget.renderer.effectiveTier);
     final glass = MorphGlassScope(
       painter: widget.renderer.copyWith(tier: tier),
       child: widget.child,

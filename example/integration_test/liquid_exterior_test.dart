@@ -21,15 +21,15 @@ void main() {
   testWidgets('liquid glass leaves its exterior untouched', (
     WidgetTester tester,
   ) async {
-    await MorphGlassRenderer.precache();
-    expect(MorphGlassRenderer.liquidAvailable, isTrue);
+    await MorphTheme.precacheGlass();
+    expect(MorphTheme.liquidGlassAvailable, isTrue);
     final boundary = GlobalKey();
     await tester.pumpWidget(
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(brightness: Brightness.dark),
-        home: MorphAdaptiveGlass(
-          tier: MorphGlassTier.liquid,
+        home: MorphTheme(
+          data: const MorphThemeData(glass: .tier(MorphGlassTier.liquid)),
           child: BackdropGroup(
             child: MorphScope(
               child: RepaintBoundary(

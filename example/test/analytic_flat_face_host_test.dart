@@ -13,9 +13,9 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show AnalyticGeometryMode, RenderLiquidGlassLayer;
-import 'package:morph/widgets.dart';
 
 import '../integration_test/support/shader_harness.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The analytic shader's flat-face skip against the full distance solve
 /// on the host: every liquid case of the shader harness, plus stretched,
@@ -193,7 +193,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticFlatFace = true;
       RenderLiquidGlassLayer.debugAnalyticCapsule = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final backdrop = await harness.backdrop();

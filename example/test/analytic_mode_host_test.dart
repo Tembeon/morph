@@ -17,9 +17,9 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show AnalyticGeometryMode, RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/widgets.dart';
 
 import '../integration_test/support/shader_harness.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The analytic geometry modes on the host's Impeller: `changes` rests on
 /// one matte encode and shades analytically only while the geometry
@@ -129,7 +129,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticMode = null;
       RenderLiquidGlassLayer.debugAnalyticCapsule = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     harness = ShaderHarness(tester);
     backdrop = await harness.backdrop();

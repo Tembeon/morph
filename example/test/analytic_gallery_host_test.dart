@@ -18,6 +18,7 @@ import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Which liquid glass layers of the gallery's Navigation page evaluate
 /// their shapes analytically, at rest and in the middle of the nested push
@@ -44,7 +45,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticGeometry = null;
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     RenderLiquidGlassLayer.debugAnalyticGeometry = true;
 
@@ -149,8 +150,8 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticGeometry = null;
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
-    if (!MorphGlassRenderer.liquidAvailable) return;
+    await tester.runAsync(GlassBuiltInPainter.precache);
+    if (!MorphTheme.liquidGlassAvailable) return;
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     RenderLiquidGlassLayer.debugAnalyticGeometry = true;
 

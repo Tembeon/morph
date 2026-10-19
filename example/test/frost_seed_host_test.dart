@@ -12,6 +12,7 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show RenderLiquidGlassLayer;
 
 import '../integration_test/support/shader_harness.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// A frosted glass layer copies the backdrop around it into a pass of its
 /// own and blurs that copy, on the host's Impeller:
@@ -50,8 +51,8 @@ void main() {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
     addTearDown(() => RenderLiquidGlassLayer.debugSeedsBlur = true);
-    await tester.runAsync(MorphGlassRenderer.precache);
-    if (!MorphGlassRenderer.liquidAvailable) return;
+    await tester.runAsync(GlassBuiltInPainter.precache);
+    if (!MorphTheme.liquidGlassAvailable) return;
     final harness = ShaderHarness(tester);
 
     Future<(HarnessShot, List<BackdropFilterLayer>)> render(

@@ -135,7 +135,7 @@ class MorphGlassSurface {
   });
 
   /// The material the surface asks for, or null for the painter's own
-  /// default ([MorphGlassRenderer.material]).
+  /// default ([GlassBuiltInPainter.material]).
   final MorphGlassStyle? style;
 
   /// The role of the surface.
@@ -618,7 +618,7 @@ MorphGlassPainter? morphGlassAbove(BuildContext context) =>
 /// [MorphGlassPainter.buildLayer], with [content] over them, for every
 /// notification of [frames].
 ///
-/// With the package's own [MorphGlassRenderer] a frame that keeps the
+/// With the package's own [GlassBuiltInPainter] a frame that keeps the
 /// layer's structure is pushed into the render objects the layer built
 /// before: no widget below the layer rebuilds per frame (see
 /// [MorphGlassHost]). Any other painter builds the layer every frame.

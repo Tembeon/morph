@@ -5,6 +5,7 @@ import 'package:morph/widgets.dart';
 
 import '../integration_test/support/blur_harness.dart';
 import '../integration_test/support/shader_harness.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The edge effect's seeded blur draws the blur of the whole pass, and a
 /// raised frost stays within its bound, on the host's Impeller:
@@ -22,8 +23,8 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    await tester.runAsync(MorphGlassRenderer.precache);
-    if (!MorphGlassRenderer.liquidAvailable) return;
+    await tester.runAsync(GlassBuiltInPainter.precache);
+    if (!MorphTheme.liquidGlassAvailable) return;
     const out = String.fromEnvironment('BLUR_OUT');
     final report = await runBlurParity(
       ShaderHarness(tester),

@@ -165,8 +165,12 @@ Future<void> _setScreen(WidgetTester tester) async {
 Widget _app(MorphGlassTier? tier, Widget home) => MaterialApp(
   debugShowCheckedModeBanner: false,
   theme: ThemeData(platform: TargetPlatform.iOS),
-  builder: (BuildContext context, Widget? child) =>
-      tier == null ? child! : MorphAdaptiveGlass(tier: tier, child: child!),
+  builder: (BuildContext context, Widget? child) => tier == null
+      ? child!
+      : MorphTheme(
+          data: MorphThemeData(glass: .tier(tier)),
+          child: child!,
+        ),
   home: home,
 );
 

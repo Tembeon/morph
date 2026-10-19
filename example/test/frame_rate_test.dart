@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph/widgets.dart';
 
 Future<void> _settle(WidgetTester tester) => tester.pumpAndSettle(
   const Duration(milliseconds: 100),
@@ -62,7 +62,7 @@ void main() {
     final previous = FlutterError.onError;
     FlutterError.onError = (_) {};
     try {
-      await MorphGlassRenderer.precache();
+      await MorphTheme.precacheGlass();
     } finally {
       FlutterError.onError = previous;
     }

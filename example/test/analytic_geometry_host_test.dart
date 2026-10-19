@@ -22,9 +22,9 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show AnalyticGeometryMode, RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/widgets.dart';
 
 import '../integration_test/support/shader_harness.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The analytic geometry against the geometry matte on the host: every
 /// liquid case of the shader harness rendered both ways through
@@ -226,7 +226,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticGeometry = null;
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     if (_out.isNotEmpty) Directory(_out).createSync(recursive: true);
     final harness = ShaderHarness(tester);
@@ -317,7 +317,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticGeometry = null;
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final backdrop = await harness.backdrop();
@@ -479,7 +479,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticGeometry = null;
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final dpr = harness.devicePixelRatio;
@@ -580,7 +580,7 @@ void main() {
       debugMorphFusionStep = 2;
       debugClearMorphGlassOutlines();
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final dpr = harness.devicePixelRatio;
@@ -652,7 +652,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticGeometry = null;
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final glassCase = harnessCases.firstWhere((c) => c.name == 'tint-pair');
@@ -715,7 +715,7 @@ void main() {
       RenderLiquidGlassLayer.debugAnalyticGeometry = null;
       RenderLiquidGlassLayer.debugAnalyticMode = null;
     });
-    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(GlassBuiltInPainter.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final dpr = harness.devicePixelRatio;

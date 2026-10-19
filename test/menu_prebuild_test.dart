@@ -101,8 +101,8 @@ Future<List<String>> _record(WidgetTester tester, MorphGlassTier tier) async {
     MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(platform: TargetPlatform.iOS),
-      builder: (BuildContext context, Widget? child) => MorphAdaptiveGlass(
-        tier: tier,
+      builder: (BuildContext context, Widget? child) => MorphTheme(
+        data: MorphThemeData(glass: .tier(tier)),
         child: MorphScope(child: child!),
       ),
       home: Scaffold(

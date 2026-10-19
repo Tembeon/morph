@@ -8,17 +8,19 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 
 final GlobalKey _shot = GlobalKey();
 
 Widget _list({
   MorphGlassTier tier = MorphGlassTier.fake,
-  MorphGlassRenderer renderer = const MorphGlassRenderer(),
+  GlassBuiltInPainter renderer = const GlassBuiltInPainter(),
   int rows = 4,
 }) => MaterialApp(
   debugShowCheckedModeBanner: false,
   theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
-  home: MorphAdaptiveGlass(
+  home: GlassAdaptiveScope(
     renderer: renderer,
     tier: tier,
     child: RepaintBoundary(
@@ -135,7 +137,7 @@ void main() {
     await tester.pumpWidget(
       _list(
         tier: MorphGlassTier.liquid,
-        renderer: const MorphGlassRenderer(frostControls: true),
+        renderer: const GlassBuiltInPainter(frostControls: true),
       ),
     );
     await tester.pump(const Duration(milliseconds: 100));

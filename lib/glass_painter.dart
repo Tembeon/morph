@@ -3,10 +3,10 @@
 ///
 /// The controls describe every piece of glass as a [MorphGlassSurface]
 /// (its outline, [MorphGlassKind], [MorphGlassOptics], touch
-/// [MorphGlassGlow] and [MorphGlassOutline]); the package's own
-/// `MorphGlassRenderer` and any custom painter installed with
-/// `MorphGlassScope` shade those descriptions. An app that uses the
-/// built-in renderer needs nothing from this library.
+/// [MorphGlassGlow] and [MorphGlassOutline]); the package's own renderer
+/// and any custom painter installed with `MorphGlassScope` shade those
+/// descriptions. An app that uses the built-in glass, chosen by
+/// `MorphThemeData.glass`, needs nothing from this library.
 library;
 
 export 'src/widgets/glass.dart'

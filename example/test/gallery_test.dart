@@ -5,6 +5,7 @@ import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/gallery/knobs.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 
 /// Every text on screen that fell through to the app's error text style:
 /// a yellow double underline marks text outside any Material.
@@ -73,15 +74,15 @@ void main() {
     final previous = FlutterError.onError;
     FlutterError.onError = reports.add;
     try {
-      await MorphGlassRenderer.precache();
+      await MorphTheme.precacheGlass();
     } finally {
       FlutterError.onError = previous;
     }
-    expect(MorphGlassRenderer.liquidAvailable, isFalse);
+    expect(MorphTheme.liquidGlassAvailable, isFalse);
     expect(reports.single.library, 'morph glass');
     expect(
       reports.single.exception.toString(),
-      contains(MorphGlassRenderer.liquidUnavailableReason!),
+      contains(MorphTheme.liquidGlassUnavailableReason!),
     );
   });
 
@@ -182,7 +183,7 @@ void main() {
 
   testWidgets('the glass page settings reach every page', (tester) async {
     await _pumpGallery(tester);
-    expect(find.byType(MorphGlassScope), findsOneWidget);
+    expect(find.byType(GalleryGlassTuning), findsOneWidget);
     await _open(tester, 'Glass renderer');
     final flat = find.text('Flat');
     final settings = GalleryGlassScope.read(tester.element(flat));
@@ -195,14 +196,14 @@ void main() {
     await _settle(tester);
     expect(settings.tier, MorphGlassTier.fake);
     expect(
-      MorphAdaptiveGlass.tierOf(tester.element(flat)),
+      GlassAdaptiveScope.tierOf(tester.element(flat)),
       MorphGlassTier.fake,
     );
     await tester.tap(flat);
     await _settle(tester);
     expect(settings.tier, MorphGlassTier.flat);
     expect(
-      MorphAdaptiveGlass.tierOf(tester.element(find.text('Flat'))),
+      GlassAdaptiveScope.tierOf(tester.element(find.text('Flat'))),
       MorphGlassTier.flat,
     );
     await tester.scrollUntilVisible(
@@ -230,7 +231,7 @@ void main() {
     );
     await _open(tester, 'Controls');
     expect(
-      MorphAdaptiveGlass.tierOf(tester.element(find.byType(MorphSwitch).first)),
+      GlassAdaptiveScope.tierOf(tester.element(find.byType(MorphSwitch).first)),
       MorphGlassTier.flat,
     );
     expect(
