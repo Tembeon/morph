@@ -1,4 +1,5 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -100,8 +101,9 @@ class _Board extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
+    return ColoredBox(
+      color: galleryBackgroundColor(galleryBrightnessOf(context)),
+      child: Stack(
         children: [
           for (var i = 0; i < scenes.length; i++)
             for (final dark in [false, true])
@@ -136,12 +138,11 @@ class _SearchPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    final dark = galleryBrightnessOf(context) == Brightness.dark;
     final color = dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF);
-    return Scaffold(
-      backgroundColor: color,
-      resizeToAvoidBottomInset: false,
-      body: Stack(
+    return ColoredBox(
+      color: color,
+      child: Stack(
         children: [
           Positioned.fill(child: _Rows(dark: dark)),
           const Positioned.fill(
@@ -233,11 +234,10 @@ class _TabPageState extends State<_TabPage> {
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF),
-      resizeToAvoidBottomInset: false,
-      body: Stack(
+    final dark = galleryBrightnessOf(context) == Brightness.dark;
+    return ColoredBox(
+      color: dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF),
+      child: Stack(
         children: [
           Positioned.fill(
             child: _searching
@@ -290,9 +290,9 @@ class _DatePageState extends State<_DatePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: galleryBackgroundColor(Theme.of(context).brightness),
-      body: Stack(
+    return ColoredBox(
+      color: galleryBackgroundColor(galleryBrightnessOf(context)),
+      child: Stack(
         children: [
           Positioned(
             left: 0,
@@ -331,9 +331,9 @@ class _AlertPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: galleryBackgroundColor(Theme.of(context).brightness),
-      body: Stack(
+    return ColoredBox(
+      color: galleryBackgroundColor(galleryBrightnessOf(context)),
+      child: Stack(
         children: [
           Positioned(
             left: MediaQuery.sizeOf(context).width / 2 - 60,

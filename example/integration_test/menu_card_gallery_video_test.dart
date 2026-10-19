@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:morph/morph.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -29,8 +29,8 @@ void main() {
     settings.appearance = Brightness.light;
     unawaited(
       navigator.push(
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => const Stack(
+        PageRouteBuilder<void>(
+          pageBuilder: (BuildContext context, _, _) => const Stack(
             children: [
               MenuPage(),
               Positioned(
