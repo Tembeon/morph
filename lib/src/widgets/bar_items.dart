@@ -437,7 +437,7 @@ class MorphBarAppearance implements MorphAppearance {
     this.rimColor = const Color(0x1F000000),
     this.shadowColor = const Color(0x1A000000),
     this.foregroundColor = const Color(0xFF000000),
-    this.prominentColor = const Color(0xFF007AFF),
+    this.prominentColor = const Color(0xFF0088FF),
     this.prominentForegroundColor = const Color(0xFFFFFFFF),
     this.titleColor = const Color(0xFF000000),
     this.subtitleColor = const Color(0x993C3C43),
@@ -458,7 +458,7 @@ class MorphBarAppearance implements MorphAppearance {
   /// The color of button labels and icons.
   final Color foregroundColor;
 
-  /// The fill of a prominent capsule: systemBlue.
+  /// The fill of a prominent capsule: iOS 27 systemBlue (states.md).
   final Color prominentColor;
 
   /// The color of labels and icons on a prominent capsule.
@@ -498,7 +498,7 @@ class MorphBarAppearance implements MorphAppearance {
     rimColor: Color(0x33FFFFFF),
     shadowColor: Color(0x40000000),
     foregroundColor: Color(0xFFFFFFFF),
-    prominentColor: Color(0xFF0A84FF),
+    prominentColor: Color(0xFF0091FF),
     titleColor: Color(0xFFFFFFFF),
     subtitleColor: Color(0x99EBEBF5),
     disabledIconColor: Color(0x3CFFFFFF),

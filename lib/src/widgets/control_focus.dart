@@ -2,9 +2,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
-/// The color of the keyboard focus ring: iOS systemBlue.
+/// The color of the keyboard focus ring: iOS 27 systemBlue in light
+/// (states.md). The ring's color, width and gap are not measured.
 @internal
-const Color morphFocusRingColor = Color(0xFF007AFF);
+const Color morphFocusRingColor = Color(0xFF0088FF);
 
 /// A request to move a control by [delta] steps in visual order: -1 for
 /// left or down, 1 for right or up.

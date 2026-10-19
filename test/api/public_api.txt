@@ -166,7 +166,7 @@ class MorphBarAppearance implements MorphAppearance
     Color rimColor = const Color(0x1F000000),
     Color shadowColor = const Color(0x1A000000),
     Color foregroundColor = const Color(0xFF000000),
-    Color prominentColor = const Color(0xFF007AFF),
+    Color prominentColor = const Color(0xFF0088FF),
     Color prominentForegroundColor = const Color(0xFFFFFFFF),
     Color titleColor = const Color(0xFF000000),
     Color subtitleColor = const Color(0x993C3C43),
