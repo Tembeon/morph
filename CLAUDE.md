@@ -103,5 +103,12 @@ dart format lib test example/lib example/test && flutter analyze
 flutter test && (cd example && flutter test)
 ```
 
+Glass, shader or composition changes also run the host Impeller tests, which pass
+silently without these flags (`docs/testing.md`):
+
+```bash
+cd example && flutter test --enable-impeller --enable-flutter-gpu test/*_host_test.dart
+```
+
 Scope the rest (macOS release build, autodemo, web build, device runs) to the change; see
 `docs/testing.md`.

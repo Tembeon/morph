@@ -81,10 +81,25 @@ it.
   into the PURE motion class at their recorded times and compares geometry per frame
   within per-quantity tolerances: a red replay is a fidelity regression, never a flaky
   test, and tolerances are not knobs.
-- flutter_test has no Impeller: the liquid tier builds its real tree but its layers paint
-  their content without glass, so host tests cannot judge shader output or count glass
-  backdrop filters (count the layers that hold shapes instead). Shader pixel identity is
-  checked on the device (`tool/audit/shader/parity.py`).
+- A plain `flutter test` has no Impeller: the liquid tier builds its real tree but its
+  layers paint their content without glass, so those tests cannot judge shader output or
+  count glass backdrop filters (count the layers that hold shapes instead).
+- The example's `*_host_test.dart` files render real liquid glass on the host's Impeller
+  (the same runtime-effect SPIR-V the Pixel runs, on a software rasterizer) and return
+  at once without it, so a plain run passes them silently. Any change under
+  `lib/src/glass`, to a shader, or to how a control composes its glass runs them:
+
+  ```bash
+  cd example && flutter test --enable-impeller --enable-flutter-gpu test/*_host_test.dart
+  ```
+
+  flutter test caches compiled shaders in `example/build/unit_test_assets` and misses an
+  edit to an included `.glsl`: delete that folder after editing a shader include. The
+  shader parity oracle compares the live final pass with
+  `example/shader_audit/baseline`; after a deliberate change of the pass's output or
+  uniforms, verified by the other oracles, freeze it again with
+  `tool/audit/shader/freeze_baseline.py` and name the change in the commit. Device pixel
+  identity is `tool/audit/shader/parity.py`.
 - Tracing-pipeline changes also run `flutter test benchmark/liquid_benchmark_test.dart`
   (JIT numbers, relative before/after only).
 
