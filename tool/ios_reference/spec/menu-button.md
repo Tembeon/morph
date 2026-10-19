@@ -318,6 +318,9 @@ outside the repository).
 - Fixtures `ios27-device/menuglow` (dragselect, select, sub-dark,
   swiftui-light, palette, sub-tap, reopen-80, reopen-250); test
   menu_glow_test (drag 0.011 rms, taps 0.025 at worst).
+- morph lights the menu card, not the neck or the source, in the liquid
+  tier's final glass pass (docs/glass.md "Touch glow"); flat, fake and the
+  menu without a painter draw no glow.
 
 ## Fixtures
 

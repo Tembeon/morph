@@ -248,10 +248,11 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
 ## Implementation notes (moved from CLAUDE.md)
 
 - Glow seam: `MorphGlassSurface.glow` (`MorphGlassGlow`: wash, center,
-  radius, gain) and `MorphGlassPainter.buildGlow` (additive wash +
-  colorDodge Gaussian, exact over gray; the default buildLayer, the flat
-  bar and the renderer call it). The glows sit over the bar glass, under
-  the tab content, riding the bar swell. Recapture: testTabLook /
+  radius, gain). The liquid tier's final glass pass applies it to the bar
+  glass (additive wash, then the color-dodge Gaussian, clamped at white;
+  docs/glass.md "Touch glow"); the flat and fake tiers and the bar without
+  a painter draw no glow. The glows sit over the bar glass, under the tab
+  content, riding the bar swell. Recapture: testTabLook /
   testTabGlowDrag with `PROBE_TABLAYERS=1` (every layer of
   _UIBottomTabBarGroupView per frame).
 - Selected tint in morph: two rows clipped along the lens outline each

@@ -204,6 +204,13 @@ no behaviour or pixel change: every rename keeps what the old name did.
 - BREAKING: `MorphGlassButton` picks its variant by constructor:
   `MorphGlassButton(...)` is regular glass, `MorphGlassButton.prominent
   (tint: ...)` the tinted one. A tint no longer implies prominent.
+- BREAKING: `MorphGlassPainter.buildGlow` is gone: a painter renders
+  `MorphGlassSurface.glow` as part of the surface's glass or not at all.
+  The built-in renderer lights the tab bar, glass buttons and the open
+  menu in its liquid tier's final glass shader (the same wash and
+  color-dodge spot, clamped at white, with no blend pass, clip or paint
+  layer); the flat and fake tiers and controls without a painter draw no
+  touch glow.
 - BREAKING: navigation leading items are `List<MorphBarButtonGroup>`;
   they still replace the back button, as UIKit's `leftBarButtonItems`
   do while `leftItemsSupplementBackButton` is off.

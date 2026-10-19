@@ -11,8 +11,8 @@ morph (`package:morph/morph.dart`): `MorphGlassEffect` (`child`, `shape`, `style
 `MorphGlassRenderer` (`.adaptive()`, `.tier(MorphGlassTier)`), `MorphGlassTier` (`flat`, `fake`, `liquid`),
 `MorphThemeData.glass`, `MorphTheme.precacheGlass` / `liquidGlassAvailable` / `liquidGlassUnavailableReason`.
 Painter seam (`package:morph/glass_painter.dart`): `MorphGlassScope`, `MorphGlassPainter` (`buildSurface`,
-`buildFill`, `buildBody`, `buildGlow`, `buildLayer(spacing:, contentSlots:, outline:)`), `MorphGlassSurface`
-(incl. `style`), `MorphGlassKind`, `MorphGlassOptics`, `MorphGlassGlow`, `MorphGlassOutline`.
+`buildFill`, `buildBody`, `buildLayer(spacing:, contentSlots:, outline:)`), `MorphGlassSurface`
+(incl. `style` and `glow`, which a painter renders in its glass or not at all), `MorphGlassKind`, `MorphGlassOptics`, `MorphGlassGlow`, `MorphGlassOutline`.
 Passports: [../glass-optics.md](../glass-optics.md), [../glass-renderer.md](../glass-renderer.md),
 [../skin-merge.md](../skin-merge.md), [../lens-and-flex.md](../lens-and-flex.md).
 
