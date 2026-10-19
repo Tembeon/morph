@@ -109,16 +109,25 @@ mixin MorphLensDriver<T extends StatefulWidget> on MorphControlHost<T> {
   });
 
   @override
-  void onControlDown(double t, PointerDownEvent event) =>
-      motion.pointerDown(t, trackPosition(event.localPosition));
+  void onControlDown(double t, PointerDownEvent event) => motion.pointerDown(
+    t,
+    trackPosition(event.localPosition),
+    y: event.localPosition.dy,
+  );
 
   @override
-  void onControlMove(double t, PointerMoveEvent event) =>
-      motion.pointerMove(t, trackPosition(event.localPosition));
+  void onControlMove(double t, PointerMoveEvent event) => motion.pointerMove(
+    t,
+    trackPosition(event.localPosition),
+    y: event.localPosition.dy,
+  );
 
   @override
-  void onControlUp(double t, PointerUpEvent event) =>
-      motion.pointerUp(t, trackPosition(event.localPosition));
+  void onControlUp(double t, PointerUpEvent event) => motion.pointerUp(
+    t,
+    trackPosition(event.localPosition),
+    y: event.localPosition.dy,
+  );
 
   @override
   void onControlCancel(double t) => motion.pointerCancel(t);

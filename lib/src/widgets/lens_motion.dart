@@ -33,7 +33,6 @@ class MorphLensTuning {
     required this.followSpring,
     required this.rubberBand,
     required this.pressDelay,
-    this.dragGain = 1,
     this.pressHang = 0.25,
     this.releaseDelay = 0.03,
     this.travelSpring = const MorphSpring(0.401, 0.856),
@@ -41,10 +40,10 @@ class MorphLensTuning {
     this.startDelay = 0.02,
     this.flagLead = 0.025,
     this.hangReferenceDistance = 70,
-    this.chromeGrowth = 0,
-    this.chromeSpring = const MorphSpring(0.356, 0.593),
+    this.chromeFlexes = false,
     this.chromeLag = 0.02,
     this.chromeReleaseLag = 0.02,
+    this.chromeLandingLag = 0.02,
     this.reducedMotionTravelSpring,
   });
 
@@ -123,15 +122,11 @@ class MorphLensTuning {
 
   /// The rubber band past the first and last slots as (limit, stiffness):
   /// a lens dragged past an end slot travels at most limit pixels beyond
-  /// it, in [morphRubberband]'s form.
+  /// it, in [morphRubberband]'s form. Inside the slots the lens follows the
+  /// finger's travel since the touch one to one, in the control's own
+  /// coordinates; a flexing control ([chromeFlexes]) scales and shifts the
+  /// lens with it on top of that.
   final (double, double) rubberBand;
-
-  /// How far the lens moves per pixel the finger drags it.
-  ///
-  /// The lens follows the finger's travel since the touch times this gain,
-  /// measured in the control's own coordinates; a swelling control scales
-  /// the lens around its center on top of that.
-  final double dragGain;
 
   /// Seconds between a touch on the selected item and the start of its
   /// lift, counted from the touch's own time stamp.
@@ -157,38 +152,67 @@ class MorphLensTuning {
   /// frame, as the glass button's return does 26 ms after the release.
   final double releaseDelay;
 
-  /// How many pixels the whole control widens while it is pressed.
-  final double chromeGrowth;
-
-  /// The spring of the control's press growth.
-  final MorphSpring chromeSpring;
-
-  /// Seconds between a touch and the start of the control's press growth,
-  /// counted from the touch's own time stamp.
+  /// Whether the whole control flexes under a finger: UIKit's dynamic flex
+  /// of the control's size ([MorphFlexInteraction], spec
+  /// [MorphFlexSpec.forSize]), fed the finger's travel since the touch.
   ///
-  /// The tab bar's 0.045 is the median of 26 device taps (iPhone 16 Pro,
-  /// `ios27-device/lens/tabbar{2,3,4,5}-taps`, the steps of
-  /// [chromeSpring] to and from [chromeGrowth] fitted to the bar's swell,
-  /// 38.8 - 54.3 ms): the bar swells on the frame its lens starts (each
-  /// tap 4.5 ms before to 1 ms after its lens's lift start), after UIKit's
-  /// delivery and its main-thread setup of the lift ([startDelay]).
+  /// The control grows by the spec's lift points along its long side, its
+  /// short side in proportion; a dragging finger stretches it along the
+  /// drag, narrows it across by as much and shifts it after the finger,
+  /// four times as far per point the finger travels beyond the control's
+  /// edge. The flex follows the finger on the spec's tracking spring and
+  /// returns on its scale spring. Read from UIKit, notes private.
+  ///
+  /// The floating UITabBar flexes so (62 pt tall: 14.14 pt of growth, a
+  /// stretch threshold of 8793, springs 0.314/0.625 and 0.36/0.6). On an
+  /// iPhone 16 Pro (iOS 27.0.1, `ios27-device/lens/tabbar*`) a still
+  /// finger holds the bar 14.06 - 14.14 pt wider (five holds), every still
+  /// hold of the six scrubs (16 holds, 30 - 330 pt from the touch and up
+  /// to 55 pt past the bar's end, bars of three and five tabs) sits within
+  /// 0.04 pt of the law in width and 1e-4 in the scale across, and the
+  /// scrubs replay at their stamps to 0.08 - 0.2 pt rms in width (a fixed
+  /// growth of 14.6 left 0.49 - 2.06). The lens shows the bar's shift, so
+  /// it follows the finger one to one (the former gain 1.013 was the
+  /// shift).
+  final bool chromeFlexes;
+
+  /// Seconds between a touch and the start of the control's flex
+  /// ([chromeFlexes]), counted from the touch's own time stamp.
+  ///
+  /// The tab bar's 0.0465 is the median of 34 device touches (iPhone 16
+  /// Pro, `ios27-device/lens/tabbar{2,3,4,5}-taps` and `-tap-selected`: 29
+  /// taps and 5 holds, the flex's steps on its tracking spring to and on
+  /// its scale spring from the growth fitted to the bar's swell, 41.5 -
+  /// 56.75 ms): the bar swells on the frame its lens starts (each touch 1.5
+  /// ms before to 4 ms after its lens's lift start), after UIKit's delivery
+  /// and its main-thread setup of the lift ([startDelay]).
   final double chromeLag;
 
-  /// Seconds between the release of a touch and the return of the press
-  /// growth, counted from the release's own time stamp; the growth never
-  /// returns before it starts.
+  /// Seconds between the release of a touch and the return of the
+  /// control's flex, counted from the release's own time stamp, when the
+  /// release does not land a held lens ([chromeLandingLag]); the flex
+  /// never returns before it starts.
   ///
-  /// The tab bar's 0.022 is the median of the same 26 taps (15.8 - 36.3
-  /// ms): a release sets nothing up, so the bar follows UIKit's delivery
-  /// and begin frame, as the segmented control's travel does
-  /// ([releaseDelay]). One lag at both ends fits a tap only with its swell
-  /// shrunk to 42 - 80 percent of the held one (34.3 ms, median of the
-  /// 26); at the held size it leaves the growth 1.11 pt rms from the
-  /// device's, against 0.28 here (medians). A release that lands a lens
-  /// held 0.3 - 1 s comes 26 - 42 ms after its stamp on the device (5
-  /// holds); that is not modelled, and neither is a touch shorter than the
-  /// two lags apart, which here does not swell the bar.
+  /// The tab bar's 0.0185 is the median of the 29 taps (12.75 - 32.75 ms):
+  /// a release that leaves the lens to its hang sets nothing up, so the
+  /// bar follows UIKit's delivery and begin frame, as the segmented
+  /// control's travel does ([releaseDelay]). A touch shorter than the two
+  /// lags apart does not swell the bar (unmeasured).
   final double chromeReleaseLag;
+
+  /// Seconds between a release that lands a held lens and the return of
+  /// the control's flex, counted from the release's own time stamp.
+  ///
+  /// The tab bar's 0.035 is the median of 11 device releases of a lens
+  /// held 0.3 - 5 s (iPhone 16 Pro, `ios27-device/lens/tabbar*`: five
+  /// holds and six scrubs, 25.25 - 41.5 ms, the return on the flex's scale
+  /// spring fitted to the bar's swell): such a release sets the lens's
+  /// landing up on the main thread (the display link's next frame comes
+  /// 19 - 33 ms after the one before instead of 8.3), and the bar returns
+  /// on the frame the lens starts landing (one of the 11 a frame later),
+  /// as it swells on the frame the lens lifts ([chromeLag]). A release during a tap's hang ([hangTime],
+  /// [pressHang]) sets nothing up ([chromeReleaseLag]).
+  final double chromeLandingLag;
 
   /// The spring that carries the lens between slots, and after a dragging
   /// finger, for Reduce Motion; null when the selection does not travel
@@ -233,10 +257,10 @@ class MorphLensTuning {
     rubberBand: (4.55, 0.95),
     pressDelay: 0.05,
     startDelay: 0.045,
-    dragGain: 1.013,
-    chromeGrowth: 14.6,
-    chromeLag: 0.045,
-    chromeReleaseLag: 0.022,
+    chromeFlexes: true,
+    chromeLag: 0.0465,
+    chromeReleaseLag: 0.0185,
+    chromeLandingLag: 0.035,
     reducedMotionTravelSpring: MorphSpring(0.2, 0.9),
   );
 }
@@ -257,6 +281,9 @@ typedef MorphLensSlot = ({double center, double width});
 /// on a fixed [frameRate] in motion time, so the deformation is the same
 /// on any display and under any time dilation.
 ///
+/// A control that flexes ([MorphLensTuning.chromeFlexes]) carries its own
+/// flex of [chromeSize] under the finger, read as [chrome].
+///
 /// Feed pointer events with their timestamps, call [advance] with the
 /// frame time, then read [center], [size], [scaleX] and [scaleY]. All
 /// lengths are pixels along the track, all times seconds.
@@ -268,14 +295,16 @@ class MorphLensMotion
   /// to the available slots.
   ///
   /// [startDelay] overrides the tuning's delay between a selecting touch
-  /// and the start of the motion.
+  /// and the start of the motion. [chromeSize] is the size of the whole
+  /// control, which flexes when the tuning says so.
   MorphLensMotion({
     required this.tuning,
     required List<MorphLensSlot> slots,
     required int selected,
     required this.height,
     this.frameRate = 120,
-    this.reducedMotion = false,
+    bool reducedMotion = false,
+    Size chromeSize = Size.zero,
     double? startDelay,
   }) : startDelay = startDelay ?? tuning.startDelay,
        _slots = List.of(slots),
@@ -288,7 +317,12 @@ class MorphLensMotion
     _travel = MorphSpringState(tuning.travelSpring, slot.center);
     _width = MorphSpringState(tuning.liftSpring, slot.width);
     _lift = MorphSpringState(tuning.liftSpring, 0);
-    _chrome = MorphSpringState(tuning.chromeSpring, 0);
+    _chrome = MorphFlexInteraction(
+      size: tuning.chromeFlexes ? chromeSize : Size.zero,
+      activationDelay: tuning.chromeLag,
+      timeline: _timeline,
+    );
+    this.reducedMotion = reducedMotion;
     _drift = MorphSpringState(tuning.presentationSpring, 0);
     _scaleX = MorphSpringState(tuning.presentationSpring, 1);
     _scaleY = MorphSpringState(tuning.presentationSpring, 1);
@@ -310,9 +344,16 @@ class MorphLensMotion
   /// Whether the lens moves for Reduce Motion: it never lifts, as UIKit's
   /// lens does not (read from UIKit, notes private), and travels on the
   /// tuning's [MorphLensTuning.reducedMotionTravelSpring] or not at all.
-  /// Its deformation and the control's press growth staying off are
+  /// Its deformation and the control's flex staying off are
   /// approximations, not recorded yet.
-  bool reducedMotion;
+  bool get reducedMotion => _reducedMotion;
+
+  set reducedMotion(bool value) {
+    _reducedMotion = value;
+    _chrome.reducedMotion = value;
+  }
+
+  bool _reducedMotion = false;
 
   bool get _slides =>
       !reducedMotion || tuning.reducedMotionTravelSpring != null;
@@ -336,7 +377,8 @@ class MorphLensMotion
   late final MorphSpringState _travel;
   late final MorphSpringState _width;
   late final MorphSpringState _lift;
-  late final MorphSpringState _chrome;
+  late final MorphFlexInteraction _chrome;
+  _Pointer? _chromePointer;
   late final MorphSpringState _drift;
   late final MorphSpringState _scaleX;
   late final MorphSpringState _scaleY;
@@ -395,7 +437,7 @@ class MorphLensMotion
       _pointer = null;
       _flag = false;
       _lift.retarget(_now, 0);
-      _chrome.retarget(_now, 0);
+      _chrome.release(_now);
     }
     _drift.snap(_now, 0);
     _scaleX.snap(_now, 1);
@@ -435,8 +477,19 @@ class MorphLensMotion
   /// The lift progress, 0 resting and 1 fully lifted.
   double get lift => _lift.value(_now);
 
-  /// How many pixels the whole control is widened by the press.
-  double get chromeGrowth => tuning.chromeGrowth * _chrome.value(_now);
+  /// The size of the whole control, which flexes under a finger when the
+  /// tuning says so ([MorphLensTuning.chromeFlexes]).
+  Size get chromeSize => _chrome.size;
+
+  set chromeSize(Size value) {
+    if (tuning.chromeFlexes) _chrome.size = value;
+  }
+
+  /// The flex of the whole control now: its scales about its center and
+  /// its drift along and across the track, [MorphFlexInteraction.rest]
+  /// exactly while it rests. The control shows the drift times the scale
+  /// ([MorphFlexInteraction.translation]).
+  MorphFlexValues get chrome => _chrome.values(_now);
 
   /// Whether the finger currently drags the lens.
   bool get isDragging => _pointer?.dragging ?? false;
@@ -454,7 +507,7 @@ class MorphLensMotion
     return _travel.isWithin(_now, length) &&
         _width.isWithin(_now, length) &&
         _lift.isWithin(_now, length / math.max(lifted, 1)) &&
-        _chrome.isWithin(_now, length / math.max(tuning.chromeGrowth, 1)) &&
+        _chrome.isSettled(_now) &&
         _drift.isWithin(_now, length) &&
         _drift.target.abs() < length &&
         _scaleX.isWithin(_now, scale) &&
@@ -491,26 +544,27 @@ class MorphLensMotion
     return best;
   }
 
-  /// A finger touched the track at [x].
-  void pointerDown(double t, double x) {
+  /// A finger touched the track at [x], [y] across it; only the
+  /// control's flex reads [y], in the control's own coordinates.
+  void pointerDown(double t, double x, {double y = 0}) {
     advance(t);
     if (_slots.isEmpty || _pointer != null) return;
     final index = slotAt(x);
     if (!_selectable(index)) {
-      final inert = _Pointer(offset: 0, pressedSelected: false, downX: x);
+      final inert = _Pointer(offset: 0, pressedSelected: false, x: x);
       inert.inert = true;
       _pointer = inert;
-      _pressChrome(t, inert);
+      _pressChrome(t, inert, Offset(x, y));
       return;
     }
     final onSelected = index == _selected && _slides;
     final pointer = _Pointer(
       offset: center - x,
       pressedSelected: onSelected,
-      downX: x,
+      x: x,
     );
     _pointer = pointer;
-    _pressChrome(t, pointer);
+    _pressChrome(t, pointer, Offset(x, y));
     if (onSelected) {
       _flagOn(t);
       final liftAt = t + tuning.pressDelay;
@@ -525,23 +579,36 @@ class MorphLensMotion
     }
   }
 
-  /// The finger moved to [x].
-  void pointerMove(double t, double x) {
+  /// The finger moved to [x], [y] across the track.
+  void pointerMove(double t, double x, {double y = 0}) {
     advance(t);
     final pointer = _pointer;
+    if (pointer != null && tuning.chromeFlexes) {
+      _chrome.pointerMove(t, Offset(x, y));
+    }
     if (pointer == null || !pointer.pressedSelected) return;
     pointer.dragging = true;
     pointer.x = x;
     pointer.unfollowed = true;
   }
 
-  /// The finger left the track at [x]; the slot nearest the finger wins.
-  void pointerUp(double t, double x) {
+  /// The finger left the track at [x], [y] across it; the slot nearest the
+  /// finger wins.
+  void pointerUp(double t, double x, {double y = 0}) {
     advance(t);
     final pointer = _pointer;
     _pointer = null;
     if (pointer == null) return;
-    _releaseChrome(t, pointer);
+    if (tuning.chromeFlexes) _chrome.pointerMove(t, Offset(x, y));
+    final lands =
+        pointer.pressedSelected &&
+        !pointer.inert &&
+        pointer.unliftNotBefore <= t + tuning.releaseDelay;
+    _releaseChrome(
+      t,
+      pointer,
+      lag: lands ? tuning.chromeLandingLag : tuning.chromeReleaseLag,
+    );
     if (pointer.inert) return;
     final under = slotAt(x);
     final index = _selectable(under) ? under : _selected;
@@ -571,7 +638,7 @@ class MorphLensMotion
     _pointer = null;
     if (pointer == null) return;
     pointer.cancelled = true;
-    _releaseChrome(t, pointer);
+    _releaseChrome(t, pointer, lag: tuning.chromeReleaseLag);
     if (!pointer.pressedSelected) return;
     final slot = _slots[_selected];
     _travelTo(t, slot);
@@ -592,6 +659,7 @@ class MorphLensMotion
       _timeline.clear();
       _flag = false;
       _lift.retarget(t, 0);
+      if (_pointer == null) _chrome.release(t);
     }
     _selected = selected;
     if (notify) emit(MorphLensSelected(selected));
@@ -609,6 +677,7 @@ class MorphLensMotion
     if (_slots.isEmpty) return;
     _timeline.clear();
     _pointer = null;
+    _chrome.release(t);
     _flag = false;
     _selected = _index(index, _slots.length);
     _lift.snap(t, 0);
@@ -678,7 +747,6 @@ class MorphLensMotion
   void _follow(double t, _Pointer pointer) {
     final first = _slots.first.center;
     final last = _slots.last.center;
-    final anchor = pointer.downX + pointer.offset;
     final u = pointer.x + pointer.offset;
     final inside = u.clamp(first, last);
     final (limit, stiffness) = tuning.rubberBand;
@@ -686,7 +754,7 @@ class MorphLensMotion
     final band =
         excess.sign *
         morphRubberband(excess.abs(), dimension: limit, coefficient: stiffness);
-    final target = anchor + tuning.dragGain * (inside - anchor) + band;
+    final target = inside + band;
     _travel.retarget(
       t,
       target,
@@ -735,17 +803,18 @@ class MorphLensMotion
     _flex.reset(_previousVisible ?? center);
   }
 
-  void _pressChrome(double t, _Pointer pointer) {
+  void _pressChrome(double t, _Pointer pointer, Offset at) {
+    if (!tuning.chromeFlexes) return;
+    _chromePointer = pointer;
     pointer.swellsAt = t + tuning.chromeLag;
-    _chromeTo(pointer.swellsAt, 1);
+    _chrome.pointerDown(t, at);
   }
 
-  void _releaseChrome(double t, _Pointer pointer) =>
-      _chromeTo(math.max(t + tuning.chromeReleaseLag, pointer.swellsAt), 0);
-
-  void _chromeTo(double t, double target) {
-    if (tuning.chromeGrowth == 0) return;
-    _timeline.at(t, (s) => _chrome.retarget(s, reducedMotion ? 0 : target));
+  void _releaseChrome(double t, _Pointer pointer, {required double lag}) {
+    if (!tuning.chromeFlexes) return;
+    _timeline.at(math.max(t + lag, pointer.swellsAt), (s) {
+      if (identical(_chromePointer, pointer)) _chrome.release(s);
+    });
   }
 
   void _liftTo(double t, double target) {
@@ -762,12 +831,11 @@ class _Pointer {
   _Pointer({
     required this.offset,
     required this.pressedSelected,
-    required this.downX,
-  }) : x = downX;
+    required this.x,
+  });
 
   double offset;
   bool pressedSelected;
-  final double downX;
   bool dragging = false;
   bool cancelled = false;
   bool inert = false;

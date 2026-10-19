@@ -49,7 +49,7 @@ ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
   [device, 8 presses: 33 - 80 ms, median 47; the same setup, frame gap
   21 - 65 ms; the former 40] and drags it: grab offset preserved, follow spring 0.225/1.0 [device],
   rubber band past the end CENTERS (12, 0.55); release picks the slot
-  nearest the FINGER. dragGain 1. The release travels after
+  nearest the FINGER. The lens follows the finger one to one. The release travels after
   `releaseDelay` 24 ms [device, the four drags fitted together: travel
   rms 0.130 pt, 0.496 at the former 30 ms; no setup after a release].
   Every delay counts from the touch's own stamp (spec README "Clocks").

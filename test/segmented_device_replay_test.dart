@@ -92,7 +92,6 @@ MorphLensTuning _pressingAfter(double pressDelay) {
     followSpring: s.followSpring,
     rubberBand: s.rubberBand,
     pressDelay: pressDelay,
-    dragGain: s.dragGain,
     pressHang: s.pressHang,
     releaseDelay: s.releaseDelay,
     travelSpring: s.travelSpring,
@@ -100,10 +99,10 @@ MorphLensTuning _pressingAfter(double pressDelay) {
     startDelay: s.startDelay,
     flagLead: s.flagLead,
     hangReferenceDistance: s.hangReferenceDistance,
-    chromeGrowth: s.chromeGrowth,
-    chromeSpring: s.chromeSpring,
+    chromeFlexes: s.chromeFlexes,
     chromeLag: s.chromeLag,
     chromeReleaseLag: s.chromeReleaseLag,
+    chromeLandingLag: s.chromeLandingLag,
     reducedMotionTravelSpring: s.reducedMotionTravelSpring,
   );
 }
