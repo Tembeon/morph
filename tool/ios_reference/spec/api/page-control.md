@@ -78,7 +78,7 @@ Count: 33 applicable, 11 covered, 3 partial, 19 gaps.
 | api | missing | this page | `hidesForSinglePage`, dot colors on the widget, images, timer |
 | layout | unbacked | dots, pitch, height [layout]; test/indicators_test.dart pins morph's own constants | UIKit's 5-page control view is 126 pt wide, morph's 108.35; the platter's width is not recorded and `padding` 14 has no source |
 | states | replayed | disabled draws nothing different (`ios27-device/disabled/disabled.json`, test/disabled_test.dart); platter states replayed below | prominent / minimal platter look is a flat stand-in (optics) |
-| transitions | unbacked | platter in / out replayed on device rows (`pc-hold`, `pc-scrub`, rms < 0.03); progress width spring replayed on sim rows (`pc-timer`, rms < 0.25 pt) | a page change without progress snaps ("instant, as UIKit's is") with no recording of the dots; the progress fill fade spring is not compared |
+| transitions | unbacked | platter in / out replayed on device rows (`pc-hold`, `pc-scrub`, rms < 0.03); progress width spring and the fill fade replayed on sim rows (`pc-timer`, rms < 0.25 pt, fade rms < 0.02) | a page change without progress snaps ("instant, as UIKit's is") with no recording of the dots |
 | boundaries | missing | empty and out-of-range counts (test/page_control_bounds_test.dart) | many pages (dots that do not fit) not implemented; a far scrub's irregular steps not reproduced |
 | configuration | missing | backgroundStyle cases, progress on / off | `direction`, images, `allowsContinuousInteraction` |
 | events | replayed | tap and scrub `valueChanged` sequences equal the recording (`pc-tap-right`, `pc-scrub`, device and sim) | - |

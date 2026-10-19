@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/rendering.dart' show RenderCustomPaint;
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -146,22 +147,29 @@ void main() {
       expect(r.opacity, lessThan(0.02));
     });
 
-    for (final (file, initial) in [
-      ('progress2.jsonl', 0.2),
-      ('progress3.jsonl', 0.5),
-      ('progress-additive.jsonl', 0.2),
+    // Each capture runs a standard bar (fill rows 4) and a bar-style one
+    // (fill rows 8) side by side, each from its own starting progress.
+    for (final (file, standard, bar) in [
+      ('progress2.jsonl', 0.2, 0.2),
+      ('progress3.jsonl', 0.5, 0.2),
+      ('progress-additive.jsonl', 0.2, 0.2),
     ]) {
-      test('replays the device: $file', () {
-        final r = _replayProgress(
-          file,
-          initial,
-          dir: _deviceProgress,
-          id: 4,
-          frame: 1 / 120,
-        );
-        expect(r.width, lessThan(0.6));
-        expect(r.opacity, lessThan(0.02));
-      });
+      for (final (style, id, initial) in [
+        ('standard', 4, standard),
+        ('bar', 8, bar),
+      ]) {
+        test('replays the device: $file, $style style', () {
+          final r = _replayProgress(
+            file,
+            initial,
+            dir: _deviceProgress,
+            id: id,
+            frame: 1 / 120,
+          );
+          expect(r.width, lessThan(0.6));
+          expect(r.opacity, lessThan(0.02));
+        });
+      }
     }
   });
 
@@ -206,13 +214,20 @@ void main() {
       final ids = indicators.keys.toList()..sort();
       final first = indicators[ids[0]]!;
       final leave = first.firstWhere((r) => _d(r, 'w') < 27.2);
-      double score(double start, {required bool report}) {
-        final m = MorphPageControlMotion(
-          count: 5,
-          page: 0,
-          showsProgress: true,
-        );
-        m.setPage(start, 1);
+      double rms(List<double> e) =>
+          math.sqrt(e.fold(0.0, (a, b) => a + b * b) / e.length);
+      ({double widths, double fade}) score(double start) {
+        MorphPageControlMotion started() {
+          final m = MorphPageControlMotion(
+            count: 5,
+            page: 0,
+            showsProgress: true,
+          );
+          m.setPage(start, 1);
+          return m;
+        }
+
+        final m = started();
         final e = <double>[];
         for (final id in ids.take(2)) {
           final i = ids.indexOf(id);
@@ -223,15 +238,25 @@ void main() {
             e.add(m.width(i, t) - _d(r, 'w'));
           }
         }
-        return math.sqrt(e.fold(0.0, (a, b) => a + b * b) / e.length);
+        final f = started();
+        final fade = <double>[];
+        for (final r in fill) {
+          final t = _d(r, 't') + 1 / 60;
+          if (t < start - 0.1) continue;
+          f.advance(t);
+          fade.add(f.fillOpacity(0, t) - _d(r, 'a'));
+        }
+        return (widths: rms(e), fade: rms(fade));
       }
 
-      var best = double.infinity;
+      ({double widths, double fade})? best;
       for (var lag = -0.08; lag <= 0.02; lag += 0.002) {
-        best = math.min(best, score(_d(leave, 't') + lag, report: false));
+        final s = score(_d(leave, 't') + lag);
+        if (best == null || s.widths < best.widths) best = s;
       }
-      expect(best, lessThan(0.25));
-      expect(fill, isNotEmpty);
+      expect(best!.widths, lessThan(0.25));
+      // The fill of the page it leaves fades out at the same moment.
+      expect(best.fade, lessThan(0.02));
     });
   });
 
@@ -413,6 +438,111 @@ void main() {
     // 0.96 s of a 16-image, 0.8 s turn: 19.2 images. The doze used to end
     // half a frame early and take a frame that drew nothing new (31).
     expect(frames, lessThanOrEqualTo(21));
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('activity indicator: stopped and started again, it turns on '
+      'from the image it stopped on, as the device does', (
+    WidgetTester tester,
+  ) async {
+    final rows = _rows('$_deviceProgress/activity-startstop.jsonl');
+    final address = RegExp('CGImage (0x[0-9a-f]+)');
+    List<String> images(Map<String, Object?> anim) => [
+      for (final v in anim['vals']! as List<Object?>)
+        address.firstMatch(v! as String)!.group(1)!,
+    ];
+    final anims = [
+      for (final r in rows)
+        if (r['k'] == 'anim' && r['id'] == 10 && r['key'] == 'contents') r,
+    ];
+    // Every startAnimating hands the layer the sixteen images reordered to
+    // begin at the one it turns on from.
+    final order = images(anims.first);
+    final recorded = [for (final a in anims) order.indexOf(images(a).first)];
+    expect(recorded, [0, 10, 4]);
+    final begin = _d(anims.first, 'begin');
+    final actions = [
+      for (final r in rows)
+        if (r['k'] == 'evt' &&
+            r['e'] == 'script' &&
+            _d(r, 't') > begin &&
+            !(r['a']! as String).startsWith('dump'))
+          (_d(r, 't') - begin, r['a']! as String),
+    ];
+    expect(
+      [for (final (_, a) in actions) a],
+      ['stop', 'start', 'hide:0', 'stop', 'start'],
+    );
+
+    var animating = true;
+    var hides = true;
+    Widget indicator() => Directionality(
+      textDirection: TextDirection.ltr,
+      child: Center(
+        child: MorphActivityIndicator(
+          animating: animating,
+          hidesWhenStopped: hides,
+          color: const Color(0xFF000000),
+        ),
+      ),
+    );
+    int? shownImage() {
+      final paint = find.descendant(
+        of: find.byType(MorphActivityIndicator),
+        matching: find.byType(CustomPaint),
+      );
+      if (paint.evaluate().isEmpty) return null;
+      final render = tester.renderObject<RenderCustomPaint>(paint.first);
+      final canvas = TestRecordingCanvas();
+      render.painter!.paint(canvas, render.size);
+      final strengths = [
+        for (final call in canvas.invocations)
+          if (call.invocation.memberName == #drawLine)
+            (call.invocation.positionalArguments[2] as Paint).color.a,
+      ];
+      bool shows(int image) => [
+        for (var i = 0; i < strengths.length; i++)
+          (strengths[i] - MorphActivityIndicatorFrames.strength(i, image))
+                  .abs() <
+              1e-3,
+      ].every((bool same) => same);
+      return List<int>.generate(
+        MorphActivityIndicatorFrames.frameCount,
+        (int image) => image,
+      ).firstWhere(shows);
+    }
+
+    const frame = Duration(microseconds: 8333);
+    await tester.pumpWidget(indicator());
+    final started = [shownImage()];
+    final stops = <(int?, int?)>[];
+    var now = 0.0;
+    for (final (at, action) in actions) {
+      while (now + 1 / 120 <= at) {
+        await tester.pump(frame);
+        now += 1 / 120;
+      }
+      final before = shownImage();
+      switch (action) {
+        case 'stop':
+          animating = false;
+        case 'start':
+          animating = true;
+        case 'hide:0':
+          hides = false;
+      }
+      await tester.pumpWidget(indicator(), duration: frame);
+      now += 1 / 120;
+      if (action == 'start') started.add(shownImage());
+      if (action == 'stop') stops.add((before, shownImage()));
+    }
+    expect(started, recorded);
+    expect(stops.first.$2, isNull, reason: 'hidden when stopped');
+    expect(
+      stops.last.$2,
+      stops.last.$1,
+      reason: 'with hidesWhenStopped off, it keeps the image it stopped on',
+    );
     await tester.pumpWidget(const SizedBox());
   });
 

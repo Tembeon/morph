@@ -82,7 +82,7 @@ Count, activity indicator (UIKit + SwiftUI-only): 10 applicable, 8 covered, 1 pa
 | api | read | this page | labels, timer (low need) |
 | layout | measured | heights 4 / 2.67 in `ios27-device/progress/*.jsonl` (ids 1 - 8) | no test compares the heights with the rows |
 | states | unbacked | empty bar hides its fill (replayed) | the bar style draws no track: not recorded |
-| transitions | replayed | test/indicators_test.dart replays `progress2`, `progress3` (sim and device) and `progress-additive` (device): width rms < 0.6 pt, opacity rms < 0.02 | the bar style's fill (ids 5 - 8) is not replayed |
+| transitions | replayed | test/indicators_test.dart replays `progress2`, `progress3` (sim and device) and `progress-additive` (device), the standard and the bar style: width rms < 0.6 pt, opacity rms < 0.02 | - |
 | boundaries | replayed | the 8 pt minimum fill and the 0.2 s minimum fade are inside the replays | - |
 | configuration | measured | bar style runs the same timing [device] | bar look unrecorded |
 | events | n/a | no events | - |
@@ -98,7 +98,7 @@ Count, activity indicator (UIKit + SwiftUI-only): 10 applicable, 8 covered, 1 pa
 |---|---|---|---|
 | api | missing | this page | caption |
 | layout | unbacked | boxes 20 / 37 in `ios27-device/progress/activity-startstop.jsonl` | spoke width and inner / outer radii (`MorphActivityIndicator.metrics`) have no source |
-| states | measured | stop / start / hide are cuts [device rows `activity-startstop`] | no test replays the rows; the stopped image with `hidesWhenStopped` false is unrecorded |
+| states | replayed | stop / start / hide are cuts; a restart turns on from the image the stop left (images 0, 10, 4) [device rows `activity-startstop`, read from UIKit]; test/indicators_test.dart replays the three starts | the stopped image with `hidesWhenStopped` false is inferred, not recorded |
 | transitions | measured | 16 images per 0.8 s [tuning]; head and tail strengths from simulator pixels | test/indicators_test.dart checks the constants, not pixels |
 | boundaries | n/a | - | - |
 | configuration | measured | two sizes, color override | - |

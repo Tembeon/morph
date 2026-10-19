@@ -111,8 +111,9 @@ abstract final class MorphActivityIndicatorFrames {
 ///
 /// See [MorphActivityIndicatorFrames] for the measured animation. A
 /// stopped indicator is hidden when [hidesWhenStopped] is set and shows
-/// its first image otherwise; with the platform's reduced motion on, it
-/// keeps turning, as UIKit's does.
+/// the image it stopped on otherwise; started again, it turns on from that
+/// image, as UIKit's does. With the platform's reduced motion on, it keeps
+/// turning, as UIKit's does.
 class MorphActivityIndicator extends StatefulWidget {
   /// Creates an activity indicator.
   const MorphActivityIndicator({
@@ -173,6 +174,7 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
         MorphClock<MorphActivityIndicator> {
   final ValueNotifier<int> _image = ValueNotifier<int>(0);
   double _startedAt = 0;
+  int _startImage = 0;
 
   @override
   void dispose() {
@@ -189,7 +191,9 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
   @override
   void advanceMotion(double t) {
     if (!widget.animating) return;
-    _image.value = MorphActivityIndicatorFrames.frameAt(t - _startedAt);
+    _image.value =
+        (_startImage + MorphActivityIndicatorFrames.frameAt(t - _startedAt)) %
+        MorphActivityIndicatorFrames.frameCount;
   }
 
   @override
@@ -214,12 +218,10 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
   @override
   void didUpdateWidget(MorphActivityIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.animating != oldWidget.animating) {
-      _image.value = 0;
-      if (widget.animating) {
-        _startedAt = clock;
-        wake();
-      }
+    if (widget.animating && !oldWidget.animating) {
+      _startImage = _image.value;
+      _startedAt = clock;
+      wake();
     }
   }
 
@@ -270,7 +272,7 @@ class _SpinnerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size box) {
     final m = MorphActivityIndicator.metrics(size);
-    final frame = state.widget.animating ? state._image.value : 0;
+    final frame = state._image.value;
     final center = box.center(Offset.zero);
     final half = m.width / 2;
     final paint = _paint;
