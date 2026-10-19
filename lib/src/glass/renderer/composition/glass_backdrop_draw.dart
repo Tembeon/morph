@@ -343,18 +343,26 @@ final class GlassBackdropDraw {
     return filter;
   }
 
-  /// Hands the retained backdrop filter a filter over changed uniforms
-  /// without a paint; false when the glass must paint instead (no retained
-  /// filter, nothing to draw, or glass recorded into a picture).
-  bool refreshFilter() {
-    final layer = _shaderHandle.layer;
-    if (layer == null ||
-        !_source.attached ||
+  /// Hands the retained glass the final pass's changed uniforms without a
+  /// paint: a filter over them for the retained backdrop filter, or the
+  /// glass recorded again into its slot over a solid backdrop. False when
+  /// the glass must paint instead (nothing retained, nothing to draw, or
+  /// glass over a cached backdrop, which compositing records).
+  bool refreshUniforms() {
+    if (!_source.attached ||
         _source.drawableEmpty ||
-        !_source.hasReusableGeometry ||
-        _solidHandle.layer != null) {
+        !_source.hasReusableGeometry) {
       return false;
     }
+    if (_solidHandle.layer != null) {
+      final solid = this.solid;
+      final bounds = filterBounds;
+      if (_cachesBackdrop || solid == null || bounds == null) return false;
+      _recordSolid(solid, bounds, _filterPaintOffset);
+      return true;
+    }
+    final layer = _shaderHandle.layer;
+    if (layer == null) return false;
     layer.filter = filter();
     return true;
   }

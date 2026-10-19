@@ -210,7 +210,8 @@ const double _reach = 24;
 /// surfaces' own circular rounded boxes instead of continuous corners. A
 /// lifted lens's layer shrinks its backdrop by [shrink] about a center
 /// line of [rim] weight. The layer's final pass applies the touch glow of
-/// its lit surface ([_glowOf]).
+/// its lit surface ([_glowOf]). With a [solidBackdrop] the glass is shaded
+/// over that color instead of read from the backdrop.
 ///
 /// With [slots] the layer holds that many shapes whatever [select] picks,
 /// the ones past its pick absent ([_slotShapes]), and reads its settings
@@ -225,6 +226,7 @@ Widget _layer(
   GlassField? Function(MorphGlassFrame frame)? field,
   bool shadows = true,
   bool exact = false,
+  Color? solidBackdrop,
   int? slots,
   MorphGlassSurface Function(MorphGlassFrame frame)? anchor,
 }) {
@@ -253,6 +255,7 @@ Widget _layer(
     glows: source.glows,
     read: read,
     reach: _reach,
+    solidBackdrop: solidBackdrop,
     child: slots == null
         ? _shapes(
             renderer,
@@ -403,15 +406,18 @@ Widget morphLiquidSurface(
 /// it, neck included. A plain union is shaded from its surfaces' own
 /// rounded boxes, the nearest one at every point, exactly the field it
 /// would sample. An outline built from a path alone has no field to shade,
-/// so it is drawn as the flat tier draws it ([morphGlassLiveBody]).
+/// so it is drawn as the flat tier draws it ([morphGlassLiveBody]). With a
+/// [solidBackdrop] the body is shaded over that color instead of read from
+/// the backdrop.
 @internal
 Widget morphLiquidBody(
   GlassBuiltInPainter renderer,
   BuildContext context,
   MorphGlassSource source,
   (List<MorphGlassSurface>, MorphGlassOutline) Function(MorphGlassFrame f)
-  select,
-) {
+  select, {
+  Color? solidBackdrop,
+}) {
   final (surfaces, outline) = select(source.frame);
   final exact = morphGlassOutlineShapes(outline) != null;
   if (morphGlassOutlineField(outline) == null && !exact) {
@@ -437,6 +443,7 @@ Widget morphLiquidBody(
       field: (f) => morphGlassOutlineField(select(f).$2),
       shadows: false,
       exact: exact,
+      solidBackdrop: solidBackdrop,
     ),
   );
 }
@@ -550,6 +557,9 @@ Widget morphLiquidLayer(
   final chrome = body.any(_chrome);
   final joined =
       MorphGlassContainerScope.maybeOf(context)?.holds(context) ?? false;
+  final solid = joined || chrome
+      ? null
+      : morphGlassContainerSolidBackdrop(context);
   bool lifted(MorphGlassSurface s) => s.lift > GlassBuiltInPainter.restingLift;
   final overBar = body.any((s) => s.kind == MorphGlassKind.bar);
   ({double magnification, double shrink, double rim}) optics(
@@ -613,6 +623,7 @@ Widget morphLiquidLayer(
                   source,
                   (f) => f.partsFor(tier).separate,
                   read: chrome ? GlassRead.own : GlassRead.plane,
+                  solidBackdrop: solid,
                 ),
         ),
       for (var i = 0; i < parts.fused.length; i++)
@@ -626,6 +637,7 @@ Widget morphLiquidLayer(
             context,
             source,
             (f) => f.partsFor(tier).fused[i],
+            solidBackdrop: solid,
           ),
         ),
       for (final (i, surface) in floating.indexed)

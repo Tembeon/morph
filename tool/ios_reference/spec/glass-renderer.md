@@ -849,8 +849,8 @@ read in the shader. The paint's fragment coordinates are its canvas
 coordinates, so the filter->matte mapping becomes basis dpr, offset
 -paintOffset x dpr: constant under compositor motion, analytic and matte
 geometry alike. MorphListSection passes `look.cellColor`. A held row's
-button leaves the stage and reads its backdrop in its own layer as
-before. The census counts 0 filters for a solid stage (no capture is
+button leaves the stage and reads its backdrop in its own layer: the
+row's highlight paints between (`MorphGlassContainerBarrier`). The census counts 0 filters for a solid stage (no capture is
 registered). Fake glass keeps its path. VENDORED "solid backdrop".
 
 Host A/B (example/test/solid_backdrop_host_test.dart, flutter_tester
@@ -895,8 +895,16 @@ cannot see what is painted under a container, so the app declares what
 it knows). The precondition is the stage's: the container sits straight
 on a fill of that color and its members are inset from the fill's edges
 by more than their refraction reaches; glass over anything else shows the
-color instead. A member that leaves the container (pressed, faded,
-clipped) reads its backdrop in its own layer as before; translucent
+color instead. A member that leaves the container but still reaches it
+(pressed, lifted, glowing, unlike the others) is shaded over the color in
+its own layer too; one the reach check keeps out (faded, clipped) reads
+its backdrop in its own layer (2026-10-20: on the gallery's Glass buttons
+page a pressed button of the solid section read the app group's copy
+above the picture section, the group's first reader there, and every
+clear button over the picture showed the page until it settled back;
+host pin container_press_backdrop_host_test, 119 levels before, 0 after;
+its glow-only frames over the solid record the picture again, no paint,
+glass_glow_swap_host_test); translucent
 colors, null, the fake tier and the flat tier keep their paths. The
 gallery's sheet, controls and menu pages declare their page background
 (`MorphListAppearance.resolve(context, null).backgroundColor`). Host A/B

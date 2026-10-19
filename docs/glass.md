@@ -195,8 +195,16 @@ its members (`MorphGlassStageFade`):
 - Solid backdrop: a card's stage declares `solidBackdrop: cellColor` (its
   glass can read nothing but the opaque card), and the layer draws the
   final shader as a plain paint with `uSolidBackdrop` replacing every
-  backdrop read: no backdrop filter. A member that leaves the stage reads
-  its backdrop as before. `MorphGlassContainer.solidBackdrop` is the
+  backdrop read: no backdrop filter. A member that leaves an open stage or
+  container but still reaches it (pressed, lifted, glowing, unlike the
+  others) is shaded over the same color in its own layer
+  (`morphGlassContainerSolidBackdrop`); one the reach check keeps out (a
+  held row's highlight between, a fade, a clip) reads its backdrop. Read
+  from the backdrop group's copy, a member leaving a solid container would
+  become the group's first reader above everything painted between it and
+  the group's other glass, and that glass would show the page instead of
+  what it sits on (a picture further down) until the member settled back.
+  `MorphGlassContainer.solidBackdrop` is the
   app's opt-in for its own containers; declare it only where that color
   really is all the glass would read (the gallery's sheet, controls and
   menu pages pass their page background).
