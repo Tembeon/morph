@@ -88,8 +88,9 @@ Public: `MorphGlassEffect` (glass_effect.dart), `MorphGlassStyle`,
 (lib/src/theme/glass.dart, chosen by `MorphThemeData.glass`); the seam in
 `package:morph/glass_painter.dart`. lib/src/widgets: glass.dart (seam:
 `MorphGlassScope`, `MorphGlassPainter` buildSurface / buildFill /
-buildLayer(spacing:, contentSlots:, outline:) / buildBody / buildGlow,
-`MorphGlassSurface`, `MorphGlassKind`, `MorphGlassOptics`),
+buildLayer(spacing:, contentSlots:, outline:) / buildBody,
+`MorphGlassSurface` with its `MorphGlassGlow`, `MorphGlassKind`,
+`MorphGlassOptics`),
 glass_outline.dart (`MorphGlassOutline`), glass_renderer.dart
 (`GlassBuiltInPainter`, `liftedOptics`, `MorphGlassMaterial`),
 glass_tier.dart (`GlassAdaptiveScope`, `MorphGlassDeviceClass`),

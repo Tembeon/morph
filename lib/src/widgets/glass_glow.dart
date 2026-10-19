@@ -1,8 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/live.dart';
 import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/motion/spring_state.dart';
 import 'package:morph/src/motion/timeline.dart';
@@ -15,9 +13,11 @@ import 'package:morph/src/motion/timeline.dart';
 /// color channel, and a soft spot under the finger that multiplies the
 /// channels by [factorAt] - most at [center], fading as a Gaussian of
 /// standard deviation [radius]. Both stay inside the surface's shape and
-/// under the control's content. A [MorphGlassPainter] draws them with
-/// `buildGlow`; the default paints them with additive and color-dodge
-/// blending, exact for gray backdrops.
+/// under the control's content, and clamp at white: the spot is the color
+/// dodge whose white level is `1 - 1 / factorAt`. A [MorphGlassPainter]
+/// renders them as part of the surface's glass or not at all; the
+/// package's renderer evaluates both in its liquid tier's final glass
+/// shader, and its flat and fake tiers draw no glow.
 @immutable
 class MorphGlassGlow {
   /// Creates a glow description.
@@ -65,97 +65,10 @@ class MorphGlassGlow {
   int get hashCode => Object.hash(wash, center, radius, gain);
 }
 
-/// Paints [glow] inside [shape], both in the painted box's coordinates,
-/// over what the canvas already holds.
-@internal
-void morphPaintGlassGlow(Canvas canvas, RRect shape, MorphGlassGlow glow) {
-  if (!glow.isVisible) return;
-  canvas.save();
-  canvas.clipRRect(shape);
-  if (glow.wash > 0) {
-    final wash = Paint();
-    wash.blendMode = BlendMode.plus;
-    wash.color = Color.fromRGBO(255, 255, 255, glow.wash.clamp(0.0, 1.0));
-    canvas.drawRect(shape.outerRect, wash);
-  }
-  if (glow.gain > 0 && glow.radius > 0) {
-    final reach = 3 * glow.radius;
-    final spot = Paint();
-    spot.blendMode = BlendMode.colorDodge;
-    spot.shader = _spotShader(glow.radius, glow.gain);
-    canvas.save();
-    canvas.translate(glow.center.dx, glow.center.dy);
-    canvas.drawRect(
-      shape.outerRect
-          .shift(-glow.center)
-          .intersect(Rect.fromCircle(center: Offset.zero, radius: reach)),
-      spot,
-    );
-    canvas.restore();
-  }
-  canvas.restore();
-}
-
-final Map<(double, double), Shader> _spotShaders = {};
-
-Shader _spotShader(double radius, double gain) {
-  final key = (radius, gain);
-  final cached = _spotShaders[key];
-  if (cached != null) return cached;
-  const stops = 16;
-  final colors = <Color>[];
-  final positions = <double>[];
-  for (var i = 0; i <= stops; i++) {
-    final p = i / stops;
-    final factor = 1 + gain * math.exp(-0.5 * 9 * p * p);
-    final dodge = 1 - 1 / factor;
-    colors.add(Color.from(alpha: 1, red: dodge, green: dodge, blue: dodge));
-    positions.add(p);
-  }
-  final shader = RadialGradient(
-    colors: colors,
-    stops: positions,
-  ).createShader(Rect.fromCircle(center: Offset.zero, radius: 3 * radius));
-  if (_spotShaders.length == 4) _spotShaders.remove(_spotShaders.keys.first);
-  _spotShaders[key] = shader;
-  return shader;
-}
-
-/// Paints a surface's glow in a box placed at the surface's bounds.
-@internal
-class MorphGlassGlowPainter extends CustomPainter {
-  /// Paints the glow of [data] inside its outline, both relative to the
-  /// painted box, repainting when a live [data] changes.
-  MorphGlassGlowPainter(this.data)
-    : super(
-        repaint: data is MorphFixed<(RRect, MorphGlassGlow)>
-            ? null
-            : MorphChanges<Object?>(data, () => data.value),
-      );
-
-  /// The outline and the glow, relative to the painted box.
-  final ValueListenable<(RRect, MorphGlassGlow)> data;
-
-  /// The outline that clips the glow.
-  RRect get shape => data.value.$1;
-
-  /// The glow to paint.
-  MorphGlassGlow get glow => data.value.$2;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final (shape, glow) = data.value;
-    morphPaintGlassGlow(canvas, shape, glow);
-  }
-
-  @override
-  bool shouldRepaint(MorphGlassGlowPainter oldDelegate) =>
-      data is! MorphFixed<(RRect, MorphGlassGlow)> ||
-      oldDelegate.data.value != data.value;
-}
-
-/// The touch glow of a pressed glass bar as a function of time: UIKit's
-/// flex interaction glows on iOS 27's tab bar, measured on an iPhone.
+/// The touch glow of a pressed glass surface as a function of time:
+/// UIKit's flex interaction glows, measured on an iPhone on iOS 27's tab
+/// bar and open menu, which share the law and differ in [diameter],
+/// [riseLag] and their peaks.
 ///
 /// A touch raises both glows on a critically damped [riseSpring] after
 /// [riseLag]; they hold while the finger stays down. A finger that moves
@@ -167,10 +80,17 @@ class MorphGlassGlowPainter extends CustomPainter {
 ///
 /// Peaks come from the surface's [MorphFlexSpec] - its big glow opacity
 /// for the wash, its little glow opacity for the spot - so a 62 pixel
-/// tall bar peaks at 0.845 and 0.2845.
+/// tall bar peaks at 0.845 and 0.2845, and an open menu
+/// ([MorphFlexSpec.menu]) at 0 and 0.5.
 class MorphTouchGlowMotion {
   /// Creates a resting glow with the peaks of a surface's flex spec.
-  MorphTouchGlowMotion({required this.washPeak, required this.spotPeak});
+  MorphTouchGlowMotion({
+    required this.washPeak,
+    required this.spotPeak,
+    required this.diameter,
+    required this.riseLag,
+    this.minimumLit = 0,
+  });
 
   /// The opacity the wash rises to.
   final double washPeak;
@@ -185,13 +105,28 @@ class MorphTouchGlowMotion {
   static const fallSpring = MorphSpring(0.5, 1);
 
   /// How long after the touch the glows start to rise, in seconds.
-  static const double riseLag = 0.042;
+  final double riseLag;
+
+  /// The tab bar's [riseLag]: fitted to its device rows (tab-bar.md, Spec -
+  /// touch glow).
+  static const double tabBarRiseLag = 0.042;
+
+  /// The least time, in seconds, the glow rises before a release lets it
+  /// fall: a lift sooner than that starts the fall this long after the
+  /// rise began. Zero lets the fall follow the lift after [releaseLag].
+  final double minimumLit;
+
+  double _riseAt = 0;
 
   /// How long after the release the glows start to fall, in seconds.
   static const double releaseLag = 0.02;
 
   /// The diameter of the spot before it grows, in pixels.
-  static const double diameter = 93;
+  final double diameter;
+
+  /// The tab bar's [diameter]: its LittleGlow layer is a 93 pt disc
+  /// (tab-bar.md, Spec - touch glow).
+  static const double tabBarDiameter = 93;
 
   /// How many times its size the spot grows to after a release.
   static const double releaseGrowth = 4;
@@ -278,6 +213,9 @@ class MorphTouchGlowMotion {
   /// The center of the spot, in the pointer's coordinates.
   Offset get center => _center;
 
+  /// Whether a finger is down.
+  bool get isDown => _down != null;
+
   void _due(double t) => _timeline.runDue(t);
 
   /// A finger touched at [position] at time [t].
@@ -289,12 +227,11 @@ class MorphTouchGlowMotion {
     _dragging = false;
     _scale.snap(t, 1);
     _strength.snap(t, 1);
-    final start = t + riseLag;
-    _timeline.insert(
-      start,
-      (at) => _progress.retarget(at, 1, spring: riseSpring),
-    );
+    _riseAt = t + riseLag;
+    _timeline.insert(_riseAt, _rise);
   }
+
+  void _rise(double at) => _progress.retarget(at, 1, spring: riseSpring);
 
   /// The finger moved to [position] at time [t].
   void pointerMove(double t, Offset position) {
@@ -317,7 +254,8 @@ class MorphTouchGlowMotion {
     if (_down == null) return;
     _down = null;
     _timeline.clear();
-    final start = t + releaseLag;
+    if (minimumLit > 0 && _riseAt > t) _timeline.insert(_riseAt, _rise);
+    final start = math.max(t + releaseLag, _riseAt + minimumLit);
     _timeline.insert(start, (at) {
       _progress.retarget(at, 0, spring: fallSpring);
       _scale.retarget(at, releaseGrowth, spring: fallSpring);

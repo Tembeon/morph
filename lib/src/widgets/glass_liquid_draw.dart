@@ -13,11 +13,13 @@ import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/liquid_glass.dart';
+import 'package:morph/src/glass/renderer/liquid_glass_glow.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_body_shadow.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_container.dart';
+import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
@@ -183,11 +185,30 @@ LiquidGlassShapeFrame _shapeFrame(
   );
 }
 
+/// The touch glow of the first lit surface of [surfaces], which share the
+/// coordinates of their layer, as the liquid tier's final pass applies it:
+/// one glow per layer pass, and a control lights at most one surface.
+LiquidGlassGlow? _glowOf(List<MorphGlassSurface> surfaces) {
+  for (final surface in surfaces) {
+    final glow = surface.glow;
+    if (glow == null || !glow.isVisible) continue;
+    return LiquidGlassGlow(
+      clip: surface.shape,
+      center: glow.center,
+      radius: glow.radius,
+      gain: glow.gain,
+      wash: glow.wash,
+    );
+  }
+  return null;
+}
+
 /// One glass layer of the surfaces [select] picks, each its own shape, or
 /// one body shaded from [field] when it is given; [exact] shapes are the
 /// surfaces' own circular rounded boxes instead of continuous corners. A
 /// lifted lens's layer shrinks its backdrop by [shrink] about a center
-/// line of [rim] weight.
+/// line of [rim] weight. On the liquid tier the layer's final pass applies
+/// the touch glow of its lit surface ([_glowOf]); fake glass draws none.
 ///
 /// With [slots] the layer holds that many shapes whatever [select] picks,
 /// the ones past its pick absent ([_slotShapes]), and reads its settings
@@ -224,6 +245,8 @@ Widget _layer(
   });
   final fieldOf = field == null ? null : source.pick(field);
   final outlineOf = outline == null ? null : source.pick(outline);
+  final faked = fake ?? renderer.effectiveTier == MorphGlassTier.fake;
+  final glow = faked ? null : source.pick((f) => _glowOf(select(f)));
   return ClipRect(
     clipper: const _Reach(),
     child: LiquidGlassLayer.live(
@@ -232,7 +255,8 @@ Widget _layer(
       defaultAppearance: morphLiquidAppearance(renderer, first(source.frame)),
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
       outlineOf: outlineOf == null ? null : () => outlineOf.value,
-      fake: fake ?? renderer.effectiveTier == MorphGlassTier.fake,
+      glowOf: glow == null ? null : () => glow.value,
+      fake: faked,
       useBackdropGroup: shared,
       blursOwnBackdrop: ownBackdrop,
       child: slots == null
@@ -352,6 +376,15 @@ MorphGlassSurface _local(MorphGlassSurface surface) => MorphGlassSurface(
   enabled: surface.enabled,
   glass: surface.glass,
   opacity: surface.opacity,
+  glow: switch (surface.glow) {
+    final glow? => MorphGlassGlow(
+      wash: glow.wash,
+      center: glow.center - surface.bounds.topLeft,
+      radius: glow.radius,
+      gain: glow.gain,
+    ),
+    null => null,
+  },
   shadows: surface.shadows,
 );
 
@@ -618,17 +651,6 @@ Widget morphLiquidLayer(
             (f) => f.partsFor(tier).fused[i],
           ),
         ),
-      for (final (i, surface) in body.indexed)
-        if (surface.glow != null)
-          at(
-            ('glow', i),
-            (f) => f.partsFor(tier).body[i].bounds,
-            () => renderer.liveGlow(
-              context,
-              source,
-              (f) => f.partsFor(tier).body[i],
-            ),
-          ),
       for (final (i, surface) in floating.indexed)
         if (GlassBuiltInPainter.glassness(surface) < 1)
           at(

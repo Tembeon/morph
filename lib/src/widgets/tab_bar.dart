@@ -389,6 +389,8 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
     return MorphTouchGlowMotion(
       washPeak: spec.bigGlowOpacity,
       spotPeak: spec.littleGlowOpacity,
+      diameter: MorphTouchGlowMotion.tabBarDiameter,
+      riseLag: MorphTouchGlowMotion.tabBarRiseLag,
     );
   }
 
@@ -774,9 +776,6 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
                   if (glass == null) ...[
                     Positioned.fill(child: _Glass(style: style)),
                     Positioned.fill(
-                      child: CustomPaint(painter: _GlowPainter(this)),
-                    ),
-                    Positioned.fill(
                       child: CustomPaint(painter: _LensPainter(this)),
                     ),
                     Positioned.fill(
@@ -1061,29 +1060,6 @@ class _LensPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LensPainter oldDelegate) => true;
-}
-
-class _GlowPainter extends CustomPainter {
-  _GlowPainter(this.state) : super(repaint: state.frames);
-
-  final _MorphTabBarState state;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final glow = state._glowNow();
-    if (glow == null) return;
-    morphPaintGlassGlow(
-      canvas,
-      RRect.fromRectAndRadius(
-        Offset.zero & size,
-        const Radius.circular(_MorphTabBarState._radius),
-      ),
-      glow,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_GlowPainter oldDelegate) => true;
 }
 
 class _LensClipper extends MorphLiveClipper<Path> {

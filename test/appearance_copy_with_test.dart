@@ -415,11 +415,6 @@ void main() {
         (a) => a.copyWith(highlightColor: _color).highlightColor,
         _color,
       ),
-      'glowColor': (
-        (a) => a.glowColor,
-        (a) => a.copyWith(glowColor: _color).glowColor,
-        _color,
-      ),
       'secondaryColor': (
         (a) => a.secondaryColor,
         (a) => a.copyWith(secondaryColor: _color).secondaryColor,

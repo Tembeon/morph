@@ -451,7 +451,6 @@ class GlassBuiltInPainter extends MorphGlassPainter {
     parts.fused.length,
     for (final (surfaces, outline) in parts.fused)
       ..._bodyStructure(tier, surfaces, outline),
-    for (final s in parts.body) s.glow != null,
     parts.floating.length,
     for (final s in parts.floating) ...[
       ..._surfaceStructure(tier, s),
@@ -470,17 +469,6 @@ class GlassBuiltInPainter extends MorphGlassPainter {
   ) => _exact
       ? morphGlassLiveFill(source, select)
       : buildFill(context, select(source.frame));
-
-  /// The glow of the surface [select] picks, following [source]; the
-  /// installed painter's own [buildGlow] for a subclass.
-  @internal
-  Widget liveGlow(
-    BuildContext context,
-    MorphGlassSource source,
-    MorphGlassSurface Function(MorphGlassFrame frame) select,
-  ) => _exact
-      ? morphGlassLiveGlow(source, select)
-      : buildGlow(context, select(source.frame));
 
   Widget _surface(
     BuildContext context,
@@ -565,13 +553,6 @@ class GlassBuiltInPainter extends MorphGlassPainter {
                   : buildBody(context, parts.fused[i].$2, parts.fused[i].$1),
             ),
           ),
-        for (final (i, surface) in parts.body.indexed)
-          if (surface.glow != null)
-            at(
-              ('glow', i),
-              (f) => partsOf(f).body[i].bounds,
-              () => liveGlow(context, source, (f) => partsOf(f).body[i]),
-            ),
         for (var i = 0; i < parts.floating.length; i++)
           at(
             ('floating', i),
@@ -666,8 +647,8 @@ class GlassBuiltInPainter extends MorphGlassPainter {
 /// Whether a layer host keeps one tree of slots for [frame]: a
 /// [MorphGlassFrame.slotted] frame whose surfaces are all glass body
 /// surfaces of a container ([MorphGlassFrame.spacing] above 0) that
-/// neither float, glow nor frost, so any of them may be drawn as its own
-/// shape or as a member of any fused body without a change of tree.
+/// neither float nor frost, so any of them may be drawn as its own shape
+/// or as a member of any fused body without a change of tree.
 @internal
 bool morphGlassLayerSlots(MorphGlassFrame frame) =>
     frame.slotted &&
@@ -678,7 +659,6 @@ bool morphGlassLayerSlots(MorphGlassFrame frame) =>
       (s) =>
           s.glass &&
           !GlassBuiltInPainter.floats(s.kind) &&
-          s.glow == null &&
           s.kind != MorphGlassKind.bar &&
           s.kind != MorphGlassKind.menu,
     );
@@ -695,6 +675,18 @@ bool morphGlassKeepsContentLive(MorphGlassPainter? painter) =>
         renderer.effectiveTier == MorphGlassTier.flat,
       _ => false,
     };
+
+/// Whether glass drawn with [painter] shows a touch glow
+/// ([MorphGlassSurface.glow]): the package's renderer only on its liquid
+/// tier, any other painter as far as the control can tell, no painter
+/// never. A control whose glass shows none spends no frame on its glow.
+@internal
+bool morphGlassLightsGlow(MorphGlassPainter? painter) => switch (painter) {
+  null => false,
+  final GlassBuiltInPainter renderer when renderer._exact =>
+    renderer.effectiveTier == MorphGlassTier.liquid,
+  _ => true,
+};
 
 /// Whether a control drawing with [painter] needs the field of the
 /// outlines it fuses, or their edge alone.

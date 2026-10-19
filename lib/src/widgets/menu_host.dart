@@ -9,6 +9,7 @@ import 'package:morph/src/flight_springs.dart';
 import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
@@ -248,6 +249,7 @@ class MorphMenuController implements MorphMenuHost {
         attachment: attachment,
       );
       current.dismissOnSelect = dismissOnSelect;
+      current.lightsGlow = morphGlassLightsGlow(menuGlass);
       return current;
     }
     final motion = MorphMenuMotion(
@@ -266,6 +268,7 @@ class MorphMenuController implements MorphMenuHost {
       ),
     );
     morphConnectMenu(motion, menuContent, dismissOnSelect: dismissOnSelect);
+    motion.lightsGlow = morphGlassLightsGlow(menuGlass);
     motion.advance(menuClock);
     _motion = motion;
     return motion;

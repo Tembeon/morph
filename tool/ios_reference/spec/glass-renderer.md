@@ -15,8 +15,9 @@ measurements.
   and the tab row ride in as `content`, the menu hands button + platter
   in one call; options `spacing:`, `contentSlots:`, `outline:`); single
   surfaces to `buildSurface` (alert, date picker, sheet, search bodies) or
-  `buildFill` (stepper), placed at `MorphGlassSurface.bounds`; `buildGlow`
-  draws touch glows (tab-bar.md). Every call goes through a
+  `buildFill` (stepper), placed at `MorphGlassSurface.bounds`. Touch glows
+  (`MorphGlassSurface.glow`, tab-bar.md) are lit in the liquid tier's final
+  pass (docs/glass.md "Touch glow"); flat and fake draw none. Every call goes through a
   `MorphGlassHost` (`MorphGlassLayer` for the frames-driven layers): see
   "The surfaces channel" below.
 - `MorphGlassSurface.glass` is false for plain fills (segmented, switch and

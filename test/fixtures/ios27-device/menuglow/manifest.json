@@ -1,0 +1,15 @@
+{
+  "device": "iPhone 16 Pro (iPhone17,1) real device, iOS 27.0.1, 402x874 pt @3x, ProMotion",
+  "source": "tool/ios_reference/recordings/device-lens2/rec-center3-{dragselect,select}.jsonl, the open menu's _UIFlexInteraction.LittleGlow layer (a 160 x 160 pt view drawn through vibrantColorMatrix) and the touches",
+  "format": "jsonl. k=touch {t, phase 0 began / 1 moved / 3 ended, x, y} (window points, UITouch.timestamp); k=little {t, a layer opacity, s layer transform scale, x, y layer position, bw layer bounds width}. Repeated identical samples are dropped.",
+  "captures": [
+    {
+      "file": "dragselect.jsonl",
+      "gesture": "hold the button until the menu opens, then drag down over the rows and release on one"
+    },
+    {
+      "file": "select.jsonl",
+      "gesture": "tap the button, then tap a row of the open menu"
+    }
+  ]
+}

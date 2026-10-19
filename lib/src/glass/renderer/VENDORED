@@ -548,3 +548,14 @@ Local patches (some commits include related package changes):
   GlassShadow paints nothing at visibility 0 instead of transparent
   shadows. Host parity: every frame of a push, a pop and toolbar item
   swaps is identical on the flat and fake tiers (exact glyphs).
+- 2026-10-19 touch glow in the final pass: uSolidBackdrop became
+  uSolidBackdropGlow[4] (macros uSolidBackdrop, uGlowSpot, uGlowBox,
+  uGlowShape; same declaration count, float index 65; the analytic
+  uniforms move from 69 to 81). shaders/glass_glow.glsl applies the flex
+  interaction's wash and color-dodge spot to the glass color of the lit
+  surface's rounded box, in every final-render variant but the material
+  one (mixed appearances, where it spills on the Mali-G78), skipped while
+  gain and wash are 0. LiquidGlassGlow (liquid_glass_glow.dart) packs it
+  and is its CPU reference; LiquidGlassLayer.live(glowOf:) and
+  RenderLiquidGlassLayer.glow carry it (a change rewrites the common
+  uniforms and repaints the layer). Fake glass draws no glow.

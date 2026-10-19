@@ -15,7 +15,13 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
 - `MorphGlassScope(painter:)` (glass.dart) installs a `MorphGlassPainter`.
   Controls build their glass surfaces (`MorphGlassKind`) every frame
   behind their content via `buildLayer(surfaces, content:, spacing:,
-  contentSlots:, outline:)`, `buildSurface`, `buildFill` and `buildGlow`.
+  contentSlots:, outline:)`, `buildSurface`, `buildFill` and `buildBody`.
+- Touch glow: `MorphGlassSurface.glow` (`MorphGlassGlow`: wash, center,
+  Gaussian sigma, gain) is data. A painter renders it as part of the lit
+  surface's glass, over everything the glass shows and under the content,
+  or not at all; there is no glow paint layer of its own. The renderer
+  lights it on the liquid tier only (below); flat, fake and the
+  no-painter look draw no glow.
 - `MorphGlassSurface.glass` is false for plain fills (tracks, stepper);
   those are drawn flat through `buildFill`.
 - Only native glass is glass: bars, glass buttons and bar capsules,
@@ -274,6 +280,52 @@ On by default. `MORPH_FLAT_SHADER_BODIES=false` restores the traced path.
   fused_law.glsl) instead of a CPU-traced silhouette.
 - Its path is traced only if something reads it.
 - Qualified on Skia (Redmi 6A).
+
+### Touch glow
+
+On the liquid tier the final pass of a layer applies the glow of its lit
+surface (shaders/glass_glow.glsl, included by every final-render variant):
+`c = mix(c, min((c + wash) * (1 + gain exp(-r^2 / 2 sigma^2)), 1), cover)`
+on the glass color before it is composited, `cover` the lit surface's
+circular rounded box antialiased over one device pixel. That is the plus
+wash then the color dodge of white level `1 - 1 / factor`, clamped at
+white, exactly as the dodge painter drew it, with no blend pass, clip or
+paint layer.
+
+- Uniforms: `uSolidBackdropGlow[4]` (the core's last declaration, float
+  index 65): `[0]` the solid backdrop, `[1]` spot (center, falloff
+  `log2(e) / 2 sigma^2` in device px, gain), `[2]` the lit box (center,
+  half extents), `[3]` corner radius and wash; all zero skips the branch.
+  One array because Metal has 31 buffer slots and the fused tint variants
+  use them all. Matte space is the layer's local coordinates times the
+  device pixel ratio. Packing: `LiquidGlassGlow.uniformsOf`, with its CPU
+  reference `LiquidGlassGlow.shade` (test/glass_glow_shader_test.dart).
+- One glow per layer pass: the first lit surface of the layer's shapes
+  (a control lights at most one). A fused body keeps the glow inside its
+  lit member's box, so the menu's neck and button stay unlit.
+- The variant for mixed appearances (shapes of one layer that differ by
+  more than tint) compiles the glow out: there it spills to stack on the
+  Mali-G78 wherever it is placed (4 - 24 bytes). The lit controls never
+  mix appearances in a layer; an app layer that mixes clear and regular
+  `MorphGlassEffect` shapes shows no glow.
+- The glow is not structure: it enters `LiquidGlassLayer.live` through
+  `glowOf` every frame and rebuilds nothing. A glowing host joins no glass
+  container (`morphGlassJoinLook`): the container's pass carries no glow.
+- `morphGlassLightsGlow(painter)`: whether glass shows a glow at all (the
+  renderer's liquid tier, any custom painter). The open menu lights none
+  without it (`MorphMenuMotion.lightsGlow`), so its 0.5 s fall keeps no
+  flat or fake menu awake. The tab bar and glass buttons still run theirs.
+- Fidelity NEAR against the old 16-stop gradient: under 0.65 of an 8-bit
+  level inside three sigma for the tab bar and the menu, and the old cut
+  at a six-sigma square (a step of `gain e^-4.5`: 0.9 level on the tab bar,
+  1.6 on the menu, up to 3.2 on a small dark button) is gone. A glass that
+  fades out while lit fades its glow with it.
+- Cost (tool/audit/shader/offline.py, malioc Mali-G78): every final
+  variant keeps 64 work registers on Vulkan, 50 % occupancy and main's
+  spill (analytic 4, analytic_ios27 4, analytic_fused_tint_ios27 16 bytes,
+  the rest 0); the lit path costs about +1 arithmetic and +3 load/store
+  cycles a fragment, total arithmetic +0.75 - 1.1. `mediump` buys nothing
+  here: impellerc writes no RelaxedPrecision into the Vulkan stage.
 
 ## Shadows
 

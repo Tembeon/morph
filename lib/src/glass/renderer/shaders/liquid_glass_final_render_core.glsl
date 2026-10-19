@@ -18,6 +18,7 @@ precision highp float;
 #include <flutter/runtime_effect.glsl>
 #include "gpu/displacement_encoding.glsl"
 #include "render.glsl"
+#include "glass_glow.glsl"
 
 uniform vec2 uSize;
 uniform vec2 uGeometryOffset;
@@ -64,7 +65,16 @@ uniform vec2 uBackdropShrinkAxis;
 // softening of a uniform color are that color, so with alpha 1 no read
 // touches uBackgroundTexture: the pass draws as a plain paint whose
 // fragment coordinates are the layer's own canvas coordinates.
-uniform vec4 uSolidBackdrop;
+// [0] uSolidBackdrop, then the touch glow of one lit surface (glass_glow.glsl):
+// [1] the spot, [2] the lit surface's box, [3] its corner radius and the
+// wash; no glow while the spot's gain and the wash are both 0. One array,
+// because Metal gives every declaration a buffer slot of its 31 and the
+// fused tint variants use them all (analytic_geometry.glsl).
+uniform vec4 uSolidBackdropGlow[4];
+#define uSolidBackdrop uSolidBackdropGlow[0]
+#define uGlowSpot uSolidBackdropGlow[1]
+#define uGlowBox uSolidBackdropGlow[2]
+#define uGlowShape uSolidBackdropGlow[3]
 
 float uDisplacementScale = uOpticalProps.x;
 float uDispersion = uOpticalProps.y;
@@ -1099,6 +1109,28 @@ void main() {
         contourDirectionWeight *
         appearanceVisibility;
     float alpha = visibleMaterialAlpha + externalContourAlpha;
+    // Under the content, over everything the glass shows, as the flex
+    // interaction's glow matrices filter the glass behind the content.
+    // Last, with the matte coordinate derived again, so no register holds
+    // it across the shading. The variant for mixed appearances leaves it
+    // out: there it spills to stack on the Mali-G78 wherever it goes, and
+    // the lit controls (tab bar, glass buttons, the open menu) never mix
+    // appearances in one layer.
+    #if !SHAPE_APPEARANCE
+    if (uGlowSpot.w > 0.0 || uGlowShape.y > 0.0) {
+        vec2 glowCoord = FlutterFragCoord().xy;
+        finalColor = applyGlassGlow(
+            finalColor,
+            vec2(
+                dot(uFilterToMatteBasis.xy, glowCoord),
+                dot(uFilterToMatteBasis.zw, glowCoord)
+            ) + uFilterToMatteOffset,
+            uGlowSpot,
+            uGlowBox,
+            uGlowShape
+        );
+    }
+    #endif
     vec3 premultipliedColor = finalColor * visibleMaterialAlpha +
         uContourColor.rgb * externalContourAlpha;
 

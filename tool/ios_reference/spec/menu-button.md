@@ -300,6 +300,29 @@ outside the repository).
 - Not measured: a diagonal drag (the equations combine both axes as
   written).
 
+## Spec - touch glow on the open menu [device, 2026-10-19]
+
+- The open menu glows through the flex interaction's little glow
+  (`_UIFlexInteraction.LittleGlow`, a 160 pt disc drawn through a vibrant
+  color matrix), the tab bar's law (tab-bar.md, Spec - touch glow) with
+  the menu flex spec's peaks: spot 0.5 (rows peak at 0.49 - 0.5), no wash.
+- Rise 0.1 s crit 30 ms after the touch (fit, eight captures); a finger
+  that held the menu open shows no glow until it moves (hold700: 0
+  throughout), then it rises from that move. A move 50 pt from where it
+  lit turns the spot x2 at half strength; the lift falls 0.5 s crit with
+  the spot growing x4. So a finger sliding over the rows lights the menu
+  faintly all over (320 pt at 0.25).
+- A tap's fall starts 40 - 87 ms after its lift (115 - 170 ms after the
+  touch) on seven captures, a long hold's 26 ms after; morph lets the rise
+  run at least 0.1 s (`glowMinimumLit`) and leaves the spread.
+- Fixtures `ios27-device/menuglow` (dragselect, select, sub-dark,
+  swiftui-light, palette, sub-tap, reopen-80, reopen-250); test
+  menu_glow_test (drag 0.011 rms, taps 0.025 at worst).
+- morph lights the menu card, not the neck or the source, in the liquid
+  tier's final glass pass (docs/glass.md "Touch glow"); flat, fake and the
+  menu without a painter draw no glow and run none
+  (`MorphMenuMotion.lightsGlow`).
+
 ## Fixtures
 
 Device `ios27-device/menu/*` (center3 tap/quicktap/hold700/dismiss/

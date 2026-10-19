@@ -3,8 +3,18 @@ import 'package:morph/src/widgets/glass_glow.dart';
 
 void main() {
   test('A5 glow delayed reactions agree under coarse and fine advances', () {
-    final coarse = MorphTouchGlowMotion(washPeak: 1, spotPeak: 1);
-    final fine = MorphTouchGlowMotion(washPeak: 1, spotPeak: 1);
+    final coarse = MorphTouchGlowMotion(
+      washPeak: 1,
+      spotPeak: 1,
+      diameter: MorphTouchGlowMotion.tabBarDiameter,
+      riseLag: MorphTouchGlowMotion.tabBarRiseLag,
+    );
+    final fine = MorphTouchGlowMotion(
+      washPeak: 1,
+      spotPeak: 1,
+      diameter: MorphTouchGlowMotion.tabBarDiameter,
+      riseLag: MorphTouchGlowMotion.tabBarRiseLag,
+    );
     for (final motion in [coarse, fine]) {
       motion.pointerDown(0, Offset.zero);
       motion.pointerMove(0.01, const Offset(60, 0));
@@ -20,7 +30,12 @@ void main() {
   });
 
   test('A5 releasing before the rise delay never reignites the glow', () {
-    final motion = MorphTouchGlowMotion(washPeak: 1, spotPeak: 1);
+    final motion = MorphTouchGlowMotion(
+      washPeak: 1,
+      spotPeak: 1,
+      diameter: MorphTouchGlowMotion.tabBarDiameter,
+      riseLag: MorphTouchGlowMotion.tabBarRiseLag,
+    );
     motion.pointerDown(0, Offset.zero);
     motion.pointerUp(0.01);
     motion.advance(2);
