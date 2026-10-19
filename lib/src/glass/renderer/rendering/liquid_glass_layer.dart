@@ -2731,12 +2731,48 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // neither.
   Offset? _encodedPassPhase;
 
+  // The matte texels per device pixel of the layer the matte was encoded
+  // at, and whether it follows the pass's scale ([glassMatteDensity]): a
+  // frame with a material map keeps the layer's own device pixels.
+  double _encodedMatteDensity = 1;
+  bool _matteDensityFollows = false;
+
+  /// The matte texels per device pixel of the layer the latest matte was
+  /// encoded at ([glassMatteDensity]).
+  @visibleForTesting
+  double get debugMatteDensity => _encodedMatteDensity;
+
+  // [rect] grown to the pixel grid of the pass [layerToPass] maps this
+  // layer into by a uniform scale: a matte of [matteScale] texels per
+  // logical pixel over it centers every texel on a pixel of the pass, so a
+  // nearest sample reads the texel encoded at that pixel's center.
+  Rect _onPassPixels(Rect rect, Matrix4 layerToPass, double matteScale) {
+    final m = layerToPass.storage;
+    final passX = m[12] * devicePixelRatio;
+    final passY = m[13] * devicePixelRatio;
+    double down(double v, double pass) =>
+        ((v * matteScale + pass).floorToDouble() - pass) / matteScale;
+    double up(double v, double pass) =>
+        ((v * matteScale + pass).ceilToDouble() - pass) / matteScale;
+    return Rect.fromLTRB(
+      down(rect.left, passX),
+      down(rect.top, passY),
+      up(rect.right, passX),
+      up(rect.bottom, passY),
+    );
+  }
+
   // Whether a matte encoded for another pass phase would be encoded
-  // differently now: its shifts moved, or a matte encoded on the layer's own
-  // grid now falls within the tie band.
+  // differently now: its shifts moved, a matte encoded on the layer's own
+  // grid now falls within the tie band, or the pass's scale moved off the
+  // matte's density.
   bool _rasterGridStale(Matrix4 layerToPass) {
     // Analytic shapes have no raster grid.
     if (_analytic) return false;
+    if (_matteDensityFollows &&
+        glassMatteDensity(layerToPass) != _encodedMatteDensity) {
+      return true;
+    }
     if (_encodedPassPhase case final phase?) {
       return _passPhase(layerToPass) != phase;
     }
@@ -2805,6 +2841,16 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _analyticIneligibility = ineligibility;
       final analytic = ineligibility == null;
       final layerToPass = shaderCoordinateTransform;
+      // A matte under a scale is encoded at the pass's pixels, so its
+      // nearest samples read one texel per pixel; every distance it holds
+      // stays in the layer's own device pixels, the units the final pass
+      // reads. A material map keeps the layer's own device pixels.
+      final follows =
+          !analytic && !_mixesAppearances(geometries, defaultAppearance);
+      final density = follows ? glassMatteDensity(layerToPass) : 1.0;
+      _encodedMatteDensity = density;
+      _matteDensityFollows = follows;
+      final matteScale = devicePixelRatio * density;
       // Analytic shapes are evaluated where they are: no matte grid to
       // move or to shift them onto.
       final grid = analytic
@@ -2822,7 +2868,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       ];
       final biased = grid?.biased ?? false;
       final anchored = shifts.any((Offset shift) => shift != Offset.zero);
-      _encodedPassPhase = anchored || biased ? _passPhase(layerToPass) : null;
+      // A matte under a scale centers its texels on the pass's pixels,
+      // which moves with the pass phase.
+      _encodedPassPhase = anchored || biased || density != 1
+          ? _passPhase(layerToPass)
+          : null;
       final aaPadding = max(0.5 / devicePixelRatio, _contourOutset);
       final shiftPadding = anchored ? 0.5 / devicePixelRatio : 0.0;
       // The matte is in this layer's local coordinates. Ancestor transforms
@@ -2831,14 +2881,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       final snapped = bounds
           .inflate(aaPadding + shiftPadding)
           .snapToPixels(devicePixelRatio);
-      final boundsInMatteSpace = biased
+      final boundsInMatteSpace = density != 1
+          ? _onPassPixels(snapped, layerToPass, matteScale)
+          : biased
           ? snapped.shift(grid!.bias / devicePixelRatio)
           : snapped;
       final materialCenter = bounds.center;
 
-      final textureWidth = (boundsInMatteSpace.width * devicePixelRatio).ceil();
-      final textureHeight = (boundsInMatteSpace.height * devicePixelRatio)
-          .ceil();
+      final textureWidth = (boundsInMatteSpace.width * matteScale).ceil();
+      final textureHeight = (boundsInMatteSpace.height * matteScale).ceil();
 
       if (textureWidth <= 0 || textureHeight <= 0) {
         throw StateError('Cannot render empty liquid-glass geometry.');
@@ -2927,18 +2978,18 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           final rseParameters = roundedSuperellipseParameters(
             size,
             shape.rawCornerRadius,
-            scale: devicePixelRatio,
+            scale: matteScale,
           );
           // The geometry shader tests each cap's angular span as
           // 1 - cos(span).
           rseParameters[2] = 1.0 - cos(rseParameters[2]);
           rseParameters[3] = 1.0 - cos(rseParameters[3]);
           _rseData.addAll(rseParameters);
-          final center = centerInMatte * devicePixelRatio;
+          final center = centerInMatte * matteScale;
           final halfExtents = _matteHalfExtents(
             shape.rawShapeType,
-            size * devicePixelRatio / 2,
-            shape.rawCornerRadius * devicePixelRatio,
+            size * matteScale / 2,
+            shape.rawCornerRadius * matteScale,
             axisX,
             axisY,
           );
@@ -2948,8 +2999,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
             ..add(center.dx + halfExtents.width)
             ..add(center.dy + halfExtents.height);
           final blendMarker = firstInGroup
-              ? -(geometry.blend * devicePixelRatio + 1)
-              : geometry.blend * devicePixelRatio;
+              ? -(geometry.blend * matteScale + 1)
+              : geometry.blend * matteScale;
 
           _shapeData
             // vec4 0: primitive parameters.
@@ -2960,11 +3011,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
                   ? RawShapeType.roundedRectangle.shaderIndex
                   : shape.rawShapeType.shaderIndex,
             )
-            ..add(size.width * devicePixelRatio)
-            ..add(size.height * devicePixelRatio)
+            ..add(size.width * matteScale)
+            ..add(size.height * matteScale)
             ..add(
               (capsule ? size.shortestSide / 2 : shape.rawCornerRadius) *
-                  devicePixelRatio,
+                  matteScale,
             )
             // vec4 1: inverse affine basis.
             ..add(inverse00)
@@ -2972,8 +3023,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
             ..add(inverse10)
             ..add(inverse11)
             // vec4 2: transformed center, distance scale, group marker.
-            ..add(centerInMatte.dx * devicePixelRatio)
-            ..add(centerInMatte.dy * devicePixelRatio)
+            ..add(centerInMatte.dx * matteScale)
+            ..add(centerInMatte.dy * matteScale)
             ..add(distanceScale)
             ..add(blendMarker);
           appearances.add(shape.appearance);
@@ -3057,21 +3108,21 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         rseData: _rseData,
         boundsData: _boundsData,
         numShapes: numShapes,
-        refractionHeight: settings.effectiveRefractionHeight * devicePixelRatio,
-        refractionAmount: settings.effectiveRefractionAmount * devicePixelRatio,
-        edgeDistanceRange:
-            settings.effectiveEdgeDistanceRange * devicePixelRatio,
+        refractionHeight: settings.effectiveRefractionHeight * matteScale,
+        refractionAmount: settings.effectiveRefractionAmount * matteScale,
+        edgeDistanceRange: settings.effectiveEdgeDistanceRange * matteScale,
         refractionFitsShape: settings.refractionFitsShape,
-        contourExtent: aaPadding * devicePixelRatio,
+        contourExtent: aaPadding * matteScale,
         writeMaterials: usesShapeAppearances,
         writeTintOnly: usesTintOnlyAppearance,
         appearanceData: usesShapeAppearances
             ? _appearanceLookupData(appearances)
             : const <double>[],
-        offsetX: boundsInMatteSpace.left * devicePixelRatio,
-        offsetY: boundsInMatteSpace.top * devicePixelRatio,
+        offsetX: boundsInMatteSpace.left * matteScale,
+        offsetY: boundsInMatteSpace.top * matteScale,
         field: _field,
-        fieldScale: devicePixelRatio,
+        fieldScale: matteScale,
+        mergeMinWidth: liquidMinMergeWidth,
       );
       return (
         analytic: false,
@@ -3079,9 +3130,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         materialImage: renderer.materialImage,
         materialCenter: materialCenter,
         materialSize: bounds.size,
+        // In the layer's own device pixels, as the final pass maps them.
         textureSize: Size(
-          result.textureWidth.toDouble(),
-          result.textureHeight.toDouble(),
+          result.textureWidth / density,
+          result.textureHeight / density,
         ),
         materialTextureSize: switch (renderer.materialImage) {
           final image? => Size(image.width.toDouble(), image.height.toDouble()),
@@ -3091,8 +3143,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         matteBounds: Rect.fromLTWH(
           boundsInMatteSpace.left,
           boundsInMatteSpace.top,
-          result.width / devicePixelRatio,
-          result.height / devicePixelRatio,
+          result.width / matteScale,
+          result.height / matteScale,
         ),
       );
     } catch (e) {
@@ -3114,6 +3166,19 @@ typedef _GpuGeometryFrame = ({
   Size materialSize,
   List<LiquidGlassAppearance> appearances,
 });
+
+// Whether the shapes of [geometries] differ in appearance, so that a matte
+// frame of them writes a material map.
+bool _mixesAppearances(
+  List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
+  LiquidGlassAppearance fallback,
+) {
+  final (mixed, _, _) = _classifyShapeAppearances([
+    for (final (_, geometry, _) in geometries)
+      for (final shape in geometry.shapes) shape.appearance,
+  ], fallback);
+  return mixed;
+}
 
 (bool, bool, LiquidGlassAppearance?) _classifyShapeAppearances(
   List<LiquidGlassAppearance> appearances,

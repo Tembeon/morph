@@ -88,6 +88,21 @@ Future<void> morphWarmLiquidPipelines(
     );
     final tint = geometry.materialImage!.clone();
     images.add(tint);
+    geometry.render(
+      width: 8,
+      height: 8,
+      shapeData: const [],
+      numShapes: 1,
+      refractionHeight: 1,
+      refractionAmount: 1,
+      offsetX: 0,
+      offsetY: 0,
+      field: GlassBoxField(
+        boxes: [RRect.fromLTRBR(0, 0, 4, 4, const Radius.circular(2))],
+        spacing: 1,
+        fuse: () => throw StateError('A fused pass reads no samples.'),
+      ),
+    );
     FlutterGpuGeometryRenderer.flushPendingSubmissions();
 
     final programs = [

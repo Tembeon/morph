@@ -68,9 +68,10 @@ class GlassField {
 /// A fused body of a few rounded boxes, merged by the glass container's law
 /// with [spacing], whose sampled field is fused only when it is read.
 ///
-/// A liquid layer that evaluates the merge law in its final shader shades
-/// the body from [boxes] and [spacing] and never reads the samples; any
-/// other reader gets the field [fuse] returns, fused once on first read.
+/// A liquid layer evaluates the merge law per pixel, in its analytic final
+/// shader and in the geometry matte it rests on, from [boxes] and
+/// [spacing], and never reads the samples; any other reader gets the field
+/// [fuse] returns, fused once on first read.
 /// A moved body shares that one fusion: every [shift] refers to the field
 /// first created, moved once by the total offset.
 @internal

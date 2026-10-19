@@ -203,42 +203,87 @@ void main() {
     expect(renderer.debugRenderCount, encodes);
   });
 
-  testWidgets('changes: a resting merged body fuses its field once', (
+  testWidgets('changes: a resting merged body encodes the merge law', (
     WidgetTester t,
   ) async {
     if (!ui.ImageFilter.isShaderFilterSupported) return;
     await setUp(t);
-    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.changes;
     debugClearMorphGlassOutlines();
-    const rects = [
-      ui.Rect.fromLTWH(40, 240, 120, 44),
-      ui.Rect.fromLTWH(165, 240, 120, 44),
-    ];
-    final merged = HarnessCase(
-      'rest-merged',
-      const LiquidGlassSettings(frost: 0),
-      [
-        for (final rect in rects)
-          HarnessShape(
-            rect,
-            const LiquidRoundedSuperellipse(borderRadius: 22),
-            const LiquidGlassAppearance.ios27RegularDark(),
-          ),
-      ],
-      field: morphGlassOutlineField(
-        morphGlassContainerBoxOutline([
-          for (final rect in rects)
+    // A neck of two bar capsules, and a navigation bar's Done capsule
+    // dragged down and toward its neighbor and stretched by its tether.
+    final bodies = <String, (List<ui.RRect>, ui.Rect)>{
+      'neck-s12': (
+        [
+          for (final rect in const [
+            ui.Rect.fromLTWH(40, 240, 120, 44),
+            ui.Rect.fromLTWH(165, 240, 120, 44),
+          ])
             ui.RRect.fromRectAndRadius(rect, const ui.Radius.circular(22)),
-        ], 12),
+        ],
+        const ui.Rect.fromLTRB(150, 236, 175, 288),
       ),
-    );
-    final traces = morphGlassOutlineDebugTraces;
-    await harness.show(merged, ShaderVariant.candidate);
-    expect(layer().debugResting, isTrue);
-    expect(layer().field, isA<GlassBoxField>());
-    expect(morphGlassOutlineDebugTraces - traces, 1);
-    await frames(10);
-    expect(morphGlassOutlineDebugTraces - traces, 1);
+      'stretched-done': (
+        [
+          ui.RRect.fromRectAndRadius(
+            const ui.Rect.fromLTWH(230, 400, 44, 44),
+            const ui.Radius.circular(22),
+          ),
+          ui.RRect.fromRectAndRadius(
+            const ui.Rect.fromLTWH(279, 410, 82, 38),
+            const ui.Radius.circular(19),
+          ),
+        ],
+        const ui.Rect.fromLTRB(264, 396, 289, 452),
+      ),
+    };
+    for (final MapEntry(key: name, value: (boxes, neck)) in bodies.entries) {
+      final body = HarnessCase(
+        name,
+        const LiquidGlassSettings(frost: 0),
+        [
+          for (final box in boxes)
+            HarnessShape(
+              box.outerRect,
+              LiquidRoundedSuperellipse(borderRadius: box.tlRadiusX),
+              const LiquidGlassAppearance.ios27RegularDark(),
+            ),
+        ],
+        field: morphGlassOutlineField(morphGlassContainerBoxOutline(boxes, 12)),
+      );
+      RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.changes;
+      final traces = morphGlassOutlineDebugTraces;
+      await harness.show(body, ShaderVariant.candidate);
+      expect(layer().debugResting, isTrue, reason: name);
+      expect(layer().field, isA<GlassBoxField>(), reason: name);
+      final rest = await harness.shoot();
+      await frames(4);
+      // The geometry pass merges the boxes itself: the CPU never fuses.
+      expect(morphGlassOutlineDebugTraces - traces, 0, reason: name);
+      RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+      await frames(3);
+      expect(layer().debugAnalytic, isTrue, reason: name);
+      final moving = await harness.shoot();
+      var area = boxes.first.outerRect;
+      for (final box in boxes.skip(1)) {
+        area = area.expandToInclude(box.outerRect);
+      }
+      final dpr = harness.devicePixelRatio;
+      final whole = _regionDiff(rest, moving, area.inflate(3), dpr);
+      final inNeck = _regionDiff(rest, moving, neck, dpr);
+      // ignore: avoid_print
+      print(
+        '$name rest vs moving: body max ${whole.max} '
+        'mean ${whole.mean.toStringAsFixed(4)}, neck max ${inNeck.max} '
+        'mean ${inNeck.mean.toStringAsFixed(4)}',
+      );
+      // NEAR: the matte's 12-bit and companded quantization, as for
+      // separate shapes (host run 2026-10-19: neck max 9 and 15, mean
+      // 0.10 and 0.24; a field sampled every 4 pt bent the neck into
+      // straight steps, up to 125 channel steps from the moving frame).
+      expect(inNeck.max, lessThanOrEqualTo(24), reason: name);
+      expect(inNeck.mean, lessThan(0.5), reason: name);
+      expect(whole.mean, lessThan(0.5), reason: name);
+    }
   });
 
   testWidgets('capsules as stadiums against the superellipse', (
@@ -285,4 +330,33 @@ class _TickingState extends State<_Ticking>
 
   @override
   Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
+/// The largest channel difference and the mean RGB difference of [a] and
+/// [b] over [region] (logical pixels at [dpr]).
+({int max, double mean}) _regionDiff(
+  HarnessShot a,
+  HarnessShot b,
+  ui.Rect region,
+  double dpr,
+) {
+  var max = 0;
+  var sum = 0;
+  var count = 0;
+  final left = (region.left * dpr).floor().clamp(0, a.width);
+  final right = (region.right * dpr).ceil().clamp(0, a.width);
+  final top = (region.top * dpr).floor().clamp(0, a.height);
+  final bottom = (region.bottom * dpr).ceil().clamp(0, a.height);
+  for (var y = top; y < bottom; y++) {
+    for (var x = left; x < right; x++) {
+      final p = (y * a.width + x) * 4;
+      for (var c = 0; c < 3; c++) {
+        final d = (a.bytes[p + c] - b.bytes[p + c]).abs();
+        if (d > max) max = d;
+        sum += d;
+      }
+      count++;
+    }
+  }
+  return (max: max, mean: count == 0 ? 0.0 : sum / (count * 3));
 }

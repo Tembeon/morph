@@ -113,63 +113,12 @@ float analyticFlatDepth() {
 #define FUSED_MAX_BOXES ANALYTIC_MAX_BOXES
 #include "fused_law.glsl"
 
-// The signed distance of fused box [i] at p and its unit normal.
-vec3 fusedBox(vec2 p, int i) {
-    return fusedBoxAt(p, uFusedBoxes[i * 2], uFusedBoxes[i * 2 + 1].x);
-}
-
 // The angular fold of the fused boxes at p, in list order.
 float fusedDistance(vec2 p, int count) {
     return fusedFold(p, count, uAnalyticRanges.z, uAnalyticRanges.w);
 }
 
-// The rotation (cos, sin) from fused box [i]'s exact normal at p to the
-// normal of a corner kOpticalCornerRadiusScale times rounder; none outside
-// the optical corner squares or for a box whose corners cannot get
-// rounder.
-vec2 fusedTurn(vec2 p, int i) {
-    vec4 box = uFusedBoxes[i * 2];
-    float exact = uFusedBoxes[i * 2 + 1].x;
-    float optical = min(
-        exact * kOpticalCornerRadiusScale,
-        min(box.z, box.w)
-    );
-    vec2 local = p - box.xy;
-    vec2 a = abs(local) - box.zw;
-    vec2 o = a + optical;
-    if (optical <= exact || o.x <= 0.0 || o.y <= 0.0) return vec2(1.0, 0.0);
-    vec2 e = a + exact;
-    vec2 en = e.x > 0.0 && e.y > 0.0
-        ? normalize(e)
-        : (e.x > e.y ? vec2(1.0, 0.0) : vec2(0.0, 1.0));
-    vec2 on = normalize(o);
-    float mirror = (local.x < 0.0) != (local.y < 0.0) ? -1.0 : 1.0;
-    return vec2(dot(en, on), (en.x * on.y - en.y * on.x) * mirror);
-}
-
-// The fused body's half thickness (x) and optical turn (yz) at p: the
-// plain polynomial fold over the full spacing.
-vec3 fusedOptics(vec2 p, int count) {
-    float k = uAnalyticRanges.z;
-    vec4 first = uFusedBoxes[0];
-    float d = fusedBox(p, 0).x;
-    float halfMinor = min(first.z, first.w);
-    vec2 turn = fusedTurn(p, 0);
-    for (int i = 1; i < ANALYTIC_MAX_BOXES; i++) {
-        if (i >= count) break;
-        vec4 box = uFusedBoxes[i * 2];
-        float di = fusedBox(p, i).x;
-        float w = clamp(0.5 + (di - d) / (2.0 * k), 0.0, 1.0);
-        float boxHalfMinor = min(box.z, box.w);
-        halfMinor = boxHalfMinor + (halfMinor - boxHalfMinor) * w;
-        vec2 boxTurn = fusedTurn(p, i);
-        turn = boxTurn + (turn - boxTurn) * w;
-        float e = max(k - abs(d - di), 0.0);
-        d = e > 0.0 ? min(d, di) - e * e / (4.0 * k) : min(d, di);
-    }
-    float len = length(turn);
-    return vec3(halfMinor, len < 1e-9 ? vec2(1.0, 0.0) : turn / len);
-}
+#include "fused_optics.glsl"
 
 #endif
 
@@ -370,18 +319,15 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
         halfMinor = uAnalyticOptics.x;
         opticalGradient = vec2(1.0, 0.0);
     } else {
-        vec2 gradient = vec2(
-            fusedDistance(p + vec2(0.5, 0.0), boxes) -
-                fusedDistance(p - vec2(0.5, 0.0), boxes),
-            fusedDistance(p + vec2(0.0, 0.5), boxes) -
-                fusedDistance(p - vec2(0.0, 0.5), boxes)
+        vec2 gradient = fusedGradient(
+            p,
+            boxes,
+            uAnalyticRanges.z,
+            uAnalyticRanges.w
         );
-        vec3 optics = fusedOptics(p, boxes);
+        vec3 optics = fusedOptics(p, boxes, uAnalyticRanges.z);
         halfMinor = optics.x;
-        opticalGradient = vec2(
-            gradient.x * optics.y - gradient.y * optics.z,
-            gradient.x * optics.z + gradient.y * optics.y
-        );
+        opticalGradient = fusedTurned(gradient, optics.yz);
     }
     #if SHAPE_TINT
     // The material map's tint: the nearest of the layer's shapes.
