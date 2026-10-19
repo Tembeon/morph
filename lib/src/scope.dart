@@ -322,8 +322,8 @@ class MorphSurfaceSpec {
 /// Names a widget as the source a presentation morphs out of and back
 /// into.
 ///
-/// A control that can be a source takes one as `source:`; [MorphSource]
-/// attaches one to any widget. A presentation shown `from:` the link
+/// [MorphSource] attaches one to any widget. A presentation shown `from:`
+/// the link
 /// reads the source's geometry and themes, hides it while it stands in
 /// for it and dissolves on closing when the source is gone. A link needs
 /// no scope and no dispose.

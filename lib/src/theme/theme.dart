@@ -27,7 +27,15 @@ class MorphThemeData {
   /// control's own system color.
   final Color? tint;
 
-  /// Whether the controls play haptic feedback.
+  /// Whether the controls play haptic feedback where their UIKit
+  /// counterparts do: a switch flipped by touch, a page control, a wheel
+  /// or a menu row changing under the finger, a slider reaching an end or
+  /// a stop, a context menu's preview.
+  ///
+  /// The haptics play through Flutter's [HapticFeedback]: the impact and
+  /// selection ones as the same generators UIKit uses (near; UIKit tweaks
+  /// the pattern per control), the slider's and the context menu's
+  /// CoreHaptics patterns as the nearest impact (an approximation).
   final bool haptics;
 
   /// Which glass the controls draw, or null to keep the glass of the

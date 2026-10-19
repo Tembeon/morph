@@ -6,7 +6,6 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
-import 'package:morph/src/widgets/glass_inspector.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/list.dart';
@@ -53,8 +52,8 @@ import 'package:morph/src/theme/glass.dart';
 /// the row or cluster itself, inside any scroll view, clip or fade: a
 /// container around a scroll view joins nothing in it. A
 /// [MorphListSection] already shades its rows' resting glass in one layer,
-/// a resting [MorphSearchToolbar] its field and buttons.
-/// [MorphGlassInspector] shows the layers of each frame and names
+/// a resting [MorphSearchToolbar] its field and buttons. The example
+/// gallery's glass inspector shows the layers of each frame and names
 /// neighbouring glass that a container would join.
 class MorphGlassContainer extends StatefulWidget {
   /// Shades the resting glass of the controls in [child] together.

@@ -80,9 +80,8 @@ class MorphSatellite {
 /// plain tap passes through to the child untouched, and inside a
 /// scrollable the lift waits for the platform's touch deadline so a
 /// scroll never flashes it; a hold that wins the arena takes the gesture
-/// away from the scrollable and from the child's own tap. Three doors
-/// open the same menu: the hold, a secondary (right) click, and [open]
-/// from any context inside [child].
+/// away from the scrollable and from the child's own tap. Two doors open
+/// the same menu: the hold and a secondary (right) click.
 ///
 /// The preview is the [child] itself, drawing its own surface (or
 /// [replica] in the overlay); an [accessory] rides above it.
@@ -277,7 +276,7 @@ class MorphContextMenuRegion extends StatefulWidget {
       MorphMenuAttachment.measuredBlobScale;
 
   /// Whether the region listens for gestures; a disabled region is a
-  /// plain wrapper that [open] can still drive.
+  /// plain wrapper.
   final bool enabled;
 
   /// Whether a secondary (right) click opens the menu. Off, the click
@@ -356,7 +355,7 @@ class MorphContextMenuRegion extends StatefulWidget {
   final String? semanticLabel;
 
   /// The hold threshold was crossed and the menu is about to open. Not
-  /// called for [open] or a secondary click.
+  /// called for a secondary click.
   ///
   /// The region itself plays UIKit's preview haptic at this moment
   /// ([MorphThemeData.haptics]): UIKit's context menu plays its

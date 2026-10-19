@@ -356,7 +356,7 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 /// context menu interaction.
 ///
 /// The [child] is drawn as it is. A touch on it lifts it by the measured
-/// press of [MorphMenuMotion] and, on the [trigger], the child's box
+/// press of a menu button and, on the [trigger], the child's box
 /// grows into the menu of [MorphMenuButton]: the same motion, content,
 /// glass and flight, with the child's box and [shape] as the source the
 /// menu grows out of and shrinks back into. While the menu is up the
@@ -380,9 +380,7 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 /// [RoundedSuperellipseBorder] or [ContinuousRectangleBorder] gives its
 /// top-left corner radius to the source shape.
 ///
-/// A [MorphScope] above the source is used when there is one; otherwise
-/// the source brings its own, and a source removed while its menu is up
-/// takes the menu with it at once.
+/// A source removed while its menu is up takes the menu with it at once.
 class MorphMenuSource extends _MorphMenuSourceWidget {
   /// Creates a source that opens [menu] from [child].
   const MorphMenuSource({
@@ -507,19 +505,12 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
 /// keys move the highlight, Enter or Space choose, Esc goes back out of a
 /// submenu and then closes the menu.
 ///
-/// The menu is a morph flight: the button is its source and the flight
-/// runs UIKit's measured progress spring. The menu evaluates the same
-/// spring on the clock its kicks run on and draws both shapes of
-/// [MorphMenuMotion] inside a vessel target ([MorphTargetSpec.vessel]);
-/// once the closing flight hands the source back, the button draws the
-/// rest of the close itself until the kicks have rung out, as UIKit
-/// keeps its morph on screen until then. The flight
-/// provides the overlay, the pop layering, the modal barrier (without
-/// dimming), the focus trap and [MorphFlight.events]. A [MorphScope]
-/// above the button is used when there is one; otherwise the button
-/// brings its own, and a button removed while its menu is up takes the
-/// menu with it at once - put a [MorphScope] above it for the menu to
-/// dissolve instead.
+/// The menu opens and closes on UIKit's measured progress spring; once it
+/// has closed, the button draws the rest of the close itself until its
+/// kicks have rung out, as UIKit keeps its morph on screen until then.
+/// The open menu is modal: a barrier without dimming takes the touches
+/// outside it, focus stays in it, and a pop or Escape closes it. A button
+/// removed while its menu is up takes the menu with it at once.
 ///
 /// A disabled menu button keeps its glass and draws its glyph in
 /// [MorphMenuAppearance.disabledIconColor], as UIKit's does.

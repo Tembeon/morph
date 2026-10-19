@@ -988,7 +988,7 @@ class MorphLargeTitle extends StatelessWidget {
 /// bar: a scroll that comes to rest with the title partly scrolled
 /// ([collapseExtent] is its height) springs to the nearer end.
 ///
-/// UIKit snaps a release at 25 points back out and one at 35 points
+/// UIKit snaps a release at 25 points back out and one at 30 points
 /// under (the threshold is taken as half the title, 26 points); the snap
 /// is fitted as a critically damped spring of response [snapSpring].
 class MorphLargeTitleScrollPhysics extends ScrollPhysics {

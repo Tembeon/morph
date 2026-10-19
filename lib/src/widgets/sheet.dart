@@ -150,8 +150,8 @@ class MorphSheetAppearance implements MorphAppearance {
 /// the source's look crossfades into the sheet's content, and every
 /// dismissal - a pop, a tap on the dimming, a drag down from the smallest
 /// detent, which UIKit commits at once - zooms the sheet back into the
-/// source, which shows again when the zoom has come to rest. See
-/// [MorphZoomMotion] for the measured motion; [zoom] tunes it.
+/// source, which shows again when the zoom has come to rest. The zoom
+/// runs UIKit's measured springs.
 ///
 /// An absent or unlaid-out source presents a sliding sheet. If the source
 /// disappears while the sheet is open, its content stays usable and its
@@ -251,7 +251,7 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   /// The source the sheet zooms out of, or null for a sheet that slides up
   /// from below.
   ///
-  /// An absent or unlaid-out tag presents a sliding sheet.
+  /// An absent or unlaid-out source presents a sliding sheet.
   final MorphSourceLink? from;
 
   MorphZoomSource? _zoomSource;

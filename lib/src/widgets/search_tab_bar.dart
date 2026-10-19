@@ -29,13 +29,12 @@ import 'package:morph/src/theme/theme.dart';
 /// At rest the tab bar floats 21 points from the leading side and the
 /// bottom, and the search tab is a separate glass circle at the trailing
 /// side. Tapping the circle asks to start searching through
-/// [onActiveChanged]; with [active] true, on
-/// [MorphSearchTuning.tabSpring], the tab bar shrinks into a circle that
+/// [onActiveChanged]; with [active] true, on UIKit's measured spring, the
+/// tab bar shrinks into a circle that
 /// keeps the selected tab's glyph while the other tabs fade, and the search
 /// circle stretches into a search field whose placeholder fades in; the
-/// field takes the focus [MorphSearchTuning.tabActivationDelay] after the
-/// tap, while the morph still runs, and, once the keyboard starts to rise,
-/// rises above it on [MorphSearchTuning.tabFocusSpring] with a close
+/// field takes the focus shortly after the tap, while the morph still
+/// runs, and, once the keyboard starts to rise, rises above it with a close
 /// button, like [MorphSearchToolbar], while the tab circle (which the
 /// keyboard covers in UIKit) fades. The close button (or Escape) ends the
 /// focus and clears the text, and the field falls straight back to its

@@ -84,11 +84,9 @@ class MorphTabItem {
 /// is down; a touch on the selected tab lifts it in place. Dragging
 /// carries the lens by the finger's travel, with a tight rubber band past
 /// the first and last tabs, and the release picks the tab nearest the
-/// finger. While pressed, the whole bar swells by
-/// [MorphLensTuning.chromeGrowth] pixels around its center, lens
+/// finger. While pressed, the whole bar swells around its center, lens
 /// included, and brightens: a wash over the whole bar and a soft spot
-/// under the finger ([MorphTouchGlowMotion]) that spreads and fades when
-/// the finger lifts.
+/// under the finger that spreads and fades when the finger lifts.
 ///
 /// The tabs inside the lens wear the selected style and the others the
 /// regular one, cut along the lens outline, so the selection's tint
@@ -115,8 +113,8 @@ class MorphTabItem {
 /// of the content under it ([contentScroll], or the nearest
 /// [MorphContentScrollScope]): a user's scroll in the minimizing
 /// direction shrinks the bar slightly as it goes and, after 64 points,
-/// collapses the bar into a circle holding the selected tab's glyph
-/// ([MorphTabBarMinimizeMotion]); a scroll to the top, pushing the
+/// collapses the bar into a circle holding the selected tab's glyph; a
+/// scroll to the top, pushing the
 /// content past its far end or a tap on the circle expands it (a scroll
 /// back in the middle of the content does not, as on iOS 27). A finger held on the circle for 0.22 s
 /// expands the bar under it, and one that moves 4 points along it expands

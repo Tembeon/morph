@@ -34,7 +34,10 @@ enum MorphGlassTier {
 sealed class MorphGlassRenderer {
   const MorphGlassRenderer();
 
-  /// Liquid glass where the GPU holds it, flat glass elsewhere.
+  /// Liquid glass where the GPU holds it; flat glass on the GPUs where
+  /// sampling the backdrop misses the frame budget (the OpenGL ES
+  /// fallback, Skia, Apple GPUs before the A13); fake glass where the
+  /// liquid tier cannot load, such as the web.
   ///
   /// The choice is made once from the GPU's capabilities, never from frame
   /// timings, so the glass never changes its look while the app runs.

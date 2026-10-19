@@ -15,8 +15,8 @@ abstract final class MorphToolbarMetrics {
   /// `_UIToolbarPaddingSpec` phoneBottom, 28.
   static const double bottomInset = 28;
 
-  /// The space between a keyboard and the capsules (not measured; an
-  /// engineering default).
+  /// The space between a keyboard and the capsules:
+  /// `_UIToolbarPaddingSpec` phoneKeyboard, 8.
   static const double keyboardInset = 8;
 }
 

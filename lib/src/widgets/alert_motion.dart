@@ -409,7 +409,7 @@ class MorphPopoverMotion {
 /// no side works the popover goes above or below, where there is more
 /// room.
 ///
-/// Checked against 16 placements on the iOS 27 simulator.
+/// Checked against 15 placements on the iOS 27 simulator.
 MorphPopoverPlacement morphPlacePopover({
   required Size size,
   required Rect source,

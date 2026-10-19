@@ -6,8 +6,8 @@ import 'package:meta/meta.dart';
 import 'package:morph/src/theme/theme.dart';
 
 /// A haptic a UIKit control plays, mapped onto Flutter's [HapticFeedback]
-/// (read from UIKit, notes private; the mapping is declared on
-/// [MorphThemeData.haptics]).
+/// (read from UIKit, notes private); [MorphThemeData.haptics] declares the
+/// mapping to apps.
 @internal
 enum MorphHaptic {
   /// UIKit's light impact generator: a switch toggled by touch, a page
