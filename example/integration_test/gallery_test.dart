@@ -220,9 +220,11 @@ class _Qa {
       'Narrow stays on X after a left overdrag',
       ok: _selectedOf(narrow) == 0,
     );
+    // Within MorphSegmentedControl.releaseSlop: a release farther out is a
+    // cancel, as measured on the device.
     await finger(
       x,
-      line(x, Offset(rect.right + 160, x.dy), 40),
+      line(x, Offset(rect.right + 40, x.dy), 40),
       holdBefore: const Duration(milliseconds: 120),
       holdAfter: const Duration(milliseconds: 300),
       whileHeld: () => shot('segmented-rubber-band-right'),
