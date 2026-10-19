@@ -558,4 +558,7 @@ Local patches (some commits include related package changes):
   gain and wash are 0. LiquidGlassGlow (liquid_glass_glow.dart) packs it
   and is its CPU reference; LiquidGlassLayer.live(glowOf:) and
   RenderLiquidGlassLayer.glow carry it (a change rewrites the common
-  uniforms and repaints the layer). Fake glass draws no glow.
+  uniforms and hands the retained backdrop filter a new filter over them
+  without a paint; glass recorded into a picture repaints), and
+  LiquidGlassLayer.live(glows:) tells a frame that changes only the glow.
+  Fake glass draws no glow.

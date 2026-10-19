@@ -593,6 +593,7 @@ class MorphGlassLayer extends StatelessWidget {
     required this.painter,
     required this.frames,
     required this.surfaces,
+    this.glows,
     this.content,
     this.contentSlots = const [],
     this.spacing = 0,
@@ -612,6 +613,10 @@ class MorphGlassLayer extends StatelessWidget {
   /// Notifies when the surfaces change; null for a layer its parent
   /// rebuilds with every frame.
   final Listenable? frames;
+
+  /// Notifies when the surfaces change only in their touch glows
+  /// ([MorphGlassHost.glows]).
+  final Listenable? glows;
 
   /// Returns the surfaces of the current frame, back to front.
   final List<MorphGlassSurface> Function() surfaces;
@@ -638,6 +643,7 @@ class MorphGlassLayer extends StatelessWidget {
         painter: painter,
         mode: MorphGlassMode.layer,
         frames: frames,
+        glows: glows,
         frame: () => MorphGlassFrame(
           surfaces(),
           outline: outline?.call(),
