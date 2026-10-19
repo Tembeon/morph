@@ -22,6 +22,10 @@ layout(std140) uniform GeometryUniforms {
     vec4 uShapeTints[MAX_SHAPES];
     vec4 uShapeResponses[MAX_SHAPES];
     vec4 uShapeBounds[MAX_SHAPES];
+    // Matte texels per device pixel of the layer along x and y: a matte
+    // under a scale of its pass is encoded at the pass's pixels, while
+    // every position and distance stays in the layer's device pixels.
+    vec2 uMatteDensity;
 } geometryUniforms;
 
 #define uOffset geometryUniforms.uOffset
@@ -32,6 +36,7 @@ layout(std140) uniform GeometryUniforms {
 #define uShapeData geometryUniforms.uShapeData
 #define uRseData geometryUniforms.uRseData
 #define uShapeBounds geometryUniforms.uShapeBounds
+#define uMatteDensity geometryUniforms.uMatteDensity
 
 #include "displacement_encoding.glsl"
 
@@ -48,7 +53,7 @@ out vec4 fragColor;
 void main() {
     // Flutter 3.47's Impeller backends expose the same render-target
     // orientation, including Flutter GPU passes on GLES.
-    vec2 fragCoord = gl_FragCoord.xy + uOffset;
+    vec2 fragCoord = gl_FragCoord.xy / uMatteDensity + uOffset;
 
     // Most of a shared layer's matte can be empty when spatially separate
     // groups reuse one backdrop, and a single shape's texture is padded to

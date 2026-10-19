@@ -105,40 +105,43 @@ GlassRasterGrid? glassRasterGrid(
   return GlassRasterGrid(pass * devicePixelRatio, movable: movable);
 }
 
-/// The smallest and the largest scale of a layer's pass whose matte
-/// [glassMatteDensity] follows.
+/// The smallest and the largest scale along an axis of a layer's pass
+/// whose matte [glassMatteDensity] follows.
 @internal
 const ({double min, double max}) glassMatteDensityRange = (min: 0.5, max: 2);
 
-/// The matte texels per device pixel of a layer that [layerToPass] maps
-/// into its pass, so that its nearest sampled matte reads one texel per
-/// pixel of the pass: the scale of [layerToPass] when it scales both axes
-/// alike, without rotation, skew or perspective, by a factor within
-/// [glassMatteDensityRange] and more than a rounding error from 1; else 1.
-/// The scale is exact: a density off by a part in a thousand moves the
-/// texels of a thousand-pixel matte a pixel off the pass's pixels.
+/// A matte of the layer's own device pixels.
+@internal
+const ({double x, double y}) glassUnitMatteDensity = (x: 1, y: 1);
+
+/// The matte texels per device pixel of a layer, along x and y, that
+/// [layerToPass] maps into its pass, so that its nearest sampled matte
+/// reads one texel per pixel of the pass: the scale of [layerToPass] along
+/// each axis when it maps the axes onto themselves, without rotation, skew
+/// or perspective; 1 along an axis whose scale is outside
+/// [glassMatteDensityRange] or within a rounding error of 1, and
+/// [glassUnitMatteDensity] for any other transform. Each scale is exact: a
+/// density off by a part in a thousand moves the texels of a
+/// thousand-pixel matte a pixel off the pass's pixels.
 ///
 /// A matte of the layer's own device pixels under a scale of 1.05 repeats
 /// every twentieth texel, which sets the rim of every shape a device pixel
-/// off there: a step a lens over the glass magnifies.
+/// off there: a step a lens over the glass magnifies. A held tab bar
+/// stretches along the drag and squashes across it, so the two axes
+/// differ.
 @internal
-double glassMatteDensity(Matrix4 layerToPass) {
+({double x, double y}) glassMatteDensity(Matrix4 layerToPass) {
   final m = layerToPass.storage;
-  final scale = m[0];
-  if (m[1] != 0 ||
-      m[4] != 0 ||
-      m[3] != 0 ||
-      m[7] != 0 ||
-      m[15] != 1 ||
-      (m[5] - scale).abs() > 1e-9 * scale.abs()) {
-    return 1;
+  if (m[1] != 0 || m[4] != 0 || m[3] != 0 || m[7] != 0 || m[15] != 1) {
+    return glassUnitMatteDensity;
   }
-  if (!(scale >= glassMatteDensityRange.min &&
-          scale <= glassMatteDensityRange.max) ||
-      (scale - 1).abs() < 1e-6) {
-    return 1;
-  }
-  return scale;
+  double follow(double scale) =>
+      scale >= glassMatteDensityRange.min &&
+          scale <= glassMatteDensityRange.max &&
+          (scale - 1).abs() >= 1e-6
+      ? scale
+      : 1;
+  return (x: follow(m[0]), y: follow(m[5]));
 }
 
 /// The offset in [layer]'s logical coordinates by which [layer], encoding

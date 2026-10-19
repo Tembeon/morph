@@ -19,6 +19,10 @@ layout(std140) uniform FieldUniforms {
     vec4 uContourProps;
     vec4 uFieldFrame;
     vec4 uFieldSize;
+    // Matte texels per device pixel of the layer along x and y: a matte
+    // under a scale of its pass is encoded at the pass's pixels, while
+    // every position and distance stays in the layer's device pixels.
+    vec2 uMatteDensity;
 } fieldUniforms;
 
 uniform sampler2D uField;
@@ -29,6 +33,7 @@ uniform sampler2D uField;
 #define uContourProps fieldUniforms.uContourProps
 #define uFieldFrame fieldUniforms.uFieldFrame
 #define uFieldSize fieldUniforms.uFieldSize
+#define uMatteDensity fieldUniforms.uMatteDensity
 
 #include "displacement_encoding.glsl"
 
@@ -53,7 +58,7 @@ vec4 fieldAt(vec2 p) {
 }
 
 void main() {
-    vec2 fragCoord = gl_FragCoord.xy + uOffset;
+    vec2 fragCoord = gl_FragCoord.xy / uMatteDensity + uOffset;
     vec4 field = fieldAt(fragCoord);
     // uFieldFrame.w turns logical pixels into matte pixels.
     float sd = field.r * uFieldFrame.w;

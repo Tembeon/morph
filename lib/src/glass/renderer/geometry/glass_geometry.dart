@@ -121,9 +121,9 @@ typedef GlassEncodeFlags = ({
 /// The matte is in the layer's local coordinates, its texels nearest
 /// sampled (it packs 12-bit normal angle and displacement codes across byte
 /// boundaries). Off the pixel grid each shape is moved onto the grid of its
-/// own layer ([glassRasterPhaseShift]); under a uniform scale of its pass
-/// within [glassMatteDensityRange] a matte without a material map is
-/// encoded at the pass's pixels ([glassMatteDensity]). An analytic frame
+/// own layer ([glassRasterPhaseShift]); under a scale of its pass along
+/// its axes within [glassMatteDensityRange] a matte without a material map
+/// is encoded at the pass's pixels ([glassMatteDensity]). An analytic frame
 /// has neither: its shapes are evaluated where they are.
 @internal
 final class GlassGeometryEncoder {
@@ -172,16 +172,16 @@ final class GlassGeometryEncoder {
   // The matte texels per device pixel of the layer the matte was encoded
   // at, and whether it follows the pass's scale ([glassMatteDensity]): a
   // frame with a material map keeps the layer's own device pixels.
-  double _encodedMatteDensity = 1;
+  ({double x, double y}) _encodedMatteDensity = glassUnitMatteDensity;
   bool _matteDensityFollows = false;
 
   /// The pass phase the latest matte was encoded at, or null when its
   /// encoding does not depend on it.
   Offset? get encodedPassPhase => _encodedPassPhase;
 
-  /// The matte texels per device pixel of the layer the latest matte was
-  /// encoded at ([glassMatteDensity]).
-  double get matteDensity => _encodedMatteDensity;
+  /// The matte texels per device pixel of the layer, along x and y, the
+  /// latest matte was encoded at ([glassMatteDensity]).
+  ({double x, double y}) get matteDensity => _encodedMatteDensity;
 
   /// How far antialiasing reaches past a shape's contour, in logical
   /// pixels.
@@ -246,23 +246,29 @@ final class GlassGeometryEncoder {
   }
 
   // [rect] grown to the pixel grid of the pass [layerToPass] maps this
-  // layer into by a uniform scale: a matte of [matteScale] texels per
-  // logical pixel over it centers every texel on a pixel of the pass, so a
+  // layer into by a scale along its axes: a matte of [density] texels per
+  // device pixel over it centers every texel on a pixel of the pass, so a
   // nearest sample reads the texel encoded at that pixel's center.
-  Rect _onPassPixels(Rect rect, Matrix4 layerToPass, double matteScale) {
+  Rect _onPassPixels(
+    Rect rect,
+    Matrix4 layerToPass,
+    ({double x, double y}) density,
+  ) {
     final devicePixelRatio = _source.devicePixelRatio;
     final m = layerToPass.storage;
     final passX = m[12] * devicePixelRatio;
     final passY = m[13] * devicePixelRatio;
-    double down(double v, double pass) =>
-        ((v * matteScale + pass).floorToDouble() - pass) / matteScale;
-    double up(double v, double pass) =>
-        ((v * matteScale + pass).ceilToDouble() - pass) / matteScale;
+    final scaleX = devicePixelRatio * density.x;
+    final scaleY = devicePixelRatio * density.y;
+    double down(double v, double scale, double pass) =>
+        ((v * scale + pass).floorToDouble() - pass) / scale;
+    double up(double v, double scale, double pass) =>
+        ((v * scale + pass).ceilToDouble() - pass) / scale;
     return Rect.fromLTRB(
-      down(rect.left, passX),
-      down(rect.top, passY),
-      up(rect.right, passX),
-      up(rect.bottom, passY),
+      down(rect.left, scaleX, passX),
+      down(rect.top, scaleY, passY),
+      up(rect.right, scaleX, passX),
+      up(rect.bottom, scaleY, passY),
     );
   }
 
@@ -429,15 +435,18 @@ final class GlassGeometryEncoder {
       analyticIneligibility = ineligibility;
       final analytic = ineligibility == null;
       // A matte under a scale is encoded at the pass's pixels, so its
-      // nearest samples read one texel per pixel; every distance it holds
-      // stays in the layer's own device pixels, the units the final pass
-      // reads. A material map keeps the layer's own device pixels.
+      // nearest samples read one texel per pixel; every position and
+      // distance it holds stays in the layer's own device pixels, the
+      // units the final pass reads. A material map keeps the layer's own
+      // device pixels.
       final follows =
           !analytic && !_mixesAppearances(geometries, defaultAppearance);
-      final density = follows ? glassMatteDensity(layerToPass) : 1.0;
+      final density = follows
+          ? glassMatteDensity(layerToPass)
+          : glassUnitMatteDensity;
+      final dense = density != glassUnitMatteDensity;
       _encodedMatteDensity = density;
       _matteDensityFollows = follows;
-      final matteScale = devicePixelRatio * density;
       // Analytic shapes are evaluated where they are: no matte grid to
       // move or to shift them onto.
       final grid = analytic
@@ -457,7 +466,7 @@ final class GlassGeometryEncoder {
       final anchored = shifts.any((Offset shift) => shift != Offset.zero);
       // A matte under a scale centers its texels on the pass's pixels,
       // which moves with the pass phase.
-      _encodedPassPhase = anchored || biased || density != 1
+      _encodedPassPhase = anchored || biased || dense
           ? _passPhase(layerToPass)
           : null;
       final aaPadding = max(
@@ -471,15 +480,17 @@ final class GlassGeometryEncoder {
       final snapped = bounds
           .inflate(aaPadding + shiftPadding)
           .snapToPixels(devicePixelRatio);
-      final boundsInMatteSpace = density != 1
-          ? _onPassPixels(snapped, layerToPass, matteScale)
+      final boundsInMatteSpace = dense
+          ? _onPassPixels(snapped, layerToPass, density)
           : biased
           ? snapped.shift(grid!.bias / devicePixelRatio)
           : snapped;
       final materialCenter = bounds.center;
 
-      final textureWidth = (boundsInMatteSpace.width * matteScale).ceil();
-      final textureHeight = (boundsInMatteSpace.height * matteScale).ceil();
+      final textureWidth =
+          (boundsInMatteSpace.width * devicePixelRatio * density.x).ceil();
+      final textureHeight =
+          (boundsInMatteSpace.height * devicePixelRatio * density.y).ceil();
 
       if (textureWidth <= 0 || textureHeight <= 0) {
         throw StateError('Cannot render empty liquid-glass geometry.');
@@ -567,18 +578,18 @@ final class GlassGeometryEncoder {
           final rseParameters = roundedSuperellipseParameters(
             size,
             shape.rawCornerRadius,
-            scale: matteScale,
+            scale: devicePixelRatio,
           );
           // The geometry shader tests each cap's angular span as
           // 1 - cos(span).
           rseParameters[2] = 1.0 - cos(rseParameters[2]);
           rseParameters[3] = 1.0 - cos(rseParameters[3]);
           pack.rseData.addAll(rseParameters);
-          final center = centerInMatte * matteScale;
+          final center = centerInMatte * devicePixelRatio;
           final halfExtents = _matteHalfExtents(
             shape.rawShapeType,
-            size * matteScale / 2,
-            shape.rawCornerRadius * matteScale,
+            size * devicePixelRatio / 2,
+            shape.rawCornerRadius * devicePixelRatio,
             axisX,
             axisY,
           );
@@ -587,8 +598,8 @@ final class GlassGeometryEncoder {
           pack.boundsData.add(center.dx + halfExtents.width);
           pack.boundsData.add(center.dy + halfExtents.height);
           final blendMarker = firstInGroup
-              ? -(geometry.blend * matteScale + 1)
-              : geometry.blend * matteScale;
+              ? -(geometry.blend * devicePixelRatio + 1)
+              : geometry.blend * devicePixelRatio;
 
           final shapeData = pack.shapeData;
           // vec4 0: primitive parameters.
@@ -599,11 +610,11 @@ final class GlassGeometryEncoder {
                 ? RawShapeType.roundedRectangle.shaderIndex
                 : shape.rawShapeType.shaderIndex,
           );
-          shapeData.add(size.width * matteScale);
-          shapeData.add(size.height * matteScale);
+          shapeData.add(size.width * devicePixelRatio);
+          shapeData.add(size.height * devicePixelRatio);
           shapeData.add(
             (capsule ? size.shortestSide / 2 : shape.rawCornerRadius) *
-                matteScale,
+                devicePixelRatio,
           );
           // vec4 1: inverse affine basis.
           shapeData.add(inverse00);
@@ -611,8 +622,8 @@ final class GlassGeometryEncoder {
           shapeData.add(inverse10);
           shapeData.add(inverse11);
           // vec4 2: transformed center, distance scale, group marker.
-          shapeData.add(centerInMatte.dx * matteScale);
-          shapeData.add(centerInMatte.dy * matteScale);
+          shapeData.add(centerInMatte.dx * devicePixelRatio);
+          shapeData.add(centerInMatte.dy * devicePixelRatio);
           shapeData.add(distanceScale);
           shapeData.add(blendMarker);
           appearances.add(shape.appearance);
@@ -694,21 +705,23 @@ final class GlassGeometryEncoder {
         rseData: pack.rseData,
         boundsData: pack.boundsData,
         numShapes: numShapes,
-        refractionHeight: settings.effectiveRefractionHeight * matteScale,
-        refractionAmount: settings.effectiveRefractionAmount * matteScale,
-        edgeDistanceRange: settings.effectiveEdgeDistanceRange * matteScale,
+        refractionHeight: settings.effectiveRefractionHeight * devicePixelRatio,
+        refractionAmount: settings.effectiveRefractionAmount * devicePixelRatio,
+        edgeDistanceRange:
+            settings.effectiveEdgeDistanceRange * devicePixelRatio,
         refractionFitsShape: settings.refractionFitsShape,
-        contourExtent: aaPadding * matteScale,
+        contourExtent: aaPadding * devicePixelRatio,
         writeMaterials: usesShapeAppearances,
         writeTintOnly: usesTintOnlyAppearance,
         appearanceData: usesShapeAppearances
             ? _appearanceLookupData(appearances)
             : const <double>[],
-        offsetX: boundsInMatteSpace.left * matteScale,
-        offsetY: boundsInMatteSpace.top * matteScale,
+        offsetX: boundsInMatteSpace.left * devicePixelRatio,
+        offsetY: boundsInMatteSpace.top * devicePixelRatio,
         field: field,
-        fieldScale: matteScale,
+        fieldScale: devicePixelRatio,
         mergeMinWidth: liquidMinMergeWidth,
+        matteDensity: density,
       );
       final material = renderer.materialImage;
       return MatteGeometry(
@@ -718,8 +731,8 @@ final class GlassGeometryEncoder {
         materialSize: bounds.size,
         // In the layer's own device pixels, as the final pass maps them.
         textureSize: Size(
-          result.textureWidth / density,
-          result.textureHeight / density,
+          result.textureWidth / density.x,
+          result.textureHeight / density.y,
         ),
         materialTextureSize: switch (material) {
           final image? => Size(image.width.toDouble(), image.height.toDouble()),
@@ -729,8 +742,8 @@ final class GlassGeometryEncoder {
         matteBounds: Rect.fromLTWH(
           boundsInMatteSpace.left,
           boundsInMatteSpace.top,
-          result.width / matteScale,
-          result.height / matteScale,
+          result.width / (devicePixelRatio * density.x),
+          result.height / (devicePixelRatio * density.y),
         ),
       );
     } catch (e) {
