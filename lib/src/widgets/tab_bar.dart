@@ -9,6 +9,7 @@ import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/badge.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
+import 'package:morph/src/motion/flex_interaction.dart';
 import 'package:morph/src/motion/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
@@ -434,6 +435,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       selected: widget.selected,
       height: _lensHeight,
       frameRate: motionFrameRate,
+      chromeSize: Size(geometry.width, _barHeight),
     );
     created.isSelectable = _selectable;
     return created;
@@ -445,6 +447,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       _motion = _create(geometry);
     } else if (geometry != _layout) {
       current.slots = _slots(geometry);
+      current.chromeSize = Size(geometry.width, _barHeight);
     }
     _layout = geometry;
     final selected = widget.items.isEmpty
@@ -591,18 +594,18 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
 
   MorphGlassPainter? _glass;
 
-  late final Listenable _rowChanges = MorphChanges<(double, bool)>(
+  late final Listenable _rowChanges = MorphChanges<(MorphFlexValues, bool)>(
     frames,
-    () => (motion.chromeGrowth, _rowsApart),
+    () => (motion.chrome, _rowsApart),
   );
 
-  // A row is a repaint boundary of its own while neither the bar swells
+  // A row is a repaint boundary of its own while neither the bar flexes
   // (its glyphs then snap to the screen scale at paint, every frame) nor
   // a painter records the content to copy it into a lifted lens (the copy
   // replays the content's pictures): then a lens that travels only moves
   // the clips over the rows, and the rows are composited again.
   bool get _rowsApart =>
-      motion.chromeGrowth == 0 &&
+      motion.chrome == MorphFlexInteraction.rest &&
       (morphGlassKeepsContentLive(_glass) ||
           motion.lift <= GlassBuiltInPainter.restingLift);
 
@@ -765,9 +768,14 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
         child: MorphLiveTransform(
           live: frames,
           writeInto: (Matrix4 into) {
-            final grow =
-                (geometry.width + motion.chromeGrowth) / geometry.width;
-            into.scaleByDouble(grow, grow, 1.0, 1.0);
+            final flex = motion.chrome;
+            into.scaleByDouble(flex.scaleX, flex.scaleY, 1.0, 1.0);
+            into.translateByDouble(
+              _rtl ? -flex.driftX : flex.driftX,
+              flex.driftY,
+              0.0,
+              1.0,
+            );
           },
           child: MorphFocusRing(
             visible: controlFocused,

@@ -143,11 +143,14 @@ enum MorphGlyphMode {
 ///
 /// A drawing that aligns ([MorphGlyphs.aligned]) snaps any motion of its
 /// scale, down to the slowest drift of a spring's tail, and draws a
-/// snapped frame with its origin on a whole device pixel across: the
-/// atlas also keys a glyph by its x position in quarter device pixels, so
-/// a label that moves while it scales meets new keys at every quarter
-/// pixel it crosses, and on a grid scale with a whole-pixel origin each
-/// glyph keeps one key per scale.
+/// snapped frame with its origin a sixteenth of a device pixel past a
+/// whole one across: the atlas also keys a glyph by its x position in
+/// quarter device pixels, so a label that moves while it scales meets new
+/// keys at every quarter pixel it crosses, and on a grid scale with its
+/// origin on one phase of the pixel each glyph keeps one key per scale.
+/// The sixteenth keeps glyphs off the edges of the quarters: glyphs a
+/// whole number of points apart land on eighths of a pixel at 2.625x, and
+/// half of those on an edge, where rounding picks either quarter.
 ///
 /// A drawing that does not snap (a card: a snap about its center would
 /// move its far text against the card's edges) draws from its raster
@@ -523,9 +526,9 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
   final bool snaps;
 
   /// Whether a moving child snaps down to the slowest drift of its scale
-  /// and is drawn snapped with its origin on a whole device pixel across,
-  /// for a label that moves while its scale animates (a tab bar's labels
-  /// as the bar swells about its center).
+  /// and is drawn snapped with its origin a sixteenth of a device pixel
+  /// past a whole one across, for a label that moves while its scale
+  /// animates (a tab bar's labels as the bar swells about its center).
   ///
   /// NEAR: a snapped frame is drawn up to half a device pixel (a sixth of
   /// a point at 3x) to the side of its exact place, besides the snap's
@@ -752,8 +755,8 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   bool _aligned = false;
 
   /// Whether a moving child snaps down to the slowest drift of its scale
-  /// and is drawn snapped with its origin on a whole device pixel across
-  /// ([MorphGlyphs.aligned]).
+  /// and is drawn snapped with its origin on one phase of a device pixel
+  /// across ([MorphGlyphs.aligned]).
   bool get aligned => _aligned;
 
   set aligned(bool value) {
@@ -1284,8 +1287,9 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   }
 
   /// The shift across, in this box's coordinates, that puts the origin of
-  /// the child snapped by [factor] about the box's center on a whole
-  /// device pixel; 0 under a rotation or skew, where no shift aligns it.
+  /// the child snapped by [factor] about the box's center a sixteenth of a
+  /// device pixel past the nearest whole one; 0 under a rotation or skew,
+  /// where no shift aligns it.
   double _alignment(double factor) {
     final s = getTransformTo(null).storage;
     if (s[1] != 0 || s[4] != 0 || s[3] != 0 || s[7] != 0 || s[0] <= 0) {
@@ -1293,7 +1297,9 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
     }
     final left = size.width / 2 * (1 - factor);
     final x = (s[0] * left + s[12]) / s[15] * _devicePixelRatio;
-    return (x.roundToDouble() - x) / (s[0] / s[15] * _devicePixelRatio);
+    const phase = 1 / 16;
+    final aligned = (x - phase).roundToDouble() + phase;
+    return (aligned - x) / (s[0] / s[15] * _devicePixelRatio);
   }
 
   /// Paints the child unblurred and opaque in [mode] at [screen].

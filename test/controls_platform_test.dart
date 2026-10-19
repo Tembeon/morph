@@ -638,6 +638,7 @@ void main() {
         selected: 0,
         height: 54,
         reducedMotion: true,
+        chromeSize: const Size(188, 62),
       );
       motion.advance(0);
       motion.pointerDown(0.1, 136);
@@ -649,9 +650,8 @@ void main() {
         maxLift = maxLift > motion.lift ? maxLift : motion.lift;
         final deform = (motion.scaleX - 1).abs();
         maxDeform = maxDeform > deform ? maxDeform : deform;
-        maxGrowth = maxGrowth > motion.chromeGrowth
-            ? maxGrowth
-            : motion.chromeGrowth;
+        final growth = (motion.chrome.scaleX - 1).abs();
+        maxGrowth = maxGrowth > growth ? maxGrowth : growth;
       }
       motion.pointerUp(0.6, 136);
       motion.advance(2);

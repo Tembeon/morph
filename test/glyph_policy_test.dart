@@ -180,9 +180,8 @@ void main() {
     expect(rest.center, plain.center);
   });
 
-  testWidgets('an aligned label moving slowly lands on a whole device pixel', (
-    tester,
-  ) async {
+  testWidgets('an aligned label moving slowly lands a sixteenth past a device '
+      'pixel', (tester) async {
     final ratio = tester.view.devicePixelRatio;
     Future<Float64List> paint(double scale) async {
       final log = <Float64List>[];
@@ -215,7 +214,7 @@ void main() {
       final m = await paint(scale);
       final glyphs = _only(tester);
       expect(glyphs.debugMode, MorphGlyphMode.snapped);
-      final x = m[12] * ratio;
+      final x = m[12] * ratio - 1 / 16;
       expect(x, closeTo(x.roundToDouble(), 1e-4));
       final steps = math.log(m[0]) / math.ln2 * MorphGlyphScale.stepsPerOctave;
       expect(steps, closeTo(steps.roundToDouble(), 1e-4));

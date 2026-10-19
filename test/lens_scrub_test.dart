@@ -35,11 +35,16 @@ class _Errors {
 /// Replays the touches of [file] through a lens of [tuning] resting in
 /// slot 0 of [slots] and compares it with the recorded lens of [control].
 ///
-/// The tab bar's lens sits inside the bar, which swells around
-/// [_barCenter] while pressed, so the recorded window position is taken
-/// back into the bar's own coordinates by the swell the lens bounds show;
-/// the drift of the deformation is removed, leaving the travel center.
-/// Isolated frames that jump into the bar's own coordinates are a
+/// The tab bar's lens sits inside the bar, which flexes about
+/// [_barCenter] while pressed: it scales and shifts after the finger. The
+/// recorded window position is taken back into the bar's own coordinates
+/// by the bar's scale the lens bounds show and by the bar's shift, which
+/// is UIKit's drift of a bar [barWidth] wide: the width times half the
+/// difference of its two scales, in the finger's direction (its flex
+/// moves both scales by the same stretch and the drift by that stretch
+/// times the width, on one spring; read from UIKit, notes private). The
+/// drift of the lens's own deformation is removed too, leaving the travel
+/// center. Isolated frames that jump into the bar's own coordinates are a
 /// recording glitch of UIKit's tab bar and are dropped.
 _Errors _replay(
   String file,
@@ -47,8 +52,9 @@ _Errors _replay(
   MorphLensTuning tuning,
   List<double> centers,
   double width,
-  double height,
-) {
+  double height, {
+  double barWidth = 0,
+}) {
   final trace = Trace.load('$_dir/$file');
   final down = trace.touches.first;
   final up = trace.touches.lastWhere((t) => t.phase == 3);
@@ -82,12 +88,14 @@ _Errors _replay(
         level[i],
   ];
   final errors = _Errors();
+  var travel = 0.0;
   var next = 0;
   double? previous;
   double? previousHeight;
   for (final f in frames) {
     while (next < trace.touches.length && trace.touches[next].t <= f.t) {
       final touch = trace.touches[next++];
+      travel = touch.x - down.x;
       switch (touch.phase) {
         case 0:
           motion.pointerDown(touch.t, touch.x);
@@ -104,8 +112,13 @@ _Errors _replay(
     previousHeight = f.bh;
     if (stale) continue;
     final swell = f.w / (f.bw * f.sx);
+    final across = f.h / (f.bh * f.sy);
+    final shift = travel.sign * barWidth * (swell - across) / 2;
     final local =
-        _barCenter + (f.x - _barCenter) / swell - (f.opt('p_driftX') ?? 0);
+        _barCenter +
+        (f.x - _barCenter) / swell -
+        shift -
+        (f.opt('p_driftX') ?? 0);
     final error = motion.travelCenter - local;
     (f.t < up.t ? errors.scrub : errors.release).add(error);
   }
@@ -122,18 +135,28 @@ _Errors _replay(
 _Errors _tabBar(String file) {
   final count = int.parse(file.substring(6, 7));
   final (centers, width) = _tabBars[count]!;
-  return _replay(file, 'tabbar', MorphLensTuning.tabBar, centers, width, 54);
+  return _replay(
+    file,
+    'tabbar',
+    MorphLensTuning.tabBar,
+    centers,
+    width,
+    54,
+    barWidth: (centers[1] - centers[0]) * count + 16,
+  );
 }
 
 void main() {
   test('a scrubbed tab bar lens follows the recorded lens', () {
+    // With the bar's shift taken out the releases replay to 0.03 - 0.2 pt
+    // (0.11 - 0.3 when the shift was read as the lens's own drag gain).
     const files = {
       'tabbar3-scrub-mid.jsonl': (1.0, 0.25),
-      'tabbar3-scrub-pastright.jsonl': (1.3, 0.25),
-      'tabbar3-scrub-pastleft.jsonl': (1.35, 0.2),
-      'tabbar5-scrub-mid.jsonl': (0.75, 0.25),
-      'tabbar5-scrub-pastright.jsonl': (0.8, 0.4),
-      'tabbar5-scrub-pastleft.jsonl': (1.35, 0.35),
+      'tabbar3-scrub-pastright.jsonl': (1.3, 0.1),
+      'tabbar3-scrub-pastleft.jsonl': (1.35, 0.05),
+      'tabbar5-scrub-mid.jsonl': (0.75, 0.15),
+      'tabbar5-scrub-pastright.jsonl': (0.8, 0.07),
+      'tabbar5-scrub-pastleft.jsonl': (1.35, 0.05),
     };
     final all = <double>[];
     for (final MapEntry(key: file, value: (scrub, release)) in files.entries) {

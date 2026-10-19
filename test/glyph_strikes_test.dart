@@ -338,8 +338,8 @@ void main() {
   //
   // The ceilings also follow the bar's swell, which starts with the lens
   // and returns 22 ms after the release (the device's, chromeLag and
-  // chromeReleaseLag), so a 60 ms tap swells the bar about 40 percent
-  // less than one lag of 20 ms at both ends did. Over 10 seeds x touch
+  // chromeReleaseLag, then 45 and 22 ms), so a 60 ms tap swells the bar
+  // about 40 percent less than one lag of 20 ms at both ends did. Over 10 seeds x touch
   // phases 0 / 4 / 8 / 12 ms, paired against that lag: at 60 Hz tap flat
   // 5.7 -> 5.8, drag flat 6.9 -> 7.6, tap liquid 47.2 -> 50.9, drag
   // liquid 40.7 -> 45.0 (means; last-run keys of the liquid tap median
@@ -349,18 +349,25 @@ void main() {
   // The owner held those as temporary ceilings: [ceilings] keeps the
   // targets from before the device's swell lags, and a cell back under
   // its target fails, so its raised entry goes with the fix.
+  //
+  // The bar then took UIKit's flex (MorphLensTuning.chromeFlexes): 14.14
+  // pt of growth, its springs, and a drag stretching and shifting the bar.
+  // Two snaps brought the cells back (before -> after, strike frames and
+  // last-run keys): an aligned label's origin a sixteenth of a pixel past
+  // a whole one, off the edges of the atlas's quarters that eighths of a
+  // pixel hit at 2.625x, and the lens copy's ratio across on the copy's
+  // own grid, so a lift's sweep of the rim's growth meets few scales
+  // across: tap flat 5 -> 4, drag flat 8 -> 6, tap liquid 52 / 54 keys ->
+  // 38 / 16, drag liquid 47 -> 41. The drag liquid cell's last 4 are the
+  // stretch: labels entering the lens while the drag grows the bar's
+  // scale (without it 35).
   const ceilings = {
     ('tap', MorphGlassTier.flat): (4, 30),
     ('drag', MorphGlassTier.flat): (6, 30),
     ('tap', MorphGlassTier.liquid): (50, 37),
     ('drag', MorphGlassTier.liquid): (37, 30),
   };
-  const raised = {
-    ('tap', MorphGlassTier.flat): (5, 30),
-    ('drag', MorphGlassTier.flat): (7, 30),
-    ('tap', MorphGlassTier.liquid): (53, 62),
-    ('drag', MorphGlassTier.liquid): (43, 30),
-  };
+  const raised = {('drag', MorphGlassTier.liquid): (41, 30)};
   for (final MapEntry(key: (cell, tier), value: (ceiling, lastRun))
       in ceilings.entries) {
     testWidgets('tab-bar/$cell/${tier.name} strikes mostly its first visits', (
