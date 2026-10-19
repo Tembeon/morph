@@ -1248,33 +1248,37 @@ class _AlertCard extends StatelessWidget {
     final textWidth = width - 2 * MorphAlertTuning.textInset;
     final header = <Widget>[
       if (title != null)
-        Text(
-          title,
-          textAlign: TextAlign.start,
-          style: MorphTypography.resolve(
-            MorphTypography.alertTitle.copyWith(
-              height: MorphAlertTuning.textHeight,
-              fontWeight: both ? null : MorphAlertTuning.singleHeaderWeight,
-              color: style.titleColor,
+        MorphLabelHeight(
+          child: Text(
+            title,
+            textAlign: TextAlign.start,
+            style: MorphTypography.resolve(
+              MorphTypography.alertTitle.copyWith(
+                height: MorphAlertTuning.textHeight,
+                fontWeight: both ? null : MorphAlertTuning.singleHeaderWeight,
+                color: style.titleColor,
+              ),
             ),
           ),
         ),
       if (both) const SizedBox(height: MorphAlertTuning.titleGap),
       if (message != null)
-        Text(
-          message,
-          textAlign: TextAlign.start,
-          style: MorphTypography.resolve(
-            single
-                ? TextStyle(
-                    fontSize: MorphAlertTuning.textFontSize,
-                    height: MorphAlertTuning.textHeight,
-                    color: style.titleColor,
-                  )
-                : MorphTypography.alertMessage.copyWith(
-                    height: MorphAlertTuning.messageHeight,
-                    color: style.messageColor,
-                  ),
+        MorphLabelHeight(
+          child: Text(
+            message,
+            textAlign: TextAlign.start,
+            style: MorphTypography.resolve(
+              single
+                  ? TextStyle(
+                      fontSize: MorphAlertTuning.textFontSize,
+                      height: MorphAlertTuning.textHeight,
+                      color: style.titleColor,
+                    )
+                  : MorphTypography.alertMessage.copyWith(
+                      height: MorphAlertTuning.messageHeight,
+                      color: style.messageColor,
+                    ),
+            ),
           ),
         ),
     ];

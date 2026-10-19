@@ -121,7 +121,7 @@ bool?`; the arrow names follow UIKit (`MorphPopoverArrowDirection { up, down, le
 | dimension | grade | evidence | open items |
 |---|---|---|---|
 | api | read | this page, 27.1 headers | 3 low gaps |
-| layout | replayed | test/alert_layout_replay_test.dart: the three-action alert's platter and buttons rest on the recorded frames of 5 device and 3 simulator captures (0.5 pt); test/alert_test.dart (order, 56 pt pitch, RTL) | `fieldTop` 16.33 and `fieldBottom` 4 (alert_motion.dart:90, 96) have no source |
+| layout | replayed | test/alert_layout_replay_test.dart: the three-action alert's platter and buttons rest on the recorded frames of 5 device and 3 simulator captures (0.5 pt; platter 264.0 = UIKit, header labels 20.33 / 18 as UILabel); test/alert_test.dart (order, 56 pt pitch, RTL); header gaps and `fieldTop` read from the device view dumps (passport) | `singleHeaderBottom` 3.67 has no capture; a row alert with a text field lays out 212 pt vs UIKit's 216 (buttons 4 pt high, passport); `fieldBottom` 4 is the dumps' collection view below the field cell, its use not replayed |
 | states | replayed | test/disabled_test.dart (`ios27-device/disabled/disabled.json`); passport "Disabled actions" | pressed fill 0.4 measured, not replayed |
 | transitions | replayed | test/alert_test.dart "alert motion replays" (sim + device `alert-present-dismiss.jsonl`: scale < 0.0015, dimming < 0.012 rms) | Reduce Motion present (accessibility) |
 | boundaries | unbacked | test/alert_test.dart (overflowing alert scrolls and cancels the press) | `screenMargin` 20 (alert_motion.dart:47) is an engineering default; the scroll rule is the menu's (declared); the row-to-column switch for long titles is unmeasured |
@@ -138,7 +138,7 @@ bool?`; the arrow names follow UIKit (`MorphPopoverArrowDirection { up, down, le
 | dimension | grade | evidence | open items |
 |---|---|---|---|
 | api | read | this page | `permittedArrowDirections` |
-| layout | replayed | test/alert_test.dart "placement matches UIKit" (`ios27/alert/placements.json`, 15 cases, 0.5 pt) | the popover content rests 0.72 pt low and 0.71 pt short of UIKit's 208.33 on all 5 captures (test/alert_layout_replay_test.dart, skipped): the header constants give 207.99 and the host text engine lays the 20.33 pt title line out 20 tall |
+| layout | replayed | test/alert_test.dart "placement matches UIKit" (`ios27/alert/placements.json`, 15 cases, 0.5 pt); test/alert_layout_replay_test.dart popover content on 5 device and simulator captures (0.5 pt) | the content rests 0.37 pt low and short of UIKit's 208.33 (207.96): the header is UIKit's 72, UIKit adds 0.33 below it (source unread) and the popover rests at scale 0.9998 |
 | states | measured | passport "Spec - action sheet popover" | disabled actions are replayed for the alert only |
 | transitions | replayed | test/alert_test.dart "popover motion replays" (sim + device `actionsheet-present-dismiss.jsonl`, < 0.007) | - |
 | boundaries | replayed | `placements.json` corner-clearance and margin cases | no device placements |
