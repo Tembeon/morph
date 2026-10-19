@@ -559,3 +559,17 @@ Local patches (some commits include related package changes):
   and is its CPU reference; LiquidGlassLayer.live(glowOf:) and
   RenderLiquidGlassLayer.glow carry it (a change rewrites the common
   uniforms and repaints the layer). Fake glass draws no glow.
+- 2026-10-19 fake glass removed: morph draws liquid where the GPU holds
+  it and flat everywhere else, so the fake tier and its files are gone
+  (rendering/consolidated_fake_glass_layer.dart,
+  internal/paint_fake_glass_surface.dart, internal/fake_glass_color.dart,
+  shaders/fake_glass_surface.frag, shaders/fake_glass_shape.glsl and the
+  fake warm-up scene). LiquidGlassLayer.fake, the render scope's
+  consolidatesFakeBackdrop / consolidatesFakeSurface and the layer shadows
+  only the fake layer painted (LiquidGlassShapeRenderObject.layerShadows,
+  ShapeGeometry.shadows, drawGlassShadows, materialOutset) are removed;
+  GlassShadow draws every shape's shadows. While Impeller shader filters
+  are unsupported or its Flutter GPU geometry renderer is still loading,
+  a LiquidGlassLayer paints its child with no glass (morph builds liquid
+  layers only once the liquid tier is available, which caches the
+  renderer). The 3cec75e fake patches above went with the fake layer.

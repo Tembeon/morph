@@ -34,7 +34,7 @@ import 'package:morph/src/theme/glass.dart';
 ///
 /// Only glass that looks the same, or within a few channel steps, either
 /// way joins: resting body glass (glass buttons, search capsules) of the
-/// installed [GlassBuiltInPainter] on the liquid or fake tier, with the
+/// installed [GlassBuiltInPainter] on the liquid tier, with the
 /// material the container's own resting button has, up to the most shapes
 /// one geometry pass encodes. A member whose glass differs only in tint (a
 /// prominent button) joins too and reads its tint from the layer's material
@@ -77,8 +77,7 @@ class MorphGlassContainer extends StatefulWidget {
   /// GPU. The container trusts the color: glass over anything else shows
   /// this color instead. A member that leaves the container reads its
   /// backdrop in its own layer as before. Ignored unless the color is
-  /// fully opaque, and ignored on the fake tier, whose container reads its
-  /// backdrop as before.
+  /// fully opaque.
   final Color? solidBackdrop;
 
   @override
@@ -128,7 +127,7 @@ class MorphGlassStage extends StatefulWidget {
   /// - the stage shades its members over the color itself instead of
   /// reading the backdrop: no backdrop filter at all. A member that leaves
   /// the stage reads its backdrop in its own layer as before. Ignored
-  /// unless the color is fully opaque, and ignored on the fake tier.
+  /// unless the color is fully opaque.
   final Color? solidBackdrop;
 
   /// Whether the stage closes while its glass would blur: for a stage
@@ -271,8 +270,7 @@ Widget _containerLayer(
   return ValueListenableBuilder<bool>(
     valueListenable: morphLiquidGlassCapability,
     builder: (BuildContext context, bool _, Widget? child) {
-      final tier = painter.effectiveTier;
-      if (tier == MorphGlassTier.flat) return child!;
+      if (painter.effectiveTier == MorphGlassTier.flat) return child!;
       final settings = morphLiquidSettings(
         painter,
         MorphGlassSurface(
@@ -295,7 +293,6 @@ Widget _containerLayer(
       return LiquidGlassLayer(
         settings: settings,
         defaultAppearance: appearance,
-        fake: tier == MorphGlassTier.fake,
         useBackdropGroup: true,
         solidBackdrop: solidBackdrop,
         child: MorphGlassContainerScope(

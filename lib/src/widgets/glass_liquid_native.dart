@@ -28,8 +28,8 @@ final LiquidCapability _capability = LiquidCapability(
 
 Future<void>? _warmUp;
 
-/// Warms the liquid pipelines, then the fake glass ones, on a GPU the
-/// automatic choice draws liquid on.
+/// Warms the liquid pipelines on a GPU the automatic choice draws liquid
+/// on.
 ///
 /// Nothing is warmed on any other device class: the cheap tier draws no
 /// backdrop pipelines, and on Impeller's OpenGL ES backend an offscreen
@@ -47,14 +47,12 @@ Future<void> _warmPipelines() async {
           ShaderKeys.gpuGeometryShaderBundle,
         )
       : null;
-  if (geometry != null) {
-    try {
-      await morphWarmLiquidPipelines(geometry, _finalShaders);
-    } finally {
-      geometry.dispose();
-    }
+  if (geometry == null) return;
+  try {
+    await morphWarmLiquidPipelines(geometry, _finalShaders);
+  } finally {
+    geometry.dispose();
   }
-  await morphWarmFakePipelines();
 }
 
 /// Whether the GPU context and all liquid shaders are ready.

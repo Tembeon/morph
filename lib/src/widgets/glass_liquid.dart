@@ -3,7 +3,7 @@
 ///
 /// The web gets a stub capability that never touches Flutter GPU: its
 /// shader compiler cannot build the liquid shaders, so there the renderer
-/// draws the same layers as fake glass.
+/// draws flat glass.
 library;
 
 export 'package:morph/src/widgets/glass_liquid_web.dart'

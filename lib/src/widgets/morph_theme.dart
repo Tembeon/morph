@@ -21,9 +21,11 @@ import 'package:morph/src/widgets/glass_tier.dart';
 /// Liquid glass needs Impeller with Flutter GPU: `FLTEnableFlutterGPU` in
 /// the Apple app's Info.plist, `io.flutter.embedding.android.EnableFlutterGPU`
 /// in the Android manifest. Await [precacheGlass] before `runApp` so the
-/// first frame already draws liquid glass; until the shaders are ready, or
-/// when they fail, liquid draws fake glass. Native builds package the GPU
-/// shader bundle from the package's build hook in `build/shaderbundles/`.
+/// first frame already draws liquid glass; until the shaders are ready, and
+/// where they fail or cannot load (the web), liquid draws flat glass, and
+/// glass drawn flat turns liquid once they are ready. Native builds package
+/// the GPU shader bundle from the package's build hook in
+/// `build/shaderbundles/`.
 ///
 /// A theme that chooses glass installs a [BackdropGroup] unless one is
 /// above it. Resting glass in one group shares one copy of the screen,
@@ -77,7 +79,8 @@ class MorphTheme extends StatelessWidget {
   /// Whether the runtime GPU context and liquid shaders are ready.
   ///
   /// False on the web, whose shader compiler cannot build the renderer's
-  /// shaders; there liquid glass draws fake glass.
+  /// shaders, and until the shaders are loaded elsewhere; meanwhile liquid
+  /// glass draws flat glass.
   static bool get liquidGlassAvailable => GlassBuiltInPainter.liquidAvailable;
 
   /// The reason liquid glass initialization failed on this runtime.

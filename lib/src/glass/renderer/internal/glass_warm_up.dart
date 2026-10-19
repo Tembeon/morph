@@ -5,10 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
-import 'package:morph/src/glass/renderer/internal/fake_glass_color.dart';
-import 'package:morph/src/glass/renderer/internal/paint_fake_glass_surface.dart';
 import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
-import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
@@ -218,91 +215,6 @@ PictureLayer _solidPaint(ui.FragmentShader shader, Rect bounds) {
   return layer;
 }
 
-/// Rasterizes an offscreen scene with the fake glass layers: the
-/// backdrop through the fake face's color matrix, alone and over each
-/// frost, inside an antialiased rounded clip and an outline path, under
-/// the fake surface shader, and the glass shadows.
-///
-/// Runs only under Impeller, which creates these pipeline variants at
-/// their first draw; elsewhere it completes at once.
-@internal
-Future<void> morphWarmFakePipelines() async {
-  if (!ui.ImageFilter.isShaderFilterSupported) return;
-  try {
-    await morphRasterizeFakeWarmUp();
-  } on Object catch (error) {
-    _report(error);
-  }
-}
-
-/// Rasterizes the fake glass warm-up scene on any backend, throwing what
-/// it meets; without the surface shader's asset (flutter_test) it draws
-/// the filters alone.
-@visibleForTesting
-Future<void> morphRasterizeFakeWarmUp() async {
-  ui.FragmentShader? shader;
-  try {
-    final program = await ui.FragmentProgram.fromAsset(
-      ShaderKeys.fakeGlassSurface,
-    );
-    shader = program.fragmentShader();
-  } on Exception catch (error) {
-    _report(error);
-  }
-  final face = ui.ColorFilter.matrix(
-    fakeGlassFaceMatrix(
-      emission: const Color(0xFF202020),
-      transmittance: 0.6,
-      lift: 1,
-      chromaGain: 1,
-    ),
-  );
-  final filters = <ui.ImageFilter>[
-    face,
-    for (final sigma in _frostSigmas)
-      ui.ImageFilter.compose(
-        inner: ui.ImageFilter.blur(
-          sigmaX: sigma,
-          sigmaY: sigma,
-          tileMode: TileMode.mirror,
-        ),
-        outer: face,
-      ),
-  ];
-  final count = filters.length * 2;
-  return _rasterize((row, cell) {
-    final layers = <Layer>[];
-    for (final filter in filters) {
-      for (final outline in [false, true]) {
-        final bounds = cell(layers.length);
-        final ContainerLayer clip;
-        if (outline) {
-          final path = Path();
-          path.addRRect(
-            RRect.fromRectAndRadius(
-              bounds.deflate(4),
-              const Radius.circular(6),
-            ),
-          );
-          path.addOval(bounds.topLeft & const Size(10, 10));
-          clip = ClipPathLayer(clipPath: path);
-        } else {
-          clip = ClipRRectLayer(
-            clipRRect: RRect.fromRectAndRadius(
-              bounds,
-              const Radius.circular(8),
-            ),
-          );
-        }
-        clip.append(_backdrop(filter, row));
-        if (shader != null) clip.append(_surface(shader, bounds));
-        layers.add(clip);
-      }
-    }
-    return layers;
-  }, count);
-}
-
 BackdropFilterLayer _backdrop(ui.ImageFilter filter, BackdropKey? key) {
   final layer = BackdropFilterLayer(filter: filter);
   layer.backdropKey = key;
@@ -386,26 +298,6 @@ ui.Picture _backdropPicture(Rect bounds) {
   canvas.restore();
   canvas.restore();
   return recorder.endRecording();
-}
-
-/// The fake surface shader's draw over a cell: its tint, rim, bevel and
-/// highlight.
-PictureLayer _surface(ui.FragmentShader shader, Rect bounds) {
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder, bounds);
-  canvas.translate(bounds.left, bounds.top);
-  paintFakeGlassSurface(
-    canvas,
-    shader: shader,
-    size: bounds.size,
-    shape: const LiquidRoundedSuperellipse(borderRadius: 8),
-    settings: const LiquidGlassSettings(),
-    appearance: const LiquidGlassAppearance(),
-    devicePixelRatio: 3,
-  );
-  final layer = PictureLayer(bounds.inflate(4));
-  layer.picture = recorder.endRecording();
-  return layer;
 }
 
 void _report(Object error) {

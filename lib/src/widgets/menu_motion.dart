@@ -1353,7 +1353,7 @@ class MorphMenuMotion
   late final MorphTouchGlowMotion _touchGlow = tuning.touchGlow();
 
   /// Whether a finger lights the open menu ([glowAt]): false where its
-  /// glass draws no glow (the flat and fake tiers, no painter), so the
+  /// glass draws no glow (the flat tier, no painter), so the
   /// menu spends no frame on a glow nobody sees.
   bool lightsGlow = true;
 

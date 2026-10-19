@@ -64,8 +64,10 @@ enum MorphGlassMaterial {
 /// kin). Frost is the dearest part of the liquid tier, so only bars,
 /// menus and lifted lenses frost unless [frostControls] is on.
 ///
-/// Until shaders are ready, or if they fail, liquid draws fake glass and
-/// reports [MorphGlassTier.fake].
+/// Until the liquid shaders are ready, and wherever they cannot load (the
+/// web among others), liquid draws flat glass and reports
+/// [MorphGlassTier.flat] as its [effectiveTier]. The glass turns liquid
+/// when the shaders resolve, whichever scope installed the renderer.
 @immutable
 class GlassBuiltInPainter extends MorphGlassPainter {
   /// Creates a renderer at [tier] with the liquid tier's settings.
@@ -111,7 +113,8 @@ class GlassBuiltInPainter extends MorphGlassPainter {
   /// Whether the runtime GPU context and liquid shaders are ready.
   ///
   /// False on the web, whose shader compiler cannot build the renderer's
-  /// shaders; there [MorphGlassTier.liquid] draws [MorphGlassTier.fake].
+  /// shaders, and until the shaders are loaded on every other runtime;
+  /// meanwhile [MorphGlassTier.liquid] draws [MorphGlassTier.flat].
   static bool get liquidAvailable => morphLiquidGlassAvailable;
 
   /// The reason liquid glass initialization failed on this runtime.
@@ -124,9 +127,10 @@ class GlassBuiltInPainter extends MorphGlassPainter {
   static String? get liquidUnavailableReason =>
       morphLiquidGlassUnavailableReason;
 
-  /// The best tier currently available on this runtime.
+  /// The best tier currently available on this runtime: liquid once its
+  /// shaders are ready, flat until then and wherever they cannot load.
   static MorphGlassTier get bestTier =>
-      liquidAvailable ? MorphGlassTier.liquid : MorphGlassTier.fake;
+      liquidAvailable ? MorphGlassTier.liquid : MorphGlassTier.flat;
 
   /// The tier this renderer draws: [tier], or [bestTier] when the build
   /// cannot draw [tier].
@@ -141,7 +145,7 @@ class GlassBuiltInPainter extends MorphGlassPainter {
   /// Pixel 6a (Vulkan) and moves that cost from the first glass frame to
   /// the launch. It holds the launch for at most one second; a GPU that is
   /// slower to start finishes the warm-up in the background, and glass
-  /// drawn before the liquid tier is ready is fake glass.
+  /// drawn before the liquid tier is ready is flat until it is.
   ///
   /// Unsupported runtimes and shader loading failures complete normally,
   /// report once through [FlutterError.reportError], and expose the cause
@@ -480,7 +484,7 @@ class GlassBuiltInPainter extends MorphGlassPainter {
     if (!surface.glass) return liveFill(context, source, select);
     return switch (effectiveTier) {
       MorphGlassTier.flat => liveFill(context, source, select),
-      MorphGlassTier.fake || MorphGlassTier.liquid => morphLiquidSurface(
+      MorphGlassTier.liquid => morphLiquidSurface(
         this,
         context,
         source,
@@ -496,7 +500,6 @@ class GlassBuiltInPainter extends MorphGlassPainter {
     select,
   ) => switch (effectiveTier) {
     MorphGlassTier.flat => morphGlassLiveBody(source, select),
-    MorphGlassTier.fake ||
     MorphGlassTier.liquid => morphLiquidBody(this, context, source, select),
   };
 

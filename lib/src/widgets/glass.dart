@@ -5,7 +5,9 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/theme/glass.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
+import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
@@ -205,8 +207,8 @@ class MorphGlassSurface {
   ///
   /// A painter renders it as part of the surface's glass, over everything
   /// the glass shows and under the control's content, or not at all. The
-  /// package's renderer lights the glass on its liquid tier; its flat and
-  /// fake tiers, like a control without a painter, draw no glow.
+  /// package's renderer lights the glass on its liquid tier; its flat
+  /// tier, like a control without a painter, draws no glow.
   final MorphGlassGlow? glow;
 
   /// The box the surface occupies in the control's local coordinates.
@@ -546,6 +548,10 @@ class _BodyPainter extends CustomPainter {
 /// An inherited theme: a surface presented from below it (a morph flight
 /// and its content, an alert, a sheet, a popover) draws with this
 /// painter, whichever overlay or route it lives in.
+///
+/// The package's own renderer asked for liquid glass draws flat until the
+/// liquid tier is ready; the scope then rebuilds the controls below it,
+/// which turn liquid.
 class MorphGlassScope extends InheritedTheme {
   /// Installs [painter] for [child].
   const MorphGlassScope({
@@ -568,6 +574,69 @@ class MorphGlassScope extends InheritedTheme {
   @override
   bool updateShouldNotify(MorphGlassScope oldWidget) =>
       oldWidget.painter != painter;
+
+  @override
+  InheritedElement createElement() => _MorphGlassScopeElement(this);
+}
+
+// A renderer asking for liquid draws flat until the capability resolves,
+// and its == does not see the flip: the scope tells its dependents itself.
+class _MorphGlassScopeElement extends InheritedElement {
+  _MorphGlassScopeElement(MorphGlassScope super.widget);
+
+  bool _listening = false;
+  bool _resolved = false;
+
+  void _follow() {
+    final painter = (widget as MorphGlassScope).painter;
+    final waits =
+        painter is GlassBuiltInPainter &&
+        painter.tier == MorphGlassTier.liquid &&
+        !GlassBuiltInPainter.liquidAvailable;
+    if (waits == _listening) return;
+    _listening = waits;
+    if (waits) {
+      morphLiquidGlassCapability.addListener(_capabilityChanged);
+    } else {
+      morphLiquidGlassCapability.removeListener(_capabilityChanged);
+    }
+  }
+
+  void _capabilityChanged() {
+    if (!GlassBuiltInPainter.liquidAvailable) return;
+    _resolved = true;
+    markNeedsBuild();
+  }
+
+  @override
+  void mount(Element? parent, Object? newSlot) {
+    super.mount(parent, newSlot);
+    _follow();
+  }
+
+  @override
+  void update(MorphGlassScope newWidget) {
+    super.update(newWidget);
+    _follow();
+  }
+
+  @override
+  Widget build() {
+    if (_resolved) {
+      _resolved = false;
+      _follow();
+      notifyClients(widget as MorphGlassScope);
+    }
+    return super.build();
+  }
+
+  @override
+  void unmount() {
+    if (_listening) {
+      morphLiquidGlassCapability.removeListener(_capabilityChanged);
+    }
+    super.unmount();
+  }
 }
 
 /// The painter installed above [context], read without depending on it.

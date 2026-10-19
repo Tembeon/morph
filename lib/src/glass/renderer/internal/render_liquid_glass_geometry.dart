@@ -72,9 +72,6 @@ typedef LiquidGlassTransformPoll = ({
 /// A render object that contributes one glass shape to a geometry pass.
 @internal
 mixin LiquidGlassShapeRenderObject on RenderBox {
-  /// Shadows painted by the parent layer before grouped glass shading.
-  List<BoxShadow> get layerShadows;
-
   /// Resolved color and materialization controls for this shape.
   LiquidGlassAppearance get appearance;
 }
@@ -411,7 +408,6 @@ class ShapeGeometry {
     required this.shape,
     required this.shapeBounds,
     required this.appearance,
-    this.shadows = const [],
     this.shapeToGeometry,
   }) : rawCornerRadius = _getRadiusFromGlassShape(shape),
        rawShapeType = RawShapeType.fromLiquidGlassShape(shape);
@@ -440,8 +436,6 @@ class ShapeGeometry {
   /// Bounds in geometry-local coordinates (for painting)
   final Rect shapeBounds;
 
-  final List<BoxShadow> shadows;
-
   final Matrix4? shapeToGeometry;
 
   @override
@@ -453,7 +447,6 @@ class ShapeGeometry {
           other.shape == shape &&
           other.appearance == appearance &&
           other.shapeBounds == shapeBounds &&
-          listEquals(other.shadows, shadows) &&
           other.shapeToGeometry == shapeToGeometry;
 
   @override
@@ -463,12 +456,11 @@ class ShapeGeometry {
     shape,
     appearance,
     shapeBounds,
-    Object.hashAll(shadows),
     shapeToGeometry,
   );
 
   @override
   String toString() =>
       '${objectRuntimeType(this, 'ShapeGeometry')}($renderObject, $shape, $appearance, $shapeBounds, '
-      '$shadows, $shapeToGeometry)';
+      '$shapeToGeometry)';
 }
