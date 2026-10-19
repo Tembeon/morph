@@ -660,3 +660,11 @@ Local patches (some commits include related package changes):
   submission and pipeline counts) are removed on both the native and the
   web renderer; GlassCostProbe.pooled and pooledShader, the probes of the
   rejected plane study, are removed.
+- 2026-10-20 per-axis matte density: glassMatteDensity returns a scale per
+  axis, so a held tab bar's flex (scaleX != scaleY) is encoded at the
+  pass's pixels too. The geometry passes (geometry_fragment,
+  geometry_field_fragment, geometry_fused_fragment) read a vec2
+  uMatteDensity, the last member of their uniform blocks, and map a texel
+  to the layer's device pixels as gl_FragCoord / uMatteDensity + uOffset;
+  shapes, fields, boxes and ranges are packed in the layer's device pixels
+  whatever the density.

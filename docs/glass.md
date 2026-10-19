@@ -285,10 +285,12 @@ rest. Qualification: tool/audit/claude-navigation-options-report.md.
   (gpu/geometry_fused_fragment.glsl; fused_optics.glsl holds the optics
   both passes share), never from the 4 pt sampled field, so a rest frame
   matches the moving ones up to the matte's quantization.
-- A matte under a uniform scale of its pass (0.5 to 2, no material map;
-  a held tab bar's swell) is encoded at the pass's pixels, its texels
-  centered on them (`glassMatteDensity`), so its nearest samples repeat
-  no texel.
+- A matte under a scale of its pass along its axes (each 0.5 to 2, no
+  material map; a held tab bar's flex stretches one axis and squashes the
+  other) is encoded at the pass's pixels, its texels centered on them
+  (`glassMatteDensity`), so its nearest samples repeat no texel; the
+  geometry passes map a texel to the layer's device pixels, in which every
+  encoded position and distance stays.
 - The body shadow is the plain union of the boxes clipped outside a
   neck-covering path (fidelity NEAR).
 - Menus (blurred SDF), bodies of 5+ boxes and mixed appearances keep the
