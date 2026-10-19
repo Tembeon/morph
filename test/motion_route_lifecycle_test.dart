@@ -113,4 +113,50 @@ void main() {
     expect(second.animation!.status, AnimationStatus.completed);
     expect(second.animation!.value, 1);
   });
+
+  testWidgets('a page zoomed out of a source completes at the zoom\'s rest', (
+    tester,
+  ) async {
+    _screen(tester);
+    final link = MorphSourceLink();
+    await tester.pumpWidget(
+      WidgetsApp(
+        color: const Color(0xFFFFFFFF),
+        navigatorKey: _nav,
+        pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
+            PageRouteBuilder<T>(
+              settings: settings,
+              transitionDuration: Duration.zero,
+              pageBuilder: (context, _, _) => builder(context),
+            ),
+        home: Center(
+          child: MorphSource(
+            link: link,
+            child: const SizedBox(width: 120, height: 80),
+          ),
+        ),
+      ),
+    );
+    final route = MorphNavigationRoute<void>(
+      from: link,
+      builder: (context) => const SizedBox.expand(child: Text('page')),
+    );
+    _nav.currentState!.push<void>(route);
+    await tester.pump();
+    var opening = 0;
+    while (route.animation!.status == AnimationStatus.forward) {
+      await tester.pump(_step);
+      opening++;
+      expect(opening, lessThan(400));
+    }
+    expect(route.animation!.status, AnimationStatus.completed);
+    expect(opening, greaterThan(5), reason: 'completed waits for the rest');
+    _nav.currentState!.pop();
+    await tester.pump();
+    expect(route.animation!.status, AnimationStatus.reverse);
+    await _pumpUntil(
+      tester,
+      () => route.animation!.status == AnimationStatus.dismissed,
+    );
+  });
 }

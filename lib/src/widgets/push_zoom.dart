@@ -35,6 +35,9 @@ abstract interface class MorphPushZoomHost {
   /// Called once the zoom back into the source has come to rest.
   void zoomClosed();
 
+  /// Called when the zoom out of the source has come to rest.
+  void zoomOpened();
+
   /// Hands the host the page's state, or null when it goes away.
   void attachZoomView(MorphPushZoomPageState? view);
 }
@@ -117,6 +120,8 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
       _finished = true;
       _source.reveal();
       _host.zoomClosed();
+    } else if (!_leaving && motion.isOpening && motion.isSettled) {
+      _host.zoomOpened();
     }
   }
 

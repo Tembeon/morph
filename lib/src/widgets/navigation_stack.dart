@@ -742,6 +742,9 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   bool get usesMotionRoute => _zooms;
 
   @override
+  bool get projectsMotion => _zooms;
+
+  @override
   bool leaveMotionRoute() {
     final view = _zoomView;
     if (view == null || !view.mounted) return false;
@@ -1108,6 +1111,9 @@ class _NavigationZoomHost<T> implements MorphPushZoomHost {
 
   @override
   void zoomClosed() => route.finishMotionRoute();
+
+  @override
+  void zoomOpened() => route.reportMotionOpened();
 
   @override
   void attachZoomView(MorphPushZoomPageState? view) => route._zoomView = view;

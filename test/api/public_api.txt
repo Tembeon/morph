@@ -1658,7 +1658,7 @@ class MorphNavigationRoute<T> extends PageRoute<T> with MorphMotionRouteMixin<T>
   final Widget Function(BuildContext) builder
   final MorphSourceLink? from
   final MorphPushZoomTuning zoom
-  overrides: barrierColor, barrierLabel, buildPage, buildTransitions, canTransitionTo, didPop, didPush, leaveMotionRoute, maintainState, opaque, popGestureEnabled, reverseTransitionDuration, transitionDuration, usesMotionRoute
+  overrides: barrierColor, barrierLabel, buildPage, buildTransitions, canTransitionTo, didPop, didPush, leaveMotionRoute, maintainState, opaque, popGestureEnabled, projectsMotion, reverseTransitionDuration, transitionDuration, usesMotionRoute
 class MorphNavigationScaffold extends StatefulWidget
   const MorphNavigationScaffold({
     required String title,
