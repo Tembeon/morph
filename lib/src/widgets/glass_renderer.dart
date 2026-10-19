@@ -676,6 +676,18 @@ bool morphGlassKeepsContentLive(MorphGlassPainter? painter) =>
       _ => false,
     };
 
+/// Whether glass drawn with [painter] shows a touch glow
+/// ([MorphGlassSurface.glow]): the package's renderer only on its liquid
+/// tier, any other painter as far as the control can tell, no painter
+/// never. A control whose glass shows none spends no frame on its glow.
+@internal
+bool morphGlassLightsGlow(MorphGlassPainter? painter) => switch (painter) {
+  null => false,
+  final GlassBuiltInPainter renderer when renderer._exact =>
+    renderer.effectiveTier == MorphGlassTier.liquid,
+  _ => true,
+};
+
 /// Whether a control drawing with [painter] needs the field of the
 /// outlines it fuses, or their edge alone.
 ///

@@ -1352,6 +1352,15 @@ class MorphMenuMotion
   int _highlightCard = 0;
   late final MorphTouchGlowMotion _touchGlow = tuning.touchGlow();
 
+  /// Whether a finger lights the open menu ([glowAt]): false where its
+  /// glass draws no glow (the flat and fake tiers, no painter), so the
+  /// menu spends no frame on a glow nobody sees.
+  bool lightsGlow = true;
+
+  void _lightGlow(double t, Offset position) {
+    if (lightsGlow) _touchGlow.pointerDown(t, position);
+  }
+
   final MorphTimeline _timeline = MorphTimeline(now: 0);
   MorphMenuCloseRequested? _request;
   bool _yields = false;
@@ -2565,7 +2574,7 @@ class MorphMenuMotion
         return;
       }
       _track(t, pointer, position);
-      _touchGlow.pointerDown(t, position);
+      _lightGlow(t, position);
       _flexDown(t, position);
       return;
     }
@@ -2643,7 +2652,7 @@ class MorphMenuMotion
     if (_touchGlow.isDown) {
       _touchGlow.pointerMove(t, position);
     } else {
-      _touchGlow.pointerDown(t, position);
+      _lightGlow(t, position);
     }
     if (_flexTouch == null && !_flexPending) _flexDown(t, previous);
     _timeline.at(t + tuning.flexDelay, (double s) {
@@ -3094,7 +3103,7 @@ class MorphMenuMotion
     final pointer = _pointer;
     if (pointer != null && !pointer.fromButton) {
       _setHighlight(rowAt(pointer.position), _topCard);
-      _touchGlow.pointerDown(t, pointer.position);
+      _lightGlow(t, pointer.position);
     }
     final release = _earlyRelease;
     _earlyRelease = null;

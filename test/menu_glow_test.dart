@@ -125,5 +125,20 @@ void main() {
       motion.advance(1.15);
       expect(motion.glowAt(Brightness.light)?.center, row);
     });
+
+    test('a menu whose glass shows no glow lights none and rests', () {
+      final motion = menu();
+      motion.lightsGlow = false;
+      motion.open(0);
+      motion.advance(1);
+      final row = motion.menuRect.center;
+      motion.pointerDown(1, row);
+      motion.pointerMove(1.05, row + const Offset(0, 60));
+      motion.advance(1.2);
+      expect(motion.glowAt(Brightness.light), isNull);
+      motion.pointerUp(1.2, row + const Offset(0, 60));
+      motion.advance(1.3);
+      expect(motion.glowAt(Brightness.light), isNull);
+    });
   });
 }

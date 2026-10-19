@@ -306,6 +306,10 @@ paint layer.
 - The glow is not structure: it enters `LiquidGlassLayer.live` through
   `glowOf` every frame and rebuilds nothing. A glowing host joins no glass
   container (`morphGlassJoinLook`): the container's pass carries no glow.
+- `morphGlassLightsGlow(painter)`: whether glass shows a glow at all (the
+  renderer's liquid tier, any custom painter). The open menu lights none
+  without it (`MorphMenuMotion.lightsGlow`), so its 0.5 s fall keeps no
+  flat or fake menu awake. The tab bar and glass buttons still run theirs.
 - Fidelity NEAR against the old 16-stop gradient: under 0.65 of an 8-bit
   level inside three sigma for the tab bar and the menu, and the old cut
   at a six-sigma square (a step of `gain e^-4.5`: 0.9 level on the tab bar,
