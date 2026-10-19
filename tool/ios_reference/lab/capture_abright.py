@@ -6,8 +6,8 @@ attachments and pulls the probe's rows. The owner sets the system appearance bef
 (Settings > Display); the probe never forces it. See spec/adaptive-brightness-capture.md.
 
     cd tool/ios_reference/lab
-    python3 capture_abright.py --theme light            # every default pass, about 32 min
-    python3 capture_abright.py --theme dark             # stairs, steps, scroll, about 17 min
+    python3 capture_abright.py --theme light            # every default pass, about 25 min
+    python3 capture_abright.py --theme dark             # stairs, steps, scroll, about 16 min
     python3 capture_abright.py --theme light --passes pocketflag
     python3 capture_abright.py --build-only             # compile check, no device, no lock
 
@@ -30,14 +30,14 @@ PROBE = ROOT / "tool/ios_reference"
 
 # name: (test method, filmed, estimated seconds of phone time without xcodebuild overhead)
 PASSES = {
-    "stairs": ("testABStairs", False, 320),
+    "stairs": ("testABStairs", False, 400),
     "toolbar": ("testABToolbarStairs", False, 171),
-    "steps": ("testABSteps", True, 288),
-    "colours": ("testABColours", False, 136),
-    "coverage": ("testABCoverage", False, 397),
-    "scroll": ("testABScroll", True, 262),
+    "steps": ("testABSteps", True, 232),
+    "colours": ("testABColours", False, 76),
+    "coverage": ("testABCoverage", False, 56),
+    "scroll": ("testABScroll", True, 229),
     "search": ("testABSearch", True, 52),
-    "pocketflag": ("testABPocketFlag", True, 144),
+    "pocketflag": ("testABPocketFlag", True, 116),
 }
 DEFAULT = {
     "light": ["stairs", "toolbar", "steps", "colours", "coverage", "scroll", "search"],
@@ -78,7 +78,7 @@ def main():
     parser.add_argument("--theme", choices=["light", "dark"], help="the system appearance the owner set; names the records")
     parser.add_argument("--passes", help="comma list of " + ", ".join(PASSES) + " (default by theme)")
     parser.add_argument("--only", default="", help="capture names inside the passes (PROBE_ONLY)")
-    parser.add_argument("--fine", default="", help="centres of the fine staircases, '<lower>,<upper>' (default 0.40,0.70)")
+    parser.add_argument("--fine", default="", help="centres of the fine staircases, '<falling>,<rising>' (default by theme)")
     parser.add_argument("--out", type=Path)
     parser.add_argument("--no-film", action="store_true")
     parser.add_argument("--skip-build", action="store_true")

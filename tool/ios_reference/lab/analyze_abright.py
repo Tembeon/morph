@@ -477,9 +477,49 @@ def analyse(capture_dir):
             except (subprocess.CalledProcessError, ValueError, KeyError) as error:
                 entry["film"] = {"movie": str(movie), "error": str(error)}
         report["captures"][cap.name] = entry
+    report["rangeSet"] = range_verdict(report, theme)
     (capture_dir / "report.json").write_text(json.dumps(report, indent=1) + "\n")
     (capture_dir / "report.md").write_text(markdown(report))
     print(f"wrote {capture_dir / 'report.md'}")
+
+
+# The glass material's default ranges read from the binaries (passport): per base scheme the
+# bound crossed going down (to the dark look) and going up (to the light look), sets A and B.
+RANGE_SETS = {
+    "light": {"A": {"down": 0.20, "up": 0.50}, "B": {"down": 0.10, "up": 0.30}},
+    "dark": {"A": {"down": 0.60, "up": 0.90}, "B": {"down": 0.70, "up": 0.90}},
+}
+
+
+def range_verdict(report, theme):
+    """Per bar: the flip bounds the fine staircases and the coarse staircase found (midpoint of the
+    step that flipped and the one before, screenshot look first, trait second) and the nearest
+    default set."""
+    sets = RANGE_SETS.get(theme)
+    if not sets:
+        return None
+    bounds = {}
+    for name, cap in report["captures"].items():
+        if not name.endswith(("-fine-down", "-fine-up", "-stairs")):
+            continue
+        for bar, signals in cap.get("flips", {}).items():
+            events = signals.get("look") or signals.get("trait") or []
+            for e in events:
+                if e["value"] is None or e["previous"] is None:
+                    continue
+                way = "down" if e["value"] < e["previous"] else "up"
+                fine = not name.endswith("-stairs")
+                key = (bar, way)
+                if fine or key not in bounds:
+                    bounds[key] = round((e["value"] + e["previous"]) / 2, 4)
+    out = {}
+    for (bar, way), bound in bounds.items():
+        out.setdefault(bar, {})[way] = bound
+    for bar, found in out.items():
+        def miss(name):
+            return sum(abs(found[w] - sets[name][w]) for w in found)
+        out[bar]["nearest"] = min(sets, key=miss) if found else None
+    return out
 
 
 def markdown(report):
@@ -488,6 +528,9 @@ def markdown(report):
              f"UIKit defaults read on the phone: {env.get('defaults')}. Launch arguments: {env.get('args')}.",
              f"Luma meters: {env.get('meters')}, {env.get('meterRows')} rows.", ""]
     lines += [f"- WARNING {n}" for n in env.get("notes", [])]
+    if report.get("rangeSet"):
+        lines += ["", "Flip bounds per bar (down = to the dark look, up = to the light look) and the nearest default set:", ""]
+        lines += [f"- {bar}: {v}" for bar, v in report["rangeSet"].items()]
     for name, cap in report["captures"].items():
         lines += ["", f"## {name}", ""]
         for bar, signals in cap.get("flips", {}).items():
