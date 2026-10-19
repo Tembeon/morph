@@ -169,7 +169,7 @@ void main() {
     }
   });
 
-  test('a drag commits at the far end and uncommits at the start', () {
+  test('a drag flips the shown state every 25 pt toward the other one', () {
     const variants = {'a': true, 'b': true, 'c': true, 'd': false, 'e': true};
     final drag = <double>[];
     for (final MapEntry(key: variant, value: expected) in variants.entries) {

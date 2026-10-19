@@ -16,10 +16,18 @@ sliding).
 - Tap toggles on RELEASE; knob travel 0.30/~1.0 carrying velocity; track
   color on its own critically damped springs (toward on 0.68, toward off
   0.40) [fit].
-- DRAG [device recapture]: commit when the knob TARGET reaches the far end,
-  uncommit only when it returns to the starting end; color follows each
-  change after `colorDelay` 90 ms; release keeps the committed state if the
-  drag ever committed, else toggles like a tap; mid-travel decides nothing.
+- DRAG [read from UIKit, notes private; device recapture]: the shown state
+  flips each time the finger has travelled more than `flipDistance` 25 pt
+  toward the state not shown since the touch or the last flip (UIKit's pan
+  translation from the touch, re-measured from each flip); color follows
+  each flip after `colorDelay` 90 ms; release keeps the shown state if the
+  drag ever flipped it, else toggles like a tap. The device drags there
+  and back (`switch-tb-*`: out 20 / 8 / 30 / 40 / 40, back to -5 / 0 / 12 /
+  -10 / 5) end on / on / on / off / on, as this predicts. The former rule
+  (knob target at the far end, back at the start) flipped at 22 - 27 pt
+  and back at 0 - 5 pt from the touch; the simulator drags' color now
+  replays to 0.0002 - 0.0032 with each capture's stamps shifted -3 to
+  +13.5 ms (right50 0.018 -> 0.0078 unshifted).
 - Release outside [device, 2026-10-13]: a tap dragged straight down off
   the switch toggles at every distance tried, up to 128.7 pt below its
   bottom edge (about 130 pt); a switch has no release bound. morph's
@@ -61,11 +69,14 @@ Scenes `sw`, `swOn` (control at y 400, knob off 210 / on 232 on the sim
 `MorphSwitch`, `MorphSwitchAppearance`, internal `MorphSwitchMotion`
 (switch.dart, switch_motion.dart), small_lens.dart. Tests: switch_test
 (replays the simulator taps and the device captures: knob and lift),
+switch_color_replay_test (the simulator track color: taps, and drags with
+each capture's stamps shifted within the delivery spread, < 0.012 rms;
+the simulator there-and-back skipped, its color flipping back 148 ms
+before the rule),
 flex_law_test, release_bounds_test (replays release-outside.jsonl),
 disabled_test, accessibility_test, haptics_test, held_rest_test,
-controls_platform_test, controls_scroll_test. No test replays the track
-color springs or `colorDelay` (the simulator `switch-*-tap` rows carry
-the track color).
+controls_platform_test, controls_scroll_test. The device captures carry
+no track color; only the simulator `switch-*` rows do.
 
 Rest: settles once every spring's remaining swing (`MorphSpringState.reach`)
 is under `MorphRest` - 0.1 pt (0.3 device px at 3x, 0.26 at 2.625x), a scale
