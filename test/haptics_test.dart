@@ -92,6 +92,45 @@ void main() {
     expect(calls, ['HapticFeedbackType.lightImpact']);
   });
 
+  testWidgets('a page control scrub plays a selection on each page it '
+      'reaches, before the next frame', (tester) async {
+    var page = 0;
+    final picked = <int>[];
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: StatefulBuilder(
+            builder: (context, setState) => MorphPageControl(
+              count: 5,
+              page: page,
+              onChanged: (p) {
+                picked.add(p);
+                setState(() => page = p);
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    final box = tester.getRect(find.byType(MorphPageControl));
+    final gesture = await tester.startGesture(
+      box.centerLeft + const Offset(20, 0),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    for (var i = 1; i <= 8; i++) {
+      await gesture.moveBy(const Offset(8, 0));
+      expect(calls.length, picked.length, reason: 'move $i');
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(picked, isNotEmpty);
+    expect(calls, [
+      for (final _ in picked) 'HapticFeedbackType.selectionClick',
+    ]);
+  });
+
   testWidgets('a switch set by its owner plays nothing', (tester) async {
     Widget host({required bool value}) => Directionality(
       textDirection: TextDirection.ltr,

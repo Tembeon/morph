@@ -285,7 +285,11 @@ void main() {
         final rows = _rows('$dir/$name.jsonl');
         final motion = MorphPageControlMotion(count: 5, page: 0);
         final model = <int>[];
-        motion.onChanged = model.add;
+        void collect() {
+          for (final event in motion.drainEvents()) {
+            if (event is MorphPageControlPicked) model.add(event.page);
+          }
+        }
         final recorded = [
           for (final r in rows)
             if (r['k'] == 'evt' && r['e'] == 'valueChanged') r['v']! as int,
@@ -314,6 +318,7 @@ void main() {
             motion.advance(shown);
             errors.add(motion.platter - _d(r, 'a'));
           }
+          collect();
         }
         return (
           model: model,

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/motion/motion.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
@@ -189,7 +190,9 @@ abstract final class MorphPageControlTuning {
 /// page changes, the old capsule shrinks to a dot and the new one grows on
 /// [MorphPageControlTuning.widthSpring] while the old fill fades out on
 /// [MorphPageControlTuning.fadeSpring]. Times are seconds.
-class MorphPageControlMotion {
+class MorphPageControlMotion
+    with MorphMotionEvents<MorphPageControlEvent>
+    implements MorphMotion<MorphPageControlEvent> {
   /// Creates a motion of [count] pages showing [page].
   MorphPageControlMotion({
     required int count,
@@ -222,19 +225,12 @@ class MorphPageControlMotion {
   bool _scrubbing = false;
   bool _stepped = false;
 
-  /// Called with the page a touch picks.
-  ValueChanged<int>? onChanged;
-
   /// The opacity of the platter under a touch, 0 to 1.
   double get platter => _platter.value(_now).clamp(0.0, 1.0);
 
   /// Whether a touch is scrubbing through the pages.
   bool get isScrubbing => _scrubbing;
 
-  /// Called when a scrubbing finger moves the control to another page: the
-  /// moment UIKit's page control plays its selection haptic (read from
-  /// UIKit, notes private).
-  void Function()? onScrubbed;
   MorphSpringState? _fade;
   int _fading = -1;
   double _now = 0;
@@ -245,13 +241,23 @@ class MorphPageControlMotion {
   /// The current page.
   int get page => _page;
 
-  /// The time the motion was last advanced to.
+  @override
   double get time => _now;
 
   /// Whether nothing moves. A resting finger does not count: the
   /// control's moves and lift arrive as stamped pointer events, which wake
   /// the clock.
+  @override
   bool get isSettled => _timeline.isEmpty && _still;
+
+  @override
+  void settle() {
+    _platter.settle(_now);
+    for (final w in _widths) {
+      w.settle(_now);
+    }
+    _fade?.settle(_now);
+  }
 
   /// Whether what remains is invisible ([MorphRest], NEAR): the platter
   /// and the old fill fade by less than [MorphRest.opacity], the widths
@@ -265,9 +271,10 @@ class MorphPageControlMotion {
 
   /// The time before which nothing moves, or null while something does:
   /// a touch waiting out the platter's delay draws nothing new.
+  @override
   double? get wakeTime => _still ? _timeline.nextDue : null;
 
-  /// Advances the motion to time [t].
+  @override
   void advance(double t) {
     if (t < _now) return;
     _timeline.runDue(t);
@@ -315,8 +322,7 @@ class MorphPageControlMotion {
     if (next != _page) {
       _stepped = true;
       setPage(t, next);
-      onChanged?.call(next);
-      onScrubbed?.call();
+      emit(MorphPageControlPicked(next, scrubbed: true));
     }
   }
 
@@ -336,7 +342,7 @@ class MorphPageControlMotion {
     final next = (_page + (x > mid ? 1 : -1)).clamp(0, count - 1);
     if (next != _page) {
       setPage(t, next);
-      onChanged?.call(next);
+      emit(MorphPageControlPicked(next, scrubbed: false));
     }
   }
 
@@ -497,13 +503,22 @@ class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
       page: widget.page.clamp(0, math.max(0, widget.count - 1)),
       showsProgress: widget.progress != null,
     );
-    motion.onChanged = _picked;
-    motion.onScrubbed = _scrubbed;
     return motion;
   }
 
-  void _scrubbed() {
-    if (mounted) morphPlayHaptic(context, MorphHaptic.selection);
+  @override
+  void deliverMotionEvents() {
+    for (final event in _motion.drainEvents()) {
+      if (!mounted) return;
+      switch (event) {
+        case MorphPageControlPicked(:final page, :final scrubbed):
+          _picked(page);
+          // UIKit's page control plays its selection haptic when a
+          // scrubbing finger moves it to another page (read from UIKit,
+          // notes private).
+          if (scrubbed) morphPlayHaptic(context, MorphHaptic.selection);
+      }
+    }
   }
 
   @override
@@ -714,4 +729,22 @@ class _PageControlPainter extends CustomPainter {
       oldDelegate.rtl != rtl ||
       oldDelegate.platter != platter ||
       oldDelegate.progress != progress;
+}
+
+/// What a [MorphPageControlMotion] tells its host.
+sealed class MorphPageControlEvent {
+  const MorphPageControlEvent();
+}
+
+/// A touch picked [page]: a tap on either half, or a scrubbing finger
+/// ([scrubbed]) that moved the control to another page.
+final class MorphPageControlPicked extends MorphPageControlEvent {
+  /// Creates the event.
+  const MorphPageControlPicked(this.page, {required this.scrubbed});
+
+  /// The page picked.
+  final int page;
+
+  /// Whether a scrubbing finger picked it.
+  final bool scrubbed;
 }

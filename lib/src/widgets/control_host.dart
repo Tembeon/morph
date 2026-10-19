@@ -90,6 +90,7 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
       size: slop.isFinite ? _size() : Size.zero,
     );
     onControlDown(stamp(event), event);
+    deliverMotionEvents();
   }
 
   Size _size() {
@@ -103,6 +104,7 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
     if (!ownsPointer(event)) return;
     _press.move(event.pointer, event.localPosition);
     onControlMove(_eventTime(event), event);
+    deliverMotionEvents();
   }
 
   /// Releases ownership before dispatching the active pointer's lift,
@@ -117,6 +119,7 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
       case .outside:
         onControlUpOutside(_eventTime(event), event);
     }
+    deliverMotionEvents();
   }
 
   /// Releases ownership and cancels the active pointer.
@@ -124,6 +127,7 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   void pressCancel(PointerCancelEvent event) {
     if (_press.cancel(event.pointer, .platform) == null) return;
     onControlCancel(_eventTime(event));
+    deliverMotionEvents();
   }
 
   /// Releases ownership and reports loss of the active pointer.
@@ -131,6 +135,7 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   void pressLost(PointerCancelEvent event) {
     if (_press.cancel(event.pointer, .scroll) == null) return;
     onControlLost(_eventTime(event));
+    deliverMotionEvents();
   }
 
   double _eventTime(PointerEvent event) =>
