@@ -236,9 +236,17 @@ Future<void> _repeat(WidgetTester tester, _Scenario scenario) async {
     );
     expect(tester.takeException(), isNull, reason: at);
   }
-  await _collectGarbage(tester);
+  // A full collection that runs while the machine is loaded can keep the
+  // last cycle's tree as floating garbage that the next one frees; a leak
+  // stays reachable through every round.
+  var grown = <String, String>{};
+  for (var round = 0; round < 4; round++) {
+    await _collectGarbage(tester);
+    grown = _grown(allocations.reachable(), reachable);
+    if (grown.isEmpty) break;
+  }
   expect(
-    _grown(allocations.reachable(), reachable),
+    grown,
     isEmpty,
     reason: 'objects still reachable after $_cycles cycles',
   );
