@@ -15,11 +15,12 @@ import 'package:morph/src/widgets/timeline.dart';
 /// lifted, and the track color fades on its own spring, slower toward on
 /// than toward off. A drag moves the knob with the finger, with a rubber
 /// band past each end; a drag that starts moving within [deadZoneWindow]
-/// of the touch first crosses a [deadZone]. The drag commits to the other
-/// state when the knob's target reaches the far end and uncommits only
-/// when it returns to the starting end; the track color follows each
-/// commit after [colorDelay]. The release keeps the committed state if
-/// the drag ever committed and toggles like a tap otherwise.
+/// of the touch first crosses a [deadZone]. The drag flips the state the
+/// switch shows each time the finger has travelled more than
+/// [flipDistance] toward the other state since the touch or the last
+/// flip; the track color follows each flip after [colorDelay]. The
+/// release keeps the shown state if the drag ever flipped it and toggles
+/// like a tap otherwise.
 ///
 /// For Reduce Motion ([reducedMotion]) the knob never lifts or grows and
 /// a drag holds it between the ends without the rubber band; its travel
@@ -83,9 +84,19 @@ class MorphSwitchMotion {
   /// directly.
   static const double deadZoneWindow = 0.1;
 
-  /// Seconds between a drag's commit or uncommit and the start of the
-  /// track color's change.
+  /// Seconds between a drag's flip and the start of the track color's
+  /// change.
   static const double colorDelay = 0.09;
+
+  /// How far, in pixels, a dragging finger travels toward the other state
+  /// since the touch or the last flip before the shown state flips.
+  ///
+  /// Read from UIKit, notes private: UISwitch measures its pan's
+  /// translation from the touch, flips when it passes 25 pt toward the
+  /// state not shown and measures again from there. The device drags
+  /// there and back (`switch-tb-*`: 20 / 8 / 30 / 40 pt out, back to -5 /
+  /// 0 / 12 / -10 / 5) end as this predicts.
+  static const double flipDistance = 25;
 
   /// The rubber band past each end as (limit, stiffness).
   static const (double, double) rubberBand = (12, 0.54);
@@ -100,6 +111,7 @@ class MorphSwitchMotion {
   final MorphTimeline _timeline = MorphTimeline(now: 0);
   bool _started = false;
   double? _downX;
+  double _anchor = 0;
   double _downT = 0;
   double _downKnob = 0;
   double? _slop;
@@ -157,6 +169,7 @@ class MorphSwitchMotion {
   void pointerDown(double t, double x) {
     advance(t);
     _downX = x;
+    _anchor = x;
     _downT = t;
     _downKnob = _knob.target;
     _slop = null;
@@ -170,28 +183,22 @@ class MorphSwitchMotion {
     advance(t);
     final downX = _downX;
     if (downX == null) return;
+    final shown = _committed != _value;
+    if ((shown ? _anchor - x : x - _anchor) > flipDistance) {
+      _anchor = x;
+      _committed = !_committed;
+      _everCommitted = true;
+      _colorLater(t, on: !shown);
+      onDisplayedChanged?.call(!shown);
+    }
     final slop = _slop ??= t - _downT < deadZoneWindow ? deadZone : 0;
     final dx = x - downX;
     if (dx.abs() <= slop) return;
     final position = _downKnob + dx - slop * dx.sign;
-    final target = reducedMotion
-        ? position.clamp(0.0, travel)
-        : _band(position);
-    _knob.retarget(t, target);
-    final far = _value ? 0.0 : travel;
-    final start = _value ? travel : 0.0;
-    final atFar = _value ? target <= far : target >= far;
-    final atStart = _value ? target >= start : target <= start;
-    if (!_committed && atFar) {
-      _committed = true;
-      _everCommitted = true;
-      _colorLater(t, on: !_value);
-      onDisplayedChanged?.call(!_value);
-    } else if (_committed && atStart) {
-      _committed = false;
-      _colorLater(t, on: _value);
-      onDisplayedChanged?.call(_value);
-    }
+    _knob.retarget(
+      t,
+      reducedMotion ? position.clamp(0.0, travel) : _band(position),
+    );
   }
 
   /// The finger left the switch at [x].

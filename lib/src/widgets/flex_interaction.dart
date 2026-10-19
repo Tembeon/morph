@@ -173,10 +173,10 @@ class MorphFlexInteraction {
   /// A finger touched the surface at [position] at time [t].
   void pointerDown(double t, Offset position) {
     advance(t);
+    if (glows) _glowFrom = glow(t);
     _down = position;
     _position = position;
     if (glows) {
-      _glowFrom = glow(t);
       _glowStart = t;
       _littleScale.snap(t, 1);
       final at = _clamped(position);

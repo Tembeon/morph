@@ -15,6 +15,7 @@ import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/press.dart';
+import 'package:morph/src/widgets/timeline.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/theme/theme.dart';
 
@@ -32,6 +33,10 @@ import 'package:morph/src/theme/theme.dart';
 /// beyond its edge, over the spec's stretch threshold. A glow fades in
 /// under the finger and fades out on release while the little glow at
 /// the touch point grows.
+///
+/// The flex takes up every touch [touchDelay] after the touch's own time
+/// stamp, as UIKit's does; whether the button is pressed and whether a
+/// release activates it follow the touch at once.
 ///
 /// Times are seconds and positions pixels in the button's own space.
 ///
@@ -54,6 +59,21 @@ class MorphGlassButtonMotion {
   /// How far outside the button the touch still counts as inside.
   static const double highlightSlop = 70;
 
+  /// Seconds between a touch's own time stamp and the flex taking it up:
+  /// the touch-down, every move and the release.
+  ///
+  /// UIKit's glass button starts its lift 22.5 - 29.2 ms after the touch's
+  /// stamp (median 26.1, iPhone 16 Pro: the last three taps of
+  /// `button-glass-44x44-taps` and the five touches on the button in a
+  /// scroll view of `tracking/scroll-delay`) and its return 22.1 - 28.3 ms
+  /// after the release's (median 26.0, the seven `*-hold800` captures):
+  /// delivery 10 - 25 ms, then the frame the flex begins on. Fed this late,
+  /// the drag-off and alert lean replays halve their error. The first
+  /// touch after the button appears starts 38 - 47 ms after its stamp, the
+  /// next display frame coming ~21 ms after the one before instead of 8.3;
+  /// that one-time setup is not reproduced.
+  static const double touchDelay = 0.026;
+
   /// The diameter of the little glow at the touch point.
   static const double littleGlowSize = MorphFlexInteraction.littleGlowSize;
 
@@ -68,7 +88,9 @@ class MorphGlassButtonMotion {
   set reducedMotion(bool value) => _flex.reducedMotion = value;
 
   final MorphFlexInteraction _flex;
+  final MorphTimeline _input = MorphTimeline();
   double _now = 0;
+  bool _pressed = false;
   bool _inside = false;
 
   /// The size of the button at rest.
@@ -86,10 +108,10 @@ class MorphGlassButtonMotion {
   double get time => _now;
 
   /// Whether a finger is down on the button.
-  bool get isPressed => _flex.isPressed;
+  bool get isPressed => _pressed;
 
   /// Whether the finger is close enough that a release activates.
-  bool get isHighlighted => _flex.isPressed && _inside;
+  bool get isHighlighted => _pressed && _inside;
 
   /// The lift: the mean of [scaleX] and [scaleY], which the stretch
   /// leaves alone.
@@ -155,10 +177,10 @@ class MorphGlassButtonMotion {
   /// Whether what remains of the button's motion is invisible
   /// (`MorphRest`, NEAR); a button held still under a finger settles too
   /// and wakes on the finger's next move or its lift.
-  bool get isSettled => _flex.isSettled(_now);
+  bool get isSettled => _input.isEmpty && _flex.isSettled(_now);
 
   /// Whether the button rests undeformed: settled with no finger on it.
-  bool get isAtRest => !_flex.isPressed && isSettled;
+  bool get isAtRest => !_pressed && isSettled;
 
   /// Puts a settled button onto its targets.
   void settle() => _flex.settle(_now);
@@ -166,20 +188,22 @@ class MorphGlassButtonMotion {
   /// Advances the motion to time [t].
   void advance(double t) {
     if (t > _now) _now = t;
+    _input.runDue(t);
   }
 
   /// A finger touched the button at [position].
   void pointerDown(double t, Offset position) {
     advance(t);
+    _pressed = true;
     _inside = true;
-    _flex.pointerDown(t, position);
+    _later(t, (s) => _flex.pointerDown(s, position));
   }
 
   /// The finger moved to [position].
   void pointerMove(double t, Offset position) {
     advance(t);
-    if (!_flex.isPressed) return;
-    _flex.pointerMove(t, position);
+    if (!_pressed) return;
+    _later(t, (s) => _flex.pointerMove(s, position));
     _inside = (Offset.zero & size).inflate(highlightSlop).contains(position);
   }
 
@@ -187,7 +211,7 @@ class MorphGlassButtonMotion {
   /// release activates the button.
   bool pointerUp(double t, Offset position) {
     advance(t);
-    if (!_flex.isPressed) return false;
+    if (!_pressed) return false;
     pointerMove(t, position);
     final activated = _inside;
     _release(t);
@@ -197,13 +221,19 @@ class MorphGlassButtonMotion {
   /// The touch was cancelled; the button returns without activating.
   void pointerCancel(double t) {
     advance(t);
-    if (!_flex.isPressed) return;
+    if (!_pressed) return;
     _release(t);
   }
 
   void _release(double t) {
+    _pressed = false;
     _inside = false;
-    _flex.release(t);
+    _later(t, _flex.release);
+  }
+
+  void _later(double t, void Function(double t) action) {
+    _input.insert(t + touchDelay, action);
+    _input.runDue(_now);
   }
 }
 
