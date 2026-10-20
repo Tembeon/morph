@@ -246,9 +246,23 @@ most half a device pixel), and the copy snaps its ratio across on its own
 grid instead of the finest (a lift sweeps the middle strip's growth, and
 every finest step was a new scale across: NEAR at most half a step of the
 copy's grid, 0.54 percent while it moves slowly, 1.1 / 2.2 only while it
-moves fast, as the policy's own snap). Drag liquid stays above its 37:
-the stretch grows the bar's scale under a drag, and labels entering the
-lens meet more scales (35 without the stretch).
+moves fast, as the policy's own snap). Drag liquid stayed above its 37
+from the stretch (2026-10-20): the held bar's 1.05 swell sits on a
+boundary of the finest grid (2^(4.5/64) = 1.04995), the drag's stretch
+moves the labels' larger axis 0.3 percent across it, and the labels and
+the copy keyed on them struck both neighbors in turn; the copy's strips
+grown across only keyed on the axis the stretch shrinks, the others on
+the one it grows. A snapped scale that creeps (under 0.1 finest steps a
+frame) now keeps its grid scale until it is half a step and a quarter of
+a finest step away (`MorphGlyphPolicy.snapHoldSteps`; NEAR at most 0.82
+percent off its size while it holds, 0.54 otherwise), and every strip of
+the copy keys on the mean of the box's two axes, so a stretch of up to
+1.09 percent draws on the key's scale (within the half step already
+declared): drag liquid 41 -> 35, over 5 seeds x 4 touch phases mean 39.4
+-> 33.6, max 43 -> 37; tap and flat unchanged. Control goldens
+re-recorded: flat tab-bar drag, 5 of 53 frames differ (worst mean 0.14,
+0.23 percent of pixels over 15 levels), the held labels on the other
+neighbor of the boundary.
 
 Repaints (lifecycle.md, 2026-10-14): native redraws 3-4 labels once on a
 selection change and moves the lens in the render server. Each label row

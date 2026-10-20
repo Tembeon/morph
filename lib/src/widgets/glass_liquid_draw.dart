@@ -1057,15 +1057,7 @@ class _ContentCopyPainter {
     final mode = glyphs.observe(screen, canRaster: false, settle: !aligned);
     if (aligned) return (magnification, true);
     if (mode == MorphGlyphMode.live) return (magnification, false);
-    return (
-      MorphGlyphScale.snap(
-            screen,
-            devicePixelRatio,
-            perOctave: glyphs.perOctave,
-          ) /
-          base,
-      false,
-    );
+    return (glyphs.snap(screen, devicePixelRatio) / base, false);
   }
 
   /// The aligned drawing of glyphs centered in [slot], if the recording
@@ -1177,6 +1169,13 @@ class _ContentCopyPainter {
   /// taller than it is exactly besides the snap: 0.54 percent while the
   /// copy's scale moves slowly, 1.1 or 2.2 percent only while it moves fast
   /// ([MorphGlyphPolicy.gridFor]).
+  ///
+  /// Every strip keys on one scale, the copy grown both ways at the mean
+  /// of the box's scales along and across: a drag stretching the bar moves
+  /// those apart, and keyed on the larger axis the strips grown across
+  /// only and those grown both ways would cross grid boundaries apart and
+  /// strike each label twice. A stretch of up to 1.09 percent (half a step
+  /// each way) draws on the key's scale.
   void _alignedItem(
     Canvas canvas,
     Rect slot,
@@ -1197,12 +1196,8 @@ class _ContentCopyPainter {
       _scaleAbout(canvas, slot.center, magnification, magnification);
       return;
     }
-    final keyed = math.max(unmagnifiedX, unmagnifiedY);
-    final key = MorphGlyphScale.snap(
-      keyed * magnification,
-      devicePixelRatio,
-      perOctave: glyphs.perOctave,
-    );
+    final keyed = math.sqrt(scaleX * inner[0] * scaleY * inner[5]) * copy.grow;
+    final key = glyphs.snap(keyed * magnification, devicePixelRatio);
     double along(double unmagnified) =>
         key *
         MorphGlyphScale.snap(

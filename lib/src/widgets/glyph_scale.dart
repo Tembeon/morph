@@ -31,7 +31,8 @@ import 'package:morph/src/live.dart';
 abstract final class MorphGlyphScale {
   /// The finest grid's steps per doubling of the scale: neighbors are 1.1
   /// percent apart, so a snapped label is drawn at most 0.54 percent off
-  /// its exact size about its anchor.
+  /// its exact size about its anchor, 0.82 while its scale creeps and it
+  /// holds its grid scale ([MorphGlyphPolicy.snapHoldSteps]).
   static const int stepsPerOctave = 64;
 
   /// The steps per octave of the grid a raster above the device pixel
@@ -104,6 +105,7 @@ enum MorphGlyphMode {
   /// Drawn at the nearest grid scale about its center
   /// ([MorphGlyphPolicy.gridFor]): crisp glyphs, struck once per grid
   /// scale. NEAR: at most 0.54 percent off its size on the finest grid,
+  /// 0.82 percent while the scale creeps ([MorphGlyphPolicy.snapHoldSteps]),
   /// 2.2 percent on the coarsest.
   snapped,
 
@@ -185,6 +187,20 @@ abstract final class MorphGlyphPolicy {
   /// grid serves the finer grids too.
   static const List<int> grids = [64, 32, 16];
 
+  /// The finest-grid steps past half its grid's step a snapped drawing
+  /// keeps the grid scale it drew last ([MorphGlyphTracker.snap]): a
+  /// scale creeping about a boundary between two grid scales (a held tab
+  /// bar's 1.05 swell sits on one, 2^(4.5/64), and a drag's stretch moves
+  /// it 0.3 percent) would otherwise strike both in turn. A snapped
+  /// drawing is at most 0.27 percent further off its exact size.
+  static const double snapHoldSteps = 0.25;
+
+  /// The finest-grid steps per frame under which a snapped scale creeps
+  /// and holds its grid scale ([snapHoldSteps]). A faster scale sweeps
+  /// past boundaries anyway, and holding there would make the scales a
+  /// sweep strikes depend on the sweeps before it.
+  static const double creepSteps = 0.1;
+
   /// The mode for a frame whose scale moved [steps] finest-grid steps
   /// since the last frame (null for the drawing's first frame, whose
   /// motion is unknown), drawn last frame in [previous].
@@ -251,6 +267,7 @@ class MorphGlyphTracker {
   double _steps = 0;
   MorphGlyphMode _mode = MorphGlyphMode.live;
   int? _callback;
+  double? _held;
 
   /// The mode of the last observed frame.
   MorphGlyphMode get mode => _mode;
@@ -263,6 +280,26 @@ class MorphGlyphTracker {
 
   /// The grid a snapped frame is drawn on.
   int get perOctave => MorphGlyphPolicy.gridFor(_steps);
+
+  /// The scale on the [perOctave] grid a snapped frame at the screen
+  /// scale [screen] is drawn at: while the scale creeps
+  /// ([MorphGlyphPolicy.creepSteps]), the one this tracker snapped to last
+  /// as long as [screen] stays within half a step and
+  /// [MorphGlyphPolicy.snapHoldSteps] of it; else the nearest.
+  double snap(double screen, double devicePixelRatio) {
+    if (_held case final held?
+        when !MorphGlyphScale.debugExact &&
+            _steps < MorphGlyphPolicy.creepSteps &&
+            MorphGlyphScale.steps(held, screen) <=
+                0.5 + MorphGlyphPolicy.snapHoldSteps) {
+      return held;
+    }
+    return _held = MorphGlyphScale.snap(
+      screen,
+      devicePixelRatio,
+      perOctave: perOctave,
+    );
+  }
 
   double? _stepsTo(double screen) {
     final from = _scale;
@@ -348,6 +385,7 @@ class MorphGlyphTracker {
     _scale = null;
     _steps = 0;
     _mode = MorphGlyphMode.live;
+    _held = null;
   }
 }
 
@@ -533,8 +571,9 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
   /// NEAR: a snapped frame is drawn up to half a device pixel (a sixth of
   /// a point at 3x) to the side of its exact place, besides the snap's
   /// own error; a drift that [MorphGlyphPolicy] would draw live and exact
-  /// is snapped on the finest grid, at most 0.54 percent off its size. At
-  /// rest the child is drawn exactly where it is.
+  /// is snapped on the finest grid, at most 0.82 percent off its size
+  /// while it holds its grid scale. At rest the child is drawn exactly
+  /// where it is.
   final bool aligned;
 
   /// The largest blur, in logical pixels, drawn sharp.
@@ -1340,13 +1379,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
         );
         _paintCulled(context, offset);
       case MorphGlyphMode.snapped:
-        final snapped =
-            MorphGlyphScale.snap(
-              screen,
-              _devicePixelRatio,
-              perOctave: _tracker.perOctave,
-            ) /
-            screen;
+        final snapped = _tracker.snap(screen, _devicePixelRatio) / screen;
         final factor =
             !snapped.isFinite || (snapped - 1).abs() < _exactTolerance
             ? 1.0

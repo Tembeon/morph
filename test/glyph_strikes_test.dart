@@ -358,16 +358,25 @@ void main() {
   // pixel hit at 2.625x, and the lens copy's ratio across on the copy's
   // own grid, so a lift's sweep of the rim's growth meets few scales
   // across: tap flat 5 -> 4, drag flat 8 -> 6, tap liquid 52 / 54 keys ->
-  // 38 / 16, drag liquid 47 -> 41. The drag liquid cell's last 4 are the
-  // stretch: labels entering the lens while the drag grows the bar's
-  // scale (without it 35).
+  // 38 / 16, drag liquid 47 -> 41.
+  //
+  // The drag liquid cell's last 4 were the stretch. The held bar's 1.05
+  // swell sits on a boundary of the finest grid (2^(4.5/64)), and the
+  // drag's stretch moved the labels' larger axis across it, so the labels
+  // and the copy keyed on them struck both neighbors in turn; the copy's
+  // strips grown across only keyed on the axis the stretch shrinks, the
+  // others on the one it grows. A snapped scale that creeps now holds its
+  // grid scale (MorphGlyphPolicy.snapHoldSteps), and every strip of the
+  // copy keys on the mean of the two axes: drag liquid 41 -> 35 here;
+  // over 5 seeds x touch phases 0 / 4 / 8 / 12 ms its mean 39.4 -> 33.6
+  // (max 43 -> 37), the tap and the flat cells unchanged.
   const ceilings = {
     ('tap', MorphGlassTier.flat): (4, 30),
     ('drag', MorphGlassTier.flat): (6, 30),
     ('tap', MorphGlassTier.liquid): (50, 37),
     ('drag', MorphGlassTier.liquid): (37, 30),
   };
-  const raised = {('drag', MorphGlassTier.liquid): (41, 30)};
+  const raised = <(String, MorphGlassTier), (int, int)>{};
   for (final MapEntry(key: (cell, tier), value: (ceiling, lastRun))
       in ceilings.entries) {
     testWidgets('tab-bar/$cell/${tier.name} strikes mostly its first visits', (
