@@ -307,6 +307,9 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   bool get motionSettled => _motion.isSettled;
 
   @override
+  void settleMotion() => _motion.settle();
+
+  @override
   void didUpdateWidget(MorphSearchField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!widget.enabled && (oldWidget.enabled || _motion.isPressed)) {
@@ -527,7 +530,6 @@ class _MorphSearchFieldState extends State<MorphSearchField>
                   ? MorphControlCapsule(
                       painter: glass,
                       frames: _settled,
-                      still: () => _settled.value,
                       color: style.capsuleColor,
                       rim: style.rimColor,
                       shadow: style.shadowColor,
@@ -1186,7 +1188,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
     }
     out = MorphLiveTemplate(
       live: _ticks,
-      template: () => MorphGlassStageFade(opacity: p()),
+      template: () => Opacity(opacity: p()),
       child: out,
     );
     if (structure.ignored) {

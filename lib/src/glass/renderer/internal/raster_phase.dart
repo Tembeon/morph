@@ -1,29 +1,18 @@
 import 'dart:typed_data';
 
 import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
-/// Marks where the shapes in [child] would have their own glass layer.
+/// Where the shapes below would have a glass layer of their own: the
+/// member through which a glass layer reports to its plane.
 ///
 /// A glass layer rasterizes its matte on a grid of device pixels anchored at
 /// its own origin, and the final pass samples that matte nearest. A shape
-/// shaded by a layer further up (a glass container) is rasterized on that
+/// shaded by a layer further up (a plane's pass) is rasterized on that
 /// layer's grid instead, so off the pixel grid its rim lands up to half a
 /// device pixel elsewhere than in a layer of its own. The layer that shades
-/// the shapes below this marker shifts them by that difference, so they read
-/// the same pixels as in a layer at the marker.
-@internal
-class GlassRasterAnchor extends SingleChildRenderObjectWidget {
-  /// Anchors the raster grid of the shapes in [child].
-  const GlassRasterAnchor({required super.child, super.key});
-
-  @override
-  RenderGlassRasterAnchor createRenderObject(BuildContext context) =>
-      RenderGlassRasterAnchor();
-}
-
-/// The render object of a [GlassRasterAnchor].
+/// the shapes below this anchor shifts them by that difference, so they read
+/// the same pixels as in a layer at the anchor.
 @internal
 class RenderGlassRasterAnchor extends RenderProxyBox {}
 

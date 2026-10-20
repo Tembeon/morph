@@ -124,12 +124,9 @@ class LayerCensus {
   static const Set<String> _plumbing = {
     'MorphGlassHost',
     'MorphGlassContentCopy',
-    'MorphGlassStageFade',
     'MorphFlightScope',
     'MorphSurfaceSpecScope',
     'MorphWidgetsTheme',
-    'MorphGlassContainerScope',
-    'MorphGlassContainerBarrier',
     'MorphFocusRing',
     'MorphTouchListener',
     'MorphControlCapsule',

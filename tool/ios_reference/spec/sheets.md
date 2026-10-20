@@ -333,7 +333,9 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
   `visibleRect`); no frame builds.
 - Glass containers in the content: the sheet wraps its content in a
   `MorphGlassContainerGate` that is open only while the content is drawn
-  unscaled (docked, not zooming, not scrubbed). A floating sheet scales its
+  unscaled (docked, not zooming, not scrubbed). Since 2026-10-20 the gate
+  is gone: a plane checks after paint whether it is drawn scaled and
+  merges nothing while it is, from the next frame. A floating sheet scales its
   content to its inset width, where a container cannot keep its members on
   their own raster grids, so their glass draws in layers of its own there
   and shares the container once docked (glass-renderer.md, "Raster ties,

@@ -76,7 +76,7 @@ void main() {
     await tester.pumpWidget(_list());
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(LiquidGlass), findsNWidgets(4));
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
   });
 
   testWidgets('a section reads one backdrop for its accessories', (
@@ -103,11 +103,11 @@ void main() {
       tester.getCenter(find.text('Row 1')),
     );
     await tester.pump(const Duration(milliseconds: 16));
-    expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+    expect(glassLayersWithShapes(), 2);
     expect(find.byType(LiquidGlass), findsNWidgets(4));
     await gesture.up();
     await tester.pumpAndSettle();
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
   });
 
   testWidgets('frosted controls keep their own layers in a section: their '
@@ -119,7 +119,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byType(LiquidGlassLayer), findsNWidgets(5));
+    expect(glassLayersWithShapes(), 4);
   });
 
   testWidgets('a section\'s shared layer draws the pixels of the '

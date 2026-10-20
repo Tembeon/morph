@@ -91,8 +91,8 @@ the section paints between the stage and a member is read by it: resting
 unfrosted glass samples only inside its own outline (refraction reaches
 inward, frost 0, on the liquid tier), and the only thing a
 row paints inside an accessory's outline is its highlight - a highlighted
-row keeps its accessories out (`MorphGlassContainerBarrier`) until the
-highlight goes. Text, separators (the row's own after its child, the
+row keeps its accessories out (`MorphGlassContainerBarrier`, since
+2026-10-20 `GlassPlaneScope.planeBreak`) until the highlight goes. Text, separators (the row's own after its child, the
 previous row's 15.5 pt above an accessory) and the header lie outside
 every accessory. With `frostControls` the blur would read them, so the
 stage closes. A row's own `child` content painted under its glass is

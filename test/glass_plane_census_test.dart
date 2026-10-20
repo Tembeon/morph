@@ -14,6 +14,12 @@ List<GlassMemberCensus> _census(WidgetTester tester) => [
     if (member.plane != null) member.census,
 ];
 
+/// The census of the layers below an owned plane that it does not merge.
+List<GlassMemberCensus> _split(WidgetTester tester) => [
+  for (final census in _census(tester))
+    if (census.strategy != GlassStrategy.merged) census,
+];
+
 Widget _app(Widget child) => MaterialApp(
   builder: morphFromMaterial,
   debugShowCheckedModeBanner: false,
@@ -65,7 +71,8 @@ void main() {
         _app(MorphGlassContainer(child: _buttons(wrapFirst: wrap))),
       );
       await tester.pump(const Duration(milliseconds: 100));
-      final census = _census(tester).single;
+      expect(_census(tester), hasLength(2));
+      final census = _split(tester).single;
       expect(census.strategy, GlassStrategy.split);
       expect(census.split, GlassSplit.blocked);
       expect(census.blocker.runtimeType, blocker);
@@ -84,20 +91,22 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 100));
-    expect(_census(tester).single.blocker, isA<RenderClipRect>());
+    expect(_split(tester).single.blocker, isA<RenderClipRect>());
   });
 
   testWidgets('a pressed button glows on its own', (WidgetTester tester) async {
     await tester.pumpWidget(_app(MorphGlassContainer(child: _buttons())));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(_census(tester), isEmpty);
+    expect(_census(tester), hasLength(2));
+    expect(_split(tester), isEmpty);
     final gesture = await tester.startGesture(const Offset(60, 42));
     for (var i = 0; i < 12; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }
-    expect(_census(tester).single.split, GlassSplit.glow);
+    expect(_split(tester).single.split, GlassSplit.glow);
     await gesture.up();
     await tester.pumpAndSettle();
+    expect(_split(tester), isEmpty);
   });
 
   testWidgets('a container in a floating sheet is drawn scaled', (
@@ -165,19 +174,69 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 100));
-    expect(_census(tester), isEmpty);
+    expect(_split(tester), isEmpty);
     final gesture = await tester.startGesture(
       tester.getTopLeft(find.text('Row 0')) + const Offset(4, 4),
     );
     await tester.pump(const Duration(milliseconds: 200));
     expect(
-      _census(tester).single.blocker,
+      _split(tester).single.blocker,
       isA<RenderObject>().having(
         (RenderObject o) => o.runtimeType.toString(),
         'type',
         'RenderGlassPlaneBreak',
       ),
     );
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(_split(tester), isEmpty);
+  });
+
+  testWidgets('a merged button that starts to fade leaves the pass in the '
+      'next frame', (WidgetTester tester) async {
+    final opacity = ValueNotifier<double>(1);
+    addTearDown(opacity.dispose);
+    await tester.pumpWidget(
+      _app(
+        MorphGlassContainer(
+          child: _buttons(
+            wrapFirst: (child) => ValueListenableBuilder<double>(
+              valueListenable: opacity,
+              builder: (BuildContext context, double value, Widget? child) =>
+                  Opacity(opacity: value, child: child),
+              child: child,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(_split(tester), isEmpty);
+    opacity.value = 0.9;
+    await tester.pump();
+    expect(_split(tester), isEmpty);
+    await tester.pump();
+    expect(_split(tester).single.blocker, isA<RenderOpacity>());
+  });
+
+  testWidgets('glass a solid container reaches but does not merge shades '
+      'over its color', (WidgetTester tester) async {
+    const color = Color(0xFF406080);
+    await tester.pumpWidget(
+      _app(MorphGlassContainer(solidBackdrop: color, child: _buttons())),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    final members = tester.allRenderObjects
+        .whereType<RenderGlassMember>()
+        .toSet();
+    expect([for (final m in members) m.planeSolid], [color, color]);
+    final gesture = await tester.startGesture(const Offset(60, 42));
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final pressed = _split(tester).single;
+    expect(pressed.split, GlassSplit.glow);
+    expect(pressed.strategy, GlassStrategy.painted);
     await gesture.up();
     await tester.pumpAndSettle();
   });

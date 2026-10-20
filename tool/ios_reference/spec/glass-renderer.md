@@ -594,6 +594,23 @@ Build / raster p95 ms, base -> after the channel:
 
 ## Glass container (2026-10-05, glass_container.dart)
 
+Mechanism since 2026-10-20 (morph composition M9, docs/glass.md "Glass
+planes and containers"): the decision is the render side's.
+`MorphGlassContainer` and `MorphGlassStage` declare an owned plane
+(`GlassPlaneScope.owned`); every glass layer below reports to its
+`RenderGlassPlane` through its `RenderGlassMember`, which decides in
+layout and lends the merged members' shapes to its pass. The names below
+are the mechanism of their date: `MorphGlassContainerLink.admit` and
+`morphGlassJoinLook` -> `RenderGlassPlane` (`GlassSplit` reasons);
+`MorphGlassLayer.still` -> the member's rest (its signature on its
+composited frames); the reach check -> `glassPlaneBlocker`;
+`GlassRasterAnchor` -> `RenderGlassMember` (a `RenderGlassRasterAnchor`);
+`MorphGlassStageFade` -> an `Opacity` at exactly 1;
+`MorphGlassContainerBarrier` -> `GlassPlaneScope.planeBreak`;
+`MorphGlassContainerGate` -> the plane's own check of its scale after
+paint; `sharpOnly` -> `GlassPaintOrder.outsideGlass`. The measurements
+stand.
+
 `MorphGlassContainer` is UIKit's `UIGlassContainerEffect` for glass that
 does not fuse (fable alternative B, astra step 1): one `LiquidGlassLayer`
 at the container's place in paint order, and every glass host below it

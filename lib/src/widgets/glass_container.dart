@@ -1,10 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/glass.dart';
-import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/list.dart';
@@ -22,14 +19,18 @@ import 'package:morph/src/theme/glass.dart';
 /// lays out, hits, moves and paints its content as before.
 ///
 /// The container's glass is painted where the container paints, under
-/// everything inside it, and it is drawn whatever lies between the
-/// container and a control: a control under an opacity, a clip, a filter
-/// or a scrolling viewport inside the container (a list of buttons, a
-/// fading or hidden button, a morph source while it flies) keeps its own
-/// layer. So everything in [child] is content above the
-/// glass: a card, a row background or an image placed inside the container
-/// would cover the glass of the buttons over it. Put what the glass must
-/// show through outside the container, under it.
+/// everything inside it, and only glass that would look the same in a
+/// layer of its own joins: a control under a fade below full opacity, a
+/// clip, a filter, a scrolling viewport or other glass inside the
+/// container (a list of buttons, a fading or hidden button, a morph source
+/// while it flies) keeps its own layer, and so does every member while the
+/// container is drawn under more than a translation (a floating sheet).
+/// Glass joins once it rests, and leaves in the frame after it starts to
+/// move; a touch glow or a hidden morph source leaves at once. So
+/// everything in [child] is content above the glass: a card, a row
+/// background or an image placed inside the container would cover the
+/// glass of the buttons over it. Put what the glass must show through
+/// outside the container, under it.
 ///
 /// Only glass that looks the same, or within a few channel steps, either
 /// way joins: resting body glass (glass buttons, search capsules) of the
@@ -54,7 +55,7 @@ import 'package:morph/src/theme/glass.dart';
 /// a resting [MorphSearchToolbar] its field and buttons. The example
 /// gallery's glass inspector shows the layers of each frame and names
 /// neighbouring glass that a container would join.
-class MorphGlassContainer extends StatefulWidget {
+class MorphGlassContainer extends StatelessWidget {
   /// Shades the resting glass of the controls in [child] together.
   const MorphGlassContainer({
     required this.child,
@@ -74,52 +75,41 @@ class MorphGlassContainer extends StatefulWidget {
   /// members over the color itself instead of reading the backdrop: no
   /// backdrop filter at all, the most expensive part of glass on a phone's
   /// GPU. The container trusts the color: glass over anything else shows
-  /// this color instead. A member that leaves the container - pressed,
-  /// lifted, glowing, or unlike the others - lies on the color as much as
-  /// its resting neighbours and is shaded over it in its own layer too;
-  /// read from the backdrop group's one copy, it would move that copy above
-  /// whatever paints between the container and the group's next glass.
-  /// Ignored unless the color is fully opaque.
+  /// this color instead. A member that leaves the container reads its
+  /// backdrop in its own layer as before. Ignored unless the color is
+  /// fully opaque.
   final Color? solidBackdrop;
 
   @override
-  State<MorphGlassContainer> createState() => _MorphGlassContainerState();
-}
-
-class _MorphGlassContainerState extends State<MorphGlassContainer> {
-  final MorphGlassContainerLink _link = MorphGlassContainerLink();
-
-  @override
-  Widget build(BuildContext context) => _containerLayer(
-    context,
-    _link,
-    open: true,
-    solidBackdrop: widget.solidBackdrop,
-    child: widget.child,
-  );
+  Widget build(BuildContext context) =>
+      _plane(context, open: true, solidBackdrop: solidBackdrop, child: child);
 }
 
 /// A glass container a package widget owns: [open] while nothing it does
 /// to its members - a fade, a scale, a blur - changes how their glass
-/// would look in layers of their own.
+/// would look in layers of their own; a fade it draws at exactly 1 changes
+/// nothing.
 ///
-/// The stage's own fades go through [MorphGlassStageFade], which a member
-/// sees through; whenever such a fade is not opaque, or anything else the
-/// stage draws between its members moves, the stage closes and every
-/// member draws its own layer, in the same frame.
+/// With [paintOrder] [GlassPaintOrder.outsideGlass] the stage paints
+/// content between itself and its members, outside their outlines, and
+/// shades only glass that does not frost: resting glass without a blur
+/// reads only inside its own outline, a frosted one reads around its rim.
 @internal
-class MorphGlassStage extends StatefulWidget {
+class MorphGlassStage extends StatelessWidget {
   /// Shades the resting glass in [child] together while [open].
   const MorphGlassStage({
     required this.open,
     required this.child,
-    this.sharpOnly = false,
+    this.paintOrder = GlassPaintOrder.owned,
     this.solidBackdrop,
     super.key,
   });
 
   /// Whether the members are shaded together now.
   final bool open;
+
+  /// What the stage paints between itself and its members' glass.
+  final GlassPaintOrder paintOrder;
 
   /// The opaque color the stage is painted directly over, or null.
   ///
@@ -128,37 +118,20 @@ class MorphGlassStage extends StatefulWidget {
   /// are inset from the fill's edges by more than their refraction reaches
   /// - the stage shades its members over the color itself instead of
   /// reading the backdrop: no backdrop filter at all. A member that leaves
-  /// the open stage is shaded over the color in its own layer too
-  /// ([morphGlassContainerSolidBackdrop]). Ignored unless the color is
-  /// fully opaque.
+  /// the stage reads its backdrop in its own layer as before. Ignored
+  /// unless the color is fully opaque.
   final Color? solidBackdrop;
-
-  /// Whether the stage closes while its glass would blur: for a stage
-  /// that paints content between its members, which resting glass without
-  /// a blur never reads (its refraction samples only inside its own
-  /// outline) but a frosted one reads around its rim.
-  final bool sharpOnly;
 
   /// The members.
   final Widget child;
 
   @override
-  State<MorphGlassStage> createState() => _MorphGlassStageState();
-}
-
-class _MorphGlassStageState extends State<MorphGlassStage> {
-  final MorphGlassContainerLink _link = MorphGlassContainerLink();
-
-  @override
-  Widget build(BuildContext context) => _containerLayer(
+  Widget build(BuildContext context) => _plane(
     context,
-    _link,
-    open: widget.open && debugMorphGlassStagesOpen,
-    sharpOnly: widget.sharpOnly,
-    solidBackdrop: debugMorphGlassStageSolidBackdrops
-        ? widget.solidBackdrop
-        : null,
-    child: widget.child,
+    open: open && debugMorphGlassStagesOpen,
+    paintOrder: paintOrder,
+    solidBackdrop: debugMorphGlassStageSolidBackdrops ? solidBackdrop : null,
+    child: child,
   );
 }
 
@@ -175,94 +148,16 @@ bool debugMorphGlassStageSolidBackdrops = true;
 @internal
 bool debugMorphGlassStagesOpen = true;
 
-/// Closes every glass container in [child] while [open] is false.
-///
-/// A glass container rasterizes all its members' mattes on its own grid
-/// and moves each member's shapes so that they read the pixels a layer of
-/// its own would read. That works while the container is drawn under a
-/// translation; under a scale the grids of members at different fractions
-/// of a device pixel from the container no longer meet at any one shift,
-/// so a package widget that draws its content scaled (a floating sheet)
-/// closes the containers in it until it draws it unscaled again, and every
-/// member draws its own layer, in the same frame.
-@internal
-class MorphGlassContainerGate extends StatelessWidget {
-  /// Closes the containers in [child] unless [open].
-  const MorphGlassContainerGate({
-    required this.open,
-    required this.child,
-    super.key,
-  });
-
-  /// Whether the containers in [child] may shade their members together.
-  final bool open;
-
-  /// The subtree whose containers the gate closes.
-  final Widget child;
-
-  /// Whether every gate above [context] is open.
-  static bool openAt(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<_GateScope>()?.open ?? true;
-
-  @override
-  Widget build(BuildContext context) =>
-      _GateScope(open: open && openAt(context), child: child);
-}
-
-class _GateScope extends InheritedWidget {
-  const _GateScope({required this.open, required super.child});
-
-  final bool open;
-
-  @override
-  bool updateShouldNotify(_GateScope oldWidget) => oldWidget.open != open;
-}
-
-/// Keeps the glass in [child] out of every glass container above it while
-/// [clear] is false: for a package widget that sometimes paints between a
-/// container and its members, as a list row paints its highlight under
-/// its accessories.
-@internal
-class MorphGlassContainerBarrier extends InheritedWidget {
-  /// Lets the glass in [child] reach a container above it only while
-  /// [clear].
-  const MorphGlassContainerBarrier({
-    required this.clear,
-    required super.child,
-    super.key,
-  });
-
-  /// Whether nothing is painted between a container above and the glass in
-  /// the child now.
-  final bool clear;
-
-  @override
-  bool updateShouldNotify(MorphGlassContainerBarrier oldWidget) =>
-      clear != oldWidget.clear;
-}
-
-/// An [Opacity] of a [MorphGlassStage] that its members see through: the
-/// stage closes whenever [opacity] is below 1.
-@internal
-class MorphGlassStageFade extends Opacity {
-  /// Fades [child] by [opacity].
-  const MorphGlassStageFade({required super.opacity, super.child, super.key});
-
-  @override
-  RenderOpacity createRenderObject(BuildContext context) =>
-      _RenderStageFade(opacity: opacity);
-}
-
-class _RenderStageFade extends RenderOpacity {
-  _RenderStageFade({super.opacity});
-}
-
-Widget _containerLayer(
-  BuildContext context,
-  MorphGlassContainerLink link, {
+/// The owned plane of a container or a stage: its pass has the settings
+/// and the material of a resting glass button, so the glass that joins it
+/// is body glass of the installed [GlassBuiltInPainter] on the liquid
+/// tier; on the flat tier, under another painter or with no painter
+/// installed it is [child] alone.
+Widget _plane(
+  BuildContext context, {
   required bool open,
   required Widget child,
-  bool sharpOnly = false,
+  GlassPaintOrder paintOrder = GlassPaintOrder.owned,
   Color? solidBackdrop,
 }) {
   final painter = MorphGlassScope.maybeOf(context);
@@ -274,328 +169,21 @@ Widget _containerLayer(
     valueListenable: morphLiquidGlassCapability,
     builder: (BuildContext context, bool _, Widget? child) {
       if (painter.effectiveTier == MorphGlassTier.flat) return child!;
-      final settings = morphLiquidSettings(
-        painter,
-        MorphGlassSurface(
-          kind: MorphGlassKind.button,
-          shape: RRect.zero,
-          color: const Color(0x00000000),
-          brightness: morphBrightnessOf(context),
-        ),
+      final button = MorphGlassSurface(
+        kind: MorphGlassKind.button,
+        shape: RRect.zero,
+        color: const Color(0x00000000),
+        brightness: morphBrightnessOf(context),
       );
-      final appearance = morphLiquidAppearance(
-        painter,
-        MorphGlassSurface(
-          kind: MorphGlassKind.button,
-          shape: RRect.zero,
-          color: const Color(0x00000000),
-          brightness: morphBrightnessOf(context),
-        ),
-      );
-      link.configure(painter, settings, appearance);
-      return LiquidGlassLayer(
-        settings: settings,
-        defaultAppearance: appearance,
-        read: GlassRead.plane,
+      return GlassPlaneScope.owned(
+        settings: morphLiquidSettings(painter, button),
+        defaultAppearance: morphLiquidAppearance(painter, button),
+        open: open,
+        paintOrder: paintOrder,
         solidBackdrop: solidBackdrop,
-        planePass: true,
-        child: GlassPlaneScope.owned(
-          settings: settings,
-          open: open,
-          paintOrder: sharpOnly
-              ? GlassPaintOrder.outsideGlass
-              : GlassPaintOrder.owned,
-          child: MorphGlassContainerScope(
-            link: link,
-            renderer: painter,
-            settings: settings,
-            solidBackdrop: solidBackdrop,
-            open:
-                open &&
-                MorphGlassContainerGate.openAt(context) &&
-                (!sharpOnly || settings.effectiveFrost == 0),
-            child: child!,
-          ),
-        ),
+        child: child!,
       );
     },
     child: child,
-  );
-}
-
-/// Whether the glass of [host] would look the same shaded by the nearest
-/// glass container: nothing between them fades, clips, filters or hides
-/// what is painted, since the container's layer shades every shape it
-/// holds whatever lies between, and no backdrop group between them gives
-/// the host a backdrop copy other than the container's (a bar floating in
-/// its own group stays out). A [MorphTag]'s own opacity is seen through
-/// while the tag shows its child; the host depends on the tag, so a tag
-/// hiding for its flight sends it back into a layer of its own.
-@internal
-bool morphGlassContainerReaches(Element host) {
-  final scope = host
-      .getElementForInheritedWidgetOfExactType<MorphGlassContainerScope>();
-  if (scope == null) return false;
-  final group = scope.getElementForInheritedWidgetOfExactType<BackdropGroup>();
-  final shared = (group?.widget as BackdropGroup?)?.backdropKey;
-  var clear = true;
-  Element? below;
-  host.visitAncestorElements((Element element) {
-    if (identical(element, scope)) return false;
-    final child = below;
-    below = element;
-    final widget = element.widget;
-    if (widget is MorphGlassContainerBarrier || widget is MorphTagVisibility) {
-      host.dependOnInheritedElement(element as InheritedElement);
-    }
-    if (_passes(element, child, (BackdropKey key) => key == shared)) {
-      return true;
-    }
-    clear = false;
-    return false;
-  });
-  return clear;
-}
-
-/// The color the open glass container above [host] is painted directly
-/// over, for body glass [host] shades in a layer of its own: glass the
-/// container reaches but does not shade - a pressed, lifted or glowing
-/// member, or one unlike the others - lies on that color as much as its
-/// resting neighbours do.
-///
-/// Read from the backdrop group's one copy instead, such a layer would be
-/// the group's first reader whenever it paints before the group's other
-/// glass, and would move that copy above whatever paints between them (a
-/// picture other glass sits on) for as long as it is out. Null without an
-/// open container, when the container declares no color, or when anything
-/// between them keeps the host out ([morphGlassContainerReaches]).
-@internal
-Color? morphGlassContainerSolidBackdrop(BuildContext host) {
-  final scope = host
-      .dependOnInheritedWidgetOfExactType<MorphGlassContainerScope>();
-  final solid = scope?.solidBackdrop;
-  if (scope == null || !scope.open || solid == null) return null;
-  return morphGlassContainerReaches(host as Element) ? solid : null;
-}
-
-/// The nearest ancestor of [host] below [until] that keeps its glass out of
-/// a glass container above it, or null when none does; with [until] null,
-/// every [BackdropGroup] keeps it out and the walk ends at the root.
-@internal
-Element? morphGlassContainerBlocker(Element host, {Element? until}) {
-  final group = until?.getElementForInheritedWidgetOfExactType<BackdropGroup>();
-  final shared = (group?.widget as BackdropGroup?)?.backdropKey;
-  Element? blocker;
-  Element? below;
-  host.visitAncestorElements((Element element) {
-    if (identical(element, until)) return false;
-    final child = below;
-    below = element;
-    if (_passes(
-      element,
-      child,
-      (BackdropKey key) => until != null && key == shared,
-    )) {
-      return true;
-    }
-    blocker = element;
-    return false;
-  });
-  return blocker;
-}
-
-bool _passes(
-  Element element,
-  Element? child,
-  bool Function(BackdropKey key) shares,
-) {
-  final widget = element.widget;
-  if (widget is BackdropGroup) return shares(widget.backdropKey);
-  if (widget is MorphGlassContainerBarrier) return widget.clear;
-  if (widget is MorphTagVisibility) return !widget.hidden;
-  final render = element is RenderObjectElement ? element.renderObject : null;
-  if (render is _RenderStageFade) return true;
-  if (render is RenderOpacity &&
-      child?.widget is MorphTagVisibility &&
-      render.opacity == 1) {
-    return true;
-  }
-  return !(render is RenderOpacity ||
-      render is RenderAnimatedOpacityMixin ||
-      render is RenderSliverOpacity ||
-      render is RenderOffstage ||
-      render is RenderClipRect ||
-      render is RenderClipRRect ||
-      render is RenderClipRSuperellipse ||
-      render is RenderClipOval ||
-      render is RenderClipPath ||
-      render is RenderShaderMask ||
-      render is RenderBackdropFilter ||
-      render is RenderViewportBase ||
-      render is RenderFollowerLayer ||
-      widget is ImageFiltered ||
-      widget is ColorFiltered ||
-      widget is Visibility);
-}
-
-/// The glass container above a control, read by its glass hosts.
-@internal
-class MorphGlassContainerScope extends InheritedWidget {
-  /// Publishes [link] for the hosts in [child].
-  const MorphGlassContainerScope({
-    required this.link,
-    required this.renderer,
-    required this.settings,
-    required super.child,
-    this.solidBackdrop,
-    this.open = true,
-    super.key,
-  });
-
-  /// Whether the container takes members now; a closed one is no
-  /// container to them.
-  final bool open;
-
-  /// The opaque color the container is painted directly over, or null
-  /// ([MorphGlassContainer.solidBackdrop]).
-  final Color? solidBackdrop;
-
-  /// The container's admission record.
-  final MorphGlassContainerLink link;
-
-  /// The renderer the container shades with.
-  final GlassBuiltInPainter renderer;
-
-  /// The settings of the container's layer.
-  final LiquidGlassSettings settings;
-
-  /// The nearest container above [context], or null.
-  static MorphGlassContainerLink? maybeOf(BuildContext context) {
-    final scope = context
-        .dependOnInheritedWidgetOfExactType<MorphGlassContainerScope>();
-    return scope != null && scope.open ? scope.link : null;
-  }
-
-  @override
-  bool updateShouldNotify(MorphGlassContainerScope oldWidget) =>
-      oldWidget.open != open ||
-      oldWidget.solidBackdrop != solidBackdrop ||
-      oldWidget.link != link ||
-      oldWidget.renderer != renderer ||
-      oldWidget.settings != settings;
-}
-
-/// Which glass hosts a container shades, and how many shapes each holds.
-@internal
-class MorphGlassContainerLink {
-  GlassBuiltInPainter? _renderer;
-  LiquidGlassSettings? _settings;
-  LiquidGlassAppearance? _default;
-  LiquidGlassAppearance? _appearance;
-  final Map<Object, int> _members = {};
-  int _shapes = 0;
-
-  /// The most shapes the container's layer shades.
-  static const int capacity = FlutterGpuGeometryRenderer.maxShapes;
-
-  /// The shapes the container shades now.
-  int get shapes => _shapes;
-
-  /// Sets the renderer and the layer settings members must match, and the
-  /// layer's own [appearance]; when any of them changes, the next member
-  /// admitted sets the appearance the others must match.
-  void configure(
-    GlassBuiltInPainter renderer,
-    LiquidGlassSettings settings,
-    LiquidGlassAppearance appearance,
-  ) {
-    if (renderer != _renderer ||
-        settings != _settings ||
-        appearance != _default) {
-      // A brightness flip changes every member's appearance at once; the
-      // old reference would turn each of them away.
-      _appearance = null;
-    }
-    _renderer = renderer;
-    _settings = settings;
-    _default = appearance;
-  }
-
-  /// Whether [host], drawing [frame] with [renderer], is shaded by the
-  /// container; records or releases its shapes accordingly.
-  bool admit(Object host, GlassBuiltInPainter renderer, MorphGlassFrame frame) {
-    final count = _joinable(renderer, frame);
-    final held = _members[host];
-    if (count == 0 || _shapes - (held ?? 0) + count > capacity) {
-      release(host);
-      return false;
-    }
-    _members[host] = count;
-    _shapes += count - (held ?? 0);
-    return true;
-  }
-
-  /// Whether [host] is shaded by the container.
-  bool holds(Object host) => _members.containsKey(host);
-
-  /// Gives back the shapes of [host].
-  void release(Object host) {
-    final held = _members.remove(host);
-    if (held != null) _shapes -= held;
-    if (_members.isEmpty) _appearance = null;
-  }
-
-  int _joinable(GlassBuiltInPainter renderer, MorphGlassFrame frame) {
-    final settings = _settings;
-    if (settings == null || renderer != _renderer) return 0;
-    final look = morphGlassJoinLook(renderer, frame);
-    if (look == null || look.settings != settings) return 0;
-    final appearance = _appearance ?? look.appearance;
-    if (look.appearance != appearance) return 0;
-    _appearance = appearance;
-    return look.shapes;
-  }
-}
-
-/// What a glass container compares [frame], drawn by [renderer], against
-/// its other members: the layer settings and the appearance, tint aside,
-/// that all of the frame's shapes share, and how many shapes there are.
-///
-/// Null when no container takes the frame: on the flat tier, while
-/// anything of it moves, lifts or glows (a glow is its own layer's), when
-/// it fuses or floats glass, holds a bar or a menu, or mixes looks.
-@internal
-({LiquidGlassSettings settings, LiquidGlassAppearance appearance, int shapes})?
-morphGlassJoinLook(GlassBuiltInPainter renderer, MorphGlassFrame frame) {
-  final tier = renderer.effectiveTier;
-  if (tier == MorphGlassTier.flat || !frame.still) return null;
-  final parts = frame.partsFor(tier);
-  if (parts.separate.isEmpty ||
-      parts.fused.isNotEmpty ||
-      parts.floating.isNotEmpty) {
-    return null;
-  }
-  LiquidGlassSettings? settings;
-  LiquidGlassAppearance? appearance;
-  for (final surface in parts.separate) {
-    if (surface.lift != 0 ||
-        surface.glow != null ||
-        surface.kind == MorphGlassKind.bar ||
-        surface.kind == MorphGlassKind.menu) {
-      return null;
-    }
-    final own = morphLiquidSettings(renderer, surface);
-    final look = morphLiquidAppearance(
-      renderer,
-      surface,
-    ).copyWith(tint: const Color(0x00000000));
-    settings ??= own;
-    appearance ??= look;
-    if (own != settings || look != appearance) return null;
-  }
-  return (
-    settings: settings!,
-    appearance: appearance!,
-    shapes: parts.separate.length,
   );
 }

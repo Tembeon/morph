@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/glass/renderer/plane/render_glass_plane.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 
 /// Where one glass layer reads its backdrop.
 @internal
@@ -90,8 +91,9 @@ enum GlassPaintOrder {
 ///   copy of the route below.
 ///
 /// - [owned]: a plane whose owner declares what paints between it and its
-///   glass ([GlassPaintOrder]); it knows the glass layers below it and
-///   which of them one pass at the plane could draw ([RenderGlassPlane]).
+///   glass ([GlassPaintOrder]): one pass at the plane draws the resting
+///   glass below it that would look the same there ([RenderGlassPlane]),
+///   with one geometry pass and one backdrop filter for all of it.
 /// - [planeBreak]: keeps the glass in its child out of such a pass while
 ///   active, for an owner that sometimes paints between.
 ///
@@ -116,17 +118,30 @@ abstract final class GlassPlaneScope {
   }) => _GlassBackdropScope(backdrop: backdrop, child: child);
 
   /// A plane for the glass in [child] whose owner guarantees [paintOrder],
-  /// with a pass of [settings]; it merges nothing while not [open].
+  /// with a pass of [settings] and [defaultAppearance] that reads the
+  /// plane's backdrop, or paints over [solidBackdrop]
+  /// ([LiquidGlassLayer.solidBackdrop]); it merges nothing while not
+  /// [open].
   static Widget owned({
     required LiquidGlassSettings settings,
+    required LiquidGlassAppearance defaultAppearance,
     required Widget child,
     bool open = true,
     GlassPaintOrder paintOrder = GlassPaintOrder.owned,
-  }) => _OwnedPlane(
+    Color? solidBackdrop,
+  }) => LiquidGlassLayer(
     settings: settings,
-    open: open,
-    paintOrder: paintOrder,
-    child: child,
+    defaultAppearance: defaultAppearance,
+    read: GlassRead.plane,
+    solidBackdrop: solidBackdrop,
+    planePass: true,
+    child: _OwnedPlane(
+      settings: settings,
+      open: open,
+      paintOrder: paintOrder,
+      solid: solidBackdrop,
+      child: child,
+    ),
   );
 
   /// Keeps the glass in [child] out of the pass of an owned plane above
@@ -188,22 +203,33 @@ class _OwnedPlane extends SingleChildRenderObjectWidget {
     required this.settings,
     required this.open,
     required this.paintOrder,
+    required this.solid,
     required super.child,
   });
 
   final LiquidGlassSettings settings;
   final bool open;
   final GlassPaintOrder paintOrder;
+  final Color? solid;
 
   @override
-  RenderGlassPlane createRenderObject(BuildContext context) =>
-      RenderGlassPlane(settings: settings, open: open, paintOrder: paintOrder);
+  RenderGlassPlane createRenderObject(BuildContext context) => RenderGlassPlane(
+    settings: settings,
+    open: open,
+    paintOrder: paintOrder,
+    pass: InheritedGeometryRenderLink.of(context)!,
+    solid: solid,
+    readKey: BackdropGroup.of(context)?.backdropKey,
+  );
 
   @override
   void updateRenderObject(BuildContext context, RenderGlassPlane renderObject) {
     renderObject.settings = settings;
     renderObject.open = open;
     renderObject.paintOrder = paintOrder;
+    renderObject.pass = InheritedGeometryRenderLink.of(context)!;
+    renderObject.solid = solid;
+    renderObject.readKey = BackdropGroup.of(context)?.backdropKey;
   }
 }
 

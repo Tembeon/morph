@@ -523,7 +523,7 @@ static MorphGlassButtonAppearance resolve(
 
 ### MorphGlassContainer
 
-`class MorphGlassContainer extends StatefulWidget`
+`class MorphGlassContainer extends StatelessWidget`
 
 Shades the resting glass of the controls below it in one glass layer: one geometry pass and one backdrop filter for all of them instead of one each.
 

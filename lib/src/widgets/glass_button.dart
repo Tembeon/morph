@@ -718,7 +718,6 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
               lift: () => _lift,
               glow: () => _motion.glowAt(brightness, tint: tint, clear: clear),
               glows: glows,
-              still: () => _motion.isSettled,
               child: content,
             ),
           ),
@@ -744,7 +743,6 @@ class MorphControlCapsule extends StatelessWidget {
     this.lift,
     this.glow,
     this.glows,
-    this.still,
     this.shape = morphCapsuleShape,
     this.style,
     this.tint,
@@ -762,10 +760,6 @@ class MorphControlCapsule extends StatelessWidget {
   /// The glass tint handed to the painter apart from the flat [color], or
   /// null to tint with [color].
   final Color? tint;
-
-  /// Whether the capsule and every transform the control applies above it
-  /// are at rest now, or null when the control does not tell.
-  final bool Function()? still;
 
   /// The installed glass painter, or null for the flat appearance.
   final MorphGlassPainter? painter;
@@ -829,7 +823,6 @@ class MorphControlCapsule extends StatelessWidget {
                 painter: glass,
                 frames: frames,
                 glows: glows,
-                still: still,
                 surfaces: () => [
                   MorphGlassSurface(
                     kind: MorphGlassKind.button,

@@ -52,9 +52,19 @@ void main() {
     }
   }
 
+  // A layer under a fade at 0 (a hidden menu source) is not drawn: it paints
+  // what changed when it shows again.
+  bool shown(RenderObject layer) {
+    for (RenderObject? node = layer; node != null; node = node.parent) {
+      if (node is RenderOpacity && node.opacity == 0) return false;
+    }
+    return true;
+  }
+
   void expectGlassPainted(WidgetTester tester, String moment) {
     final layers = tester.allRenderObjects
         .whereType<RenderLiquidGlassLayer>()
+        .where(shown)
         .toSet();
     expect(layers, isNotEmpty);
     for (final layer in layers) {

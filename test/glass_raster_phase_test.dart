@@ -2,6 +2,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 
+class _Anchor extends SingleChildRenderObjectWidget {
+  const _Anchor({super.child, super.key});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      RenderGlassRasterAnchor();
+}
+
 double _sampleOffset(double origin) {
   const pixel = 7;
   const center = pixel + 0.5;
@@ -95,7 +103,7 @@ void main() {
                       top: 1.6,
                       width: 50,
                       height: 30,
-                      child: GlassRasterAnchor(
+                      child: _Anchor(
                         key: anchorKey,
                         child: SizedBox(key: shapeKey),
                       ),

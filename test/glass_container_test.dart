@@ -60,25 +60,25 @@ void main() {
   ) async {
     await tester.pumpWidget(_page(8, container: true));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
     expect(find.byType(LiquidGlass), findsNWidgets(8));
     await tester.pumpWidget(_page(8, container: false));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byType(LiquidGlassLayer), findsNWidgets(8));
+    expect(glassLayersWithShapes(), 8);
   });
 
   testWidgets('resting buttons stay in the container across a brightness '
       'flip', (WidgetTester tester) async {
     await tester.pumpWidget(_page(4, container: true));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
     await tester.pumpWidget(_page(4, container: true, brightness: .light));
     await tester.pumpAndSettle();
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
     expect(find.byType(LiquidGlass), findsNWidgets(4));
     await tester.pumpWidget(_page(4, container: true));
     await tester.pumpAndSettle();
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
   });
 
   testWidgets('a resting button outside a container takes the new '
@@ -107,10 +107,10 @@ void main() {
     for (var i = 0; i < 12; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }
-    expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+    expect(glassLayersWithShapes(), 2);
     await gesture.up();
     await tester.pumpAndSettle();
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
     expect(find.byType(LiquidGlass), findsNWidgets(4));
   });
 
@@ -149,17 +149,17 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
     final gesture = await tester.startGesture(
       tester.getCenter(find.byType(MorphSearchField)),
     );
     for (var i = 0; i < 12; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }
-    expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+    expect(glassLayersWithShapes(), 2);
     await gesture.cancel();
     await tester.pumpAndSettle();
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
   });
 
   testWidgets('a resting search toolbar shades its field and buttons in '
@@ -201,7 +201,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(LiquidGlass), findsNWidgets(3));
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
     await tester.tap(find.byType(MorphSearchField));
     var most = 0;
     for (var i = 0; i < 90; i++) {
@@ -262,7 +262,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(LiquidGlass), findsNWidgets(3));
-    expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+    expect(glassLayersWithShapes(), 2);
   });
 
   testWidgets('a container shades at most its capacity, the rest draw '
@@ -270,7 +270,7 @@ void main() {
     await tester.pumpWidget(_page(40, container: true));
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(LiquidGlass), findsNWidgets(40));
-    expect(find.byType(LiquidGlassLayer), findsNWidgets(1 + 40 - 32));
+    expect(glassLayersWithShapes(), 1 + 40 - 32);
   });
 
   testWidgets('on the flat tier a container adds nothing', (
@@ -279,7 +279,7 @@ void main() {
     await tester.pumpWidget(
       _page(4, container: true, tier: MorphGlassTier.flat),
     );
-    expect(find.byType(LiquidGlassLayer), findsNothing);
+    expect(glassLayersWithShapes(), 0);
   });
 
   testWidgets('a container reads one backdrop for its buttons', (
@@ -304,7 +304,9 @@ void main() {
       await tester.pumpWidget(_page(4, container: true, solidBackdrop: color));
       await tester.pump(const Duration(milliseconds: 100));
       final layer = tester.widget<LiquidGlassLayer>(
-        find.byType(LiquidGlassLayer),
+        find.byWidgetPredicate(
+          (Widget widget) => widget is LiquidGlassLayer && widget.planePass,
+        ),
       );
       expect(layer.solidBackdrop, color);
       expect(find.byType(LiquidGlass), findsNWidgets(4));
@@ -355,7 +357,7 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
   });
 
   for (final (name, wrap) in <(String, Widget Function(Widget child))>[
@@ -420,7 +422,7 @@ void main() {
 
       final own = await shot(container: false);
       final shared = await shot(container: true);
-      expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+      expect(glassLayersWithShapes(), 2);
       expect(shared, own);
     });
   }
@@ -473,15 +475,12 @@ void main() {
     );
     await tester.tap(find.text('present'));
     await tester.pumpAndSettle();
-    Finder layers() => find.descendant(
-      of: find.byType(MorphGlassContainer),
-      matching: find.byType(LiquidGlassLayer),
-    );
-    expect(layers(), findsNWidgets(4));
+    final container = find.byType(MorphGlassContainer);
+    expect(glassLayersWithShapes(within: container), 3);
     MorphSheet.of(
       tester.element(find.byKey(content)),
     ).animateTo(MorphSheetDetent.large);
     await tester.pumpAndSettle();
-    expect(layers(), findsOneWidget);
+    expect(glassLayersWithShapes(within: container), 1);
   });
 }
