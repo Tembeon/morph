@@ -307,9 +307,6 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   bool get motionSettled => _motion.isSettled;
 
   @override
-  void settleMotion() => _motion.settle();
-
-  @override
   void didUpdateWidget(MorphSearchField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!widget.enabled && (oldWidget.enabled || _motion.isPressed)) {

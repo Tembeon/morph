@@ -170,8 +170,8 @@ starts it.
   before. The field tells `still` (settled press and focus springs).
   Since 2026-10-20 the plane decides from render facts (glass.md "Glass
   planes and containers"): the items fade through an `Opacity` that is no
-  break at exactly 1, and a settled field snaps its springs onto their
-  targets (`settleMotion`), so it rests unscaled. Pixel
+  break at exactly 1, and a field its lift left a rest's remainder off
+  scale 1 ([MorphRest]) still counts as unscaled. Pixel
   6a raster p95 -1.0 ms, GPU -8 percent; glass-renderer.md "Package
   stages".
 
