@@ -1,6 +1,0 @@
-6c79648  runs 5  fixed-perf False  2026-10-13 03:30
-
-scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
-------------------------------------------------------------------------------------------------------
-audit/flat/m/empty/frames           560   1.0   2.4   5.9   7.3   1.1   0.0    0   525  
-audit/flat/m/tab-bar/drag          1014   2.2   3.8   6.8   9.2   2.4   0.5    3   566  raster-cpu:5 bad raster: UpdateAtlasBitmap 7.0, SurfaceFrame::Encode 4.3, QueueSubmit 3.0

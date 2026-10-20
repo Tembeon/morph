@@ -1,1 +1,0 @@
-Report: /tmp/morph-beta-r11/results/beta-input-screen.json; original gallery restored

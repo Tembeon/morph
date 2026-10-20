@@ -1,5 +1,0 @@
-00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/proto/menu_source_affinity_test.dart
-00:00 +0: new root gets an independent session while old popup stays alive
-00:00 +1: old root does not hand its model to a source moved elsewhere
-00:00 +2: old popup keeps its view when its source moves to another view
-00:00 +3: All tests passed!

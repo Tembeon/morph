@@ -1,6 +1,0 @@
-e4facef-dirty  runs 3  fixed-perf False  2026-10-13 23:07
-
-scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
-------------------------------------------------------------------------------------------------------
-nav/nav-navigation-enter-liquid     246   3.5   7.0   7.9  10.7   6.1   1.2    1   816  ui-layout:3 bad ui: layout 16.6, build 7.6, paint 3.7  [ui 8.39->7.035, raster 12.14->10.66, power_mw 700->816]
-nav/nav-navigation-nested-push-liq  246   5.4  10.4   7.6  10.9   6.8   2.0    6   736  ui-layout:5 bad ui: layout 11.5, paint 4.1, build 3.7  [=]

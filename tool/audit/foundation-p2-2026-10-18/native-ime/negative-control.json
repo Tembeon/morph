@@ -1,9 +1,0 @@
-{
-  "source": "device4",
-  "mutation": "show.before.endTime = keyboardCommandBegin.time + 0.1",
-  "originalEndTime": 980566.2515357086,
-  "mutatedEndTime": 980570.0642020835,
-  "exitCode": 2,
-  "stderr": "INVALID EVIDENCE: show: before snapshot overlaps keyboard command\n",
-  "analysisCreated": false
-}

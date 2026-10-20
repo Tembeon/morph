@@ -1,5 +1,0 @@
-b3bf6784  runs 5  fixed-perf False  2026-10-19 15:12
-
-scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
-------------------------------------------------------------------------------------------------------
-audit/liquid/tab-bar               2509   4.4   7.3   9.5  13.1  11.8   0.3    8   863  raster-cpu:7 raster-wait:1 bad raster: SurfaceFrame::Encode 4.7, QueueSubmit 4.2, waitForBufferRelease 3.5  [gpu 14.83->11.79, over_pct 2.6->0.3, power_mw 1046->863]

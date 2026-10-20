@@ -1,6 +1,0 @@
-{
-  "tool/ios_reference/Sources/App.swift": "344a58d304c671ab1fadbc6ef7f31d0fa8b593cbe791a2119dc2a83d19444eb2",
-  "tool/ios_reference/Sources/MenuKeyboard.swift": "4f7d587291ac484796a17a89a6af304d936621ab416346cc8cdc29a41eacfeea",
-  "tool/ios_reference/UITests/MenuKeyboardUITests.swift": "29747cedfe5b5b37a19eec7d092f3a2af759631de43190d10bc14b5891afb989",
-  "tool/audit/foundation-p2-2026-10-18/native-ime/run.py": "858f08651a360324cb1fc130a27b114ba96b8f71d1cb55271114f233e5486316"
-}

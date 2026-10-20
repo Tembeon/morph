@@ -1,6 +1,0 @@
-Analyzing morph...
-
-   info • Use the constant 'FakeViewPadding.zero' rather than a constructor returning the same object. Try using 'FakeViewPadding.zero' • example/test/proto/menu_source_geometry_test.dart:659:32 • use_named_constants
-   info • Use the constant 'FakeViewPadding.zero' rather than a constructor returning the same object. Try using 'FakeViewPadding.zero' • example/test/proto/menu_source_geometry_test.dart:732:32 • use_named_constants
-
-2 issues found. (ran in 17.2s)

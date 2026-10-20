@@ -216,7 +216,7 @@ void main() {
     tester,
   ) async {
     final dump = _dump(
-      'tool/ios_reference/references/disabled/dumps/'
+      'test/fixtures/ios27-device/disabled/dumps/'
       'dump-dis-alertrow-light-rest.txt',
     );
     Rect view(String cls) =>

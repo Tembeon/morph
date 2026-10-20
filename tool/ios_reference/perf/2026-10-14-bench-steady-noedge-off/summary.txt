@@ -1,6 +1,0 @@
-6689097  runs 3  fixed-perf False  2026-10-14 01:21
-
-scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
-------------------------------------------------------------------------------------------------------
-nav/nav-navigation-steady-flat      271   1.6   2.8   5.4   6.8   1.5   0.0    0   503    [ui 3.923->2.764, power_mw 608->503]
-nav/nav-navigation-steady-liquid    271   1.7   3.3   7.7  11.3   3.2   0.0    0   596    [gpu 5.425->3.246, power_mw 795->596]

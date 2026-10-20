@@ -2,7 +2,7 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
-## 0.8.0 - unreleased
+## 0.8.0 - 2026-10-20
 
 The public API takes UIKit's vocabulary before the first public
 release, following the API parity audit

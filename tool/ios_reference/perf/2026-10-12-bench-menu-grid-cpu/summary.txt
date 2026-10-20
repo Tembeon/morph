@@ -1,8 +1,0 @@
-70a6856-dirty  runs 5  fixed-perf False  2026-10-12 12:15
-
-scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
-------------------------------------------------------------------------------------------------------
-audit/liquid/menu                  1294   5.4  10.1   8.7  14.0  12.2   3.2   56   802  raster-cpu:31 ui-layout:8 ui-paint:1 gpu:1 raster-wait:1 bad raster: SurfaceFrame::Encode 7.8, Canvas::saveLayer 3.3, QueueSubmit 2.9  [ui 14.04->10.05, over_pct 5.3->3.2, power_mw 748->802]
-                                     dart (507 samples): build.<anonymous closure> 42, MorphMenuMotion.silhouetteFor 42, MorphMenuFusion.outline 38, morphMenuSilhouetteParts 37 ms
-                                     stall 534 ms: FlutterView.__render$Method$FfiNative 0
-                                     stall 566 ms: RenderObject.getTransformTo 272, [Native] /data/app/~~y_vqK9-ox46ulQ6eTQVP_w==/dev.tembeon.morph_example-ooxqibUJCekiUmmMjA40Pw==/base.apk!/lib/arm64-v8a/libflutter.so+0x93ec4c 0, _MixinApplication0&BindingBase&SchedulerBinding.scheduleFrame 0

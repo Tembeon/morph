@@ -1,6 +1,0 @@
-6c10a6b-dirty  runs 2  fixed-perf False  2026-10-12 11:44
-
-scene                                fr  ui50  ui95  ra50  ra95 gpu95 over drop    mW  causes / where
------------------------------------------------------------------------------------------------------
-audit/liquid/menu                   507   5.6  13.0   9.1  14.8  12.3   22   33   781  raster-cpu:15 ui-layout:6 gpu:1 raster: SurfaceFrame::Encode 3.84, QueueSubmit 2.23, Canvas::saveLayer 1.12 WARM
-                                     dart (1619 samples): _MixinApplication359&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint 275, LiquidGlassRenderObject.paint 275, GlassCompositionProbe.paint 275, LiquidGlassRenderObject._paintGlass 275 ms

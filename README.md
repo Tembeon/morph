@@ -1,53 +1,71 @@
 # morph
 
-Flutter widgets that behave and look like iOS 27 Liquid Glass: the tab
-bar and its lens, segmented control, switch, slider, stepper, glass
-buttons, menus and context menus, navigation bars and stacks, sheets,
-alerts, search, the date picker, lists and more. Springs, delays and
-thresholds are read from UIKit on the device and checked against
-recordings of the real controls. Every control works with liquid glass
-or with a flat look, chosen by the app or by the end user.
+iOS 27 Liquid Glass for Flutter: a tab bar with its lens, glass buttons,
+menus that grow out of their button, context menus, sheets, alerts,
+navigation bars, search, a date picker, lists and more.
 
-> I build this for apps of mine, and the API follows what they need.
-> There is no pub.dev release; versions are git tags following semver.
-> If you build on it, pin a tag.
+Every spring, delay and threshold is measured on an iPhone and checked
+against recordings of the native controls. Each control draws either
+liquid glass or a flat look, and the app or its user picks which.
 
-## Start with the example
+<table>
+  <tr>
+    <td align="center"><img src="doc/media/tab-bar-lens.gif" width="320" alt="The tab bar's lens lifts, slides across the tabs and refracts the badges under it"><br>Tab bar lens</td>
+    <td align="center"><img src="doc/media/glass-button-menu.gif" width="320" alt="A glass button grows into its menu over clear glass and shrinks back"><br>Menu from a glass button</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="doc/media/context-menu.gif" width="320" alt="A held row lifts, shows reactions and opens its actions"><br>Context menu</td>
+    <td align="center"><img src="doc/media/sheet-zoom.gif" width="320" alt="A sheet zooms out of its button, goes to its large detent and returns"><br>Sheet zoomed from its button</td>
+  </tr>
+</table>
 
-The gallery has one page per control, a slow-motion toggle and a glass
-page that switches the tier, appearance and text direction for the whole
-app. Live build: <https://tembeon.github.io/morph/> (wasm, so flat glass;
-a native build shows liquid glass). API docs:
-<https://tembeon.github.io/morph/docs/>.
+Filmed on an iPhone 16 Pro running the example gallery in release mode.
 
-```bash
-cd example
-flutter run -d macos
-```
+> morph is built for my own apps, and its API follows what they need.
+> It is not on pub.dev. Versions are git tags that follow semver, so pin
+> one.
+
+## Try the gallery
+
+The example app has a page per control, a slow-motion switch and a glass
+page that changes the tier, the appearance and the text direction for the
+whole app.
+
+- In the browser: <https://tembeon.github.io/morph/>. The web build draws
+  flat glass; liquid glass needs a native build.
+- API docs: <https://tembeon.github.io/morph/docs/>.
+- On your machine:
+
+  ```bash
+  cd example
+  flutter run
+  ```
 
 ## Install
+
+morph needs Flutter 3.47 or newer.
 
 ```yaml
 dependencies:
   morph:
     git:
       url: https://github.com/Tembeon/morph.git
-      ref: v0.8.0 # a tag
+      ref: v0.8.0
 ```
 
-Everything is one import:
+One import covers the whole library:
 
 ```dart
 import 'package:morph/morph.dart';
 ```
 
-`package:morph/glass_painter.dart` is the seam for a custom glass
-painter; an app on the built-in glass never needs it.
+`package:morph/glass_painter.dart` is only for apps that paint their own
+glass.
 
 ## Set up
 
-Put a `MorphTheme` above the app's navigator and load the glass shaders
-before the first frame:
+Put a `MorphTheme` above your navigator and load the glass shaders before
+the first frame:
 
 ```dart
 Future<void> main() async {
@@ -66,46 +84,86 @@ Future<void> main() async {
 }
 ```
 
-`MorphThemeData` carries the brightness (null follows the platform), the
+`MorphThemeData` holds the brightness (null follows the platform), the
 tint, haptics, the glass and per-control `appearances`. Menus, sheets and
-alerts carry the theme of the subtree they open from into their routes.
-On `MaterialApp`, put the theme in `MaterialApp.builder` and pass it
-`Theme.of(context).brightness`; morph itself does not depend on Material.
+alerts take the theme of the widget they open from. On `MaterialApp`, put
+the theme in `MaterialApp.builder` and pass it
+`Theme.of(context).brightness`. morph itself does not depend on Material.
 
-Liquid glass needs Impeller with Flutter GPU. Turn Flutter GPU on in the
-app:
+Liquid glass runs on Impeller with Flutter GPU. Turn Flutter GPU on:
 
 - iOS and macOS `Info.plist`: `FLTEnableFlutterGPU` set to `true`.
 - Android `AndroidManifest.xml`, inside `<application>`:
   `<meta-data android:name="io.flutter.embedding.android.EnableFlutterGPU" android:value="true" />`.
 
-The package's build hook compiles the glass shaders into
-`build/shaderbundles/`; nothing else to configure.
+The package's build hook compiles the shaders. There is nothing else to
+configure.
 
-## Which glass is drawn
+## Choose the glass
 
-- `MorphGlassRenderer.adaptive()` picks once per session from the GPU:
-  liquid glass on a capable GPU, flat on the OpenGL ES fallback, on Skia
-  and on Apple GPUs older than the A13, where sampling the backdrop
-  misses the frame budget.
-- `MorphGlassRenderer.tier(MorphGlassTier.flat)` (or `liquid`) fixes the
+- `MorphGlassRenderer.adaptive()` picks once per session from the GPU.
+  You get liquid glass on a capable GPU and flat glass on the OpenGL ES
+  fallback, on Skia and on Apple GPUs older than the A13.
+- `MorphGlassRenderer.tier(MorphGlassTier.flat)` or `.liquid` fixes the
   tier, for example from a user setting.
-- Where the liquid tier cannot load (the web, a build without Flutter
-  GPU, a shader failure), liquid draws flat glass.
-  `MorphTheme.liquidGlassUnavailableReason` says why; the failure is also
-  reported once through `FlutterError.reportError`. Until the shaders
-  have loaded liquid is drawn flat too and turns liquid when they are
-  ready: await `MorphTheme.precacheGlass()` before `runApp` so the first
-  frame is liquid already.
-- Without a theme that chooses glass, the controls draw flat.
+- Where liquid glass cannot load (the web, a build without Flutter GPU, a
+  shader error), the controls draw flat. `MorphTheme.liquidGlassUnavailableReason`
+  says why.
 
-The shapes, motion and fusion of every control are the same on every
-tier.
+Shapes, motion and fusion are the same on both tiers. Only the shading
+differs.
 
-## Presentations
+## Build with it
 
-A sheet, a zoomed page or a popover can grow out of the widget that
-opened it. Name that widget with a `MorphSourceLink`:
+A tab bar with a badge, over a page that scrolls under its glass:
+
+```dart
+Stack(
+  children: [
+    Positioned.fill(child: pages[tab]),
+    Align(
+      alignment: Alignment.bottomCenter,
+      child: MorphTabBar(
+        items: const [
+          MorphTabItem(icon: IconData(0xe318), label: 'Home'),
+          MorphTabItem(
+            icon: IconData(0xe567),
+            label: 'Inbox',
+            badge: MorphBadge.count(3),
+          ),
+        ],
+        selected: tab,
+        onChanged: (int index) => setState(() => tab = index),
+      ),
+    ),
+  ],
+);
+```
+
+A menu from any widget, on a tap, as `showsMenuAsPrimaryAction` does in
+UIKit. A glass button takes the same `menu:` directly.
+
+```dart
+MorphMenuSource(
+  menu: [
+    MorphMenuItem(title: 'Copy', onSelected: copy),
+    MorphMenuItem(title: 'Delete', destructive: true, onSelected: delete),
+  ],
+  child: const Text('Options'),
+);
+```
+
+A context menu on a long press, as `UIContextMenuInteraction`:
+
+```dart
+MorphContextMenuRegion(
+  menu: [MorphMenuItem(title: 'Reply', onSelected: reply)],
+  child: MessageRow(message),
+);
+```
+
+A sheet or a page that grows out of the widget that opened it. Name that
+widget with a `MorphSourceLink`:
 
 ```dart
 final link = MorphSourceLink();
@@ -131,48 +189,56 @@ Navigator.of(context).push(
 ```
 
 `showMorphSheet`, `showMorphAlert` and `showMorphActionSheet` return when
-the presentation is popped, as `Navigator.push` does; the visual close
-continues after that. Back, the barrier and Escape go through `PopScope`.
-A presentation whose source leaves the tree dissolves instead of landing.
+the presentation is popped, like `Navigator.push`. Back, the barrier and
+Escape go through `PopScope`. If the source leaves the tree, the
+presentation fades out instead of landing on it.
 
-Menus need no wiring: `MorphMenuButton(menu: [...])`,
-`MorphBarButton(menu: [...])` and `MorphContextMenuRegion(menu: [...])`
-grow their menu out of themselves, with `MorphMenuItem`,
-`MorphMenuSection`, `MorphSubmenu` and `MorphMenuDeferred` as entries.
+## Keep it fast
 
-## Performance: group neighbouring glass
+Each separate liquid glass layer reads and filters what lies under it. On
+a Pixel 6a that costs about 0.3 to 0.75 ms of raster time per layer and
+frame, whatever its size. Apple's advice for Liquid Glass applies here:
+group neighbouring glass.
 
-Every separate glass layer is a backdrop filter: the engine reads the
-backdrop under it, filters it and composites it, whatever its size,
-about 0.3 to 0.75 ms of raster time per layer and frame on a Pixel 6a.
-As Apple advises for Liquid Glass, group neighbouring glass: wrap a row
-or cluster of glass buttons in a `MorphGlassContainer` and their resting
-glass is shaded in one layer (four resting buttons over a scrolling
-page: Pixel 6a raster -18 percent). Everything inside the container is
-content above its glass, so put what the glass must show through under
-the container. A `MorphListSection` and a resting `MorphSearchToolbar`
-group their own glass.
+- Wrap a row or cluster of glass buttons in `MorphGlassContainer`. Their
+  resting glass is then shaded as one layer (four resting buttons over a
+  scrolling page: 18 percent less raster time on a Pixel 6a). Everything
+  inside the container is content on top of its glass, so keep what the
+  glass should show through below the container.
+- `MorphGlassContainer(solidBackdrop: color)` says the glass sits on one
+  opaque color, such as a card. The glass is then painted over that color
+  and reads no backdrop at all.
+- `MorphListSection`, a resting `MorphSearchToolbar`, the navigation bar
+  and the tab bar group their own glass.
 
-Resting glass in one `BackdropGroup` shares one copy of the screen; a
-card of glass buttons drawn over other glass needs a `BackdropGroup` of
-its own to show that glass through it. See the `MorphTheme` docs.
+Resting glass in one `BackdropGroup` shares one copy of the screen. A card
+of glass buttons drawn over other glass needs a `BackdropGroup` of its own
+to show that glass through it.
 
-## Claude skill
+## For coding agents
 
-This repository is a Claude Code plugin marketplace. Its `use-morph`
-skill (`plugins/morph`) teaches coding agents the current API, with a
-reference generated from the reviewed public API:
+This repository is also a Claude Code plugin. Its `use-morph` skill
+teaches agents the current API, from a reference generated from the
+reviewed public API:
 
 ```
 /plugin marketplace add Tembeon/morph
 /plugin install morph@morph
 ```
 
+## Working on morph
+
+`CLAUDE.md` and `docs/` describe how the library is built and tested:
+the engine, the widget pattern, the glass renderer, performance and the
+test setup. Measurements of the native controls live in
+`tool/ios_reference/spec/`.
+
 ## License
 
-[MIT](LICENSE), except the vendored glass renderer, derived from
+[MIT](LICENSE), except the vendored glass renderer, which is derived from
 [liquid_glass_renderer](https://github.com/whynotmake-it/flutter_liquid_glass)
 by Tim Lehmann for whynotmake.it under [Apache-2.0](lib/src/glass/renderer/LICENSE).
 Its [NOTICE](lib/src/glass/renderer/NOTICE) and
-[VENDORED](lib/src/glass/renderer/VENDORED) record attribution and local
-changes; adapted shaders retain Flutter's BSD and Inigo Quilez's MIT notices.
+[VENDORED](lib/src/glass/renderer/VENDORED) record the attribution and the
+local changes. Adapted shaders keep Flutter's BSD and Inigo Quilez's MIT
+notices.

@@ -30,3 +30,15 @@ migrate_working_dir/
 /build/
 /coverage/
 CLAUDE.local.md
+
+# Working material of morph's own development: measurement evidence, audit
+# and research reports, native reference captures and design notes. It
+# stays in the owner's checkout and in the history; the library, its tests,
+# the tools they run and the contributor docs do not read it.
+/tool/audit/*
+!/tool/audit/shader/
+/tool/ios_reference/perf/20*/
+/tool/ios_reference/references/
+/docs/architecture/
+/docs/research/
+/docs/standalone-library-plan.md

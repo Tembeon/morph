@@ -39,8 +39,14 @@ anything themselves.
   family sits beside it. Read the passport of the control you touch. When a measurement
   changes, update the passport AND the tuning class dartdoc in the same change.
 - References for ideas and optimizations: `tool/audit/` (research and experiment
-  reports), `docs/research/`, the experiment branches in `docs/performance.md`, the
-  native lab in `tool/ios_reference/lab`. Old reports are evidence, not instructions.
+  reports), `docs/research/`, `docs/architecture/`, the measurement evidence under
+  `tool/ios_reference/perf/<date>-*` and the native captures in
+  `tool/ios_reference/references/`, the experiment branches in `docs/performance.md`,
+  the native lab in `tool/ios_reference/lab`. Old reports are evidence, not
+  instructions. The reports, evidence, captures and design notes are untracked
+  (`.gitignore`): they live in the owner's checkout `/Volumes/Dev/projects/morph`
+  and in the history (`git log --all -- <path>`), not in a fresh clone or worktree.
+  New evidence goes there too, uncommitted.
 
 ## Devices
 

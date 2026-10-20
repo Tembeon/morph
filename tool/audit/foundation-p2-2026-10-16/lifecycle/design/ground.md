@@ -1,8 +1,0 @@
-# P2 lifecycle ground, d121d186
-Scope: example prototype only; production model/timeline/clock and measurements unchanged; do not touch main/owner WIP. Read how/findings.md and why/findings.md in this directory.
-
-Four new executable cases at example/test/proto/menu_route_lifecycle_test.dart; before log /tmp/morph-p2-lifecycle-before.log. Hidden real-route root observer/currentness/cancel test passes. Immediately open(command mode)->maybePop before pump fails for both PopScope allowed values: public ModalRoute.willPop asserts modal scope absent. Tap + early outside (no intervening pump), then first sample + 500ms coarse frame bypasses PopScope and never builds content (expected 1 actual0). Preserve actual pointer streams, strict recorded normal-frame replay and canceled pre-hold zero builds.
-
-Need explicit early contract: hidden preparation can be canceled before content exists without invoking unbuilt policy; once measured opening occurs, policy-aware requests must await actual subtree mount (even SDK modal scope is not enough), then existing single-use async permission/causal time. Consider alternative eager content mount (changes deferred builder behavior) or different ownership/presentation shape; do not falsify SDK observers/currentness. First-mount cancellation must resolve waiting SDK callers on remove/replace/unmount/cover, programmatic pop must still bypass. No new public API burden.
-
-Other discovery to characterize this run: nested raw down/move/up and root/nested currentness, focus/Back/Escape semantics, covered global input mutation. Root coordinates fixed; transformed nested conversion, Router dispatch, post-issued-success atomicity may remain explicitly open. Tests/heavy runs parent only.
