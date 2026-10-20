@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -14,9 +16,11 @@ import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/haptics.dart';
 import 'package:morph/src/widgets/motion_route.dart';
+import 'package:morph/src/widgets/popover_shape.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/theme/theme.dart';
@@ -914,6 +918,7 @@ class _AlertViewState extends State<_AlertView>
       radius: popover
           ? MorphPopoverTuning.cornerRadius
           : MorphAlertTuning.cornerRadius,
+      platter: !popover,
       onChoose: _choose,
       onSubmit: _return,
       frames: frames,
@@ -1051,7 +1056,6 @@ class _AlertViewState extends State<_AlertView>
     TextDirection direction,
   ) {
     final motion = _popover!;
-    final source = _route.source!;
     return Stack(
       children: [
         Positioned.fill(
@@ -1061,29 +1065,42 @@ class _AlertViewState extends State<_AlertView>
           ),
         ),
         Positioned.fill(
-          child: Flow(
-            delegate: _PopoverFlow(
-              motion: motion,
-              frames: frames,
-              source: source,
-              origin: () => _overlayOrigin(context),
-              padding: padding,
-              direction: direction,
-            ),
+          child: _PopoverLayout(
+            motion: motion,
+            frames: frames,
+            source: _route.source!,
+            origin: () => _overlayOrigin(context),
+            padding: padding,
+            direction: direction,
             children: [
-              CustomPaint(
-                painter: _ArrowPainter(color: style.platterColor),
-                child: const SizedBox(
-                  width: MorphPopoverTuning.arrowWidth,
-                  height: MorphPopoverTuning.arrowLength,
-                ),
-              ),
+              _platterFor(style),
               IgnorePointer(ignoring: motion.isDismissing, child: card),
             ],
           ),
         ),
       ],
     );
+  }
+
+  (MorphAlertAppearance, Widget)? _platter;
+
+  // The platter takes the shape the layout places, built at layout, so its
+  // arrow and the card move as one. A build that keeps the style hands
+  // back the same widget, so the dismissal does not build it again.
+  Widget _platterFor(MorphAlertAppearance style) {
+    if (_platter case (final kept, final platter) when kept == style) {
+      return platter;
+    }
+    final platter = LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints box) => _PopoverPlatter(
+        shape: (box as _PopoverConstraints).shape,
+        style: style,
+        frames: frames,
+        opacity: _opacity,
+      ),
+    );
+    _platter = (style, platter);
+    return platter;
   }
 
   Offset _overlayOrigin(BuildContext context) {
@@ -1093,112 +1110,322 @@ class _AlertViewState extends State<_AlertView>
   }
 }
 
-class _PopoverFlow extends FlowDelegate {
-  _PopoverFlow({
+/// The constraints a popover's platter is laid out with: tight to the
+/// box of its [shape], which they carry, so the platter builds again
+/// whenever the shape changes.
+class _PopoverConstraints extends BoxConstraints {
+  _PopoverConstraints(this.shape) : super.tight(shape.bounds.size);
+
+  /// The popover's shape in the platter's coordinates.
+  final MorphPopoverShape shape;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _PopoverConstraints && other.shape == shape;
+
+  @override
+  int get hashCode => shape.hashCode;
+}
+
+/// Lays out a popover's platter and card: the card at its own size, the
+/// placement from it ([morphPlacePopover]), and the platter at the
+/// placement's shape; both paint scaled by the motion about the arrow's
+/// tip.
+class _PopoverLayout extends MultiChildRenderObjectWidget {
+  const _PopoverLayout({
     required this.motion,
-    required Listenable frames,
+    required this.frames,
     required this.source,
     required this.origin,
     required this.padding,
     required this.direction,
-  }) : super(repaint: frames);
+    required super.children,
+  });
 
   final MorphPopoverMotion motion;
+  final Listenable frames;
   final Rect source;
   final Offset Function() origin;
   final EdgeInsets padding;
   final TextDirection direction;
 
   @override
-  BoxConstraints getConstraintsForChild(int i, BoxConstraints constraints) {
-    if (i == 0) return const BoxConstraints();
-    return BoxConstraints(
-      maxWidth: MorphAlertTuning.popoverWidth,
-      maxHeight: math.max(0, constraints.maxHeight - padding.vertical),
-    );
-  }
+  RenderObject createRenderObject(BuildContext context) => _RenderPopover(
+    motion: motion,
+    frames: frames,
+    source: source,
+    origin: origin,
+    padding: padding,
+    direction: direction,
+  );
 
   @override
-  void paintChildren(FlowPaintingContext context) {
-    final size = context.getChildSize(1);
-    if (size == null) return;
-    final placement = morphPlacePopover(
-      size: size,
-      source: source.shift(-origin()),
-      screen: context.size,
-      padding: padding,
-      textDirection: direction,
-    );
-    final s = motion.scale;
-    final anchor = placement.anchor;
-    final opacity = motion.opacity;
-    Matrix4 around(Offset at) {
-      final m = Matrix4.translationValues(anchor.dx, anchor.dy, 0);
-      m.multiply(Matrix4.diagonal3Values(s, s, 1));
-      m.multiply(
-        Matrix4.translationValues(at.dx - anchor.dx, at.dy - anchor.dy, 0),
+  void updateRenderObject(BuildContext context, _RenderPopover renderObject) =>
+      renderObject.update(
+        motion: motion,
+        frames: frames,
+        source: source,
+        origin: origin,
+        padding: padding,
+        direction: direction,
       );
-      return m;
-    }
-
-    final content = placement.content;
-    const w = MorphPopoverTuning.arrowWidth;
-    final arrow = Matrix4.identity();
-    final c = placement.arrowCenter;
-    switch (placement.arrowDirection) {
-      case MorphPopoverArrowDirection.down:
-        arrow.setFrom(around(Offset(c - w / 2, content.bottom)));
-      case MorphPopoverArrowDirection.up:
-        arrow.setFrom(around(Offset(c + w / 2, content.top)));
-        arrow.multiply(Matrix4.rotationZ(math.pi));
-      case MorphPopoverArrowDirection.left:
-        arrow.setFrom(around(Offset(content.left, c - w / 2)));
-        arrow.multiply(Matrix4.rotationZ(math.pi / 2));
-      case MorphPopoverArrowDirection.right:
-        arrow.setFrom(around(Offset(content.right, c + w / 2)));
-        arrow.multiply(Matrix4.rotationZ(-math.pi / 2));
-    }
-    if (opacity <= 0) return;
-    context.paintChild(0, transform: arrow, opacity: opacity);
-    context.paintChild(1, transform: around(content.topLeft));
-  }
-
-  @override
-  bool shouldRepaint(_PopoverFlow oldDelegate) =>
-      oldDelegate.source != source ||
-      oldDelegate.padding != padding ||
-      oldDelegate.direction != direction ||
-      oldDelegate.motion != motion;
-
-  @override
-  bool shouldRelayout(_PopoverFlow oldDelegate) =>
-      oldDelegate.padding != padding;
 }
 
-class _ArrowPainter extends CustomPainter {
-  const _ArrowPainter({required this.color});
+class _PopoverParentData extends ContainerBoxParentData<RenderBox> {}
 
-  final Color color;
+class _RenderPopover extends RenderBox
+    with
+        ContainerRenderObjectMixin<RenderBox, _PopoverParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, _PopoverParentData> {
+  _RenderPopover({
+    required this._motion,
+    required this._frames,
+    required this._source,
+    required this._origin,
+    required this._padding,
+    required this._direction,
+  });
+
+  MorphPopoverMotion _motion;
+  Listenable _frames;
+  Rect _source;
+  Offset Function() _origin;
+  EdgeInsets _padding;
+  TextDirection _direction;
+
+  /// Takes the configuration of a new [_PopoverLayout].
+  void update({
+    required MorphPopoverMotion motion,
+    required Listenable frames,
+    required Rect source,
+    required Offset Function() origin,
+    required EdgeInsets padding,
+    required TextDirection direction,
+  }) {
+    if (!identical(frames, _frames) && attached) {
+      _frames.removeListener(markNeedsPaint);
+      frames.addListener(markNeedsPaint);
+    }
+    _frames = frames;
+    _origin = origin;
+    if (!identical(motion, _motion)) markNeedsPaint();
+    _motion = motion;
+    if (source != _source || padding != _padding || direction != _direction) {
+      markNeedsLayout();
+    }
+    _source = source;
+    _padding = padding;
+    _direction = direction;
+  }
+
+  MorphPopoverPlacement? _placement;
+
+  // The overlay's position the last paint found, which layout places the
+  // popover by: no box's position can be read during layout.
+  Offset _seen = Offset.zero;
+  Offset _laidOutAt = Offset.zero;
+  bool _painted = false;
+  final LayerHandle<TransformLayer> _platterLayer = LayerHandle();
+  final LayerHandle<TransformLayer> _cardLayer = LayerHandle();
+
+  RenderBox get _platter => firstChild!;
+  RenderBox get _card => lastChild!;
+
+  // Every frame of the motion repaints the popover alone.
+  @override
+  bool get isRepaintBoundary => true;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final path = Path();
-    path.moveTo(-1, 0);
-    path.cubicTo(w * 0.18, 0, w * 0.26, h * 0.12, w * 0.36, h * 0.42);
-    path.lineTo(w * 0.44, h * 0.86);
-    path.quadraticBezierTo(w / 2, h * 1.06, w * 0.56, h * 0.86);
-    path.lineTo(w * 0.64, h * 0.42);
-    path.cubicTo(w * 0.74, h * 0.12, w * 0.82, 0, w + 1, 0);
-    path.close();
-    final paint = Paint();
-    paint.color = color;
-    canvas.drawPath(path, paint);
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! _PopoverParentData) {
+      child.parentData = _PopoverParentData();
+    }
   }
 
   @override
-  bool shouldRepaint(_ArrowPainter oldDelegate) => oldDelegate.color != color;
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _frames.addListener(markNeedsPaint);
+  }
+
+  @override
+  void detach() {
+    _frames.removeListener(markNeedsPaint);
+    super.detach();
+  }
+
+  @override
+  void dispose() {
+    _platterLayer.layer = null;
+    _cardLayer.layer = null;
+    super.dispose();
+  }
+
+  @override
+  void performLayout() {
+    size = constraints.biggest;
+    _card.layout(
+      BoxConstraints(
+        maxWidth: MorphAlertTuning.popoverWidth,
+        maxHeight: math.max(0, size.height - _padding.vertical),
+      ),
+      parentUsesSize: true,
+    );
+    _laidOutAt = _seen;
+    final placement = _placement = morphPlacePopover(
+      size: _card.size,
+      source: _source.shift(-_laidOutAt),
+      screen: size,
+      padding: _padding,
+      textDirection: _direction,
+    );
+    final bounds = placement.bounds;
+    final vertical =
+        placement.arrowDirection == MorphPopoverArrowDirection.down ||
+        placement.arrowDirection == MorphPopoverArrowDirection.up;
+    _platter.layout(
+      _PopoverConstraints(
+        MorphPopoverShape(
+          content: placement.content.shift(-bounds.topLeft),
+          direction: placement.arrowDirection,
+          arrowCenter:
+              placement.arrowCenter - (vertical ? bounds.left : bounds.top),
+        ),
+      ),
+    );
+  }
+
+  Matrix4 _around(Offset at) {
+    final anchor = _placement!.anchor;
+    final s = _motion.scale;
+    final m = Matrix4.translationValues(anchor.dx, anchor.dy, 0);
+    m.multiply(Matrix4.diagonal3Values(s, s, 1));
+    m.multiply(
+      Matrix4.translationValues(at.dx - anchor.dx, at.dy - anchor.dy, 0),
+    );
+    return m;
+  }
+
+  Matrix4 _transformOf(RenderBox child) => _around(
+    identical(child, _platter)
+        ? _placement!.bounds.topLeft
+        : _placement!.content.topLeft,
+  );
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    // Laid out for another position of the overlay (the first frame of a
+    // popover in a nested navigator, an overlay moved since), the popover
+    // is placed again in the next frame. A popover's first frame shows
+    // nothing (its opacity starts at 0).
+    _seen = _origin();
+    if (_seen != _laidOutAt) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (attached) markNeedsLayout();
+      });
+    }
+    _painted = _motion.opacity > 0;
+    if (!_painted) {
+      _platterLayer.layer = null;
+      _cardLayer.layer = null;
+      return;
+    }
+    _platterLayer.layer = context.pushTransform(
+      needsCompositing,
+      offset,
+      _transformOf(_platter),
+      (PaintingContext context, Offset offset) =>
+          context.paintChild(_platter, offset),
+      oldLayer: _platterLayer.layer,
+    );
+    _cardLayer.layer = context.pushTransform(
+      needsCompositing,
+      offset,
+      _transformOf(_card),
+      (PaintingContext context, Offset offset) =>
+          context.paintChild(_card, offset),
+      oldLayer: _cardLayer.layer,
+    );
+  }
+
+  // The popover takes taps across its frame, the arrow's strip included,
+  // as UIKit's popover view does; the card takes its own first.
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    if (!_painted) return false;
+    final hit = result.addWithPaintTransform(
+      transform: _transformOf(_card),
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset position) =>
+          _card.hitTest(result, position: position),
+    );
+    if (hit) return true;
+    final toPlatter = Matrix4.tryInvert(_transformOf(_platter));
+    if (toPlatter == null) return false;
+    return (Offset.zero & _platter.size).contains(
+      MatrixUtils.transformPoint(toPlatter, position),
+    );
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    if (_placement == null) return;
+    transform.multiply(_transformOf(child));
+  }
+}
+
+/// The glass of a popover: its content box and arrow as one [shape],
+/// shaded as one body on the liquid tier and filled on the flat ones.
+class _PopoverPlatter extends StatelessWidget {
+  const _PopoverPlatter({
+    required this.shape,
+    required this.style,
+    required this.frames,
+    required this.opacity,
+  });
+
+  final MorphPopoverShape shape;
+  final MorphAlertAppearance style;
+  final Listenable frames;
+  final double Function() opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    final glass = MorphGlassScope.maybeOf(context);
+    if (glass == null) {
+      return CustomPaint(
+        painter: _PlatterPainter(
+          style: style,
+          shape: shape.path,
+          opacity: opacity,
+          frames: frames,
+        ),
+      );
+    }
+    final brightness = morphBrightnessOf(context);
+    final outline = shape.outline(shaded: morphGlassShadesOutlines(glass));
+    final body = shape.body;
+    final arrow = RRect.fromRectAndRadius(shape.arrowBox, Radius.zero);
+    MorphGlassSurface surface(RRect part, double opacity) => MorphGlassSurface(
+      kind: MorphGlassKind.menu,
+      shape: part,
+      color: style.platterColor,
+      brightness: brightness,
+      opacity: opacity,
+    );
+    return MorphGlassHost(
+      painter: glass,
+      mode: MorphGlassMode.body,
+      frames: frames,
+      frame: () {
+        final shown = opacity();
+        return MorphGlassFrame([
+          surface(body, shown),
+          surface(arrow, shown),
+        ], outline: outline);
+      },
+    );
+  }
 }
 
 class _AlertCard extends StatelessWidget {
@@ -1214,6 +1441,7 @@ class _AlertCard extends StatelessWidget {
     required this.highlighted,
     required this.style,
     required this.radius,
+    required this.platter,
     required this.onChoose,
     required this.onSubmit,
     required this.frames,
@@ -1232,6 +1460,10 @@ class _AlertCard extends StatelessWidget {
   final ValueListenable<int?> highlighted;
   final MorphAlertAppearance style;
   final double radius;
+
+  /// Whether the card draws its own platter; a popover's platter is the
+  /// popover's, arrow and all.
+  final bool platter;
   final ValueChanged<MorphAlertAction> onChoose;
   final VoidCallback onSubmit;
   final Listenable frames;
@@ -1397,40 +1629,43 @@ class _AlertCard extends StatelessWidget {
       width: width,
       child: Stack(
         children: [
-          Positioned.fill(
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints box) {
-                final shape = RRect.fromRectAndRadius(
-                  Offset.zero & box.biggest,
-                  Radius.circular(radius),
-                );
-                if (glass == null) {
-                  return CustomPaint(
-                    painter: _PlatterPainter(
-                      style: style,
-                      shape: shape,
-                      opacity: opacity,
-                      frames: frames,
-                    ),
+          if (platter)
+            Positioned.fill(
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints box) {
+                  final shape = RRect.fromRectAndRadius(
+                    Offset.zero & box.biggest,
+                    Radius.circular(radius),
                   );
-                }
-                return MorphGlassHost(
-                  painter: glass,
-                  mode: MorphGlassMode.surface,
-                  frames: frames,
-                  frame: () => MorphGlassFrame([
-                    MorphGlassSurface(
-                      kind: MorphGlassKind.menu,
-                      shape: shape,
-                      color: style.platterColor,
-                      brightness: brightness,
-                      opacity: opacity(),
-                    ),
-                  ]),
-                );
-              },
+                  if (glass == null) {
+                    final outline = Path();
+                    outline.addRRect(shape);
+                    return CustomPaint(
+                      painter: _PlatterPainter(
+                        style: style,
+                        shape: outline,
+                        opacity: opacity,
+                        frames: frames,
+                      ),
+                    );
+                  }
+                  return MorphGlassHost(
+                    painter: glass,
+                    mode: MorphGlassMode.surface,
+                    frames: frames,
+                    frame: () => MorphGlassFrame([
+                      MorphGlassSurface(
+                        kind: MorphGlassKind.menu,
+                        shape: shape,
+                        color: style.platterColor,
+                        brightness: brightness,
+                        opacity: opacity(),
+                      ),
+                    ]),
+                  );
+                },
+              ),
             ),
-          ),
           clipped,
         ],
       ),
@@ -1447,7 +1682,7 @@ class _PlatterPainter extends CustomPainter {
   }) : super(repaint: frames);
 
   final MorphAlertAppearance style;
-  final RRect shape;
+  final Path shape;
   final double Function() opacity;
 
   @override
@@ -1460,13 +1695,13 @@ class _PlatterPainter extends CustomPainter {
       BlurStyle.normal,
       MorphAlertTuning.flatShadowSigma,
     );
-    canvas.drawRRect(
+    canvas.drawPath(
       shape.shift(const Offset(0, MorphAlertTuning.flatShadowOffset)),
       shadow,
     );
     final fill = Paint();
     fill.color = faded(style.platterColor);
-    canvas.drawRRect(shape, fill);
+    canvas.drawPath(shape, fill);
   }
 
   @override

@@ -100,6 +100,12 @@ class MorphGlassOutline {
   }
 }
 
+/// An outline whose edge is [path] and whose body the liquid tier shades
+/// from [field], a distance field of that edge its owner sampled.
+@internal
+MorphGlassOutline morphGlassOutlineOfField(Path path, GlassField field) =>
+    MorphGlassOutline._(path, field);
+
 /// The sampled distance field of [outline], or null for an outline built
 /// from a path alone or from a plain union.
 @internal

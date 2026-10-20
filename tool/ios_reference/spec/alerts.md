@@ -59,14 +59,68 @@ default / cancel / destructive, `enabled`, handler), `preferredAction`,
 - With a source: glass popover, `MorphPopoverMotion` one progress: scale
   0.01 -> 1 about the arrow tip + alpha; present 331.9/29.15 = 0.345/0.80,
   dismiss 283.97/28.65 = 0.373/0.85 [tuning; 0.005 rms].
-- Content 240 wide, arrow 28 x 13, radius 34; cancel omitted and run at
-  once by a tap outside; the popover does NOT lift under a touch [device].
+- Content 240 wide, arrow 26 x 13 (UIKit's `arrowBase` / `arrowHeight`),
+  radius 34; cancel omitted and run at once by a tap outside; the popover
+  does NOT lift under a touch [device].
+- One shape [read from UIKit, notes private; path dumps on the iOS 27
+  simulator, 2026-10-20]: `_UIPopoverShapePathProviderIOS` draws content
+  and arrow as one path, and `_UIPopoverGlassBackground` shades it as one
+  glass, a SwiftUI glass of ONE SDF element built from that path. The arrow
+  is the content's own glass: same tint, the rim runs around it, nothing
+  runs across its base; the chrome's own shadow is off.
+- Arrow: each side leaves the edge 18.5 from the arrow's center (base 26
+  plus a 5.5 fillet) through a cubic whose controls sit on the edge 13
+  from the center and which ends at (7.5, 6); straight to (2, 12); the tip
+  one cubic with both controls at (0, 13), reaching 12.75. The same arrow
+  on every edge (mirrored up, turned left and right; the frame grows 13
+  on that side).
+- Corners: continuous (Apple's three-cubic corner, 1.5287 r along each
+  edge) of 34, less when the box with the arrow is too small (radius at
+  most its shorter side / 2 / 1.5287: a one-action popover 240 x 80 has
+  30.42). A corner next to the arrow ends at least 16 (half the base + 3)
+  from the arrow's center: center 60 from the side, the corner reaches 44
+  along the edge; 50, 34. UIKit pins an arrow whose center comes within 49
+  of a side (offset past 71 on a 240 popover) into the corner, a shape
+  morph's placement (48 clearance) never asks for.
 - `morphPlacePopover`: candidates above, below, trailing, leading; centered
   on the source across, slid into 10 pt margins and the safe area, toward
   the source by at most the arrow length (overlaps a source by 3 pt rather
   than switching sides); skip a candidate whose arrow comes within 48 pt
   (radius + half arrow) of a corner; least total slide wins (15/15).
 - Without a source an iPhone action sheet IS an alert (cancel last).
+- morph (popover_shape.dart, `MorphPopoverShape`): the same path on both
+  tiers. Liquid shades it as one fused body from its distance field
+  (`MorphGlassOutline` with a field, `MorphGlassMode.body`), as UIKit
+  shades its SDF; flat fills it (with the flat shadow without a painter).
+  One layout places the popover (`_RenderPopover`) and builds the platter
+  from that placement's shape, so card, platter and arrow scale about the
+  tip as one. The popover takes taps across content and arrow strip (the
+  frame of UIKit's popover view; not measured): a tap on the arrow runs
+  nothing.
+- Why one outline with a field: it is UIKit's own structure and the
+  package's general fused-body path. Rejected: an analytic arrow in the
+  final shader (a special case in shared shaders); the arrow as a box
+  fused by the container merge law (boxes make no 26 x 13 point); the
+  arrow as a glass shape of its own (two bevels meet: the seam is the
+  defect).
+- NEAR, declared in `MorphPopoverShape`: the field is sampled every 2 pt,
+  so the liquid tip rounds 0.2 pt short of the path (0.6 px at 3x;
+  0.07 pt at 1 pt for four times the nodes); deeper than 32 pt above the
+  arrow the field takes the nearest straight edge or fillet start (at
+  most 1.2 pt off, where the glass reads only its sign); the curves are
+  flattened within 0.03 pt. Corner normals turn by the renderer's optical
+  corner as every fused body's do.
+- Cost: present and dismiss frames shade a field body (a matte per
+  frame) where the content alone was analytic; rest is a matte either way.
+  The field is sampled once per placement (0.4 ms warm on the Mac) and the
+  last two shapes keep theirs. Device frame time and energy: not measured
+  yet.
+- Host proof: example/test/popover_arrow_host_test.dart (four directions,
+  a slid arrow, light and dark, liquid and flat, mid present, rest, mid
+  dismiss): luma steps 0 - 0.7 across the arrow's edge, arrow vs content
+  0 - 0.7 per channel; the arrow drawn apart stepped 20 - 88 and differed
+  7 - 10. test/popover_shape_test.dart checks the path against the dumped
+  points.
 
 ## Disabled actions [device, light + dark, 2026-10-03, scene x4disalert]
 
@@ -157,7 +211,6 @@ UpdateAtlasBitmap in frames over budget (bench-matrix-night).
 
 - The source button's tint dimming while the popover is up.
 - 0.7 s first popover present latency on the simulator.
-- The popover arrow in the glass painter (always drawn flat).
 
 ## API gaps
 

@@ -333,11 +333,24 @@ abstract final class MorphPopoverTuning {
   /// The scale a popover grows from and shrinks to, about its arrow tip.
   static const double hiddenScale = 0.01;
 
-  /// The length of the arrow from the content's edge to its tip.
+  /// The length of the arrow from the content's edge to its tip: UIKit's
+  /// popover `arrowHeight` (read from UIKit, notes private).
   static const double arrowLength = 13;
 
-  /// The width of the arrow's base.
-  static const double arrowWidth = 28;
+  /// The width of the arrow where its straight sides, extended, meet the
+  /// content's edge: UIKit's popover `arrowBase`.
+  static const double arrowBase = 26;
+
+  /// How far beyond [arrowBase] on each side the fillet between the
+  /// content's edge and the arrow's side starts, so the arrow leaves the
+  /// edge over `arrowBase + 2 * arrowFilletReach` (37): read from the path
+  /// UIKit draws.
+  static const double arrowFilletReach = 5.5;
+
+  /// The least distance from the arrow's center at which a corner next to
+  /// the arrow ends: half of [arrowBase] plus 3. A corner that would reach
+  /// closer is drawn smaller, as UIKit draws it.
+  static const double arrowCornerGap = arrowBase / 2 + 3;
 
   /// The corner radius of a popover's content.
   static const double cornerRadius = 34;
@@ -345,10 +358,14 @@ abstract final class MorphPopoverTuning {
   /// The space a popover keeps from the screen's sides.
   static const double margin = 10;
 
-  /// The nearest the arrow's center comes to a corner of the content: the
-  /// corner radius plus half the arrow. A placement that would push the
-  /// arrow closer is not taken.
-  static const double arrowCornerClearance = cornerRadius + arrowWidth / 2;
+  /// The nearest the arrow's center comes to a corner of the content. A
+  /// placement that would push the arrow closer is not taken.
+  ///
+  /// Fitted to the 15 simulator placements. UIKit pins an arrow whose
+  /// center comes within 49 of a side (an offset past 71 from the center
+  /// of a 240 wide popover, read from UIKit, notes private) and draws it
+  /// into the corner; morph's placement never asks for that shape.
+  static const double arrowCornerClearance = 48;
 }
 
 /// The motion of an iOS 27 popover: one progress that scales the popover
