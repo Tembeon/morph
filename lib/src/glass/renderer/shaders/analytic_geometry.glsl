@@ -65,7 +65,7 @@ uniform vec4 uShapeBounds[MAX_SHAPES * 5 / 4];
 // branches).
 #define shapeCull(i) uShapeBounds[MAX_SHAPES + (i) / 4][(i) - ((i) / 4) * 4]
 // 1 lets the separate shapes skip a continuous-corner shape's distance
-// solve on its flat face (flatFaceSample), 0 solves every pixel. The two
+// solve on its flat face (analyticShapeSample), 0 solves every pixel. The two
 // draw the same pixels.
 uniform float uAnalyticFlatFace;
 #if ANALYTIC_FUSED
@@ -129,56 +129,51 @@ float fusedDistance(vec2 p, int count) {
 
 #endif
 
-// Shape [index]'s sample at p as getShapeSampleFromArray returns it,
-// except that a continuous-corner shape deeper inside than
-// analyticFlatDepth by a bound skips its distance solve and takes the
-// bound for its distance: p's depth inside the shape's box less the
-// corner radius, in the distance's own scale. The shape lies inside its box
-// and its outline (each octant's superellipse and corner arc) within the
-// corner radius of the box's, so by the triangle inequality the solved
-// depth is at least the bound. Past analyticFlatDepth the displacement is
-// zero and every reader of the signed edge distance (coverage, border,
-// glint, bevel shadow) is saturated, so the pixel is the same; the normal
-// and the half thickness are the solve's own.
-SceneSample flatFaceSample(int index, vec2 p) {
+// Shape [index]'s sample at p as getShapeSampleFromArray returns it, one
+// solve and one set of gradients whichever way it goes. With [flatFace], a
+// continuous-corner shape (a pair's half included) deeper inside than
+// analyticFlatDepth by a bound skips its distance solve and takes the bound
+// for its distance: p's depth inside the shape's box less the corner
+// radius, in the distance's own scale. The shape lies inside its box and
+// its outline (each octant's superellipse and corner arc) within the corner
+// radius of the box's, so by the triangle inequality the solved depth is at
+// least the bound. Past analyticFlatDepth the displacement is zero and
+// every reader of the signed edge distance (coverage, border, glint, bevel
+// shadow) is saturated, so the pixel is the same; the normal and the half
+// thickness are the solve's own.
+SceneSample analyticShapeSample(int index, vec2 p, bool flatFace) {
     int baseIndex = index * 3;
     vec4 primitive = uShapeData[baseIndex];
-    if (primitive.x == 1.0 || primitive.x == 4.0) {
-        vec4 inverseBasis = uShapeData[baseIndex + 1];
-        vec4 placement = uShapeData[baseIndex + 2];
-        vec2 delta = p - placement.xy;
-        vec2 localPoint = vec2(
-            inverseBasis.x * delta.x + inverseBasis.y * delta.y,
-            inverseBasis.z * delta.x + inverseBasis.w * delta.y
-        );
-        float halfMinor = 0.5 * min(primitive.y, primitive.z);
-        // A pair's half lies inside its own half box and within that half's
-        // radius of it, so the same bound holds there.
-        if (primitive.x == 4.0) {
-            resolvePairHalf(index, localPoint, primitive);
-        }
-        vec2 halfSize = primitive.yz * 0.5;
-        vec2 inside = halfSize - abs(localPoint);
-        float radius = min(primitive.w, min(halfSize.x, halfSize.y));
-        float depth = (min(inside.x, inside.y) - radius) * placement.z;
-        if (depth > analyticFlatDepth()) {
-            SceneSample face;
-            face.distance = -depth;
-            face.halfMinor = halfMinor * placement.z;
-            face.curvatureFactor = 0.0;
-            vec4 gradients = getShapeGradients(
-                primitive,
-                inverseBasis,
-                placement.z,
-                localPoint,
-                false
-            );
-            face.normal = gradients.xy;
-            face.opticalNormal = gradients.zw;
-            return face;
-        }
+    vec4 inverseBasis = uShapeData[baseIndex + 1];
+    vec4 placement = uShapeData[baseIndex + 2];
+    ShapeFrame frame = shapeFrame(index, p, primitive, inverseBasis, placement);
+    SceneSample result;
+    result.halfMinor = 0.5 * min(primitive.y, primitive.z) * placement.z;
+    result.curvatureFactor = primitive.x == 2.0 ? 1.0 : 0.0;
+    bool face = false;
+    float depth = 0.0;
+    if (flatFace && frame.primitive.x == 1.0) {
+        vec2 halfSize = frame.primitive.yz * 0.5;
+        vec2 inside = halfSize - abs(frame.point);
+        float radius = min(frame.primitive.w, min(halfSize.x, halfSize.y));
+        depth = (min(inside.x, inside.y) - radius) * placement.z;
+        face = depth > analyticFlatDepth();
     }
-    return getShapeSampleFromArray(index, p, false);
+    if (face) {
+        result.distance = -depth;
+    } else {
+        result.distance = shapeLocalDistance(frame) * placement.z;
+    }
+    vec4 gradients = getShapeGradients(
+        frame.primitive,
+        inverseBasis,
+        placement.z,
+        frame.point,
+        false
+    );
+    result.normal = gradients.xy;
+    result.opticalNormal = gradients.zw;
+    return result;
 }
 
 // The nearest shape at p, in sceneSample's order and tie rule for shapes
@@ -187,7 +182,7 @@ SceneSample flatFaceSample(int index, vec2 p) {
 // distance 1e9 when every shape is farther than [reach] from its box (the
 // geometry pass's empty-pixel rejection, before any SDF is evaluated).
 // With [flatFace], a pixel inside the box of one shape alone takes that
-// shape's flatFaceSample: every other shape's distance is then positive
+// shape's flat-face sample: every other shape's distance is then positive
 // and the shape's flat-face distance negative, so the winner and the
 // shapes evaluated are the same.
 SceneSample nearestShape(
@@ -232,9 +227,7 @@ SceneSample nearestShape(
         // it is never skipped there.
         float bound = sqrt(shapeBoundsDistanceSquared(uShapeBounds[i], p)) * shapeCull(i);
         if (bound > max(best.distance, 0.0)) continue;
-        SceneSample shape = i == container
-            ? flatFaceSample(i, p)
-            : getShapeSampleFromArray(i, p, false);
+        SceneSample shape = analyticShapeSample(i, p, i == container);
         bool nearer = i == count - 1
             ? shape.distance < best.distance
             : shape.distance <= best.distance;

@@ -396,6 +396,11 @@ tool/audit/2026-10-19-shader-diet/.
   direction are derived again after the refraction; the one-model variants
   compute only the tint tone of their model. All IDENTICAL on the host
   harness.
+- A separate shape is sampled through one function (analyticShapeSample:
+  one frame, a pair's half resolved once, one solve or the flat-face
+  bound, one set of gradients). Two inlined samples, a flat-face one and a
+  plain one, pushed the separate-shape variants into spills once the pair
+  solve joined them.
 - `mediump` buys nothing: impellerc does write RelaxedPrecision for
   mediump arithmetic into the Vulkan stage (Flutter 3.47.7 and 3.50 beta,
   with or without the file's `precision highp float`), but the color, tint,

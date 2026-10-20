@@ -302,7 +302,17 @@ int resolvePairHalf(int index, inout vec2 p, inout vec4 primitive) {
 }
 #endif
 
-float getShapeDistance(
+// Shape [index] at p in its own frame: the local point, and the primitive
+// and first uRseData row it is solved with, a pair's own half (the half is
+// resolved once and serves the distance and the gradients alike).
+struct ShapeFrame {
+    vec2 point;
+    vec4 primitive;
+    int rse;
+    bool pair;
+};
+
+ShapeFrame shapeFrame(
     int index,
     vec2 p,
     vec4 primitive,
@@ -310,37 +320,56 @@ float getShapeDistance(
     vec4 placement
 ) {
     vec2 delta = p - placement.xy;
-    vec2 localPoint = vec2(
+    ShapeFrame frame;
+    frame.point = vec2(
         inverseBasis.x * delta.x + inverseBasis.y * delta.y,
         inverseBasis.z * delta.x + inverseBasis.w * delta.y
     );
-    int rse = index * 3;
+    frame.primitive = primitive;
+    frame.rse = index * 3;
+    frame.pair = false;
 #if RSE_PAIRS
-    bool pair = primitive.x == 4.0;
-    if (pair) {
-        rse = resolvePairHalf(index, localPoint, primitive);
+    frame.pair = primitive.x == 4.0;
+    if (frame.pair) {
+        frame.rse = resolvePairHalf(index, frame.point, frame.primitive);
     }
 #endif
-    vec4 rseDegreeAndSpans = uRseData[rse];
-    vec4 rseCircleCenters = uRseData[rse + 1];
-    vec4 rseSemiAxisAndRadii = uRseData[rse + 2];
+    return frame;
+}
+
+// The local signed distance of a shape in its frame.
+float shapeLocalDistance(ShapeFrame frame) {
+    vec4 rseDegreeAndSpans = uRseData[frame.rse];
+    vec4 rseCircleCenters = uRseData[frame.rse + 1];
+    vec4 rseSemiAxisAndRadii = uRseData[frame.rse + 2];
 #if RSE_PAIRS
     // The bottom rows carry the radius where the shared half width sits.
-    if (pair) {
-        rseSemiAxisAndRadii.x = 0.5 * primitive.y;
+    if (frame.pair) {
+        rseSemiAxisAndRadii.x = 0.5 * frame.primitive.y;
     }
 #endif
-    float localDistance = getShapeSDF(
-        primitive.x,
-        localPoint,
+    return getShapeSDF(
+        frame.primitive.x,
+        frame.point,
         vec2(0.0),
-        primitive.yz,
-        primitive.w,
+        frame.primitive.yz,
+        frame.primitive.w,
         rseDegreeAndSpans,
         rseCircleCenters,
         rseSemiAxisAndRadii
     );
-    return localDistance * placement.z;
+}
+
+float getShapeDistance(
+    int index,
+    vec2 p,
+    vec4 primitive,
+    vec4 inverseBasis,
+    vec4 placement
+) {
+    return shapeLocalDistance(
+        shapeFrame(index, p, primitive, inverseBasis, placement)
+    ) * placement.z;
 }
 
 float getShapeDistanceFromArray(int index, vec2 p) {
@@ -401,13 +430,8 @@ SceneSample getShapeSampleFromArray(int index, vec2 p, bool blended) {
     vec4 inverseBasis = uShapeData[baseIndex + 1];
     vec4 placement = uShapeData[baseIndex + 2];
     SceneSample resultSample;
-    resultSample.distance = getShapeDistance(
-        index,
-        p,
-        primitive,
-        inverseBasis,
-        placement
-    );
+    ShapeFrame frame = shapeFrame(index, p, primitive, inverseBasis, placement);
+    resultSample.distance = shapeLocalDistance(frame) * placement.z;
     // The placement scale is the same scale applied to the signed distance,
     // so this is the shape's local half-minor extent in scene pixels. Keeping
     // it beside the SDF avoids a second traversal and lets optical spread be
@@ -420,21 +444,11 @@ SceneSample getShapeSampleFromArray(int index, vec2 p, bool blended) {
     // continuous-superellipse primitives use the shallower response. Smooth
     // unions interpolate this value below.
     resultSample.curvatureFactor = primitive.x == 2.0 ? 1.0 : 0.0;
-    vec2 delta = p - placement.xy;
-    vec2 localPoint = vec2(
-        inverseBasis.x * delta.x + inverseBasis.y * delta.y,
-        inverseBasis.z * delta.x + inverseBasis.w * delta.y
-    );
-#if RSE_PAIRS
-    if (primitive.x == 4.0) {
-        resolvePairHalf(index, localPoint, primitive);
-    }
-#endif
     vec4 gradients = getShapeGradients(
-        primitive,
+        frame.primitive,
         inverseBasis,
         placement.z,
-        localPoint,
+        frame.point,
         blended
     );
     resultSample.normal = gradients.xy;
