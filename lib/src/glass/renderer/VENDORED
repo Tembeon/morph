@@ -738,3 +738,13 @@ Local patches (some commits include related package changes):
   map, so its matte frame writes none. The other tint variants are
   unchanged. A matte frame moves its pack with a uniformly translated
   matte too, for the boxes' tints.
+- 2026-10-20 one analytic shape sample: nearestShape samples every
+  separate shape through analyticShapeSample (analytic_geometry.glsl),
+  which resolves the shape's frame once (sdf.glsl ShapeFrame / shapeFrame:
+  the local point and, for a pair, its half), then takes the flat-face
+  bound or one solve (shapeLocalDistance) and one set of gradients;
+  flatFaceSample, which inlined a second copy of the sample, is gone, and
+  getShapeSampleFromArray resolves a pair's half once. The pair solve had
+  pushed analytic, analytic_ios27 to 24 B of stack spill and
+  analytic_tint(_ios27) to 26 B on the Mali-G78 (Vulkan); now 0 on Vulkan
+  and GLES, total arithmetic 45.6 -> 32.
