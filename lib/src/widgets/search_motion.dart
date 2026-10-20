@@ -401,6 +401,14 @@ class MorphSearchMotion {
     });
   }
 
+  /// Puts a settled field onto its targets: the lift's channels, which
+  /// settle within a visible threshold ([MorphRest]), land exactly, so a
+  /// resting field draws unscaled.
+  void settle() {
+    _lift.settle(_now);
+    _progress.snap(_now, _focused ? 1 : 0);
+  }
+
   /// Puts the transition at rest, focused or not, at time [t].
   void snap(double t, {required bool focused}) {
     advance(t);

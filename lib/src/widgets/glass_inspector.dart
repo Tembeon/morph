@@ -307,9 +307,6 @@ Object _layerSignature() {
 const Set<String> _plumbing = {
   'MorphGlassHost',
   'MorphGlassContentCopy',
-  'MorphGlassStageFade',
-  'MorphGlassContainerScope',
-  'MorphGlassContainerBarrier',
   'MorphTheme',
   'MorphFocusRing',
   'MorphTouchListener',

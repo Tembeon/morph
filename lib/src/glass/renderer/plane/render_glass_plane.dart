@@ -1,9 +1,10 @@
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:morph/src/glass/renderer/geometry/glass_rest.dart';
+import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
+import 'package:morph/src/glass/renderer/liquid_glass.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 
@@ -32,8 +33,13 @@ enum GlassSplit {
   /// Its plane merges nothing now: a stage its owner closed.
   closed,
 
-  /// It reads a backdrop of its own: chrome, or a lifted lens.
+  /// It reads a backdrop other than its plane's: its own (chrome, a lifted
+  /// lens), or the read of another plane in between (a bar's).
   read,
+
+  /// Its control draws fills, platters or fused bodies in order with this
+  /// glass, which a pass at the plane would draw under them.
+  control,
 
   /// It shows a touch glow, which a pass applies to all of its glass.
   glow,
@@ -106,12 +112,15 @@ typedef GlassLook = ({
 });
 
 /// What a glass layer tells its plane about itself, read again on every
-/// notification of its sources.
+/// notification of its sources: its settings, whether it shades a fused
+/// body or shows a glow, and whether its control lets a pass at the plane
+/// draw it ([GlassSplit.control]).
 @internal
 typedef GlassMemberInputs = ({
   LiquidGlassSettings settings,
   bool fused,
   bool glows,
+  bool joins,
 });
 
 /// The nearest render object strictly between [member] and [plane] (the
@@ -157,12 +166,18 @@ bool _blocks(RenderObject node) => switch (node) {
   _ => node.alwaysNeedsCompositing,
 };
 
+bool _translates(RenderObject node, RenderObject? ancestor) =>
+    MatrixUtils.getAsTranslation(node.getTransformTo(ancestor)) != null;
+
 /// The render object of a glass layer, through which the layer reports to
 /// its plane: the layer's repaint boundary, which clips the layer to its
 /// reach, registers with the nearest [RenderGlassPlane] above it and
 /// follows whether its glass rests.
+///
+/// It is also where a layer of the member's own would rasterize: a pass
+/// that draws the member's shapes shifts them onto that grid.
 @internal
-class RenderGlassMember extends RenderProxyBox {
+class RenderGlassMember extends RenderGlassRasterAnchor {
   /// Creates the member of a layer that reads [read], whose shapes
   /// register with [link].
   RenderGlassMember({
@@ -171,7 +186,7 @@ class RenderGlassMember extends RenderProxyBox {
     required GlassMemberInputs Function() inputsOf,
     this._reach,
     this._painted = false,
-    this.backdropKey,
+    this._backdropKey,
   }) : _inputsOf = inputsOf,
        _inputs = inputsOf();
 
@@ -195,8 +210,9 @@ class RenderGlassMember extends RenderProxyBox {
   GeometryRenderLink get link => _link;
   set link(GeometryRenderLink value) {
     if (identical(_link, value)) return;
+    _link.lendTo(null);
     _link = value;
-    _lastTransform = null;
+    _signature = null;
     _plane?.memberChanged(this);
   }
 
@@ -217,6 +233,9 @@ class RenderGlassMember extends RenderProxyBox {
 
   /// Whether the layer shows a touch glow.
   bool get glows => _inputs.glows;
+
+  /// Whether the layer's control lets a pass at its plane draw this glass.
+  bool get joins => _inputs.joins;
 
   double? _reach;
 
@@ -242,9 +261,35 @@ class RenderGlassMember extends RenderProxyBox {
     _plane?.memberChanged(this);
   }
 
+  BackdropKey? _backdropKey;
+
   /// The plane read the layer's glass shares, or null for a read of its
   /// own.
-  BackdropKey? backdropKey;
+  BackdropKey? get backdropKey => _backdropKey;
+  set backdropKey(BackdropKey? value) {
+    if (_backdropKey == value) return;
+    _backdropKey = value;
+    _plane?.memberChanged(this);
+  }
+
+  Color? _planeSolid;
+
+  /// The opaque color the member's plane is painted over, while the plane
+  /// reaches the member: glass the plane does not merge (pressed, glowing,
+  /// unlike the others) lies on that color as much as its merged
+  /// neighbours, and the layer shades it over the color too. Read from the
+  /// plane's backdrop instead, the layer would become the plane read's
+  /// first reader whenever it paints before the plane's pass, and move that
+  /// read above whatever paints between them.
+  Color? get planeSolid => _planeSolid;
+  set planeSolid(Color? value) {
+    if (_planeSolid == value) return;
+    _planeSolid = value;
+    onPlaneSolid?.call();
+  }
+
+  /// Called when [planeSolid] changes: the layer's own glass draws anew.
+  VoidCallback? onPlaneSolid;
 
   Listenable? _live;
   Listenable? _glows;
@@ -289,7 +334,7 @@ class RenderGlassMember extends RenderProxyBox {
     if (_read != GlassRead.plane || glows || fused) return null;
     LiquidGlassAppearance? appearance;
     var shapes = 0;
-    for (final shape in _link.shapes) {
+    for (final shape in _link.ownShapes) {
       if (shape is! LiquidGlassShapeRenderObject) return null;
       final own = (shape as LiquidGlassShapeRenderObject).appearance.copyWith(
         tint: const Color(0x00000000),
@@ -303,30 +348,80 @@ class RenderGlassMember extends RenderProxyBox {
   }
 
   int _quiet = GlassRestWatch.restFrames;
-  Matrix4? _lastTransform;
-  int _lastRevision = 0;
+  List<Object?>? _signature;
+  int _seen = -1;
+  // Whether the member is drawn under more than a translation relative to
+  // its plane, or null before it first composited.
+  bool? _scaled;
 
   /// Whether the member's glass stayed where it is, relative to its plane,
   /// and unchanged for [GlassRestWatch.restFrames] composited frames; a
   /// member counts as resting from the moment it appears.
   bool get resting => _quiet >= GlassRestWatch.restFrames;
 
+  /// Where the member sits relative to its plane, and where and how its
+  /// shapes sit in it: what a pass at the plane would encode again when it
+  /// changes.
+  List<Object?> _signatureNow(Matrix4 toPlane) => [
+    toPlane,
+    for (final shape in _link.ownShapes)
+      if (shape.attached && shape.hasSize) ...[
+        shape.getTransformTo(this),
+        shape.size,
+        if (shape is RenderLiquidGlass) ...[shape.shape, shape.appearance],
+      ],
+  ];
+
+  static bool _same(List<Object?> a, List<Object?> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      final (x, y) = (a[i], b[i]);
+      final same = x is Matrix4 && y is Matrix4
+          ? MatrixUtils.matrixEquals(x, y)
+          : x == y;
+      if (!same) return false;
+    }
+    return true;
+  }
+
   void _composited() {
     if (!attached) return;
     final plane = _plane;
     if (plane == null && !followsRestEverywhere) return;
-    final transform = getTransformTo(plane);
-    final revision = _link.revision;
-    final last = _lastTransform;
-    final moved =
-        last != null &&
-        (revision != _lastRevision ||
-            !MatrixUtils.matrixEquals(transform, last));
-    _lastTransform = transform;
-    _lastRevision = revision;
-    final was = resting;
-    _quiet = moved ? 0 : math.min(_quiet + 1, GlassRestWatch.restFrames);
-    if (was != resting) plane?.memberChanged(this);
+    _seen = plane?._epoch ?? -1;
+    final toPlane = getTransformTo(plane);
+    final scaled = MatrixUtils.getAsTranslation(toPlane) == null;
+    final signature = _signatureNow(toPlane);
+    final last = _signature;
+    final moved = last != null && !_same(signature, last);
+    _signature = signature;
+    final was = (resting, _scaled);
+    if (moved) {
+      _quiet = 0;
+    } else if (_quiet < GlassRestWatch.restFrames) {
+      _quiet++;
+    }
+    _scaled = scaled;
+    if (was != (resting, _scaled)) {
+      plane?.memberChanged(this, afterPaint: true);
+    }
+    if (!resting && !_restCheck) {
+      _restCheck = true;
+      SchedulerBinding.instance.addPostFrameCallback(_checkRest);
+    }
+  }
+
+  bool _restCheck = false;
+
+  // Glass that moved in a frame after which no frame comes rests from then
+  // on: nothing will draw it anywhere else.
+  void _checkRest(Duration _) {
+    _restCheck = false;
+    if (!attached || resting || SchedulerBinding.instance.hasScheduledFrame) {
+      return;
+    }
+    _quiet = GlassRestWatch.restFrames;
+    _plane?.memberChanged(this);
   }
 
   @override
@@ -335,7 +430,8 @@ class RenderGlassMember extends RenderProxyBox {
     _live?.addListener(_refresh);
     _glows?.addListener(_refresh);
     _inputs = _inputsOf();
-    _lastTransform = null;
+    _signature = null;
+    _scaled = null;
     _quiet = GlassRestWatch.restFrames;
     for (var node = parent; node != null; node = node.parent) {
       if (node is RenderGlassPlane) {
@@ -350,6 +446,7 @@ class RenderGlassMember extends RenderProxyBox {
   void detach() {
     _plane?._leave(this);
     _plane = null;
+    planeSolid = null;
     _live?.removeListener(_refresh);
     _glows?.removeListener(_refresh);
     super.detach();
@@ -405,15 +502,25 @@ class _MemberLayer extends OffsetLayer {
 
 /// The render object of a plane whose owner declares what is painted
 /// between it and its glass ([GlassPlaneScope.owned]): it knows the glass
-/// layers below it and decides, from their facts, which of them its pass
-/// draws ([GlassMemberCensus]).
+/// layers below it, decides from their facts which of them its pass draws
+/// ([GlassMemberCensus]), and lends the shapes of those to its pass.
+///
+/// It decides in layout, from the facts its members reported since; a
+/// member's own change (a glow, a break, a tag hiding it) reaches it in the
+/// same frame. What only the composited frame shows - a member that moved,
+/// faded, was not drawn, or a plane drawn scaled - it checks after paint,
+/// and a merged member leaves its pass in the next frame.
 @internal
 class RenderGlassPlane extends RenderProxyBox {
-  /// Creates a plane whose pass has [settings].
+  /// Creates a plane whose pass has [settings] and paints the shapes of
+  /// [pass].
   RenderGlassPlane({
     required this._settings,
     required this._open,
     required this._paintOrder,
+    required this._pass,
+    this._solid,
+    this._readKey,
   });
 
   /// The most shapes one pass holds.
@@ -426,7 +533,7 @@ class RenderGlassPlane extends RenderProxyBox {
   set settings(LiquidGlassSettings value) {
     if (_settings == value) return;
     _settings = value;
-    _invalidate();
+    _requestResolve();
   }
 
   bool _open;
@@ -436,7 +543,7 @@ class RenderGlassPlane extends RenderProxyBox {
   set open(bool value) {
     if (_open == value) return;
     _open = value;
-    _invalidate();
+    _requestResolve();
   }
 
   GlassPaintOrder _paintOrder;
@@ -447,79 +554,184 @@ class RenderGlassPlane extends RenderProxyBox {
   set paintOrder(GlassPaintOrder value) {
     if (_paintOrder == value) return;
     _paintOrder = value;
-    _invalidate();
+    _requestResolve();
+  }
+
+  BackdropKey? _readKey;
+
+  /// The read the plane's pass shares: a member must read it too.
+  BackdropKey? get readKey => _readKey;
+  set readKey(BackdropKey? value) {
+    if (_readKey == value) return;
+    _readKey = value;
+    _requestResolve();
+  }
+
+  Color? _solid;
+
+  /// The opaque color the plane is painted directly over, or null: its pass
+  /// shades over it, and so does every member it reaches but does not
+  /// merge ([RenderGlassMember.planeSolid]).
+  Color? get solid => _solid;
+  set solid(Color? value) {
+    if (_solid == value) return;
+    _solid = value;
+    _requestResolve();
+  }
+
+  GeometryRenderLink _pass;
+
+  /// The link of the plane's pass, to which merged members lend their
+  /// shapes.
+  GeometryRenderLink get pass => _pass;
+  set pass(GeometryRenderLink value) {
+    if (identical(_pass, value)) return;
+    for (final member in _members) {
+      member.link.lendTo(null);
+    }
+    _pass = value;
+    _requestResolve();
   }
 
   final List<RenderGlassMember> _members = [];
   final Map<RenderGlassMember, GlassMemberCensus> _census = {};
+  final Set<RenderGlassMember> _merged = {};
   bool _stale = true;
+  // Whether the plane was drawn under more than a translation when it last
+  // composited, or null before it first did: the transforms of its
+  // ancestors are only known after layout, where the plane decides, and a
+  // plane merges nothing until it knows (a member merged under a scale
+  // draws its own layer differently for frames after it leaves).
+  bool? _scaled;
+  int _epoch = 0;
 
   /// The glass layers below the plane, in paint order.
-  List<RenderGlassMember> get members {
-    if (_stale) _resolve();
-    return List.unmodifiable(_members);
+  List<RenderGlassMember> get members => List.unmodifiable(_members);
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _scaled = null;
   }
 
   void _join(RenderGlassMember member) {
     _members.add(member);
-    _invalidate();
+    _requestResolve();
   }
 
   void _leave(RenderGlassMember member) {
     _members.remove(member);
     _census.remove(member);
-    _invalidate();
+    if (_merged.remove(member)) member.link.lendTo(null);
+    _requestResolve();
   }
 
-  /// A fact of [member] changed: its inputs, its shapes, its rest.
-  void memberChanged(RenderGlassMember member) => _invalidate();
+  /// A fact of [member] changed: its inputs, its shapes, its rest;
+  /// [afterPaint] for one found after the frame's paint.
+  void memberChanged(RenderGlassMember member, {bool afterPaint = false}) =>
+      _requestResolve(afterPaint: afterPaint);
 
-  void _invalidate() => _stale = true;
+  bool _resolveScheduled = false;
+
+  void _requestResolve({bool afterPaint = false}) {
+    _stale = true;
+    if (!attached) return;
+    // Layout may only dirty what lies below the node laying out (a layout
+    // builder mounting a member): a plane laying out now resolves at the
+    // end of its own layout, one that is not in the next frame. After
+    // paint the frame still flushes semantics, which must find the tree
+    // laid out.
+    if (afterPaint || owner!.debugDoingLayout) {
+      if (_resolveScheduled) return;
+      _resolveScheduled = true;
+      SchedulerBinding.instance.addPostFrameCallback((Duration _) {
+        _resolveScheduled = false;
+        if (_stale && attached) markNeedsLayout();
+      });
+      return;
+    }
+    markNeedsLayout();
+  }
 
   /// What the plane does with [member]'s glass.
-  GlassMemberCensus censusOf(RenderGlassMember member) {
+  GlassMemberCensus censusOf(RenderGlassMember member) =>
+      _census[member] ??
+      const GlassMemberCensus(GlassStrategy.split, split: GlassSplit.closed);
+
+  @override
+  void performLayout() {
+    super.performLayout();
     if (_stale) _resolve();
-    return _census[member] ??
-        const GlassMemberCensus(GlassStrategy.split, split: GlassSplit.closed);
   }
 
   void _resolve() {
     _stale = false;
     _census.clear();
-    if (!attached) return;
+    _merged.clear();
     sortGlassPaintOrder(this, _members, (RenderGlassMember m) => m);
-    final scaled = MatrixUtils.getAsTranslation(getTransformTo(null)) == null;
+    final solid = (_solid?.a ?? 0) == 1 ? _solid : null;
     LiquidGlassAppearance? reference;
     var shapes = 0;
     for (final member in _members) {
       final (split, blocker, look) = _splitOf(
         member,
-        scaled: scaled,
         reference: reference,
         shapes: shapes,
       );
+      member.planeSolid = solid != null && _reaches(member, split)
+          ? solid
+          : null;
       if (split == null) {
         reference ??= look!.appearance;
         shapes += look!.shapes;
+        _merged.add(member);
         _census[member] = const GlassMemberCensus(GlassStrategy.merged);
-        continue;
+      } else {
+        _census[member] = GlassMemberCensus(
+          member.painted || member.planeSolid != null
+              ? GlassStrategy.painted
+              : GlassStrategy.split,
+          split: split,
+          blocker: blocker,
+        );
       }
-      _census[member] = GlassMemberCensus(
-        member.painted ? GlassStrategy.painted : GlassStrategy.split,
-        split: split,
-        blocker: blocker,
-      );
+    }
+    for (final member in _members) {
+      member.link.lendTo(_merged.contains(member) ? _pass : null);
     }
   }
 
+  // Whether the plane reaches [member], split for [split]: nothing between
+  // them changes its glass, and the glass reads nothing but what lies under
+  // it at the plane (no frost over content the plane lets paint between).
+  bool _reaches(RenderGlassMember member, GlassSplit? split) =>
+      member.read == GlassRead.plane &&
+      member.backdropKey == _readKey &&
+      !(_paintOrder == GlassPaintOrder.outsideGlass &&
+          member.settings.effectiveFrost > 0) &&
+      switch (split) {
+        GlassSplit.closed ||
+        GlassSplit.read ||
+        GlassSplit.frost ||
+        GlassSplit.blocked ||
+        GlassSplit.scaled => false,
+        GlassSplit.control ||
+        GlassSplit.glow ||
+        GlassSplit.fused ||
+        GlassSplit.empty => glassPlaneBlocker(member, this) == null,
+        _ => true,
+      };
+
   (GlassSplit?, RenderObject?, GlassLook?) _splitOf(
     RenderGlassMember member, {
-    required bool scaled,
     required LiquidGlassAppearance? reference,
     required int shapes,
   }) {
     if (!_open) return (GlassSplit.closed, null, null);
-    if (member.read != GlassRead.plane) return (GlassSplit.read, null, null);
+    if (member.read != GlassRead.plane || member.backdropKey != _readKey) {
+      return (GlassSplit.read, null, null);
+    }
+    if (!member.joins) return (GlassSplit.control, null, null);
     if (member.glows) return (GlassSplit.glow, null, null);
     if (member.fused) return (GlassSplit.fused, null, null);
     final look = member.look;
@@ -530,8 +742,7 @@ class RenderGlassPlane extends RenderProxyBox {
     }
     final blocker = glassPlaneBlocker(member, this);
     if (blocker != null) return (GlassSplit.blocked, blocker, null);
-    if (scaled ||
-        MatrixUtils.getAsTranslation(member.getTransformTo(this)) == null) {
+    if ((_scaled ?? true) || (member._scaled ?? true)) {
       return (GlassSplit.scaled, null, null);
     }
     if (look.settings != _settings) return (GlassSplit.settings, null, null);
@@ -543,6 +754,50 @@ class RenderGlassPlane extends RenderProxyBox {
     }
     if (!member.resting) return (GlassSplit.moving, null, null);
     return (null, null, look);
+  }
+
+  void _beginFrame() => _epoch++;
+
+  // A merged member that was not drawn this frame (hidden above it), that
+  // something now fades, clips or scales, or a plane now drawn scaled,
+  // leaves the pass in the next frame.
+  void _endFrame() {
+    if (!attached) return;
+    final scaled = !_translates(this, null);
+    var changed = scaled != _scaled;
+    _scaled = scaled;
+    if (_stale) return;
+    for (final member in _merged) {
+      if (changed) break;
+      changed =
+          member._seen != _epoch ||
+          (member._scaled ?? true) ||
+          glassPlaneBlocker(member, this) != null;
+    }
+    if (changed) _requestResolve(afterPaint: true);
+  }
+
+  @override
+  bool get isRepaintBoundary => true;
+
+  @override
+  OffsetLayer updateCompositedLayer({required OffsetLayer? oldLayer}) {
+    final layer = oldLayer is _PlaneLayer ? oldLayer : _PlaneLayer();
+    layer.plane = this;
+    return layer;
+  }
+}
+
+/// A plane's layer: hands the plane the compositing of every frame it is
+/// drawn in, around its members'.
+class _PlaneLayer extends OffsetLayer {
+  RenderGlassPlane? plane;
+
+  @override
+  void updateSubtreeNeedsAddToScene() {
+    plane?._beginFrame();
+    super.updateSubtreeNeedsAddToScene();
+    plane?._endFrame();
   }
 }
 
@@ -561,7 +816,7 @@ class RenderGlassPlaneBreak extends RenderProxyBox {
     _active = value;
     for (var node = parent; node != null; node = node.parent) {
       if (node is RenderGlassPlane) {
-        node._invalidate();
+        node._requestResolve();
         return;
       }
     }

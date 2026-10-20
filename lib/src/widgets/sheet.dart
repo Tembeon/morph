@@ -13,7 +13,6 @@ import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
-import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/motion/spring_state.dart';
@@ -472,7 +471,6 @@ class _SheetViewState extends State<_SheetView>
   final ValueNotifier<_SheetStructure> _structure = ValueNotifier((
     zooming: false,
     zoomOpening: false,
-    gateOpen: false,
     opaque: false,
     filling: false,
     dimmed: false,
@@ -495,7 +493,6 @@ class _SheetViewState extends State<_SheetView>
     final structure = (
       zooming: _zooming,
       zoomOpening: _zoom?.isOpening ?? false,
-      gateOpen: frame.gateOpen,
       opaque: frame.opaque,
       filling: frame.filling,
       dimmed: frame.dimmed,
@@ -574,16 +571,6 @@ class _SheetViewState extends State<_SheetView>
   double? _scrubAt(double t) {
     if (_scrubFrom != null) return _scrubTravel;
     return _scrubBack?.value(t);
-  }
-
-  MorphGlassContainerGate? _gated;
-
-  MorphGlassContainerGate _gate({required bool open, required Widget child}) {
-    final gated = _gated;
-    if (gated != null && gated.open == open && identical(gated.child, child)) {
-      return gated;
-    }
-    return _gated = MorphGlassContainerGate(open: open, child: child);
   }
 
   bool get _zooming {
@@ -1078,7 +1065,7 @@ class _SheetViewState extends State<_SheetView>
                     brightness: brightness,
                     grabber: _route.grabberVisible,
                     shape: () => _frame(size).bodyShape,
-                    child: _gate(open: structure.gateOpen, child: child!),
+                    child: child!,
                   );
                   if (structure.zooming) {
                     return _buildZoom(
@@ -1201,7 +1188,6 @@ class _SheetViewState extends State<_SheetView>
         bottomLeft: Radius.circular(bottomRadius),
         bottomRight: Radius.circular(bottomRadius),
       ),
-      gateOpen: !_zooming && scrub == null && s == 1 && !stretched,
       opaque: fill >= 1,
       filling: fill > 0,
     );
@@ -1213,7 +1199,6 @@ class _SheetViewState extends State<_SheetView>
 typedef _SheetStructure = ({
   bool zooming,
   bool zoomOpening,
-  bool gateOpen,
   bool opaque,
   bool filling,
   bool dimmed,
@@ -1229,7 +1214,6 @@ class _SheetFrame {
     required this.bottomRadius,
     required this.transform,
     required this.bodyShape,
-    required this.gateOpen,
     required this.opaque,
     required this.filling,
   });
@@ -1241,7 +1225,6 @@ class _SheetFrame {
   final double bottomRadius;
   final Matrix4 transform;
   final RRect bodyShape;
-  final bool gateOpen;
   final bool opaque;
   final bool filling;
 }

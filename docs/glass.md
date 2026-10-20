@@ -38,9 +38,9 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
 - Material per surface: `MorphGlassSurface.style` (`MorphGlassStyle.regular`
   / `.clear`, `UIGlassEffect.Style`) picks the liquid preset for that
   surface; null keeps the renderer's `material` (regular, toolbar, clear).
-  A glass container admits only members whose settings and appearance
-  match its own, so clear glass keeps its own layer in a regular
-  container.
+  An owned plane merges only members whose settings match its pass's and
+  whose appearance matches beyond tint, so clear glass keeps its own layer
+  in a regular container.
 
 ## The surfaces channel
 
@@ -156,58 +156,88 @@ scenes (home-scroll, segmented, tab-bar, controls, menu, sheet, list).
 - The scroll edge effect keeps its own copy: in the bars' group the
   capsules would miss its fade.
 
-## Glass container
+## Glass planes and containers
 
-`MorphGlassContainer` (glass_container.dart, opt-in) shades the resting
-glass of the controls below it in one layer (one geometry pass, one
-filter). Everything inside it is content above its glass.
+`MorphGlassContainer` (glass_container.dart, opt-in) and the package's
+stages (`MorphGlassStage`, internal) declare an owned plane
+(`GlassPlaneScope.owned`, plane/glass_plane.dart): a pass at the plane
+(`LiquidGlassLayer(planePass: true)`, with the settings and material of a
+resting glass button) draws the resting glass below it that would look the
+same there, in one geometry pass and one filter. Everything inside is
+content above that glass.
 
-A host joins only when its glass would look the same:
+Membership lives on the render side (plane/render_glass_plane.dart):
 
-- still (`MorphGlassLayer.still`; the glass button, the search capsule
-  and the bars tell `still`). A moving member would re-encode the
-  container's matte every frame;
-- separate resting body glass with the container's settings and one
-  tint;
-- no fade / clip / filter / viewport between it and the container (a
-  MorphTag source never joins);
-- not under a BackdropGroup of another key;
-- at most 32 shapes per container (MAX_SHAPES).
+- Every `LiquidGlassLayer`'s repaint boundary is a `RenderGlassMember`. It
+  clips the layer to its reach, registers with the nearest
+  `RenderGlassPlane` when it attaches, reads its layer's facts (settings,
+  glow, fused field, `joins`, read and read key) from the layer's live
+  sources, and follows its rest when its own layer composites: its
+  transform to the plane and its shapes' transforms, sizes, outlines and
+  materials. A member rests from the moment it appears, after two quiet
+  frames, or after a frame no frame follows.
+- The plane decides in its layout, from these facts. The reasons a member
+  keeps its own layer (`GlassSplit`, in check order): closed (a stage its
+  owner closed), read (its own or a lifted read, or another plane's read
+  key in between: a bar), control (its control paints a fill under this
+  glass, `joins` false), glow, fused, empty (no shapes, or mixed
+  materials), frost (an `outsideGlass` plane), blocked
+  (`glassPlaneBlocker`: a fade below 1, an offstage, any clip, a shader
+  mask, a backdrop filter, a follower, a viewport, other glass, an active
+  `GlassPlaneScope.planeBreak`, anything else that always composites a
+  layer), scaled (the plane or the member under more than a translation:
+  a floating sheet), settings, look (beyond tint, against the first merged
+  member), capacity (32 shapes), moving.
+- A merged member lends its shapes to the pass
+  (`GeometryRenderLink.lendTo`): its own layer paints none and the pass
+  paints them. The member is their raster anchor
+  (`RenderGlassRasterAnchor`): the pass shifts them onto the grid of the
+  member's own layer, so off the pixel grid they read the pixels of their
+  own layers (1 - 3 channel steps).
+- A fact a member reports before layout (a glow, a plane break, a
+  `MorphTag` hiding it: a host in a tag below an owned plane depends on
+  `MorphTagVisibility` and breaks its glass out while hidden) resolves in
+  the same frame. What only the composited frame shows (a member that
+  moved, faded, was not drawn or is drawn scaled; a plane drawn scaled)
+  the plane checks after paint and resolves in the next frame: a merged
+  member that starts moving leaves its pass one frame later (NEAR).
+- Scale is known only after a frame composites, so a new plane, and a new
+  member, merge from their second frame: glass merged under a scale it
+  did not know draws differently in its own layer for frames after it
+  leaves. A member that mounts while its plane lays out under another
+  layout boundary (inside a LayoutBuilder) is resolved after the frame in
+  debug builds, where layout may not dirty the plane.
+- `RenderGlassMember.census` (`GlassMemberCensus`) says how a member is
+  drawn (merged, split, painted) and why.
 
-The join decision is part of the host's structure.
+Stages:
 
-Raster phase: a joined host's shapes sit under a `GlassRasterAnchor`, and
-the container shifts them by the difference of the two nearest-sampling
-phases, so off the pixel grid they read the pixels of their own layers
-(1 - 3 channel steps).
-
-Stages (`MorphGlassStage`, internal) are containers the package owns
-where it owns the paint order, open only while it neither fades nor moves
-its members (`MorphGlassStageFade`):
-
-- MorphSearchToolbar is one.
-- Every MorphListSection card is one: the stage sits over the card fill;
-  `sharpOnly` closes it while controls frost (resting unfrosted glass
-  samples only inside its own outline, so the rows' text and separators
-  painted after the stage are never read); a row whose highlight shows
-  keeps its accessories out through `MorphGlassContainerBarrier` (an
-  InheritedWidget the reach check depends on, like MorphTagVisibility).
+- MorphSearchToolbar is one; its items fade through a plain `Opacity`
+  (exactly opaque is no break), and the toolbar closes the stage while
+  items appear or the field moves.
+- Every MorphListSection card is one, with `GlassPaintOrder.outsideGlass`:
+  the rows paint between the stage and its glass, never inside a member's
+  outline, so resting unfrosted glass (which samples only inside its own
+  outline) never reads them, and frosted members keep their own layers. A
+  row whose highlight shows keeps its accessories out through
+  `GlassPlaneScope.planeBreak`.
 - Solid backdrop: a card's stage declares `solidBackdrop: cellColor` (its
-  glass can read nothing but the opaque card), and the layer draws the
+  glass can read nothing but the opaque card), and the pass draws the
   final shader as a plain paint with `uSolidBackdrop` replacing every
-  backdrop read: no backdrop filter. A member that leaves an open stage or
-  container but still reaches it (pressed, lifted, glowing, unlike the
-  others) is shaded over the same color in its own layer
-  (`morphGlassContainerSolidBackdrop`); one the reach check keeps out (a
+  backdrop read: no backdrop filter. A member the plane reaches but does
+  not merge (pressed, glowing, moving, unlike the others; not blocked, not
+  scaled, not frosted over an `outsideGlass` plane, on the plane's read)
+  is shaded over the same color in its own layer
+  (`RenderGlassMember.planeSolid`, which its layer reads); one kept out (a
   held row's highlight between, a fade, a clip) reads its backdrop. Read
-  from the backdrop group's copy, a member leaving a solid container would
-  become the group's first reader above everything painted between it and
-  the group's other glass, and that glass would show the page instead of
-  what it sits on (a picture further down) until the member settled back.
-  `MorphGlassContainer.solidBackdrop` is the
-  app's opt-in for its own containers; declare it only where that color
-  really is all the glass would read (the gallery's sheet, controls and
-  menu pages pass their page background).
+  from the plane's copy, a member leaving a solid plane would become the
+  read's first reader above everything painted between it and the read's
+  other glass, and that glass would show the page instead of what it sits
+  on (a picture further down) until the member settled back.
+  `MorphGlassContainer.solidBackdrop` is the app's opt-in for its own
+  containers; declare it only where that color really is all the glass
+  would read (the gallery's sheet, controls and menu pages pass their page
+  background).
 - The navigation stack's chrome is not a stage: one screen-high layer
   costs the GPU more than the raster saves.
 - The scaffold body gets no flag: a container above its scroll view joins
@@ -220,15 +250,18 @@ Numbers and gates: glass-renderer.md "Glass container".
 
 `MorphGlassInspector` (glass_inspector.dart, public) overlays the frame's
 backdrop filters, captures, owners (GlassLayerOwners when set, else the
-nearest composited render object's Morph widget chain) and hints:
-resting joinable hosts outside a container, grouped by their nearest
-blocker (`morphGlassContainerBlocker`, the reach check's own predicate)
-and settings, and hosts inside a container kept out by a blocker.
+nearest composited render object's Morph widget chain) and hints from the
+plane census over the render tree: resting members outside any owned
+plane whose look would merge, grouped by their nearest blocker
+(`glassPlaneBlocker` up to the root), read key and look; and members of an
+owned plane kept out by a blocker.
 
 - Debug and profile only: in kReleaseMode it builds the child alone and
   the code is tree-shaken.
 - One persistent frame hook serves all inspectors; a layer walk per
-  frame, the element walk only when the filter set changes.
+  frame, the element and render walks only when the filter set changes.
+  While it watches, members outside any plane follow their rest too
+  (`RenderGlassMember.followsRestEverywhere`).
 - `MorphGlassInspector.census()` returns the same data for tests.
 - The gallery's Glass renderer page toggles it.
 
@@ -388,8 +421,9 @@ paint layer.
 - Every variant lights it, the one for mixed appearances (shapes of one
   layer that differ by more than tint) included.
 - The glow is not structure: it enters `LiquidGlassLayer.live` through
-  `glowOf` every frame and rebuilds nothing. A glowing host joins no glass
-  container (`morphGlassJoinLook`): the container's pass carries no glow.
+  `glowOf` every frame and rebuilds nothing. A glowing layer leaves its
+  plane's pass in the same frame (`GlassSplit.glow`): the pass carries no
+  glow.
 - A frame in which only the glow moves (it rises, follows the finger or
   fades while the control stands still) travels on its own channel:
   `MorphClock.glows` (`motionGlowOnly`) or the menu host's `menuGlows`

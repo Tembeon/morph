@@ -1834,7 +1834,6 @@ class _MorphBarItemsState extends State<MorphBarItems>
                           row.joined,
                           spacing: spacing,
                           slotted: row.slotted,
-                          still: widget.driftProgress == null && motionSettled,
                           contentSlots: [
                             for (final f in row.items)
                               Rect.fromCenter(

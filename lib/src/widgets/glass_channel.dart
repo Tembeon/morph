@@ -7,7 +7,6 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass.dart';
-import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
@@ -22,13 +21,8 @@ class MorphGlassFrame {
     this.outline,
     this.contentSlots = const [],
     this.spacing = 0,
-    this.still = false,
     this.slotted = false,
   });
-
-  /// Whether nothing of the control moves in this frame: no surface and
-  /// no transform between the surfaces and an enclosing glass container.
-  final bool still;
 
   /// Whether the frame belongs to a change that keeps one glass tree
   /// while its surfaces fuse, part, appear and vanish, as UIKit updates
@@ -319,8 +313,6 @@ class _MorphGlassHostElement extends ComponentElement {
   GlassBuiltInPainter? _renderer;
   Widget? _tree;
   Widget? _content;
-  MorphGlassContainerLink? _container;
-  bool? _clearPath;
 
   // Only a debug override or a build with analytic geometry ever flips
   // which parts the liquid tier draws.
@@ -400,7 +392,6 @@ class _MorphGlassHostElement extends ComponentElement {
     if (_followsAnalytic) {
       GlassGeometryFlags.analyticGeometryChanges.removeListener(markNeedsBuild);
     }
-    _container?.release(this);
     super.unmount();
   }
 
@@ -414,30 +405,12 @@ class _MorphGlassHostElement extends ComponentElement {
   void activate() {
     super.activate();
     _active = true;
-    _clearPath = null;
     _structure = null;
   }
 
-  /// The structure of [frame] drawn by [renderer], with whether the
-  /// nearest glass container shades it.
-  Object _structureOf(GlassBuiltInPainter renderer, MorphGlassFrame frame) {
-    final container = MorphGlassContainerScope.maybeOf(this);
-    if (!identical(container, _container)) {
-      _container?.release(this);
-      _clearPath = null;
-    }
-    _container = container;
-    final joined =
-        _host.mode == MorphGlassMode.layer &&
-        container != null &&
-        (_clearPath ??= morphGlassContainerReaches(this)) &&
-        container.admit(this, renderer, frame);
-    if (!joined) container?.release(this);
-    return (
-      renderer.structureOf(_host.mode, frame, content: _host.content != null),
-      joined,
-    );
-  }
+  /// The structure of [frame] drawn by [renderer].
+  Object _structureOf(GlassBuiltInPainter renderer, MorphGlassFrame frame) =>
+      renderer.structureOf(_host.mode, frame, content: _host.content != null);
 
   @override
   void update(MorphGlassHost newWidget) {
@@ -461,7 +434,6 @@ class _MorphGlassHostElement extends ComponentElement {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _structure = null;
-    _clearPath = null;
   }
 
   /// Pushes the frame into the tree built before when its structure still
@@ -519,8 +491,6 @@ class _MorphGlassHostElement extends ComponentElement {
     final painter = _host.painter;
     if (painter.runtimeType != GlassBuiltInPainter ||
         debugMorphGlassRebuildEveryFrame) {
-      _container?.release(this);
-      _container = null;
       _channel = null;
       _renderer = null;
       _structure = null;
@@ -556,21 +526,11 @@ class _MorphGlassHostElement extends ComponentElement {
 /// What a glass host draws now, for a debug inspector: null unless
 /// [element] is the element of a [MorphGlassHost].
 @internal
-({
-  MorphGlassMode mode,
-  MorphGlassPainter painter,
-  MorphGlassFrame frame,
-  bool joined,
-})?
+({MorphGlassMode mode, MorphGlassPainter painter, MorphGlassFrame frame})?
 debugMorphGlassHostOf(Element element) {
   if (element is! _MorphGlassHostElement || !element.mounted) return null;
   final host = element._host;
-  return (
-    mode: host.mode,
-    painter: host.painter,
-    frame: host.frame(),
-    joined: element._container?.holds(element) ?? false,
-  );
+  return (mode: host.mode, painter: host.painter, frame: host.frame());
 }
 
 /// The painter entry a [MorphGlassHost] stands for.

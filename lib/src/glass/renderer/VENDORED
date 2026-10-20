@@ -696,3 +696,16 @@ Local patches (some commits include related package changes):
   GlassPlaneScope.cacheOf; GlassBackdropCacheScope and morph's
   MorphChromeBackdrop(Scope) are gone. The same keys, reads and caches
   as before.
+- 2026-10-20 glass planes, membership and merging (morph composition M8,
+  M9): every LiquidGlassLayer's repaint boundary is a RenderGlassMember
+  (plane/render_glass_plane.dart) that clips it to its `reach`, registers
+  with the nearest RenderGlassPlane (GlassPlaneScope.owned) and follows its
+  rest when it composites. The plane decides in layout which members its
+  pass (LiquidGlassLayer.planePass) draws and lends their shapes to it
+  (GeometryRenderLink.lendTo, ownShapes): the member's own layer paints
+  none; RenderGlassMember is the RenderGlassRasterAnchor the pass shifts
+  their raster phase from (the GlassRasterAnchor widget is gone). A layer
+  reads its plane's solid backdrop from its member while the plane reaches
+  but does not merge it (RenderGlassMember.planeSolid). A layer that reads
+  its plane with no plane above keeps one BackdropKey for its life
+  instead of a new one per build.

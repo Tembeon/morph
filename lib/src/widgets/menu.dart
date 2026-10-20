@@ -749,7 +749,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   // The button's tree is built from this; every other frame only pushes
   // the press scale and the landing shapes into its render objects.
   final ValueNotifier<_ButtonStructure> _structure =
-      ValueNotifier<_ButtonStructure>((landing: false, still: true));
+      ValueNotifier<_ButtonStructure>((landing: false));
   final ValueNotifier<bool> _expanded = ValueNotifier<bool>(false);
   // Synced as a build would read them: the flight hands the source back
   // on its own ticker. The press scale sits outside the structure's
@@ -767,11 +767,10 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   _ButtonStructure _syncValues() {
     final motion = _motion;
     final landing = motion != null && _landing;
-    final still = _still();
     _expanded.value = motion?.isOpen ?? false;
-    _pressScale = landing || still ? 1 : motion?.pressScale ?? 1;
+    _pressScale = landing || _still() ? 1 : motion?.pressScale ?? 1;
     if (landing) _landingShapes = _landingNow(motion);
-    return (landing: landing, still: still);
+    return (landing: landing);
   }
 
   _Shapes _landingNow(MorphMenuMotion motion) {
@@ -942,13 +941,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         (!motion.isPresented && !_landing && motion.isSettled);
   }
 
-  ({
-    MorphMenuAppearance style,
-    double size,
-    Widget glyph,
-    bool still,
-    Widget face,
-  })?
+  ({MorphMenuAppearance style, double size, Widget glyph, Widget face})?
   _resting;
 
   Widget _face(
@@ -973,12 +966,10 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     }
     if (motion == null || !structure.landing) {
       final resting = _resting;
-      final still = structure.still;
       if (resting != null &&
           identical(resting.style, style) &&
           resting.size == widget._size &&
-          identical(resting.glyph, glyph) &&
-          resting.still == still) {
+          identical(resting.glyph, glyph)) {
         return resting.face;
       }
       final box = Offset.zero & Size.square(widget._size);
@@ -995,15 +986,8 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         style: style,
         glyph: glyph,
         shapes: () => shapes,
-        still: still,
       );
-      _resting = (
-        style: style,
-        size: widget._size,
-        glyph: glyph,
-        still: still,
-        face: face,
-      );
+      _resting = (style: style, size: widget._size, glyph: glyph, face: face);
       return face;
     }
     return _landingFace(context, style, glyph, motion);
@@ -1133,7 +1117,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
 
 /// What a menu button's tree is built from; it rebuilds only when this
 /// changes.
-typedef _ButtonStructure = ({bool landing, bool still});
+typedef _ButtonStructure = ({bool landing});
 
 /// The opacity and blur of the button's look inside the shrinking source.
 typedef _Look = ({double opacity, double blur});
@@ -1178,7 +1162,6 @@ class _MenuShapes extends StatelessWidget {
     this.look = false,
     this.content,
     this.menuBlur,
-    this.still = false,
     this.sourced = true,
   });
 
@@ -1193,7 +1176,6 @@ class _MenuShapes extends StatelessWidget {
   final bool look;
   final Widget? content;
   final double? menuBlur;
-  final bool still;
 
   /// Whether the morph has a source shape whose look is drawn inside it;
   /// a context menu grows out of a blob without one.
@@ -1246,35 +1228,31 @@ class _MenuShapes extends StatelessWidget {
           final own = surface?.color;
           final share = 1 - now.look.opacity;
           final source = now.source;
-          return MorphGlassFrame(
-            [
-              if (source != null)
-                MorphGlassSurface(
-                  kind: MorphGlassKind.button,
-                  shape: source,
-                  color: own == null
-                      ? style.glassColor
-                      : Color.lerp(own, style.glassColor, share)!,
-                  tint: own == null
-                      ? style.glassTint
-                      : Color.lerp(own, style.glassTint, share),
-                  blurRadius: menu == null ? null : menuBlur,
-                  brightness: brightness,
-                ),
-              if (menu != null)
-                MorphGlassSurface(
-                  kind: MorphGlassKind.menu,
-                  shape: menu,
-                  color: style.glassColor,
-                  tint: style.glassTint,
-                  blurRadius: menuBlur,
-                  brightness: brightness,
-                  glow: glow?.call(),
-                ),
-            ],
-            outline: menu == null ? null : now.outline,
-            still: still,
-          );
+          return MorphGlassFrame([
+            if (source != null)
+              MorphGlassSurface(
+                kind: MorphGlassKind.button,
+                shape: source,
+                color: own == null
+                    ? style.glassColor
+                    : Color.lerp(own, style.glassColor, share)!,
+                tint: own == null
+                    ? style.glassTint
+                    : Color.lerp(own, style.glassTint, share),
+                blurRadius: menu == null ? null : menuBlur,
+                brightness: brightness,
+              ),
+            if (menu != null)
+              MorphGlassSurface(
+                kind: MorphGlassKind.menu,
+                shape: menu,
+                color: style.glassColor,
+                tint: style.glassTint,
+                blurRadius: menuBlur,
+                brightness: brightness,
+                glow: glow?.call(),
+              ),
+          ], outline: menu == null ? null : now.outline);
         },
       );
     }

@@ -537,7 +537,7 @@ class MorphGlassButtonAppearance implements MorphAppearance
   final Color rimColor
   final Color shadowColor
   overrides: ==, hashCode
-class MorphGlassContainer extends StatefulWidget
+class MorphGlassContainer extends StatelessWidget
   const MorphGlassContainer({
     required Widget child,
     Color? solidBackdrop,
@@ -545,7 +545,7 @@ class MorphGlassContainer extends StatefulWidget
   })
   final Widget child
   final Color? solidBackdrop
-  overrides: createState
+  overrides: build
 class MorphGlassEffect extends StatefulWidget
   const MorphGlassEffect({
     required Widget child,

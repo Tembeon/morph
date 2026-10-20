@@ -45,13 +45,15 @@ class LiquidGlassLayer extends StatefulWidget {
     this.solidBackdrop,
     this.reach,
     this.planePass = false,
+    this._joins = false,
     this._field,
     super.key,
   }) : live = null,
        settingsOf = null,
        fieldOf = null,
        glowOf = null,
-       glows = null;
+       glows = null,
+       joinsOf = null;
 
   /// Creates a layer whose settings and field follow [live].
   ///
@@ -69,8 +71,10 @@ class LiquidGlassLayer extends StatefulWidget {
     this.read = GlassRead.own,
     this.solidBackdrop,
     this.reach,
+    this.joinsOf,
     super.key,
   }) : planePass = false,
+       _joins = false,
        _settings = const LiquidGlassSettings(),
        _field = null;
 
@@ -159,12 +163,27 @@ class LiquidGlassLayer extends StatefulWidget {
   /// into it; it is no member of a plane itself.
   final bool planePass;
 
+  final bool _joins;
+
+  /// Whether the layer's owner lets the pass of an owned plane above draw
+  /// this glass now, for a live layer: nothing of its owner paints in
+  /// order with it (a fill under it, a platter or a fused body).
+  final bool Function()? joinsOf;
+
+  /// Whether the layer's owner lets the pass of an owned plane above draw
+  /// this glass now ([GlassPlaneScope.owned]).
+  bool get joins => joinsOf?.call() ?? _joins;
+
   @override
   State<LiquidGlassLayer> createState() => _LiquidGlassLayerState();
 }
 
 class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
   late final GeometryRenderLink _link = GeometryRenderLink();
+
+  // The read of a layer that reads its plane with no plane above: one key
+  // for the layer's life, so a rebuild keeps its glass on one read.
+  late final BackdropKey _ownRead = BackdropKey();
 
   late final _LayerSettings _settingsLive = _LayerSettings(this);
 
@@ -246,7 +265,10 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
   @override
   Widget build(BuildContext context) {
     if (widget.read == GlassRead.plane && BackdropGroup.of(context) == null) {
-      return BackdropGroup(child: Builder(builder: _buildLayer));
+      return BackdropGroup(
+        backdropKey: _ownRead,
+        child: Builder(builder: _buildLayer),
+      );
     }
     return _buildLayer(context);
   }
@@ -322,6 +344,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
         settings: widget.settings,
         fused: widget.field != null,
         glows: widget.glowOf?.call() != null,
+        joins: widget.joins,
       ),
       live: live,
       glows: widget.glows,
@@ -585,10 +608,20 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       GlassFinalPass.analyticProgramsLoaded.addListener(requestGeometryFrame);
     }
     _glows?.addListener(_onGlows);
+    for (var node = parent; node != null; node = node.parent) {
+      if (node is RenderGlassMember) {
+        _member = node;
+        node.onPlaneSolid = _solidChanged;
+        break;
+      }
+      if (node is LiquidGlassLayerRenderObject) break;
+    }
   }
 
   @override
   void detach() {
+    if (_member?.onPlaneSolid == _solidChanged) _member!.onPlaneSolid = null;
+    _member = null;
     GlassGeometryFlags.invalidations.removeListener(requestGeometryFrame);
     GlassFinalPass.analyticProgramsLoaded.removeListener(requestGeometryFrame);
     _glows?.removeListener(_onGlows);
@@ -1044,15 +1077,24 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   Color? _solidBackdrop;
 
-  /// See [LiquidGlassLayer.solidBackdrop].
+  /// See [LiquidGlassLayer.solidBackdrop]; without one, the color of the
+  /// owned plane that reaches the layer but does not merge it
+  /// ([RenderGlassMember.planeSolid]).
   @override
-  Color? get solidBackdrop => _solidBackdrop;
+  Color? get solidBackdrop => _solidBackdrop ?? _member?.planeSolid;
   set solidBackdrop(Color? value) {
     if (_solidBackdrop == value) return;
     _solidBackdrop = value;
+    _solidChanged();
+  }
+
+  void _solidChanged() {
     _pass.markInputsChanged();
     markNeedsPaint();
   }
+
+  // The member the layer's widget reports to its plane through.
+  RenderGlassMember? _member;
 
   /// Whether the layer drew its glass as a paint over [solidBackdrop] in
   /// its last frame.

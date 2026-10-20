@@ -4,11 +4,12 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/morph.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
+
+import 'support/glass_backdrop_keys.dart';
 
 const MorphGlassTier _tier = MorphGlassTier.liquid;
 
@@ -71,10 +72,7 @@ void main() {
     return data!.buffer.asUint8List();
   }
 
-  Finder layers() => find.descendant(
-    of: find.byKey(containerKey),
-    matching: find.byType(LiquidGlassLayer),
-  );
+  int layers() => glassLayersWithShapes(within: find.byKey(containerKey));
 
   testWidgets('a glass button inside a showing tag joins the container with '
       'its own pixels', (WidgetTester tester) async {
@@ -85,7 +83,7 @@ void main() {
     await tester.pumpWidget(page(container: true));
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
     expect(await shot(tester), own);
   });
 
@@ -124,15 +122,15 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(layers(), findsOneWidget);
+    expect(layers(), 1);
     await tester.tap(find.byKey(const ValueKey<int>(1)));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
-    expect(layers(), findsNWidgets(2));
+    expect(layers(), 2);
     await tester.tapAt(const Offset(700, 550));
     await tester.pumpAndSettle();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(layers(), findsOneWidget);
+    expect(layers(), 1);
   });
 
   testWidgets('resting menu buttons draw the same pixels in a container', (
@@ -176,9 +174,9 @@ void main() {
     }
 
     final own = await menuShot(container: false);
-    expect(find.byType(LiquidGlassLayer), findsNWidgets(3));
+    expect(glassLayersWithShapes(), 3);
     final shared = await menuShot(container: true);
-    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(glassLayersWithShapes(), 1);
     var worst = 0;
     for (var i = 0; i < own.length; i++) {
       final d = (own[i] - shared[i]).abs();

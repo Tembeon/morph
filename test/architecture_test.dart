@@ -115,8 +115,6 @@ const _ratchet = <Rule, Set<String>>{
     'lib/src/glass/renderer/internal/optimized_clip.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/liquid_glass.dart imports lib/src/live.dart',
     'lib/src/glass/renderer/rendering/liquid_glass_layer.dart imports lib/src/live.dart',
-    // The raster anchor goes with the container joins (glass composition M9).
-    'lib/src/widgets/glass_liquid_draw.dart imports lib/src/glass/renderer/internal/raster_phase.dart',
     // The liquid capability bootstrap, renderer code living in widgets/.
     'lib/src/widgets/glass_liquid_native.dart imports lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart',
     'lib/src/widgets/glass_liquid_native.dart imports lib/src/glass/renderer/internal/glass_warm_up.dart',

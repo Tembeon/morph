@@ -207,7 +207,6 @@ class _MorphGlassEffectState extends State<MorphGlassEffect>
           ? () => _motion.glowAt(brightness, tint: tint, clear: clear)
           : null,
       glows: interactive ? glows : null,
-      still: interactive ? () => _motion.isSettled : () => true,
       child: widget.child,
     );
     return Listener(

@@ -715,37 +715,41 @@ final class _EncodedGeometryInput {
   }
 }
 
+/// The shapes one glass layer paints: the ones registered with the link,
+/// unless it lends them to another link ([lendTo]), and the ones other
+/// links lend it.
 @internal
 class GeometryRenderLink {
   final List<RenderLiquidGlassGeometry> _shapeGeometries = [];
+  final List<RenderLiquidGlassGeometry> _own = [];
 
+  /// The shapes the [owner] paints.
   late final UnmodifiableListView<RenderLiquidGlassGeometry> shapes =
       UnmodifiableListView(_shapeGeometries);
+
+  /// The shapes registered with this link, wherever they are painted.
+  late final UnmodifiableListView<RenderLiquidGlassGeometry> ownShapes =
+      UnmodifiableListView(_own);
+
+  GeometryRenderLink? _lentTo;
+
+  /// The link whose owner paints this link's shapes, or null while this
+  /// link's own owner does.
+  GeometryRenderLink? get lentTo => _lentTo;
+
+  GeometryRenderLink get _painter => _lentTo ?? this;
 
   bool _dirty = false;
 
   /// Whether geometry changed since the layer last consumed the flag.
   bool get isDirty => _dirty;
 
-  int _revision = 0;
-
-  /// Counts the changes of the registered shapes: a shape that joined,
-  /// left, moved within the layer, or changed its geometry or material.
-  /// Unlike [isDirty] no reader consumes it, so any number of observers can
-  /// tell whether the shapes changed since they last looked.
-  int get revision => _revision;
-
-  void _touch() {
-    _dirty = true;
-    _revision++;
-  }
-
   /// Consumes the dirty flag after the layer rebuilt its frame.
   void markClean() => _dirty = false;
 
   void updatePaintOrder(RenderObject owner) {
     if (sortGlassPaintOrder(owner, _shapeGeometries, (source) => source)) {
-      _touch();
+      _dirty = true;
     }
     for (final geometry in _shapeGeometries) {
       geometry.updatePaintOrder();
@@ -767,22 +771,32 @@ class GeometryRenderLink {
   }
 
   void registerGeometry(RenderLiquidGlassGeometry renderObject) {
-    if (_shapeGeometries.contains(renderObject)) return;
-    _shapeGeometries.add(renderObject);
+    if (_own.contains(renderObject)) return;
+    _own.add(renderObject);
+    _painter._shapeGeometries.add(renderObject);
     markShapesChanged();
   }
 
-  void markDirty() => _touch();
+  void markDirty() {
+    _dirty = true;
+    _lentTo?._dirty = true;
+  }
 
   /// Asks the [owner] to paint in the current frame, for a shape that
-  /// joined, left, or turned visible or hidden.
+  /// joined, left, or turned visible or hidden; and the owner of the link
+  /// this one lends its shapes to.
   ///
   /// The shape may sit under a repaint boundary of its own that repaints
   /// without the layer: the layer's compositing poll would find the change
   /// only after this frame painted, and the frame would show a shape that
   /// joined without glass and keep the glass of a shape that left.
   void markShapesChanged() {
-    _touch();
+    _changed();
+    _lentTo?._changed();
+  }
+
+  void _changed() {
+    _dirty = true;
     final layer = owner;
     if (layer == null || !layer.attached) return;
     if (layer.owner?.debugDoingPaint ?? false) return;
@@ -790,11 +804,29 @@ class GeometryRenderLink {
   }
 
   void unregisterGeometry(RenderLiquidGlassGeometry renderObject) {
-    if (_shapeGeometries.remove(renderObject)) markShapesChanged();
+    if (!_own.remove(renderObject)) return;
+    _painter._shapeGeometries.remove(renderObject);
+    markShapesChanged();
+  }
+
+  /// Hands the shapes registered here to [host]'s owner to paint, with
+  /// every shape that registers until the next call; null takes them back
+  /// to this link's own owner. Both owners paint again.
+  void lendTo(GeometryRenderLink? host) {
+    assert(!identical(host, this) && host?._lentTo == null);
+    if (identical(host, _lentTo)) return;
+    final from = _painter;
+    from._shapeGeometries.removeWhere(_own.contains);
+    from._changed();
+    _lentTo = host;
+    _painter._shapeGeometries.addAll(_own);
+    _painter._changed();
   }
 
   void dispose() {
+    lendTo(null);
     _shapeGeometries.clear();
+    _own.clear();
     owner = null;
   }
 }

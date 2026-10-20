@@ -316,7 +316,7 @@ class MorphListSection extends StatelessWidget {
                 color: look.cellColor,
                 child: MorphGlassStage(
                   open: true,
-                  sharpOnly: true,
+                  paintOrder: GlassPaintOrder.outsideGlass,
                   // The rows paint above the stage's glass, which sits
                   // straight on the card: it reads nothing but the card.
                   solidBackdrop: look.cellColor,
@@ -444,7 +444,7 @@ class MorphSliverListSection extends StatelessWidget {
                     color: look.cellColor,
                     child: MorphGlassStage(
                       open: true,
-                      sharpOnly: true,
+                      paintOrder: GlassPaintOrder.outsideGlass,
                       solidBackdrop: look.cellColor,
                       child: _RowPlace(
                         last: last,
@@ -817,10 +817,7 @@ class _MorphListRowState extends State<MorphListRow>
         if (separator != null) {
           body = CustomPaint(foregroundPainter: separator, child: body);
         }
-        return MorphGlassContainerBarrier(
-          clear: shown <= 0,
-          child: GlassPlaneScope.planeBreak(active: shown > 0, child: body),
-        );
+        return GlassPlaneScope.planeBreak(active: shown > 0, child: body);
       },
     );
     final onTap = widget.onTap;

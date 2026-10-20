@@ -9,8 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/morph.dart';
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer;
+import 'package:morph/src/glass/renderer/renderer.dart'
+    show GlassStrategy, RenderGlassMember;
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 
@@ -128,20 +128,18 @@ void main() {
 
     await frames(30);
     final rest = await shot();
-    final layers = tester.allRenderObjects
-        .whereType<RenderLiquidGlassLayer>()
-        .length;
     final gesture = await tester.startGesture(
       tester.getCenter(find.text('Top')),
     );
-    var own = 0;
+    var left = false;
     for (var frame = 0; frame < 24; frame++) {
       if (frame == 12) await gesture.up();
       await frames(1);
-      own = own > 0
-          ? own
-          : tester.allRenderObjects.whereType<RenderLiquidGlassLayer>().length -
-                layers;
+      left |= tester.allRenderObjects.whereType<RenderGlassMember>().any(
+        (member) =>
+            member.plane != null &&
+            member.census.strategy != GlassStrategy.merged,
+      );
       final now = await shot();
       var worst = 0;
       for (var i = 0; i < rest.length; i++) {
@@ -152,6 +150,6 @@ void main() {
     }
     // The press took the button out of its container into a layer of its
     // own, the case under test.
-    expect(own, greaterThan(0));
+    expect(left, isTrue);
   });
 }

@@ -720,7 +720,10 @@ void main() {
           _cluster(brightness: brightness, solidBackdrop: solidBackdrop),
         );
         await _settle(tester, 10);
-        final container = _layers(tester).single;
+        // The members' own layers lend their shapes to the container's.
+        final container = _layers(
+          tester,
+        ).where((layer) => layer.link.shapes.isNotEmpty).single;
         expect(container.shapesWithGeometry, hasLength(4), reason: name);
         expect(
           container.debugDrawsOverSolidBackdrop,
