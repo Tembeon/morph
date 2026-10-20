@@ -77,7 +77,7 @@ LiquidRoundedSuperellipse(borderRadius: 38, bottomRadius: 54);
 | `LiquidRoundedSuperellipse(topRadius, bottomRadius)` | непрерывная фигура рендерера | клипы, тень, `ShapeGeometry`, упаковка |
 | `uRseData[MAX_SHAPES * 6]` | строки верхней половины, затем нижней у пары | `sdf.glsl` |
 
-Рендерер (уже сделан, `example/test/sheet_shape_host_test.dart` зелёный). Пара - это
+Рендерер. Пара - это
 `MakeBoundsRadii` Impeller при равных верхних и равных нижних углах: два симметричных
 суперэллипса, разделённые на высоте `h rt / (rt + rb)`; точка берёт половину со своей
 стороны линии раздела, обе половины вертикальны у боков на этой линии, так что контур
@@ -197,6 +197,6 @@ LiquidRoundedSuperellipse(borderRadius: 38, bottomRadius: 54);
 
 ## Следующий шаг
 
-После слияния M7: в `sheet.dart` читать `motion.bottomRadius` и `displayRadius`,
-`shadows: const []`, вынести `_SheetBackground` и перевести зум на один контур; тесты
-краёв - по списку из задачи.
+Устройство: прогон `tool/ios_reference/spec/sheets-capture.md` (углы в перетаскивании,
+кадр y 0, заливка контейнера зума, размеры 17e и SE) и замер Pixel 6a листа
+(`m/sheet/*`: время кадра и энергия) с веткой пары в шейдере против main.
