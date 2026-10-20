@@ -1005,6 +1005,14 @@ void main() {
       final ok = tester.getRect(find.text('OK'));
       expect(ok.center.dx, closeTo(220, 1));
       expect(ok.bottom, lessThan(576));
+      // The arrow is part of the popover: a tap on it runs nothing.
+      final card = tester.getRect(
+        find.ancestor(of: find.text('OK'), matching: find.byType(ClipRRect)),
+      );
+      await tester.tapAt(Offset(220, card.bottom + 6));
+      await tester.pump();
+      expect(cancelled, 0);
+      expect(find.text('OK'), findsOneWidget);
       await tester.tapAt(const Offset(220, 120));
       await tester.pump();
       expect(cancelled, 1);
@@ -1186,6 +1194,20 @@ class _RecordingGlass extends MorphGlassPainter {
   @override
   Widget buildSurface(BuildContext context, MorphGlassSurface surface) {
     last = surface;
+    return const RepaintBoundary(
+      key: ValueKey('glass'),
+      child: ColoredBox(color: Color(0xFF00FF00)),
+    );
+  }
+
+  // A popover's content and arrow are one body.
+  @override
+  Widget buildBody(
+    BuildContext context,
+    MorphGlassOutline outline,
+    List<MorphGlassSurface> surfaces,
+  ) {
+    last = surfaces.first;
     return const RepaintBoundary(
       key: ValueKey('glass'),
       child: ColoredBox(color: Color(0xFF00FF00)),
