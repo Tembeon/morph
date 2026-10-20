@@ -227,15 +227,19 @@ Stages:
   glass can read nothing but the opaque card), and the pass draws the
   final shader as a plain paint with `uSolidBackdrop` replacing every
   backdrop read: no backdrop filter. A member the plane reaches but does
-  not merge (pressed, glowing, moving, unlike the others; not blocked, not
-  scaled, not frosted over an `outsideGlass` plane, on the plane's read)
+  not merge (pressed, glowing, moving, scaled, unlike the others; not
+  blocked, not frosted over an `outsideGlass` plane, on the plane's read)
   is shaded over the same color in its own layer
   (`RenderGlassMember.planeSolid`, which its layer reads); one kept out (a
   held row's highlight between, a fade, a clip) reads its backdrop. Read
   from the plane's copy, a member leaving a solid plane would become the
   read's first reader above everything painted between it and the read's
   other glass, and that glass would show the page instead of what it sits
-  on (a picture further down) until the member settled back.
+  on (a picture further down) until the member settled back. A scale
+  counts as reached: a tapped button's glow ends while its spring's tail
+  still scales it, and those frames read the backdrop (the iPhone showed
+  the clear buttons over the gallery's picture black for 4 frames 0.8 s
+  after each tap).
   `MorphGlassContainer.solidBackdrop` is the app's opt-in for its own
   containers; declare it only where that color really is all the glass
   would read (the gallery's sheet, controls and menu pages pass their page

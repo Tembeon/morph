@@ -730,6 +730,10 @@ class RenderGlassPlane extends RenderProxyBox {
   // Whether the plane reaches [member], split for [split]: nothing between
   // them changes its glass, and the glass reads nothing but what lies under
   // it at the plane (no frost over content the plane lets paint between).
+  // A scale changes where the glass lies, not what lies under it: a pressed
+  // button's spring tail outlasts its glow, and a member the plane does not
+  // know unscaled yet (its first frame) is one too. Read from the backdrop
+  // instead, either would be the group's first reader for those frames.
   bool _reaches(RenderGlassMember member, GlassSplit? split) =>
       member.read == GlassRead.plane &&
       member.backdropKey == _readKey &&
@@ -739,11 +743,11 @@ class RenderGlassPlane extends RenderProxyBox {
         GlassSplit.closed ||
         GlassSplit.read ||
         GlassSplit.frost ||
-        GlassSplit.blocked ||
-        GlassSplit.scaled => false,
+        GlassSplit.blocked => false,
         GlassSplit.control ||
         GlassSplit.glow ||
         GlassSplit.fused ||
+        GlassSplit.scaled ||
         GlassSplit.empty => glassPlaneBlocker(member, this) == null,
         _ => true,
       };
