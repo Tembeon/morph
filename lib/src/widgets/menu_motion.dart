@@ -794,6 +794,51 @@ class MorphMenuTuning {
   static const context = MorphMenuTuning(morph: MorphMenuMorphSpec.context);
 }
 
+/// The fusion of a liquid morph's two shapes over its turns.
+///
+/// UIKit's menu out of a button and its zoom out of a glass view run the
+/// same liquid morph: every open and every close starts its own envelope
+/// ([MorphMenuTuning.fusionEnvelope]), and the fusion radius is the
+/// largest envelope still running, limited to
+/// [MorphMenuTuning.fusionRadius], so a reversal never makes it jump.
+class MorphFusionTurns {
+  /// Fuses with [tuning]'s envelope.
+  MorphFusionTurns(this.tuning);
+
+  /// The envelope every turn follows.
+  final MorphMenuTuning tuning;
+
+  final List<({double start, bool opening})> _turns = [];
+
+  /// Starts the envelope of an open, or a close when [opening] is false,
+  /// at time [t].
+  void start(double t, {required bool opening}) =>
+      _turns.add((start: t, opening: opening));
+
+  /// The fusion radius at time [t].
+  double radiusAt(double t) {
+    var radius = 0.0;
+    for (final turn in _turns) {
+      radius = math.max(
+        radius,
+        tuning.fusionEnvelope(t - turn.start, opening: turn.opening),
+      );
+    }
+    if (radius < tuning.fusionCutoff) return 0;
+    return math.min(radius, tuning.fusionRadius);
+  }
+
+  /// Whether every envelope has ended by time [t]; the ended ones are
+  /// dropped.
+  bool endedAt(double t) {
+    _turns.removeWhere(
+      (({double start, bool opening}) turn) =>
+          tuning.fusionEnded(t - turn.start, opening: turn.opening),
+    );
+    return _turns.isEmpty;
+  }
+}
+
 /// Where a context menu stands and what it grows out of: UIKit's context
 /// menu attaches to the lifted preview of the held view and grows out of a
 /// blob at the held view's center, on glass of its own.
@@ -1328,7 +1373,7 @@ class MorphMenuMotion
       (double t) =>
           (spring.value(t) - spring.target).abs() < 0.01 &&
           spring.velocity(t).abs() < 0.1;
-  final List<({double start, bool opening})> _fusions = [];
+  late final MorphFusionTurns _fusions = MorphFusionTurns(tuning);
   final MorphMenuFusion _fusion = MorphMenuFusion();
   double _sampleTime = double.negativeInfinity;
 
@@ -1995,7 +2040,7 @@ class MorphMenuMotion
   /// ([MorphMenuTuning.fusionEnvelope]); the radius is the largest of the
   /// envelopes still running, limited to
   /// [MorphMenuTuning.fusionRadius], so a reversal never makes it jump.
-  double get fusionRadius => _fusionAt(_now);
+  double get fusionRadius => _fusions.radiusAt(_now);
 
   /// The silhouette of [rootBlob] and [buttonBlob] fused at
   /// [fusionRadius], in the motion's coordinates. Below 1 pixel it is
@@ -2076,24 +2121,8 @@ class MorphMenuMotion
     }
   }
 
-  double _fusionAt(double t) {
-    var radius = 0.0;
-    for (final fusion in _fusions) {
-      radius = math.max(
-        radius,
-        tuning.fusionEnvelope(t - fusion.start, opening: fusion.opening),
-      );
-    }
-    if (radius < tuning.fusionCutoff) return 0;
-    return math.min(radius, tuning.fusionRadius);
-  }
-
   bool _fusionAtRest(double t) {
-    _fusions.removeWhere(
-      (({double start, bool opening}) fusion) =>
-          tuning.fusionEnded(t - fusion.start, opening: fusion.opening),
-    );
-    if (_fusions.isNotEmpty) return false;
+    if (!_fusions.endedAt(t)) return false;
     _fusion.settle();
     return true;
   }
@@ -3093,7 +3122,7 @@ class MorphMenuMotion
       _cardContainer.retarget(t, 1, spring: tuning.openSpring);
     }
     if (tuning.morph.fuses && drawsSource) {
-      _fusions.add((start: t, opening: true));
+      _fusions.start(t, opening: true);
     }
     final reference = MorphSpringState(tuning.openSpring, 0);
     reference.retarget(t, 1);
@@ -3162,7 +3191,7 @@ class MorphMenuMotion
     _resizeGeneration++;
     _phase = _Phase.closing;
     if (tuning.morph.fuses && drawsSource) {
-      _fusions.add((start: t, opening: false));
+      _fusions.start(t, opening: false);
     }
     _relax(t);
     final reference = MorphSpringState(tuning.closeSpring, 1);

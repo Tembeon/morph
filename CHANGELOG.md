@@ -9,6 +9,15 @@ Versions are git tags; pin one. Pre-1.0, minor versions may break API.
   frame until they are ready, for at most a second, as `Localizations`
   does for its resources. Apps no longer await
   `MorphTheme.precacheGlass()`, which now only starts the load earlier.
+- A sheet zoomed out of a glass button (`showMorphSheet(from:)` with a
+  `MorphGlassButton` as the source's child) grows as UIKit's liquid
+  morph: the sheet's glass swells out of the button's and the button's
+  glass slips into the sheet, fused while they are near, on springs
+  fitted to the device. The button's title no longer stretches with the
+  sheet. A flat source keeps the zoom.
+- A zoom's source hides in the frame the zoom first draws and shows again
+  in the frame it ends: the source no longer blinks out for a frame after
+  a sheet or page zooms back into it, and no frame draws it twice.
 
 ## 0.8.0 - 2026-10-20
 

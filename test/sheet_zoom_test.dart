@@ -200,6 +200,69 @@ void main() {
     expect(shown.opacity, 1);
   });
 
+  testWidgets('the source hides in the frame that first draws the zoom', (
+    WidgetTester tester,
+  ) async {
+    _phone(tester);
+    await tester.pumpWidget(
+      _app(
+        (BuildContext context) => showMorphSheet<void>(
+          context,
+          from: _sourceLink,
+          detents: const [MorphSheetDetent.medium],
+          builder: _sheet,
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(_source));
+    await tester.pump();
+    expect(find.byKey(_content), findsOneWidget);
+    final tag = tester.widget<Opacity>(
+      find
+          .descendant(of: find.byType(MorphTag), matching: find.byType(Opacity))
+          .first,
+    );
+    expect(tag.opacity, 0, reason: 'no frame draws both');
+  });
+
+  testWidgets('the source shows again in the frame that drops the sheet', (
+    WidgetTester tester,
+  ) async {
+    _phone(tester);
+    await tester.pumpWidget(
+      _app(
+        (BuildContext context) => showMorphSheet<void>(
+          context,
+          from: _sourceLink,
+          detents: const [MorphSheetDetent.medium],
+          builder: _sheet,
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(_source));
+    await tester.pump();
+    await _pumpFor(tester, 1.2);
+    Navigator.of(tester.element(find.byKey(_content))).pop();
+    double tagOpacity() => tester
+        .widget<Opacity>(
+          find
+              .descendant(
+                of: find.byType(MorphTag),
+                matching: find.byType(Opacity),
+              )
+              .first,
+        )
+        .opacity;
+    for (var i = 0; i < 120; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      if (find.byKey(_content).evaluate().isEmpty) {
+        expect(tagOpacity(), 1, reason: 'no frame draws neither');
+        return;
+      }
+    }
+    fail('the sheet never left');
+  });
+
   Future<void> present(WidgetTester tester) async {
     _phone(tester);
     await tester.pumpWidget(

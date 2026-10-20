@@ -828,6 +828,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
 
   @override
   TickerFuture didPush() {
+    if (_zooms) (_zoomSource ??= MorphZoomSource(from!.tag)).hide();
     final future = super.didPush();
     final c = controller;
     if (c == null || _zooms) return future;

@@ -201,6 +201,39 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   returned, 126+ dismissed). Some device drags (4/5 one session, 2/14
   another) dismissed at once, trigger unknown; morph always scrubs.
 
+## Spec - liquid zoom from a glass source [device, layer sampling; read from UIKit, notes private]
+
+- A zoom out of a glass view runs UIKit's liquid morph
+  (`_UIZoomLiquidMorphAnimator`, the morph a glass button grows its menu
+  with): the sheet's glass and the source's glass are two shapes fused by
+  a blur. A flat source (capsule, card) keeps the zoom above.
+- Open: the sheet grows out of a 20.5 pt circle at the source's center;
+  center 0.295/0.68, size 0.36/0.74; corners hold a capsule, then round
+  from a virtual 500 to the sheet's on 0.40/0.80 after 0.028 s. The
+  source's glass travels a third of the way toward the sheet's center on
+  0.355/0.74, narrows on 0.205/0.97 and flattens on 0.355/0.74 to a 12 pt
+  square that rests inside the sheet.
+- Close: size 0.49/0.80; center 0.42/0.82 after 0.033 s; the source's
+  glass travels back on 0.42/0.69 after 0.006 s, widens on 0.54/0.74
+  after 0.017 s, regains its height on 0.49/0.80; corners round up toward
+  201 on 0.48/0.82.
+- The source's look and the sheet's content crossfade on 0.207/0.98 both
+  ways (within 0.003 of the portal opacities); the look scales uniformly
+  with its glass. Dimming keeps zoomIn / zoomOut.
+- Replay (liquid_zoom_test, `ios27-device/zoom/liquid.json`): sheet 2.5 -
+  3.4 pt rms at the medium detent; source glass under 1 pt; corners
+  under 2 pt. NEAR: from the large detent UIKit shrinks the height faster
+  (fit 0.38/0.88) into an 11.9 pt circle (one sample); the tuning keeps
+  the medium detent's springs, 16 pt rms off there.
+- NEAR, assumed: the fusion radius is the menu's envelope
+  (`MorphFusionTurns`, `MorphMenuTuning.fusionEnvelope`), not measured for
+  the zoom. The source's glass shows until the open's envelope ends, then
+  rests unseen inside the sheet.
+- Hand-over: the source hides in the frame that first draws the zoom (the
+  route hides it at push) and shows again in the frame that drops it
+  (sheet_zoom_test, push_zoom_test). Before, it hid and showed a frame
+  late: the button blinked out for one frame after a close.
+
 ## Fixtures
 
 Device `ios27-device/sheet/sheet-{l,ml,sml,undim}.jsonl`,
@@ -232,8 +265,9 @@ Public (lib/morph.dart): sheet.dart (`showMorphSheet(from:)`,
 `MorphSheetAppearance`), sheet_motion.dart (`MorphSheetDetent` medium /
 large / height / fraction / custom / fitted). Internal: sheet_motion.dart
 (`MorphSheetMotion`, `MorphSheetTuning`), zoom_motion.dart
-(`MorphZoomMotion`, `MorphZoomTuning`), zoom_source.dart
-(`MorphZoomSource`). The zoom source is a `MorphSource` attached to a
+(`MorphZoomMotion`, `MorphZoomTuning`, `MorphLiquidZoomMotion`,
+`MorphLiquidZoomTuning`), zoom_source.dart (`MorphZoomSource`,
+`MorphSourceGlass`: the glass a glass control hands its tag). The zoom source is a `MorphSource` attached to a
 `MorphSourceLink`.
 
 A detent change hands the content's scope the new detent over the same
@@ -309,7 +343,9 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
   exemption, so it lives in the widget layer, not in an engine flight
   frame; the source is found and hidden through the `MorphSource` its
   `MorphSourceLink` is attached to, a MorphTag inside (tryCaptureRect
-  each frame, hideForFlight / reveal deferred to post-frame). The
+  each frame; hideForFlight at push and reveal from the closing tick, in
+  the frame the zoom starts or ends, post-frame only while the tree
+  builds). The
   content subtree carries a GlobalKey so the hand-over between the zoom
   layer and the sheet keeps its state.
 - SCRUB detail (scrub.json): `MorphZoomTuning.scrubFrame` per point of

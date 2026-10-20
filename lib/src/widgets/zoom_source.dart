@@ -1,10 +1,33 @@
 import 'dart:math' as math;
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/themes.dart';
+import 'package:morph/src/widgets/glass.dart' show MorphGlassSurface;
+
+/// The glass a source draws itself, which a zoom out of the source grows
+/// from.
+///
+/// A glass control that is a [MorphSource]'s whole child hands its tag
+/// one ([MorphTagState.attachFace]). A sheet zooming out of that source
+/// then morphs the source's glass into its own, as UIKit's liquid zoom
+/// does out of a glass view, instead of stretching a copy of the source
+/// over its container.
+@internal
+abstract interface class MorphSourceGlass implements MorphSourceFace {
+  /// The source's glass in [shape], in the coordinates of the drawing.
+  MorphGlassSurface surface(RRect shape);
+
+  /// The fill the source's glass draws without a glass painter.
+  Color get fill;
+
+  /// What the source shows on its glass, without the glass, at the
+  /// source's own size.
+  Widget get look;
+}
 
 /// The source geometry and lifetime of a sheet or page zoom.
 @internal
@@ -31,6 +54,24 @@ class MorphZoomSource {
   double? _dissolveStart;
   ShapeBorder? _shape;
   TextDirection _direction = TextDirection.ltr;
+
+  MorphSourceGlass? _glass;
+  bool _glassRead = false;
+
+  /// The glass the source draws itself when it is one glass control, read
+  /// once for the zoom: a zoom out of it is the liquid one.
+  MorphSourceGlass? get glass {
+    if (!_glassRead) {
+      _glassRead = true;
+      final source = tag;
+      final face = source != null && source.mounted ? source.sourceFace : null;
+      _glass = face is MorphSourceGlass ? face : null;
+    }
+    return _glass;
+  }
+
+  /// [look] in the theme of the subtree the source sits in.
+  Widget themed(Widget look) => _themes?.wrap(look) ?? look;
 
   /// Whether the source is gone or has never supplied geometry.
   bool get isLost {
@@ -59,25 +100,46 @@ class MorphZoomSource {
     return _rect;
   }
 
-  /// Hides a laid-out source after the current frame.
+  /// Hides a laid-out source: in the frame that first draws the zoom when
+  /// called from the push, after the current frame when called while the
+  /// tree builds.
   void hide() {
-    if (_hidden || isLost) return;
+    final source = tag;
+    if (_hidden || _lost || source == null || !source.mounted) return;
+    final box = source.context.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return;
     _hidden = true;
+    // A hide one frame late draws the source under the zoom's copy of it.
+    if (_rebuildsNow) {
+      source.hideForFlight();
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-      final source = tag;
-      if (_hidden && source != null && source.mounted) source.hideForFlight();
+      if (_hidden && source.mounted) source.hideForFlight();
     });
   }
 
-  /// Reveals a source after the current frame, including on route removal.
+  /// Reveals a source: in the frame that drops the zoom when called from a
+  /// tick, after the current frame when called while the tree builds or
+  /// tears down, as on route removal.
   void reveal() {
     if (!_hidden) return;
     _hidden = false;
     final source = tag;
+    if (source == null) return;
+    // A reveal one frame late shows neither the zoom nor its source.
+    if (_rebuildsNow) {
+      if (source.mounted) source.reveal();
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-      if (source != null && source.mounted) source.reveal();
+      if (source.mounted) source.reveal();
     });
   }
+
+  static bool get _rebuildsNow =>
+      SchedulerBinding.instance.schedulerPhase !=
+      SchedulerPhase.persistentCallbacks;
 
   /// The source's resolved top-left radius, bounded by [size].
   double radius(Size size) {

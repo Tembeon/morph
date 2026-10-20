@@ -160,6 +160,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
     final created = MorphPushZoomMotion(tuning: _host.zoomTuning);
     final rect = _source.capture(context);
     if (rect == null) {
+      _source.reveal();
       created.showInPlace(clock, page, page);
     } else {
       created.open(clock, rect, page);

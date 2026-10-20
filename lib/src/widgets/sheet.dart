@@ -13,6 +13,7 @@ import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/motion/spring_state.dart';
@@ -317,6 +318,12 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   Widget buildModalBarrier() => const IgnorePointer(child: SizedBox.expand());
 
   @override
+  TickerFuture didPush() {
+    if (from != null) (_zoomSource ??= MorphZoomSource(from!.tag)).hide();
+    return super.didPush();
+  }
+
+  @override
   Widget buildPage(
     BuildContext context,
     Animation<double> animation,
@@ -444,7 +451,8 @@ class _SheetViewState extends State<_SheetView>
     with SingleTickerProviderStateMixin<_SheetView>, MorphClock<_SheetView>
     implements MorphSheet {
   MorphSheetMotion? _motion;
-  MorphZoomMotion? _zoom;
+  MorphZoom? _zoom;
+  final MorphMenuFusion _fusion = MorphMenuFusion();
   Rect? _zoomTarget;
   Size? _zoomContent;
   _ZoomFrame? _zoomFrame;
@@ -719,11 +727,14 @@ class _SheetViewState extends State<_SheetView>
       );
       if (_source.capture(context) != null && !_source.isLost) {
         created.presentInPlace(clock);
-        final zoom = MorphZoomMotion(tuning: _route.zoom);
+        final MorphZoom zoom = _source.glass != null
+            ? MorphLiquidZoomMotion()
+            : MorphZoomMotion(tuning: _route.zoom);
         zoom.open(clock);
         _zoom = zoom;
         _source.hide();
       } else {
+        _source.reveal();
         created.present(clock);
       }
       _motion = created;
@@ -1072,6 +1083,16 @@ class _SheetViewState extends State<_SheetView>
                     child: child!,
                   );
                   if (structure.zooming) {
+                    if (_zoomAt(size).glass != null) {
+                      return _buildLiquidZoom(
+                        size: size,
+                        style: style,
+                        sheet: sheet,
+                        glass: glass,
+                        brightness: brightness,
+                        opening: structure.zoomOpening,
+                      );
+                    }
                     return _buildZoom(
                       size: size,
                       style: style,
@@ -1248,11 +1269,32 @@ class _ZoomFrame {
     required this.fade,
     required this.closing,
     required this.lost,
+    this.glass,
+    this.fusion = 0,
+    this.fusing = false,
+    this.opening = false,
   });
 
   final Size size;
   final Rect rect;
   final RRect shape;
+
+  /// The source's glass while a liquid zoom draws it, in the coordinates
+  /// [rect] is in; null for the classic zoom.
+  final RRect? glass;
+
+  /// The radius of the blur fusing the sheet's glass and [glass].
+  final double fusion;
+
+  /// Whether the sheet's glass and [glass] still fuse, [fusion] above zero
+  /// or not.
+  final bool fusing;
+
+  /// Whether the zoom heads to the sheet.
+  final bool opening;
+
+  /// The sheet's outline in the coordinates [rect] is in.
+  RRect get container => shape.shift(rect.topLeft);
 
   /// [shape] in the sheet's own unscaled coordinates, where its background
   /// is drawn under [fit]: the container's outline, the one outline the
@@ -1285,15 +1327,36 @@ extension on _SheetViewState {
     final progress = zoom.sizeProgress;
     final p = progress.clamp(0.0, 1.0);
     final from = _source.radius(source.size);
-    Radius corner(double to) =>
-        Radius.circular(math.max(0, from + (to - from) * p));
+    final liquid = zoom is MorphLiquidZoomMotion ? zoom : null;
+    Radius corner(double to) {
+      if (liquid == null) {
+        return Radius.circular(math.max(0, from + (to - from) * p));
+      }
+      return Radius.circular(
+        math.max(0, math.min(rect.shortestSide / 2, liquid.corner(to))),
+      );
+    }
+
     final top = corner(MorphSheetTuning.topRadius * frame.scale);
     final bottom = corner(frame.bottomRadius * frame.scale);
     final closing = !zoom.isOpening;
     final opacity = _source.opacity(progress, closing: closing);
+    final content = _zoomContent ?? natural.size;
+    // The liquid zoom fills the sheet's width with its content, as UIKit's
+    // portal does; the classic zoom fits it whole.
     final fit =
         frame.scale *
-        MorphZoomMotion.contentScale(rect, _zoomContent ?? natural.size);
+        (liquid != null && content.width > 0
+            ? rect.width / content.width
+            : MorphZoomMotion.contentScale(rect, content));
+    RRect? glass;
+    if (liquid != null) {
+      final drawn = liquid.sourceGlass(source, destination);
+      glass = RRect.fromRectAndRadius(
+        drawn,
+        Radius.circular(math.min(drawn.shortestSide / 2, from)),
+      );
+    }
     final unit = fit > 0 ? 1 / fit : 0.0;
     return _zoomFrame = _ZoomFrame(
       size: size,
@@ -1320,6 +1383,189 @@ extension on _SheetViewState {
       fade: zoom.fade,
       closing: closing,
       lost: _source.isLost,
+      glass: glass,
+      fusion: liquid?.fusionRadius ?? 0,
+      fusing: liquid?.fusing ?? false,
+      opening: zoom.isOpening,
+    );
+  }
+
+  // The liquid zoom out of a glass source: one layer draws the sheet's
+  // glass and the source's, fused while they are near; the sheet's
+  // content fills the sheet's width and fades in; the source's look shrinks
+  // with its glass and fades out, as UIKit's portals do.
+  Widget _buildLiquidZoom({
+    required Size size,
+    required MorphSheetAppearance style,
+    required Widget sheet,
+    required MorphGlassPainter? glass,
+    required Brightness brightness,
+    required bool opening,
+  }) {
+    _ZoomFrame now() => _zoomAt(size);
+    final face = _source.glass!;
+    // The menu's fusion takes uniform corners, which the sheet's are while
+    // it is small enough to fuse: a capsule.
+    RRect? fusedSheet(_ZoomFrame frame) {
+      if (frame.fusion < MorphMenuFusion.minimumRadius) return null;
+      final c = frame.container;
+      final r = c.tlRadiusX;
+      if ((c.blRadiusX - r).abs() > 0.01) return null;
+      return RRect.fromRectAndRadius(c.outerRect, Radius.circular(r));
+    }
+
+    // At the end of an open the source's glass rests inside the sheet,
+    // unseen on the device once the fusion ends.
+    bool showsGlass(_ZoomFrame frame) => frame.fusing || !frame.opening;
+    final Widget surfaces = glass == null
+        ? CustomPaint(
+            painter: _LiquidZoomFlatPainter(
+              frames: frames,
+              frame: now,
+              sheetColor: style.floatingColor,
+              glassColor: face.fill,
+              showsGlass: showsGlass,
+            ),
+            child: const SizedBox.expand(),
+          )
+        : MorphGlassHost(
+            painter: glass,
+            mode: MorphGlassMode.layer,
+            frames: frames,
+            frame: () {
+              final frame = now();
+              final fused = fusedSheet(frame);
+              final source = frame.glass!;
+              return MorphGlassFrame(
+                [
+                  MorphGlassSurface(
+                    kind: MorphGlassKind.menu,
+                    shape: frame.container,
+                    color: style.floatingColor,
+                    brightness: brightness,
+                    shadows: const [],
+                  ),
+                  if (showsGlass(frame)) face.surface(source),
+                ],
+                outline: fused == null
+                    ? null
+                    : _fusion.outline(fused, source, frame.fusion),
+              );
+            },
+          );
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Semantics(
+            onTap: _route.dismissible ? _requestDismiss : null,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: opening ? _requestDismiss : null,
+              child: MorphLiveColoredBox(
+                live: frames,
+                colorOf: () =>
+                    style.dimmingColor.withValues(alpha: now().dimOpacity),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(child: IgnorePointer(child: surfaces)),
+        MorphLivePositionedTemplate(
+          live: frames,
+          template: () =>
+              Positioned.fromRect(rect: now().rect, child: morphLiveSlot),
+          child: IgnorePointer(
+            child: MorphLiveTemplate(
+              live: frames,
+              template: () => ClipRSuperellipse(
+                clipper: MorphZoomContinuousClipper(now().shape),
+              ),
+              child: MorphLiveOpacity(
+                live: frames,
+                opacityOf: () {
+                  final frame = now();
+                  return frame.opacity *
+                      (frame.lost && frame.closing ? 1 : frame.fade);
+                },
+                child: MorphLiveTransform.matrix(
+                  live: frames,
+                  alignment: Alignment.topLeft,
+                  matrixOf: () {
+                    final fit = now().fit;
+                    return Matrix4.diagonal3Values(fit, fit, 1);
+                  },
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      MorphLivePositionedTemplate(
+                        live: frames,
+                        template: () => Positioned(
+                          left: 0,
+                          top: 0,
+                          width: size.width,
+                          height: now().height,
+                          child: morphLiveSlot,
+                        ),
+                        child: sheet,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        MorphLivePositionedTemplate(
+          live: frames,
+          template: () {
+            final frame = now();
+            return Positioned.fromRect(
+              rect: frame.glass!.outerRect,
+              child: morphLiveSlot,
+            );
+          },
+          child: IgnorePointer(
+            child: ExcludeFocus(
+              child: ExcludeSemantics(
+                child: MorphLiveTemplate(
+                  live: frames,
+                  template: () => ClipRRect(
+                    clipper: MorphZoomShapeClipper(
+                      now().glass!.shift(-now().glass!.outerRect.topLeft),
+                    ),
+                  ),
+                  child: MorphLiveOpacity(
+                    live: frames,
+                    opacityOf: () => (1 - now().fade).clamp(0.0, 1.0),
+                    child: OverflowBox(
+                      minWidth: 0,
+                      minHeight: 0,
+                      maxWidth: double.infinity,
+                      maxHeight: double.infinity,
+                      child: MorphLiveTransform.matrix(
+                        live: frames,
+                        alignment: Alignment.center,
+                        matrixOf: () {
+                          final frame = now();
+                          final source = frame.sourceSize;
+                          final k = source.height > 0
+                              ? frame.glass!.height / source.height
+                              : 0.0;
+                          return Matrix4.diagonal3Values(k, k, 1);
+                        },
+                        child: SizedBox.fromSize(
+                          size: now().sourceSize,
+                          child: _source.themed(face.look),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1704,4 +1950,50 @@ class _RenderFitReport extends RenderProxyBox {
     _reported = height;
     SchedulerBinding.instance.addPostFrameCallback((_) => onHeight(height));
   }
+}
+
+/// The liquid zoom's two shapes as flat fills, for a sheet without a glass
+/// painter: the sheet's and the source's, drawn as their union.
+class _LiquidZoomFlatPainter extends CustomPainter {
+  _LiquidZoomFlatPainter({
+    required Listenable frames,
+    required this.frame,
+    required this.sheetColor,
+    required this.glassColor,
+    required this.showsGlass,
+  }) : super(repaint: frames);
+
+  final _ZoomFrame Function() frame;
+  final Color sheetColor;
+  final Color glassColor;
+  final bool Function(_ZoomFrame frame) showsGlass;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final now = frame();
+    final paint = Paint();
+    paint.color = sheetColor;
+    canvas.drawRSuperellipse(
+      RSuperellipse.fromLTRBAndCorners(
+        now.container.left,
+        now.container.top,
+        now.container.right,
+        now.container.bottom,
+        topLeft: now.container.tlRadius,
+        topRight: now.container.trRadius,
+        bottomLeft: now.container.blRadius,
+        bottomRight: now.container.brRadius,
+      ),
+      paint,
+    );
+    if (showsGlass(now)) {
+      paint.color = glassColor;
+      canvas.drawRRect(now.glass!, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_LiquidZoomFlatPainter oldDelegate) =>
+      oldDelegate.sheetColor != sheetColor ||
+      oldDelegate.glassColor != glassColor;
 }

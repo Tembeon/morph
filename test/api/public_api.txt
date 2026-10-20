@@ -1564,7 +1564,7 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T>, Gl
   final void Function()? onDismissAttempt
   final bool scrollingExpandsSheet
   final String? semanticLabel
-  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, leaveMotionRoute, projectsMotion, reverseTransitionDuration, transitionDuration
+  overrides: barrierColor, barrierDismissible, barrierLabel, buildModalBarrier, buildPage, didPush, leaveMotionRoute, projectsMotion, reverseTransitionDuration, transitionDuration
 class MorphSlider extends StatefulWidget
   const MorphSlider({
     required double value,

@@ -482,6 +482,49 @@ class MorphTagState extends State<MorphTag> {
   /// The resolved source outline ([MorphTag.spec] wins over the field).
   ShapeBorder get shape => widget.spec?.shape ?? widget.shape;
 
+  /// The tag whose child [context] is in, without depending on it.
+  @internal
+  static MorphTagState? of(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<_MorphTagIdScope>()?.state;
+
+  MorphSourceFace? _face;
+
+  /// The face of the control that is the tag's whole child, or null when
+  /// none is: a control attached deeper inside (a button on a card) is
+  /// not the source.
+  @internal
+  MorphSourceFace? get sourceFace {
+    final face = _face;
+    final box = face?.box;
+    final own = mounted ? context.findRenderObject() : null;
+    if (face == null ||
+        box == null ||
+        own is! RenderBox ||
+        !box.attached ||
+        !own.attached ||
+        !box.hasSize ||
+        !own.hasSize) {
+      return null;
+    }
+    final offset =
+        box.localToGlobal(Offset.zero) - own.localToGlobal(Offset.zero);
+    final fills =
+        (box.size.width - own.size.width).abs() < 0.5 &&
+        (box.size.height - own.size.height).abs() < 0.5 &&
+        offset.distance < 0.5;
+    return fills ? face : null;
+  }
+
+  /// Hands the tag the face of a control below it.
+  @internal
+  void attachFace(MorphSourceFace face) => _face = face;
+
+  /// Takes back [face], if it is the tag's.
+  @internal
+  void detachFace(MorphSourceFace face) {
+    if (identical(_face, face)) _face = null;
+  }
+
   /// The resolved source color.
   Color? get surfaceColor => widget.spec?.color ?? widget.surfaceColor;
 
@@ -625,7 +668,7 @@ class MorphTagState extends State<MorphTag> {
         opacity: _hidden ? 0 : 1,
         child: MorphTagVisibility(
           hidden: _hidden,
-          child: _MorphTagIdScope(id: widget.id, child: child),
+          child: _MorphTagIdScope(id: widget.id, state: this, child: child),
         ),
       ),
     );
@@ -655,12 +698,26 @@ class MorphTagVisibility extends InheritedWidget {
       hidden != oldWidget.hidden;
 }
 
+/// What a control that is a [MorphSource]'s whole child tells the source
+/// about itself, such as the glass it draws ([MorphTagState.attachFace]).
+@internal
+abstract interface class MorphSourceFace {
+  /// The box the control fills, or null while it has none.
+  RenderBox? get box;
+}
+
 /// The identity transport behind [MorphTag.idOf]: installed by the tag
 /// itself; flight content must name its source explicitly.
 class _MorphTagIdScope extends InheritedWidget {
-  const _MorphTagIdScope({required this.id, required super.child});
+  const _MorphTagIdScope({
+    required this.id,
+    required this.state,
+    required super.child,
+  });
 
   final Object id;
+
+  final MorphTagState state;
 
   @override
   bool updateShouldNotify(_MorphTagIdScope oldWidget) => id != oldWidget.id;

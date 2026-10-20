@@ -304,6 +304,41 @@ void main() {
       expect(card.opacity, 1);
     });
 
+    testWidgets('no frame draws both the card and the page, or neither', (
+      WidgetTester tester,
+    ) async {
+      final home = await pumpStack(tester);
+      const detailKey = ValueKey<String>('detail');
+      double cardOpacity() => tester
+          .widget<Opacity>(
+            find
+                .ancestor(
+                  of: find.byKey(const ValueKey<String>('card')),
+                  matching: find.byType(Opacity),
+                )
+                .first,
+          )
+          .opacity;
+      unawaited(
+        Navigator.of(home).push<void>(
+          MorphNavigationRoute<void>(builder: detail, from: _cardLink),
+        ),
+      );
+      await tester.pump();
+      expect(find.byKey(detailKey), findsOneWidget);
+      expect(cardOpacity(), 0);
+      await tester.pumpAndSettle();
+      Navigator.of(home).pop();
+      for (var i = 0; i < 120; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        if (find.byKey(detailKey).evaluate().isEmpty) {
+          expect(cardOpacity(), 1);
+          return;
+        }
+      }
+      fail('the page never left');
+    });
+
     testWidgets('a drag down past the threshold dismisses, a short one '
         'returns, a drag up does nothing', (WidgetTester tester) async {
       final home = await pumpStack(tester);

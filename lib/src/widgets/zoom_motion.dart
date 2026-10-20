@@ -4,7 +4,8 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/motion/spring_state.dart';
-import 'package:morph/src/widgets/menu_motion.dart' show MorphMenuTuning;
+import 'package:morph/src/widgets/menu_motion.dart'
+    show MorphFusionTurns, MorphMenuTuning;
 
 /// A zoom of a surface out of its source and back, as a pure function of
 /// time: the classic zoom ([MorphZoomMotion]) or the liquid one out of a
@@ -503,7 +504,7 @@ class MorphLiquidZoomMotion implements MorphZoom {
   double _cornerFar = 0;
   double _now = 0;
   bool _opening = false;
-  final List<({double start, bool opening})> _fusions = [];
+  final MorphFusionTurns _fusions = MorphFusionTurns(MorphMenuTuning.standard);
 
   /// The farthest, in pixels, a progress of 1 moves an edge of the sheet
   /// ([MorphRest.travel] between the source and the sheet); the host
@@ -524,7 +525,7 @@ class MorphLiquidZoomMotion implements MorphZoom {
   void open(double t) {
     advance(t);
     _opening = true;
-    _fusions.add((start: t, opening: true));
+    _fusions.start(t, opening: true);
     _cornerFar = tuning.openCornerFrom;
     _center.retarget(t, 1, spring: tuning.openCenterSpring);
     _size.retarget(t, 1, spring: tuning.openSizeSpring);
@@ -547,7 +548,7 @@ class MorphLiquidZoomMotion implements MorphZoom {
   void close(double t) {
     advance(t);
     _opening = false;
-    _fusions.add((start: t, opening: false));
+    _fusions.start(t, opening: false);
     _pending.clear();
     _cornerFar = tuning.closeCornerTo;
     _size.retarget(t, 0, spring: tuning.closeSizeSpring);
@@ -638,26 +639,11 @@ class MorphLiquidZoomMotion implements MorphZoom {
   /// ([MorphMenuTuning.fusionEnvelope]), started by every [open] and
   /// [close]. UIKit draws both with the same liquid morph; the zoom's own
   /// radius is not measured (NEAR, assumed the menu's).
-  double get fusionRadius {
-    const fusion = MorphMenuTuning.standard;
-    var radius = 0.0;
-    for (final turn in _fusions) {
-      radius = math.max(
-        radius,
-        fusion.fusionEnvelope(_now - turn.start, opening: turn.opening),
-      );
-    }
-    if (radius < fusion.fusionCutoff) return 0;
-    return math.min(radius, fusion.fusionRadius);
-  }
+  double get fusionRadius => _fusions.radiusAt(_now);
 
-  bool get _fused {
-    const fusion = MorphMenuTuning.standard;
-    _fusions.removeWhere(
-      (turn) => fusion.fusionEnded(_now - turn.start, opening: turn.opening),
-    );
-    return _fusions.isEmpty;
-  }
+  /// Whether the sheet's glass and the source's still fuse: from every
+  /// [open] or [close] until its fusion envelope ends.
+  bool get fusing => !_fusions.endedAt(_now);
 
   /// The opacity of the sheet's content; the source's look shows at one
   /// minus it.
@@ -679,7 +665,7 @@ class MorphLiquidZoomMotion implements MorphZoom {
 
   /// Whether nothing moves and nothing is pending.
   @override
-  bool get isSettled => _pending.isEmpty && _rests && _fused;
+  bool get isSettled => _pending.isEmpty && _rests && !fusing;
 
   bool get _rests {
     final progress = MorphRest.scale(travel);

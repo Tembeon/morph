@@ -4,6 +4,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
+import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/motion/flex_interaction.dart';
@@ -17,6 +18,7 @@ import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/motion/timeline.dart';
 import 'package:morph/src/widgets/typography.dart';
+import 'package:morph/src/widgets/zoom_source.dart';
 import 'package:morph/src/theme/theme.dart';
 
 /// The motion of an iOS 27 glass button: the lift, the stretch and shift
@@ -540,6 +542,15 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
     size: Size.zero,
   );
 
+  late final _GlassButtonFace _glassFace = _GlassButtonFace(this);
+  MorphTagState? _sourceTag;
+
+  @override
+  void dispose() {
+    _sourceTag?.detachFace(_glassFace);
+    super.dispose();
+  }
+
   @override
   void advanceMotion(double t) => _motion.advance(t);
 
@@ -653,6 +664,20 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
       ),
     );
     final menu = widget.menu;
+    _glassFace.update(
+      color: tint ?? fill,
+      tint: glassTint,
+      style: clear ? MorphGlassStyle.clear : null,
+      brightness: brightness,
+      enabled: enabled,
+      look: content,
+    );
+    final tag = menu == null ? MorphTagState.of(context) : null;
+    if (!identical(tag, _sourceTag)) {
+      _sourceTag?.detachFace(_glassFace);
+      _sourceTag = tag;
+      tag?.attachFace(_glassFace);
+    }
     if (menu != null) {
       final hold = widget.onPressed != null;
       final color = tint ?? fill;
@@ -890,4 +915,59 @@ class _CapsulePainter extends CustomPainter {
       oldDelegate.color != color ||
       oldDelegate.rim != rim ||
       oldDelegate.shadow != shadow;
+}
+
+/// The glass a glass button draws, handed to a [MorphSource] the button
+/// is the whole child of: a sheet zooming out of the button grows its own
+/// glass out of this one.
+class _GlassButtonFace implements MorphSourceGlass {
+  _GlassButtonFace(this._state);
+
+  final State<MorphGlassButton> _state;
+  Color _color = const Color(0x00000000);
+  Color? _tint;
+  MorphGlassStyle? _style;
+  Brightness _brightness = Brightness.light;
+  bool _enabled = true;
+  Widget _look = const SizedBox.shrink();
+
+  void update({
+    required Color color,
+    required Color? tint,
+    required MorphGlassStyle? style,
+    required Brightness brightness,
+    required bool enabled,
+    required Widget look,
+  }) {
+    _color = color;
+    _tint = tint;
+    _style = style;
+    _brightness = brightness;
+    _enabled = enabled;
+    _look = look;
+  }
+
+  @override
+  MorphGlassSurface surface(RRect shape) => MorphGlassSurface(
+    kind: MorphGlassKind.button,
+    shape: shape,
+    color: _color,
+    tint: _tint,
+    style: _style,
+    brightness: _brightness,
+    enabled: _enabled,
+  );
+
+  @override
+  Color get fill => _color;
+
+  @override
+  Widget get look => _look;
+
+  @override
+  RenderBox? get box {
+    if (!_state.mounted) return null;
+    final box = _state.context.findRenderObject();
+    return box is RenderBox ? box : null;
+  }
 }
