@@ -1,0 +1,11 @@
+a91fdcc9  runs 5  fixed-perf False  2026-10-20 09:44
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/m/search/press         510   2.6   5.4   7.2   9.6   2.4   0.6   10   607  raster-cpu:3 bad raster: Canvas::saveLayer 9.6, SurfaceFrame::Encode 3.3, QueueSubmit 2.1
+audit/liquid/m/nav-bar/scroll      1121   2.3   4.5   9.2  11.7   4.5   0.6   11   608  raster-cpu:4 raster-sched:3 bad raster: QueueSubmit 6.2, SurfaceFrame::Encode 5.1, Canvas::saveLayer 3.6
+nav/nav-navigation-steady-liquid    451   2.1   3.9   9.4  13.6   4.8   0.0    0   608    [raster 11.77->13.58, gpu 5.425->4.791, power_mw 795->608]
+nav/nav-navigation-toolbar-liquid   294   4.3   8.3   8.2   9.9   4.6   1.4    4   456  ui-build:4 bad ui: build 10.7, compositing 3.0, layout 2.2  [ui 5.465->8.35, over_pct 0->1.4, power_mw 653->456]
+nav/nav-navigation-enter-liquid     294   5.0   8.8   8.6  11.5   6.2   1.7    5   516  ui-layout:5 bad ui: layout 9.9, build 4.9, paint 2.4  [power_mw 700->516]
+nav/nav-navigation-nested-push-liq  294   6.8  12.8   8.1  11.1   7.8   2.7    9   527  ui-layout:4 ui-build:3 ui-paint:1 bad ui: layout 11.0, paint 5.1, build 4.3  [ui 10.68->12.82, gpu 6.831->7.831, power_mw 711->527]
+nav/nav-navigation-nested-pop-liqu  286   6.4  11.3   8.3  10.9   6.7   1.7    3   503  ui-layout:5 bad ui: layout 19.4, build 6.1, paint 4.4  [ui 8.576->11.32, gpu 5.442->6.72, power_mw 715->503]

@@ -1,0 +1,14 @@
+a91fdcc9  runs 3  fixed-perf False  2026-10-20 09:40
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/tab-bar               1494   4.4   7.1   9.3  11.9   8.7   0.1    7   779  raster-cpu:2 bad raster: QueueSubmit 5.6, SurfaceFrame::Encode 4.5, Canvas::saveLayer 2.9  [raster 14.19->11.87, gpu 14.83->8.698, over_pct 2.6->0.1, power_mw 1046->779]
+audit/liquid/controls              1165   4.4   9.9   9.1  12.8   4.7   0.3   24   585  raster-cpu:3 bad raster: QueueSubmit 7.1, SurfaceFrame::Encode 4.5, Canvas::saveLayer 2.4  [gpu 5.319->4.664]
+audit/liquid/menu                   758   6.2  12.6   8.6  14.0  12.3   4.5   54   701  raster-cpu:15 ui-other:7 ui-layout:6 gpu:4 ui-build:2 bad raster: SurfaceFrame::Encode 9.3, Canvas::saveLayer 5.1, QueueSubmit 2.9  [ui 14.04->12.61, power_mw 748->701]
+audit/liquid/sheet                  728   4.1  10.2   8.7  12.2  15.5   4.3   33   829  gpu:19 ui-build:3 ui-paint:3 ui-layout:2 raster-wait:2 raster-cpu:1 ui-compositing:1 bad raster: QueueSubmit 7.1, waitForever 4.3, SurfaceFrame::Encode 3.5  [ui 7.362->10.18, raster 14.01->12.23, over_pct 8.7->4.3, power_mw 1118->829]
+audit/liquid/list                  1217   3.0   6.3   9.3  11.6   7.0   0.4   18   604  raster-cpu:4 raster-sched:1 bad raster: SurfaceFrame::Encode 6.9, QueueSubmit 5.4, Canvas::saveLayer 1.9  [ui 5.029->6.288, gpu 8.212->7.011, power_mw 700->604]
+nav/nav-navigation-steady-liquid    271   2.0   3.7   9.2  14.3   4.8   0.0    0   643    [raster 11.77->14.28, gpu 5.425->4.832, power_mw 795->643]
+nav/nav-navigation-toolbar-liquid   177   3.8   8.0   8.1  10.1   4.6   0.6    5   468  ui-build:1 bad ui: build 10.3, compositing 2.7, layout 1.9  [ui 5.465->7.993, power_mw 653->468]
+nav/nav-navigation-enter-liquid     176   5.0   8.6   8.5  10.8   6.2   0.6    3   519  ui-layout:1 bad ui: layout 9.3, build 4.2, paint 2.0  [raster 12.14->10.84, power_mw 700->519]
+nav/nav-navigation-nested-push-liq  177   6.4  12.3   8.5  12.1   7.4   3.4    3   531  ui-build:3 ui-layout:3 bad ui: layout 11.2, build 4.7, paint 3.4  [ui 10.68->12.33, over_pct 2->3.4, power_mw 711->531]
+nav/nav-navigation-nested-pop-liqu  173   5.7  10.4   7.9  10.7   6.3   1.7    2   687  ui-layout:3 bad ui: layout 14.7, build 4.9, paint 3.5  [ui 8.576->10.36, gpu 5.442->6.324]
