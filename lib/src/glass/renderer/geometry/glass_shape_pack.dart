@@ -11,7 +11,8 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 ///
 /// A matte frame hands the shape lists to the geometry pass; an analytic
 /// frame writes them, with the optics and the fused boxes, into the final
-/// shader's uniforms.
+/// shader's uniforms. A fused body's boxes and their tints reach the final
+/// shader in both frames.
 @internal
 final class GlassShapePack {
   /// Primitive, inverse basis, center, distance scale and group marker:
@@ -66,9 +67,13 @@ final class GlassShapePack {
   /// shape.
   bool flatFace = true;
 
-  /// Each shape's tint for a tint variant, 4 floats per shape; empty
-  /// otherwise.
+  /// The tints for a tint variant, 4 floats each: a fused body's per box,
+  /// in box order, separate shapes' per shape; empty otherwise.
   final List<double> tints = [];
+
+  /// Whether a matte frame of a fused body takes its tints from its boxes
+  /// ([tints]) instead of a material map.
+  bool boxTints = false;
 
   /// A fused body's boxes, 8 floats per box (center, half extents, clamped
   /// radius, 3 unused).

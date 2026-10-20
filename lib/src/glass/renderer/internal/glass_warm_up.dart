@@ -107,22 +107,20 @@ Future<void> morphWarmLiquidPipelines(
     );
     FlutterGpuGeometryRenderer.flushPendingSubmissions();
 
-    final variants = [
-      for (final variant in LiquidShaderVariant.values)
-        if (!variant.analyticGeometry) variant,
-    ];
+    final variants = [...GlassFinalPass.matteVariants];
     final programs = [
       ...await Future.wait([
         for (final variant in variants)
           ui.FragmentProgram.fromAsset(ShaderKeys.finalRender(variant)),
       ]),
     ];
-    // The analytic variants are warmed only where layers use them; one
-    // that does not load is left out rather than failing the warm-up.
+    // The analytic variants and a fused body's set are warmed only where
+    // layers use them; one that does not load is left out rather than
+    // failing the warm-up.
     if (GlassGeometryFlags.analyticGeometryEnabled) {
       await GlassFinalPass.precacheAnalyticShaders();
       for (final variant in LiquidShaderVariant.values) {
-        if (!variant.analyticGeometry) continue;
+        if (!variant.analyticGeometry && !variant.fusedSet) continue;
         final key = ShaderKeys.finalRender(variant);
         if (GlassFinalPass.analyticProgram(key) case final program?) {
           programs.add(program);
@@ -142,7 +140,7 @@ Future<void> morphWarmLiquidPipelines(
         if (variant.shapeAppearance) {
           shader.setImageSampler(2, material);
           shader.setImageSampler(3, material, filterQuality: FilterQuality.low);
-        } else if (variant.shapeTint) {
+        } else if (variant.shapeTint && !variant.boxTint) {
           shader.setImageSampler(2, tint, filterQuality: FilterQuality.low);
         }
       }
@@ -163,10 +161,12 @@ Future<void> morphWarmLiquidPipelines(
       final filter = morphGlassShaderFilter(shader);
       filters.add(filter);
       // A frosted one-appearance or tint-only variant draws only frost the
-      // pass blurs itself, never over a blur pass.
+      // pass blurs itself, never over a blur pass; a fused body's box tint
+      // variant draws over any frost.
       if (variant.frost &&
           !variant.shapeAppearance &&
-          !variant.analyticGeometry) {
+          !variant.analyticGeometry &&
+          !variant.boxTint) {
         continue;
       }
       for (final sigma in _frostSigmas) {

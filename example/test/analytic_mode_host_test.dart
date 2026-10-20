@@ -212,42 +212,59 @@ void main() {
     await setUp(t);
     debugClearMorphGlassOutlines();
     // A neck of two bar capsules, and a navigation bar's Done capsule
-    // dragged down and toward its neighbor and stretched by its tether.
-    final bodies = <String, (List<ui.RRect>, ui.Rect)>{
-      'neck-s12': (
-        [
-          for (final rect in const [
-            ui.Rect.fromLTWH(40, 240, 120, 44),
-            ui.Rect.fromLTWH(165, 240, 120, 44),
-          ])
-            ui.RRect.fromRectAndRadius(rect, const ui.Radius.circular(22)),
-        ],
-        const ui.Rect.fromLTRB(150, 236, 175, 288),
+    // dragged down and toward its neighbor and stretched by its tether,
+    // gray like its neighbor and blue (prominent) beside a gray one.
+    final stretchedDone = [
+      ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(230, 400, 44, 44),
+        const ui.Radius.circular(22),
       ),
-      'stretched-done': (
-        [
-          ui.RRect.fromRectAndRadius(
-            const ui.Rect.fromLTWH(230, 400, 44, 44),
-            const ui.Radius.circular(22),
-          ),
-          ui.RRect.fromRectAndRadius(
-            const ui.Rect.fromLTWH(279, 410, 82, 38),
-            const ui.Radius.circular(19),
-          ),
-        ],
-        const ui.Rect.fromLTRB(264, 396, 289, 452),
+      ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(279, 410, 82, 38),
+        const ui.Radius.circular(19),
       ),
-    };
-    for (final MapEntry(key: name, value: (boxes, neck)) in bodies.entries) {
+    ];
+    const doneNeck = ui.Rect.fromLTRB(264, 396, 289, 452);
+    const gray = LiquidGlassAppearance.ios27RegularDark();
+    final bodies =
+        <String, (List<ui.RRect>, ui.Rect, List<LiquidGlassAppearance>)>{
+          'neck-s12': (
+            [
+              for (final rect in const [
+                ui.Rect.fromLTWH(40, 240, 120, 44),
+                ui.Rect.fromLTWH(165, 240, 120, 44),
+              ])
+                ui.RRect.fromRectAndRadius(rect, const ui.Radius.circular(22)),
+            ],
+            const ui.Rect.fromLTRB(150, 236, 175, 288),
+            const [gray, gray],
+          ),
+          'stretched-done': (stretchedDone, doneNeck, const [gray, gray]),
+          // Two points from its neighbor, so the tint seam runs the
+          // neck's height.
+          'stretched-done-prominent': (
+            [
+              stretchedDone.first,
+              stretchedDone.last.shift(const Offset(-3, 0)),
+            ],
+            const ui.Rect.fromLTRB(261, 396, 286, 452),
+            const [
+              gray,
+              LiquidGlassAppearance.ios27RegularDark(tint: Color(0xFF0A84FF)),
+            ],
+          ),
+        };
+    for (final MapEntry(key: name, value: (boxes, neck, appearances))
+        in bodies.entries) {
       final body = HarnessCase(
         name,
         const LiquidGlassSettings(frost: 0),
         [
-          for (final box in boxes)
+          for (final (i, box) in boxes.indexed)
             HarnessShape(
               box.outerRect,
               LiquidRoundedSuperellipse(borderRadius: box.tlRadiusX),
-              const LiquidGlassAppearance.ios27RegularDark(),
+              appearances[i],
             ),
         ],
         field: morphGlassOutlineField(morphGlassContainerBoxOutline(boxes, 12)),
@@ -257,6 +274,8 @@ void main() {
       await harness.show(body, ShaderVariant.candidate);
       expect(layer().debugResting, isTrue, reason: name);
       expect(layer().field, isA<GlassBoxField>(), reason: name);
+      // A fused body's resting tints come from its boxes, not a map.
+      expect(layer().debugMaterialImage, isNull, reason: name);
       final rest = await harness.shoot();
       await frames(4);
       // The geometry pass merges the boxes itself: the CPU never fuses.
@@ -282,6 +301,9 @@ void main() {
       // separate shapes (host run 2026-10-19: neck max 9 and 15, mean
       // 0.10 and 0.24; a field sampled every 4 pt bent the neck into
       // straight steps, up to 125 channel steps from the moving frame).
+      // The prominent Done's tint seam takes its boxes' tints in both
+      // frames (2026-10-20: max 14, mean 0.15); a coarse tint map drew it
+      // in blurred 8-pixel steps (max 208, mean 1.26).
       expect(inNeck.max, lessThanOrEqualTo(24), reason: name);
       expect(inNeck.mean, lessThan(0.5), reason: name);
       expect(whole.mean, lessThan(0.5), reason: name);

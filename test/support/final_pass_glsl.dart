@@ -95,6 +95,11 @@ List<String> analyticLines({required bool tint, required bool fused}) {
   return kept;
 }
 
+/// The lines of shaders/fused_tint.glsl, the box tint block the tint-only
+/// matte variants of a fused body declare after the core.
+List<String> fusedTintLines() =>
+    File('${_shaders}fused_tint.glsl').readAsLinesSync();
+
 /// The value of `#define [name]` in shaders/analytic_geometry.glsl.
 int analyticDefine(String name) {
   final define = RegExp('^#define $name (\\d+)');

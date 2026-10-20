@@ -114,6 +114,10 @@ float analyticFlatDepth() {
 
 #if ANALYTIC_FUSED
 #define FUSED_MAX_BOXES ANALYTIC_MAX_BOXES
+#if SHAPE_TINT
+// A fused body's uShapeTints hold its boxes' tints, in box order.
+#define FUSED_TINTS uShapeTints
+#endif
 #include "fused_law.glsl"
 
 // The angular fold of the fused boxes at p, in list order.
@@ -244,63 +248,6 @@ SceneSample nearestShape(
     return best;
 }
 
-#if ANALYTIC_FUSED && SHAPE_TINT
-// The tint of nearestShape(p, count, 1e9, false) at p, from the shapes'
-// distances alone: the same culling, order and tie rule, and shape 0's tint
-// when every shape's box is farther than 1e9. A pixel inside the box of one
-// shape alone and more than a device pixel inside the rhombus through the
-// midpoints of that box's sides takes that shape's tint without a distance
-// solve: every primitive is convex and touches its box at those midpoints,
-// so the rhombus lies inside it and its distance is below minus a pixel,
-// while the pixel lies outside every other shape's box, where that shape's
-// distance is positive: nearestShape picks it whatever the order.
-vec4 nearestShapeTint(vec2 p, int count) {
-    int containing = 0;
-    bool inRhombus = false;
-    vec4 rhombusTint = vec4(0.0);
-    for (int i = 0; i < MAX_SHAPES; i++) {
-        if (i >= count) break;
-        if (shapeBoundsDistanceSquared(uShapeBounds[i], p) <= 0.0) {
-            containing++;
-            vec4 primitive = uShapeData[i * 3];
-            vec4 inverseBasis = uShapeData[i * 3 + 1];
-            vec4 placement = uShapeData[i * 3 + 2];
-            vec2 delta = p - placement.xy;
-            vec2 localPoint = vec2(
-                inverseBasis.x * delta.x + inverseBasis.y * delta.y,
-                inverseBasis.z * delta.x + inverseBasis.w * delta.y
-            );
-            vec2 halfSize = primitive.yz * 0.5;
-            vec2 local = abs(localPoint);
-            float depth = (halfSize.x * halfSize.y - halfSize.y * local.x -
-                halfSize.x * local.y) / length(halfSize) * placement.z;
-            inRhombus = primitive.x >= 1.0 && primitive.x <= 3.0 &&
-                depth > 1.0;
-            rhombusTint = uShapeTints[i];
-        }
-    }
-    if (containing == 1 && inRhombus) return rhombusTint;
-    float bestDistance = 1e9;
-    float nearestBox = 1e18;
-    vec4 tint = uShapeTints[0];
-    for (int i = 0; i < MAX_SHAPES; i++) {
-        if (i >= count) break;
-        float boxDistance = shapeBoundsDistanceSquared(uShapeBounds[i], p);
-        nearestBox = min(nearestBox, boxDistance);
-        float bound = sqrt(boxDistance) * shapeCull(i);
-        if (bound > max(bestDistance, 0.0)) continue;
-        float distance = getShapeDistanceFromArray(i, p);
-        bool nearer = i == count - 1
-            ? distance < bestDistance
-            : distance <= bestDistance;
-        if (nearer) {
-            bestDistance = distance;
-            tint = uShapeTints[i];
-        }
-    }
-    return nearestBox > 1e18 ? uShapeTints[0] : tint;
-}
-#endif
 
 AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange) {
     AnalyticGeometry result;
@@ -339,8 +286,7 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
         opticalGradient = fusedTurned(gradient, optics.yz);
     }
     #if SHAPE_TINT
-    // The material map's tint: the nearest of the layer's shapes.
-    result.tint = nearestShapeTint(p, count);
+    result.tint = fusedBoxTint(p, boxes);
     #endif
     #else
     #if SHAPE_TINT

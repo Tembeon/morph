@@ -726,3 +726,15 @@ Local patches (some commits include related package changes):
   but does not merge it (RenderGlassMember.planeSolid). A layer that reads
   its plane with no plane above keeps one BackdropKey for its life
   instead of a new one per build.
+- 2026-10-20 box tints: a fused body whose shapes differ only by tint
+  takes each pixel's tint from its nearest box (fused_law.glsl
+  fusedBoxTint, the box tints in box order in GlassShapePack.tints), in
+  the analytic fused tint variants (nearestShapeTint, its per-shape
+  solves and its rhombus shortcut are gone: 53.5 -> 38 A cycles on the
+  Mali-G78) and, at rest, in two tint-only matte variants of the fused
+  set, LiquidShaderVariant.tintBoxes and tintBoxesIos27 (FUSED_TINT,
+  shaders/fused_tint.glsl; frosted, since the box uniforms leave no room
+  for the unfrosted variants' register budget), which read no material
+  map, so its matte frame writes none. The other tint variants are
+  unchanged. A matte frame moves its pack with a uniformly translated
+  matte too, for the boxes' tints.

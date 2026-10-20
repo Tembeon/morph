@@ -15,6 +15,12 @@ precision highp float;
 #define ANALYTIC_GEOMETRY 0
 #endif
 
+// 1 takes a fused body's tints from its boxes (fused_tint.glsl) instead of
+// a material map, in a tint-only matte variant.
+#ifndef FUSED_TINT
+#define FUSED_TINT 0
+#endif
+
 #include <flutter/runtime_effect.glsl>
 #include "gpu/displacement_encoding.glsl"
 #include "render.glsl"
@@ -143,7 +149,7 @@ const float kContourCoverageFeather = 1.0;
 uniform sampler2D uBackgroundTexture;
 #if !ANALYTIC_GEOMETRY
 uniform sampler2D uGeometryTexture;
-#if SHAPE_APPEARANCE || SHAPE_TINT
+#if SHAPE_APPEARANCE || (SHAPE_TINT && !FUSED_TINT)
 uniform sampler2D uMaterialTexture;
 #endif
 #endif
@@ -580,6 +586,8 @@ vec3 applySpecularHighlights(
 
 #if ANALYTIC_GEOMETRY
 #include "analytic_geometry.glsl"
+#elif FUSED_TINT
+#include "fused_tint.glsl"
 #endif
 
 void main() {
@@ -626,6 +634,8 @@ void main() {
     vec3 colorModelShares = colorModelSharesOf(uAppearanceConfig.x);
     #if SHAPE_TINT && ANALYTIC_GEOMETRY
     materialTint = analytic.tint;
+    #elif SHAPE_TINT && FUSED_TINT
+    materialTint = fusedBoxTint(matteCoord, int(uFusedTintBoxes));
     #elif SHAPE_TINT
     {
         float materialRasterScale = max(uAppearanceConfig.z, 1.0);

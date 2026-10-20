@@ -13,7 +13,10 @@
 // extents), then (corner radius, 0, 0, 0), the radius already clamped to
 // the half extents. Shared by the liquid tier's analytic final pass
 // (analytic_geometry.glsl) and the flat tier's fused bodies
-// (lib/src/widgets/shaders/flat_fused_body.frag).
+// (lib/src/widgets/shaders/flat_fused_body.frag). An includer that also
+// defines FUSED_TINTS as an array of each box's tint gets fusedBoxTint: the
+// analytic fused tint variants and the tint-only matte variants
+// (fused_tint.glsl).
 
 // The signed distance at p of the rounded box with center box.xy, half
 // extents box.zw and corner radius r, and its unit normal: the normal of
@@ -61,3 +64,22 @@ float fusedFold(vec2 p, int count, float k, float minWidth) {
     }
     return carried.x;
 }
+
+#ifdef FUSED_TINTS
+// The tint of the box nearest p among the first [count] boxes, the first of
+// equally near ones: where two shapes of a fused body meet, each pixel takes
+// its own shape's tint, in the moving frames and in the resting ones alike.
+vec4 fusedBoxTint(vec2 p, int count) {
+    float nearest = 1e9;
+    vec4 tint = FUSED_TINTS[0];
+    for (int i = 0; i < FUSED_MAX_BOXES; i++) {
+        if (i >= count) break;
+        float d = fusedBoxAt(p, uFusedBoxes[i * 2], uFusedBoxes[i * 2 + 1].x).x;
+        if (d < nearest) {
+            nearest = d;
+            tint = FUSED_TINTS[i];
+        }
+    }
+    return tint;
+}
+#endif

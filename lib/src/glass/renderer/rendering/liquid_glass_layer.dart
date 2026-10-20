@@ -694,6 +694,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   GlassShapePack? get analyticShapes => _analytic ? _encoder.pack : null;
 
   @override
+  GlassShapePack get shapes => _encoder.pack;
+
+  @override
   GlassFrost get frost => GlassFrost.of(
     frost: settings.effectiveFrost,
     dispersion: settings.dispersion,
@@ -878,10 +881,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (_encoder.encodedPassPhase != null) return false;
     _geometryMatteBounds = _geometryMatteBounds.shift(delta);
     _materialCenterInMatte += delta;
-    if (_analytic) {
-      _encoder.pack.translate(delta * devicePixelRatio);
-      _pass.markInputsChanged();
-    }
+    // An analytic frame reads every shape there, a matte frame its fused
+    // boxes for their tints.
+    _encoder.pack.translate(delta * devicePixelRatio);
+    _pass.markInputsChanged();
     _rememberEncodedGeometry(bounds);
     return true;
   }

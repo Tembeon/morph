@@ -41,6 +41,9 @@ abstract interface class GlassPassSource {
 
   /// The shapes of the current analytic frame, or null for a matte frame.
   GlassShapePack? get analyticShapes;
+
+  /// The shapes of the current frame, analytic or matte.
+  GlassShapePack get shapes;
 }
 
 /// The final shader of one glass layer: its variant, its uniforms and the
@@ -65,14 +68,15 @@ final class GlassFinalPass {
   /// The matte variants, in the order of [ShaderKeys.liquidGlassRenders].
   static final List<LiquidShaderVariant> matteVariants = [
     for (final variant in LiquidShaderVariant.values)
-      if (!variant.analyticGeometry) variant,
+      if (!variant.analyticGeometry && !variant.fusedSet) variant,
   ];
 
   final GlassPassSource _source;
   final Map<LiquidShaderVariant, FragmentShader> _matte;
 
-  // The analytic shaders for separate shapes and for merged boxes, created
-  // once all programs of their kind have loaded.
+  // The analytic shaders for separate shapes, and the shaders of a fused
+  // body (merged in the pass, or read from its matte with the tints of its
+  // boxes), created once all programs of their kind have loaded.
   Map<LiquidShaderVariant, FragmentShader>? _analytic;
   Map<LiquidShaderVariant, FragmentShader>? _analyticFused;
 
@@ -116,14 +120,17 @@ final class GlassFinalPass {
   static FragmentProgram? analyticProgram(String key) => _programs[key];
 
   /// Whether this pass has the analytic shaders a frame of separate shapes
-  /// or, with [fused], of merged boxes draws with, creating the four of
-  /// that kind once all their programs have loaded and starting the loads
-  /// otherwise.
+  /// or, with [fused], the shaders a fused body draws with
+  /// ([LiquidShaderVariant.fusedSet]), creating those of that kind once
+  /// all their programs have loaded and starting the loads otherwise.
   bool analyticShadersReady({required bool fused}) {
     if ((fused ? _analyticFused : _analytic) != null) return true;
     final variants = [
       for (final variant in LiquidShaderVariant.values)
-        if (variant.analyticGeometry && variant.fused == fused) variant,
+        if (fused
+            ? variant.fusedSet
+            : variant.analyticGeometry && !variant.fused)
+          variant,
     ];
     var ready = true;
     for (final variant in variants) {
@@ -154,6 +161,10 @@ final class GlassFinalPass {
   /// the shader frost fit the register budget of full thread occupancy on a
   /// Mali-G78. The frosted, mixed-appearance and analytic variants run at
   /// half occupancy there.
+  ///
+  /// A fused body's matte frame whose tints come from its boxes
+  /// ([boxTints]) draws with [LiquidShaderVariant.tintBoxes] or its iOS 27
+  /// twin.
   static LiquidShaderVariant variantFor({
     required bool analytic,
     required bool fused,
@@ -161,9 +172,15 @@ final class GlassFinalPass {
     required bool tintOnly,
     required bool ios27,
     required bool frost,
+    bool boxTints = false,
   }) {
     if (shapeAppearances && !tintOnly) return LiquidShaderVariant.material;
     final tint = shapeAppearances;
+    if (!analytic && tint && boxTints) {
+      return ios27
+          ? LiquidShaderVariant.tintBoxesIos27
+          : LiquidShaderVariant.tintBoxes;
+    }
     if (analytic) {
       return switch ((fused, tint, ios27)) {
         (false, false, false) => LiquidShaderVariant.analytic,
@@ -194,6 +211,7 @@ final class GlassFinalPass {
     return variantFor(
       analytic: shapes != null,
       fused: shapes?.fused ?? false,
+      boxTints: _source.shapes.boxTints,
       shapeAppearances: _usesShapeAppearances,
       tintOnly: _usesTintOnlyAppearance,
       ios27:
@@ -203,9 +221,10 @@ final class GlassFinalPass {
     );
   }
 
-  FragmentShader _shaderOf(LiquidShaderVariant variant) =>
-      (variant.analyticGeometry
-      ? (variant.fused ? _analyticFused : _analytic)!
+  FragmentShader _shaderOf(LiquidShaderVariant variant) => (variant.fusedSet
+      ? _analyticFused!
+      : variant.analyticGeometry
+      ? _analytic!
       : _matte)[variant]!;
 
   /// The shader of [variant], its common uniforms written.
@@ -486,6 +505,7 @@ final class GlassFinalPass {
         // Nearest: the matte packs 12-bit normal angle and displacement codes
         // across byte boundaries, which filtering between texels would mix.
         ..setImageSampler(1, geometryImage);
+      if (variant.boxTint) _writeFusedTints(shader);
     }
     _writeShrinkAxis(shader);
     if (materialImage != null) {
@@ -510,6 +530,20 @@ final class GlassFinalPass {
       _boundMaterialImage = materialImage;
       _boundMatteBounds = matteBounds;
       _inputsChanged = true;
+    }
+  }
+
+  // A fused body's boxes and their tints, for a matte variant that takes
+  // its tints from them.
+  void _writeFusedTints(FragmentShader shader) {
+    final shapes = _source.shapes;
+    final boxes = shapes.boxCount;
+    shader.setFloat(FinalPassLayout.matteFusedTintBoxes, boxes.toDouble());
+    for (var i = 0; i < boxes * 8; i++) {
+      shader.setFloat(FinalPassLayout.matteFusedBoxes + i, shapes.boxes[i]);
+    }
+    for (var i = 0; i < boxes * 4; i++) {
+      shader.setFloat(FinalPassLayout.matteFusedTints + i, shapes.tints[i]);
     }
   }
 

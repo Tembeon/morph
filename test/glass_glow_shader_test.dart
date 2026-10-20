@@ -118,7 +118,7 @@ void main() {
         File('${_shaders}liquid_glass_final_render.frag').readAsStringSync(),
         contains('#include "liquid_glass_final_render_core.glsl"'),
       );
-      expect(LiquidShaderVariant.values, hasLength(17));
+      expect(LiquidShaderVariant.values, hasLength(19));
     });
 
     test('carry a glow in the matte space of the layer', () {

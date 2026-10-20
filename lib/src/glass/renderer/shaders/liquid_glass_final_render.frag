@@ -37,6 +37,11 @@
 #else
 #define ANALYTIC_FUSED 0
 #endif
+#ifdef WITH_FUSED_TINT
+#define FUSED_TINT 1
+#else
+#define FUSED_TINT 0
+#endif
 #ifdef WITH_FROST
 #define FROST 1
 #else

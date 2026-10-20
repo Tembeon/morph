@@ -99,4 +99,17 @@ abstract final class FinalPassLayout {
 
   /// uShapeTints of the fused tint variants, after uFusedBoxes.
   static const int fusedTints = fusedBoxes + GlassBoxField.maxBoxes * 8;
+
+  /// uFusedBoxes of the tint-only matte variants (shaders/fused_tint.glsl),
+  /// after the core block, where the analytic variants declare theirs.
+  static const int matteFusedBoxes = analytic;
+
+  /// uFusedTints of the tint-only matte variants: each fused box's tint.
+  static const int matteFusedTints =
+      matteFusedBoxes + GlassBoxField.maxBoxes * 8;
+
+  /// uFusedTintBoxes of the tint-only matte variants: the fused boxes, 0
+  /// for separate shapes, which read the material map.
+  static const int matteFusedTintBoxes =
+      matteFusedTints + GlassBoxField.maxBoxes * 4;
 }
