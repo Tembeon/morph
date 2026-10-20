@@ -131,7 +131,8 @@ abstract final class MorphSheetTuning {
   /// platform reports none: the iPhone 16 Pro's, where the floating
   /// sheet's bottom corners (62 - 8 = 54 unscaled points) were measured.
   /// The bottom corners grow to the display's radius as the sheet docks,
-  /// or flatten to square where the platform reports no radius.
+  /// or flatten toward square where the platform reports no radius, and
+  /// rest square once docked ([MorphSheetMotion.bottomRadius]).
   static const double fallbackDisplayRadius = 62;
 
   /// The opacity of the black dimming behind a dimmed detent.
@@ -169,7 +170,11 @@ abstract final class MorphSheetTuning {
   /// with (0.53 and 0.65 fitted).
   static const double flickDismissVelocityGain = 0.6;
 
-  /// The scale a floating sheet swells by under a touch.
+  /// The scale a floating sheet swells by under a touch. The swell holds
+  /// while the touch drags the sheet (device: the area scale stays
+  /// 0.96837, the floating 0.9602 times this, through every drag of a
+  /// floating sheet) and goes when the drag's settle starts; a sheet
+  /// docked at the touch does not swell.
   static const double pressScale = 1.00854;
 
   /// The spring the swell follows, on touch and on release (0.0001 rms in
@@ -285,9 +290,9 @@ abstract final class MorphSheetTuning {
 /// docking progress, the fraction of the height travelled between where
 /// the transition started and the large detent (on the way back, between
 /// the large detent and the floating one the sheet heads to); the scale,
-/// the bottom corner radius and the opaque background follow the same
-/// fraction. A move between two floating detents keeps the sheet
-/// floating throughout.
+/// the bottom corner radius ([bottomRadius]) and the opaque background
+/// follow the same fraction. A move between two floating detents keeps the
+/// sheet floating throughout.
 ///
 /// The opaque fill that replaces the glass at the large detent follows
 /// its own [MorphSheetTuning.spring] toward the background of the detent
@@ -296,8 +301,9 @@ abstract final class MorphSheetTuning {
 /// crosses [MorphSheetTuning.backgroundSwitch], so the glass gives way to
 /// the fill at a point of the drag rather than along it.
 ///
-/// A touch swells a floating sheet by [MorphSheetTuning.pressScale]. A
-/// drag moves the sheet's top edge with the finger: between the smallest
+/// A touch swells a floating sheet by [MorphSheetTuning.pressScale] and
+/// the swell holds through the drag the touch turns into. A drag moves
+/// the sheet's top edge with the finger: between the smallest
 /// and the largest detent the height follows it point for point, above
 /// a floating largest detent it rubber-bands toward the maximum height
 /// (at most [MorphSheetTuning.stretchLimit]), a docked sheet does not
@@ -331,6 +337,7 @@ class MorphSheetMotion
     this.undimmedIndex,
     this.dismissible = true,
     this.inset = MorphSheetTuning.floatingInset,
+    this.displayRadius,
   }) : _heights = List<double>.of(heights),
        _fullHeight = fullHeight ?? heights.last,
        _index = initial,
@@ -342,7 +349,7 @@ class MorphSheetMotion
        ) {
     _toDocked = initial == dockedIndex;
     _dockStart = _toDocked ? 1 : 0;
-    _cornerStart = _dockStart;
+    _radiusStart = _toDocked ? dockedRadius : floatingRadius;
     _heightStart = heights[initial];
     _floating = _toDocked ? _floatingBelowDocked : heights[initial];
     _offset.snap(0, hiddenOffset);
@@ -353,6 +360,11 @@ class MorphSheetMotion
 
   /// The width of the container in pixels.
   double width;
+
+  /// The corner radius of the display, or null where the platform reports
+  /// none: the radius the bottom corners turn to as the sheet docks, less
+  /// [inset] while it floats. The host updates it with every layout.
+  double? displayRadius;
 
   /// The index of the detent that docks the sheet edge to edge, or null
   /// when no detent does.
@@ -382,6 +394,7 @@ class MorphSheetMotion
     MorphSheetTuning.stretchSpring,
     0,
   );
+  final MorphSpringState _drift = MorphSpringState(MorphSheetTuning.spring, 0);
   final MorphSpringState _lag = MorphSpringState(
     MorphSheetTuning.stretchLagSpring,
     0,
@@ -396,7 +409,8 @@ class MorphSheetMotion
 
   bool _toDocked = false;
   double _dockStart = 0;
-  double _cornerStart = 0;
+  double _radiusStart = 0;
+  bool _squareAtRest = false;
   double _heightStart = 0;
   double _floating = 0;
 
@@ -463,7 +477,10 @@ class MorphSheetMotion
       _press.isWithin(_now, _scaleRest) &&
       _fill.isWithin(_now, MorphRest.opacity) &&
       !_stretching &&
-      _stretch.isWithin(_now, _scaleRest);
+      _stretch.isWithin(_now, _scaleRest) &&
+      _drift.isWithin(_now, _driftRest);
+
+  double get _driftRest => inset <= 0 ? 1 : MorphRest.length / inset;
 
   double get _scaleRest => MorphRest.scale(math.max(width, _heights[_index]));
 
@@ -489,27 +506,60 @@ class MorphSheetMotion
 
   double _fillAt(double t) => _fill.value(t).clamp(0.0, 1.0);
 
-  /// How far the bottom corners have turned from the floating radius to
-  /// the docked one, 0 to 1.
-  ///
-  /// A drag sets the radius from the docking progress `p` as
-  /// `1 - (1 - p)^2`: the corner keeps concentric with the shrinking gap
-  /// to the screen edge, so it reaches the docked radius sooner than the
-  /// scale. A settle or a programmatic change carries the radius from
-  /// where it started to its end in step with the docking.
-  double get cornerBlend => _cornerBlendAt(_now);
+  /// The radius of the bottom corners of a floating sheet, in unscaled
+  /// pixels: the display's less [inset] (62 - 8 = 54 on an iPhone 16 Pro),
+  /// [MorphSheetTuning.fallbackDisplayRadius] less it where the platform
+  /// reports none.
+  double get floatingRadius =>
+      (displayRadius ?? MorphSheetTuning.fallbackDisplayRadius) - inset;
 
-  double _cornerBlendAt(double t) {
+  /// The radius the bottom corners turn to as the sheet docks: the
+  /// display's, 0 where the platform reports none.
+  double get dockedRadius => displayRadius ?? 0;
+
+  /// The radius of the bottom corners now, in unscaled pixels; the top
+  /// corners keep [MorphSheetTuning.topRadius].
+  ///
+  /// Device clip layer, every frame (test/fixtures/ios27-device/sheet):
+  /// a programmatic docking turns it from [floatingRadius] to
+  /// [dockedRadius] in step with the docking progress `p`, linear in `p`
+  /// (54 + 8 p), and once the sheet rests docked it is 0, square under the
+  /// display's own corner, which hides it. Undocking from there runs from
+  /// 0 to [floatingRadius] as `54 (1 - p)`. A transition that starts
+  /// anywhere else runs from the radius it starts at, in step with the
+  /// docking. A drag sets it from the docking progress as
+  /// `docked - (docked - floating) (1 - p)^2`, concentric with the
+  /// shrinking gap to the screen edge (simulator: 58.44 at `p` 0.333; UIKit
+  /// rounds the gap up to a third of a point, morph is smooth: NEAR). A
+  /// sheet presented docked keeps [dockedRadius] (a large-only sheet reads
+  /// 62 through its present and dismissal).
+  double get bottomRadius => _bottomRadiusAt(_now);
+
+  double _bottomRadiusAt(double t) {
+    final floating = floatingRadius;
+    final docked = dockedRadius;
     final d = _dockAt(t);
-    if (_dragFrom != null) return 1 - (1 - d) * (1 - d);
-    if (_toDocked) {
-      final span = 1 - _dockStart;
-      if (span <= 1e-9) return 1;
-      final p = ((d - _dockStart) / span).clamp(0.0, 1.0);
-      return _cornerStart + (1 - _cornerStart) * p;
+    final double radius;
+    if (_dragFrom != null) {
+      radius = docked - (docked - floating) * (1 - d) * (1 - d);
+    } else if (_toDocked) {
+      if (_height.isWithin(t, MorphRest.length)) {
+        radius = _squareAtRest ? 0 : docked;
+      } else {
+        final span = 1 - _dockStart;
+        final p = span <= 1e-9
+            ? 1.0
+            : ((d - _dockStart) / span).clamp(0.0, 1.0);
+        radius = _radiusStart + (docked - _radiusStart) * p;
+      }
+    } else if (_dockStart <= 1e-9) {
+      radius = floating;
+    } else {
+      radius =
+          floating +
+          (_radiusStart - floating) * (d / _dockStart).clamp(0.0, 1.0);
     }
-    if (_dockStart <= 1e-9) return 0;
-    return _cornerStart * (d / _dockStart).clamp(0.0, 1.0);
+    return math.max(0, radius);
   }
 
   double get _rubberRoom =>
@@ -580,6 +630,16 @@ class MorphSheetMotion
     _stretch.retarget(t, 0);
   }
 
+  /// How far a presenting sheet still sits left of its place, in pixels:
+  /// UIKit slides a floating sheet in with its frame at the container's
+  /// leading edge (origin x 0) and moves it to its inset on the present
+  /// spring itself (device, every floating present: the centre x 193 ->
+  /// 201 on a 402 point screen, its progress the slide's within 0.001).
+  /// A docked sheet and a dismissal do not drift.
+  double get drift => _driftAt(_now);
+
+  double _driftAt(double t) => inset * (1 - _dockAt(t)) * _drift.value(t);
+
   /// The vertical shift of the scaled sheet's center, on top
   /// of [offset]: what keeps a floating sheet [inset] off the bottom.
   double get shift => _shiftAt(_now);
@@ -626,9 +686,18 @@ class MorphSheetMotion
   }
 
   /// Slides the sheet in from below the screen to its detent.
+  ///
+  /// A floating sheet slides in with its frame at the container's leading
+  /// edge and drifts sideways to its inset on the same spring, as UIKit's
+  /// does ([drift]).
   void present(double t) {
     advance(t);
     _dismissing = false;
+    final hidden = hiddenOffset;
+    if (hidden > 0) {
+      _drift.snap(t, (_offset.value(t) / hidden).clamp(0.0, 1.0));
+      _drift.retarget(t, 0);
+    }
     _offset.retarget(t, 0, spring: MorphSheetTuning.spring);
   }
 
@@ -663,14 +732,16 @@ class MorphSheetMotion
   }) {
     final h = _heightAt(t);
     final d = _dockFor(h);
-    final corner = _cornerBlendAt(t);
+    final radius = _bottomRadiusAt(t);
+    final dragged = _dragFrom != null;
     _dragFrom = null;
     _releaseStretch(t);
     final changed = index != _index;
     _index = index;
     _toDocked = index == dockedIndex;
     _dockStart = d;
-    _cornerStart = corner;
+    _radiusStart = radius;
+    if (changed || dragged) _squareAtRest = true;
     _heightStart = h;
     _fillToward(t, _toDocked ? 1 : 0);
     if (!_toDocked) {
@@ -690,15 +761,23 @@ class MorphSheetMotion
     _fill.retarget(t, target);
   }
 
-  /// A finger touched the sheet: a floating sheet swells.
+  /// A finger touched the sheet: a sheet floating at the touch swells,
+  /// and keeps its swell through a drag the touch turns into; a sheet
+  /// docked at the touch does not swell for it, even once a drag undocks
+  /// it.
   void press(double t) {
     advance(t);
+    if (_dockAt(t) >= 1) return;
     _pressAt = t + MorphSheetTuning.pressDelay;
   }
 
-  /// The touch ended or turned into a drag: the swell goes.
+  /// The touch ended without a drag: the swell goes.
   void unpress(double t) {
     advance(t);
+    _letGo(t);
+  }
+
+  void _letGo(double t) {
     _pressAt = null;
     _press.retarget(t, 1);
   }
@@ -715,17 +794,19 @@ class MorphSheetMotion
     });
   }
 
-  /// The swell of the sheet under a touch, as a factor on
-  /// [scale]; it fades as the sheet docks.
+  /// The swell of the sheet under a touch, as a factor on [scale]: it
+  /// fades as the square root of the way left to docking, so a sheet a
+  /// drag docks loses it at the large detent (fitted to the device drags
+  /// up from medium, 0.0004 - 0.0007 rms in the area scale where a linear
+  /// fade leaves 0.0012 - 0.0017).
   double get pressScale => _pressScaleAt(_now);
 
   double _pressScaleAt(double t) =>
-      1 + (_press.value(t) - 1) * (1 - _dockAt(t));
+      1 + (_press.value(t) - 1) * math.sqrt(1 - _dockAt(t));
 
   /// A finger started dragging the sheet at screen position [y].
   void dragStart(double t, double y) {
     advance(t);
-    unpress(t);
     _holdStretch(t);
     if (_dockAt(t) < 1) {
       _stretch.retarget(t, 0);
@@ -806,6 +887,7 @@ class MorphSheetMotion
     _holdStretch(t);
     _released = true;
     _timeline.at(t + MorphSheetTuning.releaseDelay, (double s) {
+      _letGo(s);
       _released = false;
       _settle(s, velocity);
     });
@@ -891,6 +973,7 @@ class MorphSheetMotion
     if (_height.isWithin(_now, MorphRest.length)) _height.settle(_now);
     if (_offset.isWithin(_now, MorphRest.length)) _offset.settle(_now);
     if (_stretch.isWithin(_now, _scaleRest)) _stretch.settle(_now);
+    if (_drift.isWithin(_now, _driftRest)) _drift.settle(_now);
   }
 
   /// The sheet's visible rect in a container [containerHeight]
@@ -905,10 +988,11 @@ class MorphSheetMotion
         containerHeight + (s - 1) * h / 2 + _shiftAt(t) + _offsetAt(t);
     final k = math.sqrt(math.max(_stretchAt(t), 0.5));
     final w = width * s / k;
+    final x = -_driftAt(t);
     return Rect.fromLTRB(
-      (width - w) / 2,
+      (width - w) / 2 + x,
       bottom - h * s * k,
-      (width + w) / 2,
+      (width + w) / 2 + x,
       bottom,
     );
   }

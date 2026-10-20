@@ -131,15 +131,42 @@ double morphBackdropScale(MorphGlassSurface surface, double shrink) =>
         GlassBuiltInPainter.glassness(surface) *
         surface.opacity.clamp(0.0, 1.0);
 
+// A sheet's 38 point top and 54 to 62 point bottom are one continuous
+// outline, the one its clip draws: the top corners share one radius and
+// the bottom ones another, scaled down together where they do not fit, as
+// Flutter's own rounded superellipse scales them.
 LiquidShape _shape(RRect shape, {bool exact = false}) {
+  assert(
+    shape.tlRadius == shape.trRadius &&
+        shape.blRadius == shape.brRadius &&
+        shape.tlRadiusX == shape.tlRadiusY &&
+        shape.blRadiusX == shape.blRadiusY,
+    'The liquid tier draws equal circular top corners and equal circular '
+    'bottom corners.',
+  );
   final side = math.min(shape.width, shape.height);
   final radius = math.min(shape.tlRadiusX, side / 2);
   if (shape.width == shape.height && radius >= side / 2) {
     return const LiquidOval();
   }
-  return exact
-      ? LiquidRoundedRectangle(borderRadius: radius)
-      : LiquidRoundedSuperellipse(borderRadius: radius);
+  final top = shape.tlRadiusX;
+  final bottom = shape.blRadiusX;
+  if (exact || top == bottom) {
+    return exact
+        ? LiquidRoundedRectangle(borderRadius: radius)
+        : LiquidRoundedSuperellipse(borderRadius: radius);
+  }
+  final fit = math.min(
+    1.0,
+    math.min(
+      shape.width / (2 * math.max(top, bottom)),
+      shape.height / (top + bottom),
+    ),
+  );
+  return LiquidRoundedSuperellipse(
+    borderRadius: top * fit,
+    bottomRadius: bottom * fit,
+  );
 }
 
 List<BoxShadow> _shadows(MorphGlassSurface surface) =>

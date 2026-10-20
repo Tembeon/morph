@@ -60,6 +60,7 @@ class FlutterGpuGeometryRenderer {
     bool writeTintOnly = false,
     List<double> appearanceData = const <double>[],
     List<double> rseData = const <double>[],
+    List<double> rseLowerData = const <double>[],
     List<double> boundsData = const <double>[],
     GlassField? field,
     double fieldScale = 1,

@@ -74,11 +74,15 @@ abstract final class FinalPassLayout {
   /// uShapeData: 3 vec4 per shape.
   static const int shapeData = analytic + 8;
 
-  /// uRseData: 3 vec4 per shape.
+  /// uRseData: 3 vec4 per shape, then the bottom halves of pairs, 3 vec4
+  /// per shape from [rseLower].
   static const int rseData = shapeData + analyticMaxShapes * 12;
 
+  /// The bottom halves of uRseData.
+  static const int rseLower = rseData + analyticMaxShapes * 12;
+
   /// uShapeBounds: one vec4 of bounds per shape.
-  static const int shapeBounds = rseData + analyticMaxShapes * 12;
+  static const int shapeBounds = rseLower + analyticMaxShapes * 12;
 
   /// The cull factors, the tail of uShapeBounds: one float per shape.
   static const int shapeCull = shapeBounds + analyticMaxShapes * 4;

@@ -27,6 +27,13 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   333.3 / 36.5) [tuning]: unscaled HEIGHT (detent value + bottom safe area)
   and TRANSLATION (present/dismiss). 0.06 pt rms.
 - Medium detent = 0.56 of the maximum the resolver gets.
+- Present drift [device and simulator, every floating present]: the
+  floating sheet slides in with its frame at the container's leading
+  edge (origin x 0, centre x 193 on 402) and moves to its 8 pt inset on
+  the present spring itself (x progress = y progress within 0.001). A
+  docked present and every dismissal keep x. `MorphSheetMotion.drift`;
+  replay: left edge while presenting 0.00 - 0.06 pt rms (2.4 - 3.0
+  without).
 - Floating (below large) = the full-width sheet scaled by 1 - 16/W (+ a shift
   keeping 8 pt off the bottom); unscaled corners 38 top, display radius - 8
   bottom; docking = one transform lerped by the docking progress, defined
@@ -37,7 +44,15 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   (`dragDockShortfall`; 768 of 778 in every simulator row).
   The opaque fill: see "Spec - background".
 - Dimming black 0.2, scaled by progress past an undimmed detent.
-- Touch: floating sheet swells 1.00854 on 0.2835/0.70 after 28 ms.
+- Touch: floating sheet swells 1.00854 on 0.2835/0.70 after 28 ms. The
+  swell holds through the drag the touch turns into (device: the area
+  scale sqrt(sx sy) stays 0.96837 = 0.9602 x 1.00854 in every drag of a
+  floating sheet), fades as sqrt(1 - p) while the drag docks it (drag-up
+  from medium), and goes with the settle, 25 ms after the lift. A sheet
+  docked at the touch never swells, even once the drag undocks it
+  (large-drag-down: 1.0000 throughout). Replay: area scale 0.0003 -
+  0.0018 rms (simulator and device; 0.0024 - 0.0068 when the swell went
+  at the drag's start).
 - Drag moves the height point for point between the detents, a slide below
   the smallest; above the largest see "Spec - stretch above the largest
   detent".
@@ -93,21 +108,43 @@ Zoom: `preferredTransition = .zoom` (see navigation-pages.md for options).
   at value 602.67 pt (drag progress 0.5025); table medium / large shots
   confirm the clear / grouped background. Raw captures stay private.
 
-## Spec - corners [sim 2026-10-14]
+## Spec - corners [sim 2026-10-14, device clip layer 2026-10-03, read from UIKit, notes private]
 
-- Continuous corners (cornerCurve continuous) on the sheet's clip: morph
-  clips with the rounded superellipse of the same radii (`MorphLiveBox`
-  `continuous`); the glass already drew one. The zoom container and a
-  zooming or scrubbed sheet clip continuous too (the corner radius still
-  runs from the source's to the sheet's).
-- Unscaled radii: top 38; bottom floating display - 8 = 54 (drawn 51.85
-  at the floating scale), docked = the display radius (UIKit stores
-  infinity, the environment radius 62 on this screen).
+- ONE OUTLINE: UIKit's floating glass is one SDF element with per-corner
+  radii and the continuous curve, the clip's own outline (device shot
+  references/dark/sheet-medium.png: the rim runs unbroken round the 54 pt
+  bottom corners). morph builds one RRect per frame (`_SheetFrame.bodyShape`)
+  for the clip (`MorphLiveBox` `continuous`), the glass and the fills; the
+  liquid tier shades its top and bottom radii exactly as Flutter's rounded
+  superellipse of those corners (a radius pair, renderer shader type 4).
+  Before 2026-10-20 the glass took the top-left radius alone: a 38 pt glass
+  cut by the 54 - 62 pt clip lost its rim round the bottom corners (the
+  seam). Host proof: example/test/sheet_shape_host_test.dart; every frame of
+  every transition: test/sheet_shape_test.dart.
+- No shadow: the sheet's glass asks for none (UIKit's shadow view rests at
+  opacity 0, and the clip cut the menu shadow away whole).
+- Unscaled radii: top 38 always; bottom floating display - 8 = 54 (drawn
+  51.85 at the floating scale).
+- Bottom, device clip layer per frame (`radii` of test/fixtures/
+  ios27-device/sheet, bl/br first): programmatic docking 54 + 8 p (p the
+  docking progress, linear in height) to 62, then 0 once the sheet rests
+  docked (square: the display's own corner hides it; device screenshots of
+  a docked sheet show square corners); undocking from that rest 54 (1 - p),
+  from 0; an interrupted or settling change runs from the radius it starts
+  at, in step with the docking. A sheet presented docked keeps the display
+  radius (large-only: 62 through present and dismissal). Present of a
+  floating sheet: 52.67 -> 54 on the slide (corners still below the
+  screen; not modelled). `MorphSheetMotion.bottomRadius`; replay against
+  the clip layer during detent changes: 0.005 - 0.13 pt rms (sheet_test).
 - During a drag the bottom radius is display - inset (1 - p) with the
-  inset 8 (1 - p) rounded up to a pixel: `1 - (1 - p)^2` of the way
-  (`cornerBlend`; 58.44 at p 0.333 measured, 58.29 modelled without the
-  pixel rounding). Programmatic and settle: from where it was to the end
-  on the spring.
+  inset 8 (1 - p) rounded up to a pixel: display - 8 (1 - p)^2 (58.44 at
+  p 0.333 measured, 58.29 modelled without the pixel rounding: NEAR).
+- Zoom: the container clips continuous with radii running from the
+  source's to the sheet's, and the sheet's background (glass, or the flat
+  fill) fills the container while the content stays scaled to fit from
+  the top leading corner: one outline. Film evidence (zoom.json `fade`,
+  the mean green of the green sheet over the container): 0.983 at 0.161 s
+  where content fitted to the height would cover at most 0.953.
 
 ## Spec - stretch above the largest detent [sim and device 2026-10-14]
 
@@ -220,11 +257,12 @@ motion: a pixel-changing trade for the owner to judge on the iPhone.
   (the 10 pt shortfall) and the 17e / SE sizes were not captured
   (pending, device plan in the coordinator's queue).
 
-- The present's 8 pt horizontal drift (first-frame artifact).
-- One frame per docking reading the sheet at y 0.
-- The touch swell holds through a drag (sqrt(sx sy) stays 1.00854 x the
-  floating scale in every device drag of a floating sheet); morph lets it
-  go when the drag begins.
+- One frame per docking reading the sheet at y 0 (device and simulator,
+  8.3 ms, the frame the clip turns 62 -> 0): whether it reaches the screen
+  is unknown; not modelled. sheets-capture.md pass B films it.
+- Corner laws assumed, not captured: a sheet first presented docked
+  (ml at large) undocks from 62; a drag that settles docked rests square.
+  sheets-capture.md pass A records the radii of every drag.
 - Keyboard MOTION: morph moves the raised sheet on the sheet spring as
   the insets change; UIKit's curve under the keyboard is not measured. A
   sheet with three detents was not captured (whether the keyboard picks

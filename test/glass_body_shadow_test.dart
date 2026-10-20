@@ -227,10 +227,8 @@ void main() {
 Path _shapePath(LiquidShape shape, Rect rect) {
   final path = Path();
   switch (shape) {
-    case LiquidRoundedSuperellipse(:final borderRadius):
-      path.addRSuperellipse(
-        RSuperellipse.fromRectAndRadius(rect, Radius.circular(borderRadius)),
-      );
+    case LiquidRoundedSuperellipse(:final radii):
+      path.addRSuperellipse(radii.toRSuperellipse(rect));
     case LiquidOval():
       path.addOval(rect);
     case LiquidRoundedRectangle(:final borderRadius):
@@ -263,11 +261,8 @@ class _LayeredGlassShadow extends CustomPainter {
 
   void _draw(Canvas canvas, Rect rect, Paint paint) {
     switch (shape) {
-      case LiquidRoundedSuperellipse(:final borderRadius):
-        canvas.drawRSuperellipse(
-          RSuperellipse.fromRectAndRadius(rect, Radius.circular(borderRadius)),
-          paint,
-        );
+      case LiquidRoundedSuperellipse(:final radii):
+        canvas.drawRSuperellipse(radii.toRSuperellipse(rect), paint);
       case LiquidOval():
         canvas.drawOval(rect, paint);
       case LiquidRoundedRectangle(:final borderRadius):

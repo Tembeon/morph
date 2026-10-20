@@ -464,8 +464,7 @@ class _SheetViewState extends State<_SheetView>
   Size _size = Size.zero;
   EdgeInsets _padding = EdgeInsets.zero;
   MorphSheetAppearance _style = MorphSheetAppearance.light;
-  double _floatingRadius = 0;
-  double _dockedRadius = 0;
+  double? _displayRadius;
 
   // The sheet's tree rebuilds only when this changes; every other frame
   // reads its geometry through frame boxes.
@@ -729,6 +728,7 @@ class _SheetViewState extends State<_SheetView>
         dockedIndex: dockedAt < 0 ? null : dockedAt,
         undimmedIndex: undimmedAt == null || undimmedAt < 0 ? null : undimmedAt,
         dismissible: _route.dismissible,
+        displayRadius: _displayRadius,
       );
       if (_source.capture(context) != null && !_source.isLost) {
         created.presentInPlace(clock);
@@ -1022,10 +1022,7 @@ class _SheetViewState extends State<_SheetView>
     )?.bottomLeft.x;
     _style = style;
     _zoomFrame = null;
-    _floatingRadius =
-        (reported ?? MorphSheetTuning.fallbackDisplayRadius) -
-        MorphSheetTuning.floatingInset;
-    _dockedRadius = reported ?? 0;
+    _displayRadius = reported;
     final content = _contentFor(style);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -1036,6 +1033,7 @@ class _SheetViewState extends State<_SheetView>
         );
         _layout(size, padding, media.viewInsets.bottom);
         final motion = _motion!;
+        motion.displayRadius = _displayRadius;
         _show(_sync.read());
         return GlassPlaneScope.backdrop(
           backdrop: GlassBackdrop.cached(_route.backdropCache),
@@ -1067,17 +1065,23 @@ class _SheetViewState extends State<_SheetView>
                   _SheetStructure structure,
                   Widget? child,
                 ) {
+                  List<Widget> background(RRect Function() shape) =>
+                      _sheetSurface(
+                        frames: frames,
+                        fill: () => motion.fill,
+                        opaque: structure.opaque,
+                        filling: structure.filling,
+                        style: style,
+                        glass: glass,
+                        brightness: brightness,
+                        shape: shape,
+                      );
                   final sheet = _SheetBody(
-                    frames: frames,
-                    fill: () => motion.fill,
-                    opaque: structure.opaque,
-                    filling: structure.filling,
-                    clipped: structure.zooming,
+                    background: structure.zooming
+                        ? const []
+                        : background(() => _frame(size).bodyShape),
                     style: style,
-                    glass: glass,
-                    brightness: brightness,
                     grabber: _route.grabberVisible,
-                    shape: () => _frame(size).bodyShape,
                     child: _gate(open: structure.gateOpen, child: child!),
                   );
                   if (structure.zooming) {
@@ -1085,6 +1089,10 @@ class _SheetViewState extends State<_SheetView>
                       size: size,
                       style: style,
                       sheet: sheet,
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: background(() => _zoomAt(size).body),
+                      ),
                       opening: structure.zoomOpening,
                     );
                   }
@@ -1167,11 +1175,7 @@ class _SheetViewState extends State<_SheetView>
     final s = motion.scale;
     final dim = motion.dimming;
     final fill = motion.fill;
-    final floating = _floatingRadius;
-    final bottomRadius = math.max(
-      0.0,
-      floating + (_dockedRadius - floating) * motion.cornerBlend,
-    );
+    final bottomRadius = motion.bottomRadius;
     final dimOpacity =
         _style.dimmingColor.a * MorphSheetTuning.dimmingOpacity * dim;
     final scrub = _zooming ? null : _scrubAt(t);
@@ -1252,6 +1256,7 @@ class _ZoomFrame {
     required this.size,
     required this.rect,
     required this.shape,
+    required this.body,
     required this.fit,
     required this.dimOpacity,
     required this.opacity,
@@ -1265,6 +1270,11 @@ class _ZoomFrame {
   final Size size;
   final Rect rect;
   final RRect shape;
+
+  /// [shape] in the sheet's own unscaled coordinates, where its background
+  /// is drawn under [fit]: the container's outline, the one outline the
+  /// zoom shows.
+  final RRect body;
   final double fit;
   final double dimOpacity;
   final double opacity;
@@ -1298,6 +1308,10 @@ extension on _SheetViewState {
     final bottom = corner(frame.bottomRadius * frame.scale);
     final closing = !zoom.isOpening;
     final opacity = _source.opacity(progress, closing: closing);
+    final fit =
+        frame.scale *
+        MorphZoomMotion.contentScale(rect, _zoomContent ?? natural.size);
+    final unit = fit > 0 ? 1 / fit : 0.0;
     return _zoomFrame = _ZoomFrame(
       size: size,
       rect: rect,
@@ -1308,9 +1322,14 @@ extension on _SheetViewState {
         bottomLeft: bottom,
         bottomRight: bottom,
       ),
-      fit:
-          frame.scale *
-          MorphZoomMotion.contentScale(rect, _zoomContent ?? natural.size),
+      body: RRect.fromRectAndCorners(
+        Offset.zero & rect.size * unit,
+        topLeft: top * unit,
+        topRight: top * unit,
+        bottomLeft: bottom * unit,
+        bottomRight: bottom * unit,
+      ),
+      fit: fit,
       dimOpacity: frame.dimOpacity * zoom.dimming,
       opacity: opacity,
       sourceSize: source.size,
@@ -1321,10 +1340,16 @@ extension on _SheetViewState {
     );
   }
 
+  // The sheet's background fills the container, the content keeps its
+  // size scaled to fit from the top leading corner: the device film fills
+  // the container (zoom.json `fade`, the mean green of the green sheet over
+  // the container, 0.983 at 0.161 s where content fitted to the height
+  // would cover at most 0.953 of it).
   Widget _buildZoom({
     required Size size,
     required MorphSheetAppearance style,
     required Widget sheet,
+    required Widget background,
     required bool opening,
   }) {
     _ZoomFrame now() => _zoomAt(size);
@@ -1363,13 +1388,16 @@ extension on _SheetViewState {
                   frame: now,
                   content: MorphLivePositionedTemplate(
                     live: frames,
-                    template: () => Positioned(
-                      left: 0,
-                      top: 0,
-                      width: size.width,
-                      height: now().height,
-                      child: morphLiveSlot,
-                    ),
+                    template: () {
+                      final body = now().body;
+                      return Positioned(
+                        left: 0,
+                        top: 0,
+                        width: body.width,
+                        height: body.height,
+                        child: morphLiveSlot,
+                      );
+                    },
                     child: MorphLiveTransform.matrix(
                       live: frames,
                       alignment: Alignment.topLeft,
@@ -1383,7 +1411,23 @@ extension on _SheetViewState {
                           final frame = now();
                           return frame.lost && frame.closing ? 1 : frame.fade;
                         },
-                        child: sheet,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Positioned.fill(child: background),
+                            MorphLivePositionedTemplate(
+                              live: frames,
+                              template: () => Positioned(
+                                left: 0,
+                                top: 0,
+                                width: size.width,
+                                height: now().height,
+                                child: morphLiveSlot,
+                              ),
+                              child: sheet,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -1474,79 +1518,74 @@ class _SheetZoomCrossfadeState extends State<_SheetZoomCrossfade> {
   }
 }
 
+/// The layers of the sheet's own surface in [shape]: glass while it
+/// floats (its flat stand-in without a painter) and the opaque fill as it
+/// docks. The sheet's body stacks them under its content; a zoom stacks
+/// them in its container.
+List<Widget> _sheetSurface({
+  required Listenable frames,
+  required RRect Function() shape,
+  required double Function() fill,
+  required bool opaque,
+  required bool filling,
+  required MorphSheetAppearance style,
+  required MorphGlassPainter? glass,
+  required Brightness brightness,
+}) => [
+  if (glass != null && !opaque)
+    MorphGlassHost(
+      painter: glass,
+      mode: MorphGlassMode.surface,
+      frames: frames,
+      frame: () => MorphGlassFrame([
+        MorphGlassSurface(
+          kind: MorphGlassKind.menu,
+          shape: shape(),
+          color: style.floatingColor,
+          brightness: brightness,
+          // UIKit's sheet shadow view rests at opacity 0, and the sheet's
+          // clip would cut the menu's shadow away whole.
+          shadows: const [],
+        ),
+      ]),
+    )
+  else if (!opaque)
+    ColoredBox(color: style.floatingColor),
+  if (opaque)
+    ColoredBox(color: style.dockedColor)
+  else if (filling)
+    RepaintBoundary(
+      child: MorphLiveColoredBox(
+        live: frames,
+        colorOf: () =>
+            style.dockedColor.withValues(alpha: style.dockedColor.a * fill()),
+      ),
+    ),
+];
+
+/// The sheet: its [background], the content and the grabber.
 class _SheetBody extends StatelessWidget {
   const _SheetBody({
-    required this.frames,
-    required this.shape,
-    required this.fill,
-    required this.opaque,
-    required this.filling,
-    required this.clipped,
+    required this.background,
     required this.style,
-    required this.glass,
-    required this.brightness,
     required this.grabber,
     required this.child,
   });
 
-  /// Notifies once per frame the sheet's motion advanced.
-  final Listenable frames;
-
-  /// The body's shape now, in its own coordinates.
-  final RRect Function() shape;
-
-  /// The opacity of the docked fill now, 0 to 1.
-  final double Function() fill;
-
-  /// Whether the docked fill is opaque: the glass under it is not drawn.
-  final bool opaque;
-
-  /// Whether the docked fill shows at all, over the glass.
-  final bool filling;
-
-  /// Whether the body clips itself to [shape]; a frame box above it clips
-  /// otherwise.
-  final bool clipped;
+  /// The layers of the sheet's surface ([_sheetSurface]), none while a
+  /// zoom draws them in its container.
+  final List<Widget> background;
 
   final MorphSheetAppearance style;
-  final MorphGlassPainter? glass;
-  final Brightness brightness;
   final bool grabber;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final painter = glass;
-    final body = Stack(
+    return Stack(
       fit: StackFit.expand,
       children: [
-        if (painter != null && !opaque)
-          MorphGlassHost(
-            painter: painter,
-            mode: MorphGlassMode.surface,
-            frames: frames,
-            frame: () => MorphGlassFrame([
-              MorphGlassSurface(
-                kind: MorphGlassKind.menu,
-                shape: shape(),
-                color: style.floatingColor,
-                brightness: brightness,
-              ),
-            ]),
-          )
-        else if (!opaque)
-          ColoredBox(color: style.floatingColor),
-        if (opaque)
-          ColoredBox(color: style.dockedColor)
-        else if (filling)
-          RepaintBoundary(
-            child: MorphLiveColoredBox(
-              live: frames,
-              colorOf: () => style.dockedColor.withValues(
-                alpha: style.dockedColor.a * fill(),
-              ),
-            ),
-          ),
+        ...background,
         child,
         if (grabber)
           Positioned(
@@ -1569,11 +1608,6 @@ class _SheetBody extends StatelessWidget {
             ),
           ),
       ],
-    );
-    if (!clipped) return body;
-    return ClipRSuperellipse(
-      clipper: MorphZoomContinuousClipper(shape()),
-      child: body,
     );
   }
 }

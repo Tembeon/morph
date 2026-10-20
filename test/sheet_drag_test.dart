@@ -54,6 +54,7 @@ class _Capture {
               w: d('w'),
               bh: d('bh'),
               ratio: (d('h') / d('bh')) / (d('w') / d('bw')),
+              area: math.sqrt((d('h') / d('bh')) * (d('w') / d('bw'))),
             ));
           }
       }
@@ -62,7 +63,15 @@ class _Capture {
 
   final List<(double, int, double)> touches = [];
   final List<
-    ({double t, double top, double bottom, double w, double bh, double ratio})
+    ({
+      double t,
+      double top,
+      double bottom,
+      double w,
+      double bh,
+      double ratio,
+      double area,
+    })
   >
   sheet = [];
   bool dismissed = false;
@@ -71,13 +80,11 @@ class _Capture {
 /// Replays the last touch of a capture into a [MorphSheetMotion] resting
 /// where the sheet rested before it, and compares the visible top and
 /// bottom edges from the touch on. Returns the rms and max error, the
-/// detent the model settles on (-1 for dismissed), the recorded one and
-/// the rms error of the ratio of the vertical to the horizontal scale.
-({double rms, double max, int model, int recorded, double stretch}) _replay(
-  String name, {
-  String dir = _dir,
-  double frame = _frame,
-}) {
+/// detent the model settles on (-1 for dismissed), the recorded one, the
+/// rms error of the ratio of the vertical to the horizontal scale and that
+/// of the area scale (the floating scale times the touch swell).
+({double rms, double max, int model, int recorded, double stretch, double area})
+_replay(String name, {String dir = _dir, double frame = _frame}) {
   final cap = _Capture(name, dir: dir, frame: frame);
   final downAt = cap.touches.lastIndexWhere((t) => t.$2 == 0);
   final touches = cap.touches.sublist(downAt);
@@ -102,6 +109,7 @@ class _Capture {
   var next = 0;
   final errors = <double>[];
   final stretchErrors = <double>[];
+  final areaErrors = <double>[];
   void feed(double until) {
     while (next < touches.length && touches[next].$1 <= until) {
       final (t, phase, y) = touches[next];
@@ -143,6 +151,7 @@ class _Capture {
     final r = motion.at(row.t).visibleRect(_h);
     final e = [r.top - row.top, r.bottom - row.bottom];
     stretchErrors.add(motion.at(row.t).stretch - row.ratio);
+    areaErrors.add(motion.at(row.t).scale - row.area);
     if (e.any((double v) => v.abs() > 60) && row.top <= 0.5) continue;
     if (row.top >= _h - 1 && r.top >= _h - 1) continue;
     errors.addAll(e);
@@ -159,6 +168,7 @@ class _Capture {
     model: model,
     recorded: recorded,
     stretch: rms(stretchErrors),
+    area: rms(areaErrors),
   );
 }
 
@@ -260,6 +270,25 @@ void main() {
       test('iPhone 16 Pro $name', () {
         final r = _replay(name, dir: _deviceDir, frame: _deviceFrame);
         expect(r.stretch, lessThan(0.007));
+      });
+    }
+  });
+
+  // The area scale, the floating scale times the touch swell: a floating
+  // sheet keeps its swell through the drag (0.96837 = 0.9602 x 1.00854 on
+  // the device while the finger holds it), fading as the drag docks it,
+  // and lets it go with the settle; a sheet docked at the touch never
+  // swells, even once the drag has undocked it.
+  group('sheet swell replayed', () {
+    for (final (name, _) in cases) {
+      test('simulator $name', () {
+        expect(_replay(name).area, lessThan(0.002));
+      });
+    }
+    for (final (name, _) in deviceCases) {
+      test('iPhone 16 Pro $name', () {
+        final r = _replay(name, dir: _deviceDir, frame: _deviceFrame);
+        expect(r.area, lessThan(0.002));
       });
     }
   });

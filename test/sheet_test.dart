@@ -68,10 +68,18 @@ double _max(MorphSheetDetent d) => d.resolve(_h - _top - _bottom) + _bottom;
 /// Replays a scripted capture: present, then the detent changes and the
 /// dismiss. UIKit starts each animation a frame or more after its call,
 /// so each one's start is aligned to the recording, within [_maxLag] of
-/// the call, before the rest is compared. Returns the rms and max error
-/// of the sheet's visible top, bottom and left edges, and the rms error
-/// of the dimming opacity.
-({double rms, double max, double dim}) _replay(
+/// the call, before the rest is compared. A floating sheet presents with
+/// its frame at the screen's leading edge and drifts to its 8 point inset
+/// on the slide's spring, so the left edge is compared from the first
+/// frame (2.4 - 3.0 points rms while presenting without the drift).
+/// The clip's bottom radius is compared too while a detent change moves
+/// the sheet (0.005 - 0.13 points rms): docking 54 + 8 p, undocking from
+/// the square docked rest 54 (1 - p).
+/// Returns the rms and max error
+/// of the sheet's visible top, bottom and left edges, the rms error of
+/// the left edge while the sheet presents, and the rms error of the
+/// dimming opacity.
+({double rms, double max, double present, double dim, double radius}) _replay(
   String file,
   String dir,
   List<MorphSheetDetent> detents, {
@@ -95,6 +103,7 @@ double _max(MorphSheetDetent d) => d.resolve(_h - _top - _bottom) + _bottom;
       initial: initial,
       dockedIndex: docked < 0 ? null : docked,
       undimmedIndex: undimmed,
+      displayRadius: 62,
     );
     return motion;
   }
@@ -114,13 +123,11 @@ double _max(MorphSheetDetent d) => d.resolve(_h - _top - _bottom) + _bottom;
     }
   }
 
-  // While presenting, UIKit slides the floating sheet in from 8 points
-  // left of its place (its first frame keeps the unscaled origin) and
-  // drifts it right along the way; morph does not reproduce that drift,
-  // so the left edge is compared only once the sheet has arrived. One
-  // frame per docking reads the docked sheet at the top of the screen
+  // One frame per docking reads the docked sheet at the top of the screen
   // (a presentation-layer glitch at the settle); such frames are skipped.
   var scoring = true;
+  final presentLefts = <double>[];
+  final radii = <double>[];
   List<double> edges(
     MorphSheetMotion motion,
     _Row row, {
@@ -134,7 +141,19 @@ double _max(MorphSheetDetent d) => d.resolve(_h - _top - _bottom) + _bottom;
     if (e.any((double v) => v.abs() > 40)) {
       return [if (scoring) 40, if (scoring) 40];
     }
-    return [...e, if (!presenting) rect.left - left];
+    if (presenting && !scoring) presentLefts.add(rect.left - left);
+    // The clip's bottom radius while a detent change moves the sheet, away
+    // from the docked rest where the display's corner hides it either way
+    // (UIKit snaps 62 to 0 a few frames after morph's rest threshold).
+    final recorded = row.raw['radii'];
+    if (!scoring &&
+        !presenting &&
+        recorded is List &&
+        motion.offset < 0.5 &&
+        motion.dock < 0.97) {
+      radii.add(motion.bottomRadius - (recorded.first! as num).toDouble());
+    }
+    return [...e, rect.left - left];
   }
 
   List<double> run(List<double> starts, double until, List<double>? dims) {
@@ -195,7 +214,9 @@ double _max(MorphSheetDetent d) => d.resolve(_h - _top - _bottom) + _bottom;
   return (
     rms: rms(errors),
     max: errors.fold(0.0, (a, b) => math.max(a, b.abs())),
+    present: rms(presentLefts),
     dim: rms(dims),
+    radius: rms(radii),
   );
 }
 
@@ -216,6 +237,8 @@ void main() {
         MorphSheetDetent.large,
       ]);
       expect(r.rms, lessThan(2.5));
+      expect(r.present, lessThan(0.2));
+      expect(r.radius, lessThan(0.25));
       expect(r.dim, lessThan(0.01));
     });
 
@@ -226,6 +249,8 @@ void main() {
         MorphSheetDetent.large,
       ], initial: 1);
       expect(r.rms, lessThan(2.5));
+      expect(r.present, lessThan(0.2));
+      expect(r.radius, lessThan(0.25));
     });
 
     test('an undimmed medium detent dims only toward large', () {
@@ -234,12 +259,16 @@ void main() {
         MorphSheetDetent.large,
       ], undimmed: 0);
       expect(r.rms, lessThan(2.5));
+      expect(r.present, lessThan(0.2));
+      expect(r.radius, lessThan(0.25));
       expect(r.dim, lessThan(0.01));
     });
 
     test('large only: docked from the start', () {
       final r = _replay('sheet-l.jsonl', _sim, const [MorphSheetDetent.large]);
       expect(r.rms, lessThan(2.5));
+      expect(r.present, lessThan(0.2));
+      expect(r.radius, lessThan(0.25));
     });
   });
 
@@ -250,6 +279,8 @@ void main() {
         MorphSheetDetent.large,
       ]);
       expect(r.rms, lessThan(2.5));
+      expect(r.present, lessThan(0.2));
+      expect(r.radius, lessThan(0.25));
       expect(r.dim, lessThan(0.01));
     });
 
@@ -260,6 +291,8 @@ void main() {
         MorphSheetDetent.large,
       ], initial: 1);
       expect(r.rms, lessThan(2.5));
+      expect(r.present, lessThan(0.2));
+      expect(r.radius, lessThan(0.25));
     });
 
     test('an undimmed medium detent', () {
@@ -268,6 +301,8 @@ void main() {
         MorphSheetDetent.large,
       ], undimmed: 0);
       expect(r.rms, lessThan(2.5));
+      expect(r.present, lessThan(0.2));
+      expect(r.radius, lessThan(0.25));
       expect(r.dim, lessThan(0.01));
     });
 
@@ -276,6 +311,8 @@ void main() {
         MorphSheetDetent.large,
       ]);
       expect(r.rms, lessThan(2.5));
+      expect(r.present, lessThan(0.2));
+      expect(r.radius, lessThan(0.25));
     });
   });
 }
