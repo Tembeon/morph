@@ -65,6 +65,10 @@ anything themselves.
   measured controls (pure motion class + thin host + appearance tables),
   `lib/src/glass/renderer/` the one vendored glass renderer (tiers flat / fake / liquid).
 - `example/` is the measured gallery (also the device benches under `example/lib/perf/`).
+- `plugins/morph` is the repo's Claude Code plugin (the `use-morph` skill; marketplace in
+  `.claude-plugin/`). After a public API change run
+  `dart run tool/plugin/gen_api_reference.dart`; test/plugin_skill_test.dart fails until
+  the skill's reference and names match the API.
 
 Read only the doc you need:
 

@@ -159,13 +159,13 @@ its own to show that glass through it. See the `MorphTheme` docs.
 
 ## Claude skill
 
-The `use-morph` skill in the
-[tem_tools](https://github.com/Tembeon/tem_tools) marketplace distils the
-API for coding agents:
+This repository is a Claude Code plugin marketplace. Its `use-morph`
+skill (`plugins/morph`) teaches coding agents the current API, with a
+reference generated from the reviewed public API:
 
 ```
-/plugin marketplace add Tembeon/tem_tools
-/plugin install morph@tem-tools
+/plugin marketplace add Tembeon/morph
+/plugin install morph@morph
 ```
 
 ## License

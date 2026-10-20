@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "morph",
+  "version": "0.8.0",
+  "description": "The morph Flutter package's own Claude Code plugin: the use-morph skill, kept in step with the package's public API.",
+  "owner": {
+    "name": "tembeon"
+  },
+  "plugins": [
+    {
+      "name": "morph",
+      "description": "Using the morph Flutter package: iOS 27 Liquid Glass controls, presentations, the flat or liquid glass choice, performance rules and migration from the old API.",
+      "source": "./plugins/morph",
+      "category": "flutter"
+    }
+  ]
+}

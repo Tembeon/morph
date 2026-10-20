@@ -1,0 +1,19 @@
+{
+  "name": "morph",
+  "version": "0.8.0",
+  "description": "Using the morph Flutter package (Tembeon/morph): iOS 27 Liquid Glass controls that move as UIKit measures them - tab bar and lens, glass buttons and containers, menus and context menus, navigation stack and bars, sheets, alerts and action sheets, search, lists, segmented control, switch, slider, stepper, date picker - with the flat or liquid glass choice, setup, performance rules and migration from the old API.",
+  "author": {
+    "name": "tembeon"
+  },
+  "homepage": "https://github.com/Tembeon/morph",
+  "repository": "https://github.com/Tembeon/morph",
+  "license": "MIT",
+  "keywords": [
+    "flutter",
+    "ios",
+    "liquid-glass",
+    "uikit",
+    "widgets",
+    "morph"
+  ]
+}
