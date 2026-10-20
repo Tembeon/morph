@@ -2,7 +2,13 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
-## 0.8.1 - unreleased
+## 0.8.0 - 2026-10-20
+
+The public API takes UIKit's vocabulary before the first public
+release, following the API parity audit
+(tool/ios_reference/spec/api/). An iOS developer finds UIKit's concepts
+and option names, written in Flutter idioms. BREAKING throughout, with
+no behaviour or pixel change: every rename keeps what the old name did.
 
 - `MorphTheme` loads the liquid glass shaders by itself: the first theme
   whose glass may be liquid loads and warms them and holds the app's first
@@ -18,15 +24,6 @@ Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 - A zoom's source hides in the frame the zoom first draws and shows again
   in the frame it ends: the source no longer blinks out for a frame after
   a sheet or page zooms back into it, and no frame draws it twice.
-
-## 0.8.0 - 2026-10-20
-
-The public API takes UIKit's vocabulary before the first public
-release, following the API parity audit
-(tool/ios_reference/spec/api/). An iOS developer finds UIKit's concepts
-and option names, written in Flutter idioms. BREAKING throughout, with
-no behaviour or pixel change: every rename keeps what the old name did.
-
 - The foundation (docs/standalone-library-plan.md, units 1 to 5.2 in
   part, 4 and 7). BREAKING; no pixel change except where noted:
   - One import: `package:morph/morph.dart` (about 100 names: controls,

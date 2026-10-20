@@ -17,7 +17,7 @@ which.
   </tr>
   <tr>
     <td align="center"><img src="doc/media/context-menu.gif" width="320" alt="A held row lifts, shows reactions, and opens its actions"><br>Context menu</td>
-    <td align="center"><img src="doc/media/sheet-zoom.gif" width="320" alt="A sheet zooms out of its button, moves to its large detent, and returns"><br>Sheet zoomed from its button</td>
+    <td align="center"><img src="doc/media/sheet-zoom.gif" width="320" alt="A sheet grows out of its glass button as one liquid shape, moves to its large detent, and flows back into the button"><br>Sheet zoomed from its button</td>
   </tr>
 </table>
 
