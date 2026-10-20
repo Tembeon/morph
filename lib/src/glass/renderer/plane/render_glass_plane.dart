@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -7,6 +9,7 @@ import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.d
 import 'package:morph/src/glass/renderer/liquid_glass.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
+import 'package:morph/src/motion/spring_state.dart';
 
 /// How a plane draws one member's glass.
 @internal
@@ -166,8 +169,31 @@ bool _blocks(RenderObject node) => switch (node) {
   _ => node.alwaysNeedsCompositing,
 };
 
-bool _translates(RenderObject node, RenderObject? ancestor) =>
-    MatrixUtils.getAsTranslation(node.getTransformTo(ancestor)) != null;
+/// Whether [transform] draws a box of [size] where a translation would, to
+/// within the rest of a settled motion ([MorphRest.length]): a control's
+/// spring settles once its remaining swing is invisible and may stay
+/// there, so a resting control can be drawn at a scale that close to 1.
+/// The pass draws such glass on its own grid, without the shift onto the
+/// grid of the glass's own layer (NEAR, at most half a device pixel on
+/// the rim).
+bool _translates(Matrix4 transform, Size size) {
+  if (MatrixUtils.getAsTranslation(transform) != null) return true;
+  final m = transform.storage;
+  if (m[2] != 0 ||
+      m[3] != 0 ||
+      m[6] != 0 ||
+      m[7] != 0 ||
+      m[8] != 0 ||
+      m[9] != 0 ||
+      m[10] != 1 ||
+      m[11] != 0 ||
+      m[15] != 1) {
+    return false;
+  }
+  final extent = math.max(size.width, size.height);
+  return ((m[0] - 1).abs() + m[4].abs()) * extent <= MorphRest.length &&
+      (m[1].abs() + (m[5] - 1).abs()) * extent <= MorphRest.length;
+}
 
 /// The render object of a glass layer, through which the layer reports to
 /// its plane: the layer's repaint boundary, which clips the layer to its
@@ -390,7 +416,7 @@ class RenderGlassMember extends RenderGlassRasterAnchor {
     if (plane == null && !followsRestEverywhere) return;
     _seen = plane?._epoch ?? -1;
     final toPlane = getTransformTo(plane);
-    final scaled = MatrixUtils.getAsTranslation(toPlane) == null;
+    final scaled = !_translates(toPlane, size);
     final signature = _signatureNow(toPlane);
     final last = _signature;
     final moved = last != null && !_same(signature, last);
@@ -763,7 +789,7 @@ class RenderGlassPlane extends RenderProxyBox {
   // leaves the pass in the next frame.
   void _endFrame() {
     if (!attached) return;
-    final scaled = !_translates(this, null);
+    final scaled = !_translates(getTransformTo(null), size);
     var changed = scaled != _scaled;
     _scaled = scaled;
     if (_stale) return;

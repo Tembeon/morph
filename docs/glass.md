@@ -186,8 +186,10 @@ Membership lives on the render side (plane/render_glass_plane.dart):
   mask, a backdrop filter, a follower, a viewport, other glass, an active
   `GlassPlaneScope.planeBreak`, anything else that always composites a
   layer), scaled (the plane or the member under more than a translation:
-  a floating sheet), settings, look (beyond tint, against the first merged
-  member), capacity (32 shapes), moving.
+  a floating sheet; a scale that moves the box's edges less than a
+  settled motion's rest, `MorphRest.length`, counts as none and is drawn
+  on the pass's grid without a shift, NEAR), settings, look (beyond tint,
+  against the first merged member), capacity (32 shapes), moving.
 - A merged member lends its shapes to the pass
   (`GeometryRenderLink.lendTo`): its own layer paints none and the pass
   paints them. The member is their raster anchor
