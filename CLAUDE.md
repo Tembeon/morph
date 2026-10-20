@@ -63,7 +63,7 @@ anything themselves.
   tunings, metrics and test hooks on public widgets are `@internal` parameters.
 - `lib/src/` engine (flights, targets, routes, liquid skin, scope), `lib/src/widgets/`
   measured controls (pure motion class + thin host + appearance tables),
-  `lib/src/glass/renderer/` the one vendored glass renderer (tiers flat / fake / liquid).
+  `lib/src/glass/renderer/` the one vendored glass renderer (tiers flat / liquid).
 - `example/` is the measured gallery (also the device benches under `example/lib/perf/`).
 - `plugins/morph` is the repo's Claude Code plugin (the `use-morph` skill; marketplace in
   `.claude-plugin/`). After a public API change run
