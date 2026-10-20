@@ -32,9 +32,10 @@ sealed class MorphGlassRenderer {
   /// liquid tier cannot load, such as the web.
   ///
   /// The choice is made once from the GPU's capabilities, never from frame
-  /// timings. Glass drawn before the liquid tier is ready is flat and turns
-  /// liquid when it is; await `MorphTheme.precacheGlass` before `runApp`
-  /// so the first frame is already liquid.
+  /// timings. The first [MorphTheme] that chooses it loads the liquid
+  /// shaders and holds the app's first frame until they are ready, for at
+  /// most a second; glass drawn before then is flat and turns liquid when
+  /// they are.
   const factory MorphGlassRenderer.adaptive() = _AdaptiveGlass;
 
   /// Always [tier]; a build without the liquid tier, or a runtime whose

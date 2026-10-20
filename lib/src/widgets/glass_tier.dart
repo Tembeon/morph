@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -119,6 +121,26 @@ class GlassAdaptiveScope extends StatefulWidget {
         _ => null,
       };
 
+  static bool _loading = false;
+
+  // The first scope that may draw liquid glass loads its shaders and warms
+  // its pipelines, holding the app's first frame until they are ready (at
+  // most morphPrecacheBudget), as Localizations holds it for its
+  // resources: the first frame draws the glass the theme asks for, and
+  // the app awaits nothing. Where shader filters are missing (the web,
+  // Skia, a host test) nothing can draw liquid, so nothing is held.
+  static void _loadGlass() {
+    if (_loading) return;
+    _loading = true;
+    if (!ui.ImageFilter.isShaderFilterSupported ||
+        GlassBuiltInPainter.liquidAvailable) {
+      return;
+    }
+    final binding = WidgetsBinding.instance;
+    binding.deferFirstFrame();
+    GlassBuiltInPainter.precache().whenComplete(binding.allowFirstFrame);
+  }
+
   @override
   State<GlassAdaptiveScope> createState() => _GlassAdaptiveScopeState();
 }
@@ -133,6 +155,7 @@ class _GlassAdaptiveScopeState extends State<GlassAdaptiveScope> {
   @override
   void initState() {
     super.initState();
+    if (widget.tier != MorphGlassTier.flat) GlassAdaptiveScope._loadGlass();
     if (_resolving) morphLiquidGlassCapability.addListener(_capabilityChanged);
   }
 

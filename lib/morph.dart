@@ -1,8 +1,8 @@
 /// iOS 27 Liquid Glass widgets for Flutter: the measured controls, their
 /// presentations and the theme that picks their glass.
 ///
-/// Wrap the app in a [MorphTheme] above its navigator and await
-/// [MorphTheme.precacheGlass] before `runApp`; see the package README.
+/// Wrap the app in a [MorphTheme] above its navigator; see the package
+/// README.
 library;
 
 export 'src/scope.dart' show MorphSource, MorphSourceLink;

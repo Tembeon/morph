@@ -13,8 +13,9 @@
   - With no theme choosing glass, the controls draw flat.
 - The tiers are only `flat` and `liquid`. Liquid draws flat wherever it
   cannot load (the web, a build without Flutter GPU, a shader failure)
-  and until its shaders are loaded; `await MorphTheme.precacheGlass()`
-  before `runApp` makes the first frame liquid.
+  and until its shaders are loaded. The first `MorphTheme` loads them and
+  holds the app's first frame until they are ready, so the first frame
+  is liquid without any precache call.
   `MorphTheme.liquidGlassAvailable` and
   `MorphTheme.liquidGlassUnavailableReason` report the state.
 - Shapes, motion, fusion (a menu growing out of its button, bar capsules

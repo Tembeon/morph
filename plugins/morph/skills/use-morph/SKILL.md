@@ -44,9 +44,7 @@ One import: `import 'package:morph/morph.dart';`.
 ## Set up (do this first)
 
 ```dart
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await MorphTheme.precacheGlass();
+void main() {
   runApp(
     WidgetsApp(
       color: const Color(0xFF007AFF),
@@ -63,8 +61,9 @@ Future<void> main() async {
 - `MorphTheme` goes above the navigator (in `WidgetsApp.builder` or
   `MaterialApp.builder`). On `MaterialApp` pass
   `brightness: Theme.of(context).brightness` in `MorphThemeData`.
-- `MorphTheme.precacheGlass()` before `runApp` makes the first frame
-  liquid. Without it the glass draws flat until the shaders load.
+- The first `MorphTheme` loads the glass shaders and holds the app's
+  first frame until they are ready (at most a second). No precache call
+  is needed; `MorphTheme.precacheGlass()` only starts the load earlier.
 - Liquid glass needs Impeller with Flutter GPU. iOS / macOS
   `Info.plist`: `FLTEnableFlutterGPU` = `true`. Android manifest inside
   `<application>`: `<meta-data
@@ -126,7 +125,7 @@ Call sites for each: `references/recipes.md`. Exact parameters:
 
 - Glass is flat on a device that should draw liquid: read
   `MorphTheme.liquidGlassUnavailableReason`; check the Flutter GPU flag
-  and that the app awaited `MorphTheme.precacheGlass()`.
+  and that a `MorphTheme` with `glass:` sits above the controls.
 - Glass shows black or the wrong content: something between the glass
   and its source paints with a layer (Opacity, clip, filter); move it
   outside, or give the glass its own `BackdropGroup` when it must show

@@ -20,12 +20,14 @@ import 'package:morph/src/widgets/glass_tier.dart';
 ///
 /// Liquid glass needs Impeller with Flutter GPU: `FLTEnableFlutterGPU` in
 /// the Apple app's Info.plist, `io.flutter.embedding.android.EnableFlutterGPU`
-/// in the Android manifest. Await [precacheGlass] before `runApp` so the
-/// first frame already draws liquid glass; until the shaders are ready, and
-/// where they fail or cannot load (the web), liquid draws flat glass, and
-/// glass drawn flat turns liquid once they are ready. Native builds package
-/// the GPU shader bundle from the package's build hook in
-/// `build/shaderbundles/`.
+/// in the Android manifest. The first theme whose glass may be liquid loads
+/// the shaders, warms their pipelines and holds the app's first frame until
+/// they are ready, for at most a second, as [Localizations] holds it for
+/// its resources: the first frame already draws liquid glass, and the app
+/// awaits nothing. Until the shaders are ready, and where they fail or
+/// cannot load (the web), liquid draws flat glass, and glass drawn flat
+/// turns liquid once they are ready. Native builds package the GPU shader
+/// bundle from the package's build hook in `build/shaderbundles/`.
 ///
 /// A theme that chooses glass installs a [BackdropGroup] unless one is
 /// above it. Resting glass in one group shares one copy of the screen,
@@ -63,12 +65,13 @@ class MorphTheme extends StatelessWidget {
   /// offscreen, so the first glass on screen is already the real one and
   /// compiles nothing.
   ///
-  /// Await it before `runApp`: the warm-up takes about 0.35 to 0.45 s on a
-  /// Pixel 6a (Vulkan) and moves that cost from the first glass frame to
-  /// the launch. It holds the launch for at most one second; a GPU that is
-  /// slower to start finishes the warm-up in the background. On Android it
-  /// can wait for the engine's GPU context; it does not wait for an
-  /// application frame.
+  /// A theme does this by itself before the app's first frame; call it to
+  /// start earlier, or to load for glass installed without a theme. The
+  /// warm-up takes about 0.35 to 0.45 s on a Pixel 6a (Vulkan) and moves
+  /// that cost from the first glass frame to the launch. It completes
+  /// after at most one second; a GPU that is slower to start finishes the
+  /// warm-up in the background. On Android it can wait for the engine's
+  /// GPU context; it does not wait for an application frame.
   ///
   /// Unsupported runtimes and shader loading failures complete normally,
   /// report once through [FlutterError.reportError] with library

@@ -2,6 +2,14 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
+## 0.8.1 - unreleased
+
+- `MorphTheme` loads the liquid glass shaders by itself: the first theme
+  whose glass may be liquid loads and warms them and holds the app's first
+  frame until they are ready, for at most a second, as `Localizations`
+  does for its resources. Apps no longer await
+  `MorphTheme.precacheGlass()`, which now only starts the load earlier.
+
 ## 0.8.0 - 2026-10-20
 
 The public API takes UIKit's vocabulary before the first public

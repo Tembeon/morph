@@ -301,9 +301,13 @@ owned plane kept out by a blocker.
   installs liquid when the capability flips, so the painter changes and
   every dependent rebuilds; a `MorphGlassScope` holding a renderer that
   asks for liquid listens to the capability itself and notifies its
-  dependents on the flip; a glass host listens and builds once. Await
-  `MorphTheme.precacheGlass` before `runApp` and the first frame is
-  already liquid.
+  dependents on the flip; a glass host listens and builds once. The
+  first `GlassAdaptiveScope` that may draw liquid calls
+  `GlassBuiltInPainter.precache` and holds the app's first frame
+  (`deferFirstFrame` / `allowFirstFrame`, as `Localizations` does) until
+  it completes, at most `morphPrecacheBudget`, so the first frame is
+  already liquid without the app awaiting `MorphTheme.precacheGlass`.
+  Without shader filters (the web, Skia, a host test) nothing is held.
 - A `LiquidGlassLayer` paints its child with no glass while shader
   filters are unsupported or its Flutter GPU geometry renderer is still
   loading. The widget layer builds liquid layers only once liquid is

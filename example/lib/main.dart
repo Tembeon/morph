@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 import 'package:morph_example/autodemo.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/perf/release_bench.dart';
-import 'package:morph/morph.dart';
 
 /// Autodemo mode: walks every gallery page with synthetic gestures and
 /// exits, the exception-scan gate of the verification workflow.
@@ -16,15 +15,15 @@ const bool kBenchMode = .fromEnvironment('MORPH_BENCH');
 /// Runs the example: the widgets gallery, or the release bench under
 /// `--dart-define=MORPH_BENCH=true`.
 ///
-/// The glass shaders load before the first frame, so the first glass on
-/// screen is already the real one.
+/// The gallery's theme loads the glass shaders and holds the first frame
+/// until they are ready, so the first glass on screen is already the real
+/// one without `MorphTheme.precacheGlass`.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (kBenchMode) {
     runApp(const ReleaseBenchApp());
     return;
   }
-  await MorphTheme.precacheGlass();
   final navigatorKey = GlobalKey<NavigatorState>();
   runApp(GalleryApp(navigatorKey: navigatorKey));
   if (kAutoDemo) {

@@ -68,13 +68,10 @@ glass.
 
 ## Set up the theme and the shaders
 
-Put a `MorphTheme` above your navigator, and load the glass shaders before
-the first frame:
+Put a `MorphTheme` above your navigator:
 
 ```dart
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await MorphTheme.precacheGlass();
+void main() {
   runApp(
     WidgetsApp(
       color: const Color(0xFF007AFF),
@@ -103,8 +100,10 @@ add one entry per platform:
   `AndroidManifest.xml`:
   `<meta-data android:name="io.flutter.embedding.android.EnableFlutterGPU" android:value="true" />`.
 
-The package's build hook compiles the shaders, so there is nothing else to
-configure.
+The package's build hook compiles the shaders. The first `MorphTheme`
+loads them and holds your app's first frame until they are ready, so the
+first frame already shows liquid glass. There is nothing else to set
+up.
 
 ## Choose liquid or flat glass
 
