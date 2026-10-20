@@ -446,10 +446,11 @@ void main() {
     expect(reports, isEmpty);
     // Every matte and analytic variant: once as a filter, alone and, unless
     // it blurs its frost itself only, over each of the four frost sigmas,
-    // and once as a solid paint; then the four plain blurs.
+    // and once as a solid paint; then the four plain blurs. A fused body's
+    // box tint variant draws over any frost.
     final variants = LiquidShaderVariant.values;
     final frostOnly = variants.where(
-      (v) => v.frost && !v.shapeAppearance && !v.analyticGeometry,
+      (v) => v.frost && !v.shapeAppearance && !v.analyticGeometry && !v.boxTint,
     );
     expect(debugMorphLiquidWarmUpDraws, (
       filters: variants.length * 5 - frostOnly.length * 4 + 4,

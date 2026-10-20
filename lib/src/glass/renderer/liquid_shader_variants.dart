@@ -12,7 +12,8 @@ import 'package:meta/meta.dart';
 /// (its unrolled taps hold any variant at 64 work registers, half thread
 /// occupancy; without them these four fit 32). The separate-shape and the
 /// fused analytic variants are declared in the order of the layer's
-/// analytic sets.
+/// analytic sets; the fused set also holds the tint-only matte variants of
+/// a fused body, which take its tints from its boxes.
 ///
 /// Pure Dart: the build hook imports it.
 @internal
@@ -76,13 +77,23 @@ enum LiquidShaderVariant {
   ),
 
   /// [tintIos27] with a fused body merged in the pass, the tints from its
-  /// shapes.
+  /// boxes.
   analyticFusedTintIos27(
     analyticGeometry: true,
     fused: true,
     shapeTint: true,
     ios27Models: true,
-  );
+  ),
+
+  /// [tint] for a fused body read from its geometry matte, the tints from
+  /// its boxes as [analyticFusedTint] takes them: its uniforms leave no
+  /// room for the unfrosted variants' register budget, so it keeps the
+  /// frost.
+  tintBoxes(shapeTint: true, boxTint: true, directModel: true),
+
+  /// [tintIos27] for a fused body read from its geometry matte, the tints
+  /// from its boxes.
+  tintBoxesIos27(shapeTint: true, boxTint: true, ios27Models: true);
 
   const LiquidShaderVariant({
     this.shapeAppearance = false,
@@ -91,6 +102,7 @@ enum LiquidShaderVariant {
     this.ios27Models = false,
     this.analyticGeometry = false,
     this.fused = false,
+    this.boxTint = false,
     this.frost = true,
   });
 
@@ -115,6 +127,15 @@ enum LiquidShaderVariant {
   /// (ANALYTIC_FUSED).
   final bool fused;
 
+  /// Whether a matte variant takes a fused body's tints from its boxes
+  /// (FUSED_TINT) instead of a material map.
+  final bool boxTint;
+
+  /// Whether the variant belongs to the set a fused body draws with,
+  /// loaded once a layer meets one: the analytic fused variants and the
+  /// matte variants that take its tints from its boxes.
+  bool get fusedSet => fused || boxTint;
+
   /// Whether the pass blurs the frost itself (FROST): 24 taps for a frost
   /// above the softening kernel's and up to the blur pass's.
   final bool frost;
@@ -126,6 +147,7 @@ enum LiquidShaderVariant {
     if (fused) '_fused',
     if (shapeAppearance) '_material',
     if (shapeTint) '_tint',
+    if (boxTint) '_boxes',
     if (ios27Models && !directModel) '_ios27',
     if (!frost) '_unfrosted',
   ].join();
@@ -140,6 +162,7 @@ enum LiquidShaderVariant {
     if (ios27Models) 'WITH_IOS27_MODELS',
     if (analyticGeometry) 'WITH_ANALYTIC_GEOMETRY',
     if (fused) 'WITH_ANALYTIC_FUSED',
+    if (boxTint) 'WITH_FUSED_TINT',
     if (frost) 'WITH_FROST',
   ];
 }

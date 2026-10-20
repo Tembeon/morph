@@ -150,13 +150,41 @@ void main() {
       expect(fused, contains('fusedDistance'));
       for (final variant in LiquidShaderVariant.values) {
         expect(
-          variant.defines.contains('WITH_ANALYTIC_FUSED'),
+          variant.defines.contains('WITH_ANALYTIC_FUSED') ||
+              variant.defines.contains('WITH_FUSED_TINT'),
           ShaderKeys.liquidGlassAnalyticFusedRenders.contains(
             ShaderKeys.finalRender(variant),
           ),
           reason: variant.name,
         );
       }
+    });
+
+    test('the box tint block follows the core', () {
+      final boxes = analyticDefine('ANALYTIC_MAX_BOXES');
+      final lines = fusedTintLines();
+      final layout = glslLayout(lines, coreFloats(), {
+        'FUSED_MAX_BOXES': boxes,
+      });
+      expect(layout['uFusedBoxes'], (
+        FinalPassLayout.matteFusedBoxes,
+        boxes * 8,
+      ));
+      expect(layout['uFusedTints'], (
+        FinalPassLayout.matteFusedTints,
+        boxes * 4,
+      ));
+      expect(layout['uFusedTintBoxes'], (
+        FinalPassLayout.matteFusedTintBoxes,
+        1,
+      ));
+      expect(layout.keys, ['uFusedBoxes', 'uFusedTints', 'uFusedTintBoxes']);
+      // Metal's 31 buffer slots, as for the analytic variants.
+      final declarations = [
+        ...coreLines(),
+        ...lines,
+      ].where((line) => glslUniform.hasMatch(line.trim())).length;
+      expect(declarations, lessThanOrEqualTo(31));
     });
   });
 }

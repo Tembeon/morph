@@ -338,6 +338,10 @@ rest. Qualification: tool/audit/claude-navigation-options-report.md.
   (gpu/geometry_fused_fragment.glsl; fused_optics.glsl holds the optics
   both passes share), never from the 4 pt sampled field, so a rest frame
   matches the moving ones up to the matte's quantization.
+- Where the shapes of such a body differ only by tint, both frames take
+  each pixel's tint from its nearest box (fused_law.glsl `fusedBoxTint`):
+  the analytic fused tint variants, and at rest the tint-only matte
+  variants `tintBoxes` of the fused set, with no material map.
 - A matte under a scale of its pass along its axes (each 0.5 to 2, no
   material map; a held tab bar's flex stretches one axis and squashes the
   other) is encoded at the pass's pixels, its texels centered on them

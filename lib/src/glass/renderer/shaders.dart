@@ -67,12 +67,13 @@ abstract class ShaderKeys {
     'MORPH_ANALYTIC_CAPSULE',
   );
 
-  /// The final shaders that merge a fused body of boxes analytically, in
-  /// the order of [liquidGlassAnalyticRenders]; only a layer whose field
-  /// is a `GlassBoxField` draws with them, so the separate-shape variants
-  /// carry none of the merge law.
+  /// The final shaders a fused body of boxes draws with: the analytic
+  /// variants that merge it, in the order of [liquidGlassAnalyticRenders],
+  /// then the tint-only matte variants that take its tints from its boxes.
+  /// Only a layer whose field is a `GlassBoxField` draws with them, so the
+  /// separate-shape variants carry none of the merge law.
   static List<String> get liquidGlassAnalyticFusedRenders =>
-      _finalRenders((variant) => variant.fused);
+      _finalRenders((variant) => variant.fusedSet);
 
   /// The final shaders that evaluate their shapes analytically: one
   /// appearance with the direct and with an iOS 27 color model, shapes that
@@ -89,7 +90,7 @@ abstract class ShaderKeys {
   /// their own appearances, shapes that differ only by tint with the direct
   /// and with an iOS 27 color model.
   static List<String> get liquidGlassRenders =>
-      _finalRenders((variant) => !variant.analyticGeometry);
+      _finalRenders((variant) => !variant.analyticGeometry && !variant.boxTint);
 
   /// The single-pass Gaussian the bar glyphs blur with.
   static String get glyphBlur =>

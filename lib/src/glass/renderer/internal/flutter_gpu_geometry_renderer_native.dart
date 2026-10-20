@@ -244,7 +244,12 @@ class FlutterGpuGeometryRenderer {
   ui.Image? get materialImage => _materialImage;
 
   final _TextureRing _mattes = _TextureRing();
-  final _TextureRing _materials = _TextureRing();
+  // A material map is filtered in normalized texture coordinates, so in a
+  // texture of another size its texels blend at other float positions, a
+  // channel step apart: its ring takes back only released textures of its
+  // own size, and a layer that hands its textures back and rests again
+  // draws the same pixels whatever other layers released.
+  final _TextureRing _materials = _TextureRing(exact: true);
 
   /// Renders a new geometry matte and returns it as a [ui.Image].
   ///
@@ -651,14 +656,23 @@ class FlutterGpuGeometryRenderer {
   int _lastRenderFrame = 0;
 
   /// A mature released texture that holds [width] x [height] without
-  /// wasting more than 1.5x per dimension, or null.
-  static _RingTexture? _claimReleased(int frame, int width, int height) {
+  /// wasting more than 1.5x per dimension, or exactly that size when
+  /// [exact], or null.
+  static _RingTexture? _claimReleased(
+    int frame,
+    int width,
+    int height, {
+    required bool exact,
+  }) {
     for (var index = 0; index < _released.length; index++) {
       final texture = _released[index];
       if (frame - texture.retiredFrame < reuseAfterFrames) continue;
-      if (texture.covers(width, height) &&
-          texture.texture.width * texture.texture.height * 4 <=
-              width * height * 9) {
+      final fits = exact
+          ? texture.texture.width == width && texture.texture.height == height
+          : texture.covers(width, height) &&
+                texture.texture.width * texture.texture.height * 4 <=
+                    width * height * 9;
+      if (fits) {
         return _released.removeAt(index);
       }
     }
@@ -926,9 +940,15 @@ final class _RingTexture {
 /// steps, capped at the view unless one render needs more. A resize within
 /// the capacity reuses the ring; growth drops the smaller textures.
 final class _TextureRing {
+  _TextureRing({this.exact = false});
+
   /// Spares beyond the one a steady ring needs, for frames that render
   /// twice.
   static const int _maxSpares = 2;
+
+  /// Whether the ring takes back only released textures of exactly the
+  /// size it needs.
+  final bool exact;
 
   _RingTexture? _current;
   final List<_RingTexture> _spares = [];
@@ -972,6 +992,7 @@ final class _TextureRing {
       frame,
       _width,
       _height,
+      exact: exact,
     );
     if (released != null) {
       return _current = released;

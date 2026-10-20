@@ -502,6 +502,9 @@ final class GlassGeometryEncoder {
       final pack = this.pack;
       pack.clear();
       final appearances = <LiquidGlassAppearance>[];
+      // Each shape's center in matte device pixels, to pair a fused box
+      // with its shape's tint.
+      final centers = <Offset>[];
       var numShapes = 0;
       var shortSide = double.infinity;
 
@@ -599,6 +602,7 @@ final class GlassGeometryEncoder {
             pair ? rseParameters.sublist(12) : GlassShapePack.noLowerHalf,
           );
           final center = centerInMatte * devicePixelRatio;
+          centers.add(center);
           final halfExtents = _matteHalfExtents(
             shape.rawShapeType,
             size * devicePixelRatio / 2,
@@ -656,6 +660,50 @@ final class GlassGeometryEncoder {
       final (usesShapeAppearances, usesTintOnlyAppearance, _) =
           classifyGlassAppearances(appearances, defaultAppearance);
 
+      pack.shapeCount = numShapes;
+      pack.boxCount = 0;
+      pack.spacing = 0;
+      if (field case GlassBoxField(:final boxes, :final spacing)) {
+        final scale = devicePixelRatio;
+        final out = pack.boxes;
+        for (final (i, box) in boxes.indexed) {
+          final hx = box.width / 2;
+          final hy = box.height / 2;
+          final at = i * 8;
+          out[at] = box.center.dx * scale;
+          out[at + 1] = box.center.dy * scale;
+          out[at + 2] = hx * scale;
+          out[at + 3] = hy * scale;
+          out[at + 4] = min(box.tlRadiusX, min(hx, hy)) * scale;
+        }
+        pack.boxCount = boxes.length;
+        pack.spacing = spacing * scale;
+      }
+      // A fused body's tints follow its boxes, which both frames shade it
+      // by (fused_law.glsl fusedBoxTint): each box takes the tint of the
+      // shape it is. Separate shapes keep theirs in shape order.
+      pack.tints.clear();
+      if (usesTintOnlyAppearance) {
+        for (var i = 0; i < (pack.fused ? pack.boxCount : numShapes); i++) {
+          final shape = pack.fused
+              ? _nearest(
+                  centers,
+                  Offset(pack.boxes[i * 8], pack.boxes[i * 8 + 1]),
+                )
+              : i;
+          final tint = appearances[shape].tint;
+          pack.tints.addAll([tint.r, tint.g, tint.b, tint.a]);
+        }
+      }
+      // A fused body's matte frames take its tints from its boxes too, in
+      // the variants of its fused set: no material map.
+      pack.boxTints =
+          !analytic &&
+          usesTintOnlyAppearance &&
+          pack.fused &&
+          _pass.analyticShadersReady(fused: true);
+      final writeMaterials = usesShapeAppearances && !pack.boxTints;
+
       if (analytic) {
         pack.refractionHeight = max(
           0.0,
@@ -669,32 +717,6 @@ final class GlassGeometryEncoder {
         pack.contourExtent = max(0.5, aaPadding * devicePixelRatio);
         pack.flatFace = flags.flatFace;
         pack.mergeMinWidth = liquidMinMergeWidth * devicePixelRatio;
-        pack.shapeCount = numShapes;
-        pack.boxCount = 0;
-        pack.spacing = 0;
-        if (field case GlassBoxField(:final boxes, :final spacing)) {
-          final scale = devicePixelRatio;
-          final out = pack.boxes;
-          for (final (i, box) in boxes.indexed) {
-            final hx = box.width / 2;
-            final hy = box.height / 2;
-            final at = i * 8;
-            out[at] = box.center.dx * scale;
-            out[at + 1] = box.center.dy * scale;
-            out[at + 2] = hx * scale;
-            out[at + 3] = hy * scale;
-            out[at + 4] = min(box.tlRadiusX, min(hx, hy)) * scale;
-          }
-          pack.boxCount = boxes.length;
-          pack.spacing = spacing * scale;
-        }
-        pack.tints.clear();
-        if (usesTintOnlyAppearance) {
-          for (final appearance in appearances) {
-            final tint = appearance.tint;
-            pack.tints.addAll([tint.r, tint.g, tint.b, tint.a]);
-          }
-        }
         _pass.markInputsChanged();
         return AnalyticGeometry(
           materialCenter: materialCenter,
@@ -725,9 +747,9 @@ final class GlassGeometryEncoder {
             settings.effectiveEdgeDistanceRange * devicePixelRatio,
         refractionFitsShape: settings.refractionFitsShape,
         contourExtent: aaPadding * devicePixelRatio,
-        writeMaterials: usesShapeAppearances,
-        writeTintOnly: usesTintOnlyAppearance,
-        appearanceData: usesShapeAppearances
+        writeMaterials: writeMaterials,
+        writeTintOnly: writeMaterials && usesTintOnlyAppearance,
+        appearanceData: writeMaterials
             ? _appearanceLookupData(appearances)
             : const <double>[],
         offsetX: boundsInMatteSpace.left * devicePixelRatio,
@@ -764,6 +786,18 @@ final class GlassGeometryEncoder {
       throw StateError('Flutter GPU geometry render failed: $e');
     }
   }
+}
+
+// The index of the point of [points] nearest [to].
+int _nearest(List<Offset> points, Offset to) {
+  var nearest = 0;
+  for (var i = 1; i < points.length; i++) {
+    if ((points[i] - to).distanceSquared <
+        (points[nearest] - to).distanceSquared) {
+      nearest = i;
+    }
+  }
+  return nearest;
 }
 
 // Whether the shapes of [geometries] differ in appearance, so that a matte
