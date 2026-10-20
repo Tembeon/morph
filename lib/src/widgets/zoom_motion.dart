@@ -4,6 +4,51 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:morph/src/motion/spring.dart';
 import 'package:morph/src/motion/spring_state.dart';
+import 'package:morph/src/widgets/menu_motion.dart' show MorphMenuTuning;
+
+/// A zoom of a surface out of its source and back, as a pure function of
+/// time: the classic zoom ([MorphZoomMotion]) or the liquid one out of a
+/// glass source ([MorphLiquidZoomMotion]).
+@internal
+abstract interface class MorphZoom {
+  /// The farthest, in pixels, a progress of 1 moves an edge of the
+  /// zooming surface; the host updates it from the frames it zooms
+  /// between.
+  abstract double travel;
+
+  /// The time the motion was last advanced to.
+  double get time;
+
+  /// Whether the motion heads to the destination.
+  bool get isOpening;
+
+  /// Whether the motion has come back to the source and rests there.
+  bool get isClosed;
+
+  /// Whether nothing moves and nothing is pending.
+  bool get isSettled;
+
+  /// Zooms out of the source from time [t].
+  void open(double t);
+
+  /// Zooms back into the source from time [t].
+  void close(double t);
+
+  /// Advances the motion to time [t].
+  void advance(double t);
+
+  /// The zooming surface's frame between [source] and [destination].
+  Rect rect(Rect source, Rect destination);
+
+  /// The progress of the surface's size.
+  double get sizeProgress;
+
+  /// The opacity of the destination's content.
+  double get fade;
+
+  /// The fraction of the destination's dimming.
+  double get dimming;
+}
 
 /// The measured motion of UIKit's zoom transition (`preferredTransition =
 /// .zoom`) into a sheet.
@@ -144,7 +189,7 @@ class MorphZoomTuning {
 /// own size and scaled uniformly to fit the container from its top
 /// leading corner, the source's look is stretched over the container, and
 /// [fade] crossfades them (UIKit's zoom draws the two that way).
-class MorphZoomMotion {
+class MorphZoomMotion implements MorphZoom {
   /// Creates a motion resting at the source.
   MorphZoomMotion({this.tuning = MorphZoomTuning.standard})
     : _center = MorphSpringState(tuning.openCenterSpring, 0),
@@ -166,15 +211,19 @@ class MorphZoomMotion {
   /// The farthest, in pixels, a progress of 1 moves an edge of the
   /// container ([MorphRest.travel] between its two frames); the host
   /// updates it from the frames it zooms between.
+  @override
   double travel = MorphRest.screen;
 
   /// The time the motion was last advanced to.
+  @override
   double get time => _now;
 
   /// Whether the motion heads to the destination.
+  @override
   bool get isOpening => _opening;
 
   /// Zooms out of the source into the destination from time [t].
+  @override
   void open(double t) {
     advance(t);
     _opening = true;
@@ -185,6 +234,7 @@ class MorphZoomMotion {
   }
 
   /// Zooms back into the source from time [t].
+  @override
   void close(double t) {
     advance(t);
     _opening = false;
@@ -196,6 +246,7 @@ class MorphZoomMotion {
   }
 
   /// Advances the motion to time [t], applying a pending crossfade.
+  @override
   void advance(double t) {
     if (t > _now) _now = t;
     final at = _fadeAt;
@@ -211,21 +262,25 @@ class MorphZoomMotion {
   double _centerProgressAt(double t) => _center.value(t);
 
   /// The progress of the container's size.
+  @override
   double get sizeProgress => _sizeProgressAt(_now);
 
   double _sizeProgressAt(double t) => _size.value(t);
 
   /// The opacity of the destination's content; the source's
   /// look shows at one minus it.
+  @override
   double get fade => _fade.value(_now).clamp(0.0, 1.0);
 
   /// The fraction of the destination's dimming.
+  @override
   double get dimming => _dimmingAt(_now);
 
   double _dimmingAt(double t) => _dim.value(t).clamp(0.0, 1.0);
 
   /// The container's frame between [source] and
   /// [destination].
+  @override
   Rect rect(Rect source, Rect destination) =>
       _rectAt(_now, source, destination);
 
@@ -250,9 +305,11 @@ class MorphZoomMotion {
   }
 
   /// Whether the motion has come back to the source and rests there.
+  @override
   bool get isClosed => !_opening && _rests;
 
   /// Whether nothing moves and nothing is pending.
+  @override
   bool get isSettled => _fadeAt == null && _rests;
 
   /// Whether what remains of the motion is invisible ([MorphRest], NEAR):
@@ -264,6 +321,375 @@ class MorphZoomMotion {
     return _center.isWithin(_now, progress) &&
         _size.isWithin(_now, progress) &&
         _fade.isWithin(_now, MorphRest.opacity) &&
+        _dim.isWithin(_now, MorphRest.opacity);
+  }
+}
+
+/// The measured motion of UIKit's zoom out of a glass source: the liquid
+/// morph (`_UIZoomLiquidMorphAnimator`, read from UIKit, notes private),
+/// the same two-blob morph a glass button grows its menu with.
+///
+/// Read from an iPhone 16 Pro on iOS 27.0.1 (probe scene `snzoom` with a
+/// glass `UIButton` source 140 x 48, page sheet at medium and large): the
+/// presentation frames of the two glass elements the morph fuses, sampled
+/// on every display frame (test/fixtures/ios27-device/zoom/liquid.json).
+/// The sheet's glass grows out of a [seedDiameter] circle at the source's
+/// center while the source's glass shrinks to [sourceRestSize] on its way
+/// into the sheet; closing, the sheet shrinks back into that circle while
+/// the source's glass grows back where it rests. Each edge rides a spring
+/// of its own, fitted to those frames within 0.1 - 2.1 points rms.
+@immutable
+class MorphLiquidZoomTuning {
+  /// Creates a tuning from explicit values.
+  const MorphLiquidZoomTuning({
+    this.openCenterSpring = const MorphSpring(0.295, 0.68),
+    this.openSizeSpring = const MorphSpring(0.36, 0.74),
+    this.openSourceTravelSpring = const MorphSpring(0.355, 0.74),
+    this.openSourceWidthSpring = const MorphSpring(0.205, 0.97),
+    this.openSourceHeightSpring = const MorphSpring(0.355, 0.74),
+    this.openCornerSpring = const MorphSpring(0.4, 0.8),
+    this.openCornerDelay = 0.028,
+    this.openCornerFrom = 500,
+    this.closeCenterSpring = const MorphSpring(0.42, 0.82),
+    this.closeCenterDelay = 0.033,
+    this.closeSizeSpring = const MorphSpring(0.49, 0.8),
+    this.closeSourceTravelSpring = const MorphSpring(0.42, 0.69),
+    this.closeSourceTravelDelay = 0.006,
+    this.closeSourceWidthSpring = const MorphSpring(0.54, 0.74),
+    this.closeSourceWidthDelay = 0.017,
+    this.closeSourceHeightSpring = const MorphSpring(0.49, 0.8),
+    this.closeCornerSpring = const MorphSpring(0.48, 0.82),
+    this.closeCornerTo = 201,
+    this.lookSpring = const MorphSpring(0.207, 0.98),
+    this.openDimmingSpring = MorphZoomTuning.zoomInSpring,
+    this.closeDimmingSpring = MorphZoomTuning.zoomOutSpring,
+    this.seedDiameter = 20.5,
+    this.sourceRestSize = 12,
+    this.sourceTravel = 0.33,
+  });
+
+  /// The spring the sheet's center travels on out of the source (device
+  /// fits 0.29 - 0.30 / 0.68).
+  final MorphSpring openCenterSpring;
+
+  /// The spring the sheet's width and height grow on out of the seed
+  /// (0.35 - 0.37 / 0.72 - 0.74).
+  final MorphSpring openSizeSpring;
+
+  /// The spring the source's glass travels on into the sheet.
+  final MorphSpring openSourceTravelSpring;
+
+  /// The spring the source's glass narrows on (0.20 - 0.21, nearly
+  /// critically damped): it narrows ahead of its height.
+  final MorphSpring openSourceWidthSpring;
+
+  /// The spring the source's glass flattens on.
+  final MorphSpring openSourceHeightSpring;
+
+  /// The spring the sheet's corners round down on, from [openCornerFrom]
+  /// toward the sheet's own radii.
+  final MorphSpring openCornerSpring;
+
+  /// Seconds the corners wait after the sheet starts to grow.
+  final double openCornerDelay;
+
+  /// The radius the opening corners start from: far past half the short
+  /// side, so the growing sheet stays a capsule until the corners round
+  /// down below it (the device's corners hold at 201 for 0.15 s).
+  final double openCornerFrom;
+
+  /// The spring the sheet's center travels on back to the source (0.42 -
+  /// 0.43 / 0.82).
+  final MorphSpring closeCenterSpring;
+
+  /// Seconds the closing sheet's center waits after its size starts to
+  /// shrink (0.031 - 0.035): its top first comes down toward the source.
+  final double closeCenterDelay;
+
+  /// The spring the sheet's width and height shrink on into the seed.
+  final MorphSpring closeSizeSpring;
+
+  /// The spring the source's glass travels on back to its place.
+  final MorphSpring closeSourceTravelSpring;
+
+  /// Seconds the source's glass waits before it travels back.
+  final double closeSourceTravelDelay;
+
+  /// The spring the source's glass widens on: it lands a few points wide
+  /// and settles (0.54 / 0.74).
+  final MorphSpring closeSourceWidthSpring;
+
+  /// Seconds the source's glass waits before it widens.
+  final double closeSourceWidthDelay;
+
+  /// The spring the source's glass grows back to its height on.
+  final MorphSpring closeSourceHeightSpring;
+
+  /// The spring the closing corners round up on, toward [closeCornerTo].
+  final MorphSpring closeCornerSpring;
+
+  /// The radius the closing corners head for: a capsule once the sheet
+  /// is small.
+  final double closeCornerTo;
+
+  /// The crossfade of the source's look and the sheet's content, both
+  /// ways (0.204 - 0.208 / 0.98 - 1.0, within 0.003 of the device's
+  /// portal opacities).
+  final MorphSpring lookSpring;
+
+  /// The dimming spring while the sheet grows: UIKit's zoomIn spring.
+  final MorphSpring openDimmingSpring;
+
+  /// The dimming spring while the sheet shrinks: UIKit's zoomOut spring.
+  final MorphSpring closeDimmingSpring;
+
+  /// The diameter of the circle the sheet grows out of and shrinks into,
+  /// at the source's center.
+  final double seedDiameter;
+
+  /// The side of the square the source's glass shrinks to inside the
+  /// sheet.
+  final double sourceRestSize;
+
+  /// How far toward the sheet's center the source's glass travels, as a
+  /// fraction of the way (0.33 at the medium detent; it rests inside the
+  /// sheet, where it fuses unseen).
+  final double sourceTravel;
+
+  /// The measured tuning.
+  static const standard = MorphLiquidZoomTuning();
+}
+
+/// A channel's spring start that waits for its delay.
+typedef _Pending = ({
+  double at,
+  MorphSpringState state,
+  double target,
+  MorphSpring spring,
+});
+
+/// The liquid zoom of a sheet out of a glass source and back, as a pure
+/// function of time.
+///
+/// Progress values run from 0 (at the source) to 1 (the sheet), each on
+/// its own spring: the sheet's center and size, the source glass's travel,
+/// width and height, the corners, the crossfade of the source's look into
+/// the sheet's content, and the dimming. [open] sends them to 1 and
+/// [close] to 0; a reversal carries each one's velocity.
+class MorphLiquidZoomMotion implements MorphZoom {
+  /// Creates a motion resting at the source.
+  MorphLiquidZoomMotion({this.tuning = MorphLiquidZoomTuning.standard})
+    : _center = MorphSpringState(tuning.openCenterSpring, 0),
+      _size = MorphSpringState(tuning.openSizeSpring, 0),
+      _travel = MorphSpringState(tuning.openSourceTravelSpring, 0),
+      _width = MorphSpringState(tuning.openSourceWidthSpring, 0),
+      _height = MorphSpringState(tuning.openSourceHeightSpring, 0),
+      _corner = MorphSpringState(tuning.openCornerSpring, 0),
+      _look = MorphSpringState(tuning.lookSpring, 0),
+      _dim = MorphSpringState(tuning.openDimmingSpring, 0);
+
+  /// The measured behavior this motion reproduces.
+  final MorphLiquidZoomTuning tuning;
+
+  final MorphSpringState _center;
+  final MorphSpringState _size;
+  final MorphSpringState _travel;
+  final MorphSpringState _width;
+  final MorphSpringState _height;
+  final MorphSpringState _corner;
+  final MorphSpringState _look;
+  final MorphSpringState _dim;
+  final List<_Pending> _pending = [];
+  double _cornerFar = 0;
+  double _now = 0;
+  bool _opening = false;
+  final List<({double start, bool opening})> _fusions = [];
+
+  /// The farthest, in pixels, a progress of 1 moves an edge of the sheet
+  /// ([MorphRest.travel] between the source and the sheet); the host
+  /// updates it from the frames it zooms between.
+  @override
+  double travel = MorphRest.screen;
+
+  /// The time the motion was last advanced to.
+  @override
+  double get time => _now;
+
+  /// Whether the motion heads to the sheet.
+  @override
+  bool get isOpening => _opening;
+
+  /// Grows the sheet out of the source from time [t].
+  @override
+  void open(double t) {
+    advance(t);
+    _opening = true;
+    _fusions.add((start: t, opening: true));
+    _cornerFar = tuning.openCornerFrom;
+    _center.retarget(t, 1, spring: tuning.openCenterSpring);
+    _size.retarget(t, 1, spring: tuning.openSizeSpring);
+    _travel.retarget(t, 1, spring: tuning.openSourceTravelSpring);
+    _width.retarget(t, 1, spring: tuning.openSourceWidthSpring);
+    _height.retarget(t, 1, spring: tuning.openSourceHeightSpring);
+    _look.retarget(t, 1);
+    _dim.retarget(t, 1, spring: tuning.openDimmingSpring);
+    _pending.clear();
+    _pending.add((
+      at: t + tuning.openCornerDelay,
+      state: _corner,
+      target: 1,
+      spring: tuning.openCornerSpring,
+    ));
+  }
+
+  /// Shrinks the sheet back into the source from time [t].
+  @override
+  void close(double t) {
+    advance(t);
+    _opening = false;
+    _fusions.add((start: t, opening: false));
+    _pending.clear();
+    _cornerFar = tuning.closeCornerTo;
+    _size.retarget(t, 0, spring: tuning.closeSizeSpring);
+    _height.retarget(t, 0, spring: tuning.closeSourceHeightSpring);
+    _pending.addAll([
+      (
+        at: t + tuning.closeCenterDelay,
+        state: _center,
+        target: 0,
+        spring: tuning.closeCenterSpring,
+      ),
+      (
+        at: t + tuning.closeSourceTravelDelay,
+        state: _travel,
+        target: 0,
+        spring: tuning.closeSourceTravelSpring,
+      ),
+      (
+        at: t + tuning.closeSourceWidthDelay,
+        state: _width,
+        target: 0,
+        spring: tuning.closeSourceWidthSpring,
+      ),
+    ]);
+    _corner.retarget(t, 0, spring: tuning.closeCornerSpring);
+    _look.retarget(t, 0);
+    _dim.retarget(t, 0, spring: tuning.closeDimmingSpring);
+  }
+
+  /// Advances the motion to time [t], starting the channels that wait
+  /// when they are due.
+  @override
+  void advance(double t) {
+    if (t > _now) _now = t;
+    _pending.removeWhere((pending) {
+      if (pending.at > _now) return false;
+      pending.state.retarget(
+        pending.at,
+        pending.target,
+        spring: pending.spring,
+      );
+      return true;
+    });
+  }
+
+  /// The sheet's frame between [source] and [sheet]: out of a circle at
+  /// the source's center.
+  Rect container(Rect source, Rect sheet) {
+    final seed = Rect.fromCenter(
+      center: source.center,
+      width: tuning.seedDiameter,
+      height: tuning.seedDiameter,
+    );
+    final c = _center.value(_now);
+    final s = _size.value(_now);
+    return Rect.fromCenter(
+      center: Offset.lerp(seed.center, sheet.center, c)!,
+      width: math.max(0, lerpDouble(seed.width, sheet.width, s)!),
+      height: math.max(0, lerpDouble(seed.height, sheet.height, s)!),
+    );
+  }
+
+  @override
+  Rect rect(Rect source, Rect destination) => container(source, destination);
+
+  /// The source glass's frame: at [source] at rest, a small square inside
+  /// [sheet] while the sheet shows.
+  Rect sourceGlass(Rect source, Rect sheet) {
+    final rest = Offset.lerp(source.center, sheet.center, tuning.sourceTravel)!;
+    final size = tuning.sourceRestSize;
+    return Rect.fromCenter(
+      center: Offset.lerp(source.center, rest, _travel.value(_now))!,
+      width: math.max(0, lerpDouble(source.width, size, _width.value(_now))!),
+      height: math.max(
+        0,
+        lerpDouble(source.height, size, _height.value(_now))!,
+      ),
+    );
+  }
+
+  /// The radius a sheet corner of resting radius [rest] shows now; a
+  /// radius past half the sheet's short side draws a capsule.
+  double corner(double rest) =>
+      rest + (_cornerFar - rest) * (1 - _corner.value(_now));
+
+  /// The radius, in points, of the blur that fuses the sheet's glass and
+  /// the source's: the envelope of the menu's liquid morph
+  /// ([MorphMenuTuning.fusionEnvelope]), started by every [open] and
+  /// [close]. UIKit draws both with the same liquid morph; the zoom's own
+  /// radius is not measured (NEAR, assumed the menu's).
+  double get fusionRadius {
+    const fusion = MorphMenuTuning.standard;
+    var radius = 0.0;
+    for (final turn in _fusions) {
+      radius = math.max(
+        radius,
+        fusion.fusionEnvelope(_now - turn.start, opening: turn.opening),
+      );
+    }
+    if (radius < fusion.fusionCutoff) return 0;
+    return math.min(radius, fusion.fusionRadius);
+  }
+
+  bool get _fused {
+    const fusion = MorphMenuTuning.standard;
+    _fusions.removeWhere(
+      (turn) => fusion.fusionEnded(_now - turn.start, opening: turn.opening),
+    );
+    return _fusions.isEmpty;
+  }
+
+  /// The opacity of the sheet's content; the source's look shows at one
+  /// minus it.
+  @override
+  double get fade => _look.value(_now).clamp(0.0, 1.0);
+
+  /// The fraction of the sheet's dimming.
+  @override
+  double get dimming => _dim.value(_now).clamp(0.0, 1.0);
+
+  /// The progress of the sheet's size, the measure a caller fades or
+  /// dissolves by.
+  @override
+  double get sizeProgress => _size.value(_now);
+
+  /// Whether the motion has come back to the source and rests there.
+  @override
+  bool get isClosed => !_opening && _rests;
+
+  /// Whether nothing moves and nothing is pending.
+  @override
+  bool get isSettled => _pending.isEmpty && _rests && _fused;
+
+  bool get _rests {
+    final progress = MorphRest.scale(travel);
+    return _center.isWithin(_now, progress) &&
+        _size.isWithin(_now, progress) &&
+        _travel.isWithin(_now, progress) &&
+        _width.isWithin(_now, progress) &&
+        _height.isWithin(_now, progress) &&
+        _corner.isWithin(_now, MorphRest.scale(tuning.openCornerFrom)) &&
+        _look.isWithin(_now, MorphRest.opacity) &&
         _dim.isWithin(_now, MorphRest.opacity);
   }
 }
