@@ -236,6 +236,24 @@ no behaviour or pixel change: every rename keeps what the old name did.
   less arithmetic on frosted pixels, within one channel step; a layer that
   mixes appearances lights its touch glow. Every other pixel is unchanged
   on the host's Impeller; device frame time is not measured yet.
+- Glass fixes, each pinned by a host Impeller test
+  (example/test/*_host_test.dart):
+  - A sheet is one outline. The liquid tier shades a floating sheet's
+    top and bottom radii (38, and 54 to 62 below) as one rounded
+    superellipse, so the rim runs unbroken round the bottom corners; the
+    bottom radius follows the device's clip while docking, undocking and
+    dragging; a sheet zooming out of its source is one outline with its
+    zoom container.
+  - An action sheet popover's arrow is part of its one glass shape,
+    traced from UIKit's path (26 by 13, continuous corners of 34),
+    instead of a darker flat triangle beside the card.
+  - Resting fused glass keeps its edges: the stretched Done bridge and a
+    held tab bar show no staircase at rest, and two tints meet in a
+    fused neck at rest as they do in motion.
+  - A press in a solid `MorphGlassContainer` no longer turns clear glass
+    elsewhere on the page opaque for a moment.
+  - A tab bar's badges are content under the lifted lens, as UIKit's:
+    the lens magnifies a badge in its copy and refracts it at its rim.
 - BREAKING: navigation leading items are `List<MorphBarButtonGroup>`;
   they still replace the back button, as UIKit's `leftBarButtonItems`
   do while `leftItemsSupplementBackButton` is off.
