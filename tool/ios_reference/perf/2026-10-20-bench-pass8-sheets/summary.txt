@@ -1,0 +1,15 @@
+aad20314  runs 5  fixed-perf False  2026-10-20 09:17
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/m/glass-button/tap     321   2.1   6.0   7.5  10.4   2.5   0.6    2   528  raster-cpu:2 bad raster: Canvas::saveLayer 9.2, SurfaceFrame::Encode 4.7, QueueSubmit 2.4
+audit/liquid/m/tab-bar/tap          741   3.2   6.4   7.9  12.0   4.2   1.6   14   731  raster-cpu:9 raster-wait:3 bad raster: UpdateAtlasBitmap 7.5, SurfaceFrame::Encode 3.5, waitForBufferRelease 3.0
+audit/liquid/m/menu/held            972   4.0   9.7   8.7  12.4   5.3   1.1   23   520  raster-cpu:9 ui-other:2 bad raster: SurfaceFrame::Encode 6.7, QueueSubmit 5.0, Canvas::saveLayer 3.8
+audit/liquid/m/sheet/open-close     587   1.6   2.9   6.1   8.0   5.3   0.2    0   562  raster-cpu:1 bad raster: SurfaceFrame::Encode 10.0, QueueSubmit 3.2, CreateGlyphAtlas 0.8
+audit/liquid/m/sheet/drag          1484   1.8   5.9   6.2   7.6  12.2   0.1    9   689  gpu:1 raster-cpu:1 bad raster: Canvas::saveLayer 26.3, SurfaceFrame::Encode 7.8, QueueSubmit 3.0
+audit/liquid/m/alert/open-close     587   1.8   6.0   6.4   7.9   4.6   0.0    4   496  
+nav/nav-navigation-steady-liquid    451   1.9   3.7   8.8  11.4   4.7   0.0    1   628    [gpu 5.425->4.724, power_mw 795->628]
+nav/nav-navigation-toolbar-liquid   295   4.0   7.5   8.3  10.1   4.6   0.7    6   463  ui-build:2 bad ui: build 11.0, layout 2.9, compositing 2.8  [ui 5.465->7.474, gpu 4.144->4.646, power_mw 653->463]
+nav/nav-navigation-enter-liquid     293   4.8   8.1   8.4  10.6   6.0   1.7    4   521  ui-layout:5 bad ui: layout 10.3, build 6.8, paint 2.6  [raster 12.14->10.57, power_mw 700->521]
+nav/nav-navigation-nested-push-liq  294   6.9  12.3   8.5  11.4   7.8   3.1    8   541  ui-layout:5 ui-build:3 ui-gc:1 bad ui: layout 12.0, build 3.7, paint 3.5  [ui 10.68->12.26, gpu 6.831->7.811, over_pct 2->3.1, power_mw 711->541]
+nav/nav-navigation-nested-pop-liqu  285   6.5  11.0   8.7  12.2   6.8   1.8    3   495  ui-layout:5 bad ui: layout 17.1, build 5.6, paint 4.4  [ui 8.576->11.02, raster 10.98->12.24, gpu 5.442->6.816, power_mw 715->495]
