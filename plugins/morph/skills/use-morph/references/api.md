@@ -910,6 +910,7 @@ const MorphMenuSource({
   bool? dismissOnSelect,
   Key? key,
 })
+static void close(BuildContext context)
 static void open(BuildContext context)
 ```
 

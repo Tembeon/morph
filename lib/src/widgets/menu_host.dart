@@ -372,6 +372,7 @@ class MorphMenuController implements MorphMenuHost {
 
   /// Closes the motion and its flight, including any pending opening,
   /// from where the motion stands: never before its last sample.
+  @override
   void close() {
     if (_disposed) return;
     final motion = _motion;

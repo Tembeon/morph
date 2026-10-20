@@ -862,6 +862,7 @@ class MorphMenuSource extends _MorphMenuSourceWidget
     Key? key,
   })
   final Widget child
+  static void close(BuildContext context)
   final Color? color
   final bool focusable
   final Widget? look

@@ -54,7 +54,7 @@ morph (`lib/morph.dart`, names as in `test/api/public_api.txt`): `MorphMenuButto
 | `UIButton.changesSelectionAsPrimaryAction` (15) | pop-up button | none | gap | `MorphPopUpButton<T>` |
 | `preferredMenuElementOrder` (16) | `.automatic/.priority/.fixed` | `order` (`MorphMenuOrder`) on sources and region | none | keep |
 | `UIControl.isContextMenuInteractionEnabled` (14) | menu on / off | `enabled` | none | keep |
-| `contextMenuInteraction.dismissMenu()` on a control (14) | close from code | none (only `MorphMenuSource.open(context)`) | gap | `MorphMenuSource.close(context)` |
+| `contextMenuInteraction.dismissMenu()` on a control (14) | close from code | `MorphMenuSource.close(context)` (from the source, a row or the look the menu carries) | none | keep |
 | control `willDisplayMenuFor` / `willEndFor` (14) | menu shows / ends | none public (`onOpen` is `@internal`) | gap | `onOpen` / `onClose: VoidCallback?` on sources |
 | `updateVisibleMenu` (14) | change the open menu | rebuild with new `menu` | none | keep |
 | `UIControl.menuAttachmentPointForConfiguration` (14) | attach point | none | gap | skip (low) |
@@ -135,7 +135,7 @@ Done since the last page: context menu rows, custom preview and preview tap (202
 | 1 | Button menu motion has no replay: open spring, kicks, placement, early touch and reopen captures exist, the test was removed in 98237e58 | H | S | port the removed replays onto `MorphMenuMotion`, fixtures unchanged |
 | 2 | Pop-up button (`changesSelectionAsPrimaryAction`, `menuIndicator`) | H | M | `MorphPopUpButton<T>` over `MorphMenuSource` |
 | 3 | No edit menu on text inputs (`UIEditMenuInteraction`) | H | M meas. | `SystemContextMenu` on iOS; measure the glass edit menu for other platforms |
-| 4 | No public open / close callbacks, no close from code on sources (`willDisplay`, `willEnd`, `dismissMenu`) | M | S | `onOpen` / `onClose: VoidCallback?` on sources and region; `MorphMenuSource.close(context)` |
+| 4 | No public open / close callbacks (`willDisplay`, `willEnd`); close from code on sources landed (`MorphMenuSource.close`, 2026-10-20) | M | S | `onOpen` / `onClose: VoidCallback?` on sources and region |
 | 5 | Preview platter of the context menu (shadow; `UIPreviewParameters`) | M | M meas. | measure, then draw it; `previewShape` |
 | 6 | Highlight as one sliding platter (UIKit 0.12 s spring, simulator) | M | S-M meas. | confirm at 120 Hz, then port |
 | 7 | Stable row identity (`UIAction.identifier`) | L-M | S | `id` on item and submenu |

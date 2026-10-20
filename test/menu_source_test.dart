@@ -115,6 +115,61 @@ void main() {
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
+  testWidgets('a source opens and closes its menu from code', (
+    WidgetTester tester,
+  ) async {
+    final log = <String>[];
+    BuildContext? source;
+    BuildContext? carried;
+    await tester.pumpWidget(
+      _app(
+        MorphMenuSource(
+          menu: _items(log),
+          child: Builder(
+            builder: (BuildContext context) {
+              // The first build is the source's own child; the menu
+              // builds the same child again as the look it carries.
+              if (source == null) {
+                source = context;
+              } else if (context
+                      .findAncestorWidgetOfExactType<MorphMenuLayer>() !=
+                  null) {
+                carried = context;
+              }
+              return const SizedBox(width: 120, height: 40);
+            },
+          ),
+        ),
+      ),
+    );
+    final inside = source!;
+    MorphMenuSource.close(inside);
+    await _settle(tester);
+    expect(find.text('Share'), findsNothing);
+
+    MorphMenuSource.open(inside);
+    await _settle(tester);
+    expect(find.text('Share'), findsOneWidget);
+    MorphMenuSource.close(inside);
+    await _settle(tester);
+    expect(find.text('Share'), findsNothing);
+
+    MorphMenuSource.open(inside);
+    await tester.pump(const Duration(milliseconds: 16));
+    MorphMenuSource.close(inside);
+    await _settle(tester);
+    expect(find.text('Share'), findsNothing, reason: 'an opening closes too');
+
+    MorphMenuSource.open(inside);
+    await _settle(tester);
+    expect(carried, isNotNull, reason: 'the menu carries the look');
+    MorphMenuSource.close(carried!);
+    await _settle(tester);
+    expect(find.text('Share'), findsNothing, reason: 'from the carried look');
+    expect(log, isEmpty);
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
   testWidgets('a hold source taps through and opens only when held', (
     WidgetTester tester,
   ) async {

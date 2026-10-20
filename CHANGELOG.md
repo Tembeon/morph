@@ -254,6 +254,20 @@ no behaviour or pixel change: every rename keeps what the old name did.
     elsewhere on the page opaque for a moment.
   - A tab bar's badges are content under the lifted lens, as UIKit's:
     the lens magnifies a badge in its copy and refracts it at its rim.
+- `MorphMenuSource.close(context)` closes the menu of the source above
+  `context`, or the open menu whose row or carried look `context` is in
+  (UIKit's `contextMenuInteraction.dismissMenu()`), as
+  `MorphMenuSource.open(context)` opens it.
+- Fixed: a glass button's label no longer loses its last letter while its
+  menu opens and closes, and no longer jumps as the button lands: the
+  look a menu source carries is laid out at the source's own size and
+  scaled with its shape, as UIKit scales the button's view.
+- A tab bar label held near a boundary of the glyph grid keeps its grid
+  scale while its scale creeps (a drag's stretch), so the lens copy
+  rasterizes fewer glyphs (host atlas replay of the drag: 41 -> 35
+  strike frames).
+  NEAR: a creeping label is at most 0.82 percent off its size (0.54
+  before).
 - BREAKING: navigation leading items are `List<MorphBarButtonGroup>`;
   they still replace the back button, as UIKit's `leftBarButtonItems`
   do while `leftItemsSupplementBackButton` is off.

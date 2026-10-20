@@ -450,6 +450,20 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
     state._openFromSemantics();
   }
 
+  /// Closes the menu of the [MorphMenuSource] or [MorphMenuButton] above
+  /// [context], or the open menu whose row or carried look [context] is
+  /// in, as a tap outside it does (UIKit's
+  /// `contextMenuInteraction.dismissMenu()`), an opening that has not
+  /// shown yet included; nothing happens when it is not open.
+  static void close(BuildContext context) {
+    final state = context.findAncestorStateOfType<_MorphMenuSourceState>();
+    if (state == null) {
+      context.findAncestorWidgetOfExactType<MorphMenuLayer>()?.host.close();
+    } else if (state._motion != null) {
+      state._host.close();
+    }
+  }
+
   @override
   ({Color color, Color? rim})? get _surface {
     final color = this.color;
@@ -679,6 +693,10 @@ abstract interface class MorphMenuHost {
 
   /// Wakes the motion's clock after a change made through [menuMotion].
   void menuWake();
+
+  /// Closes the menu and its flight, an opening that has not shown yet
+  /// included.
+  void close();
 
   /// Runs [command] on the motion at time [at], [menuClock] when null.
   ///
