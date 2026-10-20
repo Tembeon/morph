@@ -1155,6 +1155,39 @@ void main() {
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
+  testWidgets('a button label keeps its one line while the menu closes', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        MorphGlassButton(
+          onPressed: null,
+          menu: [for (final title in _items) MorphMenuItem(title: title)],
+          child: const Text('Menu'),
+        ),
+      ),
+    );
+    final rest = tester.getSize(find.text('Menu'));
+    void expectWhole(String phase) {
+      for (final label in tester.renderObjectList<RenderParagraph>(
+        find.text('Menu', skipOffstage: false),
+      )) {
+        expect(label.size, rest, reason: phase);
+      }
+    }
+
+    await tester.tap(find.text('Menu'));
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      expectWhole('open frame $i');
+    }
+    await tester.tapAt(const Offset(10, 10));
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      expectWhole('close frame $i');
+    }
+  });
+
   testWidgets('a touch outside before the menu appears closes it again', (
     WidgetTester tester,
   ) async {

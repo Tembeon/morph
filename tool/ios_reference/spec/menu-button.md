@@ -394,6 +394,19 @@ its scale sweeps fast the glyph policy may draw it from its raster
 before. A look whose layout depends on its box (a glass button's label)
 still follows the box every frame while it shows.
 
+The look's box is the source's frame before its scale (2026-10-20): the
+look is scaled with the shape, as UIKit scales the button's view, and was
+also laid out in the shrinking box. A glass button's label wider than
+that box wrapped and lost its last line (the gallery's "Menu" showed
+"Men" while the menu opened and closed) and, in the landing's overshoot,
+sat in a taller box 2.5 pt off its resting place, jumping back as the
+button took over. Laid out at the button's own size it keeps one line and
+lands where the resting label is (glass-button-menu open-close, the two
+frames before rest: 667 pixels over 15 levels from the rest frame -> 0).
+Control goldens re-recorded: menu, held menu and glass-button menu
+cells, 10 - 11 morph frames each differ where the old box squeezed the
+look.
+
 ## How UIKit renders it [simulator 2026-10-14 + device lifecycle runs]
 
 Read from UIKit, notes private. iOS 27.0 simulator (iPhone 17 Pro, its display at 60 Hz)

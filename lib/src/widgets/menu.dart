@@ -779,7 +779,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     return (
       menu: motion.menuBlob.rrect.shift(origin),
       source: source.rrect.shift(origin),
-      sourceRect: source.rect.shift(origin),
+      sourceRect: source.localRect.shift(origin),
       sourceScale: source.scale,
       lookStretch: 1,
       look: (opacity: 1, blur: 0),
@@ -1266,9 +1266,12 @@ class _MenuShapes extends StatelessWidget {
             child: MorphLiveCenter(
               live: frames,
               rectOf: () => shapes().sourceRect,
-              // The glyph is laid out in the source's box of the frame,
-              // centered, but again only when that can change it; the
-              // ellipsis is the same box in any box as large.
+              // The glyph is laid out in the source's box before its scale
+              // and scaled with the shape, as UIKit scales the button's
+              // view: laid out in the shrinking box, a label wraps and
+              // loses its last line. It is laid out again only when that
+              // can change it; the ellipsis is the same box in any box as
+              // large.
               fixedSize: this.glyph is _Ellipsis
                   ? const Size.square(MorphMenuTuning.ellipsisSize)
                   : null,
@@ -2267,7 +2270,7 @@ class _LayerFrame {
     shapes = (
       menu: motion.rootBlob.rrect,
       source: motion.drawsSource ? source.rrect : null,
-      sourceRect: source.rect,
+      sourceRect: source.localRect,
       sourceScale: source.scale,
       lookStretch: motion.buttonLookStretch,
       look: (opacity: motion.buttonLookOpacity, blur: motion.buttonLookBlur),

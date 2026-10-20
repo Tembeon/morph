@@ -895,6 +895,13 @@ class MorphMenuBlob {
 
   /// The visible shape as a rounded rectangle.
   RRect get rrect => RRect.fromRectAndRadius(rect, Radius.circular(radius));
+
+  /// The frame before scaling, centered on the visible one.
+  Rect get localRect => Rect.fromCenter(
+    center: rect.center,
+    width: localSize.width,
+    height: localSize.height,
+  );
 }
 
 /// The progress of a menu morph: 0 is the button, 1 the menu.
