@@ -751,6 +751,22 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
             ),
           ),
         ),
+        if (widget.items.any((item) => item.badge?.visible ?? false))
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ExcludeSemantics(
+                child: Row(
+                  children: [
+                    for (final item in widget.items)
+                      SizedBox(
+                        width: geometry.pitch,
+                        child: _TabBadge(item: item, scaler: scaler),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
       ],
     );
     return RepaintBoundary(
@@ -822,24 +838,6 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
                       ),
                     ),
                   ],
-                  if (widget.items.any((item) => item.badge?.visible ?? false))
-                    Positioned.fill(
-                      left: MorphTabBarMetrics.sideInset,
-                      right: MorphTabBarMetrics.sideInset,
-                      child: IgnorePointer(
-                        child: ExcludeSemantics(
-                          child: Row(
-                            children: [
-                              for (final item in widget.items)
-                                SizedBox(
-                                  width: geometry.pitch,
-                                  child: _TabBadge(item: item, scaler: scaler),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -1004,7 +1002,8 @@ class _TabLabel extends StatelessWidget {
   }
 }
 
-// Native badges ride the bar's swell but stay above the refracting lens.
+// A badge is the bar's content, as UIKit's: a lifted lens refracts it at
+// its rim and magnifies it in its copy (iOS 27 probe, 2026-10-20).
 class _TabBadge extends StatelessWidget {
   const _TabBadge({required this.item, required this.scaler});
 

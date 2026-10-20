@@ -291,19 +291,19 @@ frame (flat), 0/2/102 -> 0/2/18 (liquid).
   the lift is outside [read from UIKit, notes private]; any delay after
   the lift is not traced.
   Subtitles, tab groups, hidden tabs.
-  Badge under a held or dragged lens [iPhone 16 Pro, iOS 27.0.1,
-  2026-10-14]: count and dot remain crisp circles above the lens.
-  The number badge grows 18.33 -> 19.29 pt and the dot 18 -> 18.94 pt,
-  matching the whole bar's 1.052 swell, without the lens's magnification
-  or rim refraction. Morph draws one badge above the glass content,
-  inside the bar's swell transform. Native capture: testTabBadges,
-  `rec-followup-tab-badges` and held-number / held-dot attachments
-  (raw data private). Placement remains NEAR as described above.
-  The integrated Flutter release capture on the unobstructed iPhone,
-  2026-10-15, confirms one crisp count/dot above the held and dragged
-  lens, with the real liquid renderer. Four screenshots and the physical
-  screen movie are retained privately; selection on contact/release and
-  the explicit completion marker pass. Glyph-box placement remains NEAR.
+  Badge and the lifted lens [native probe on the owner's iPhone,
+  2026-10-20]: the badge is the bar's content, under the lens. A lens
+  lifted and dragged past a badged tab refracts the badge at its rim and
+  shows it in its magnified copy, as it does the glyphs and labels; the
+  badge also rides the bar's swell (number 18.33 -> 19.29 pt, dot 18 ->
+  18.94 pt, the bar's 1.052) and its flex. Morph draws the badges in the
+  glass layer's content row, inside the bar's flex transform, so the
+  lens copy and the rim refraction take them as UIKit's do. The
+  2026-10-14 capture (testTabBadges, `rec-followup-tab-badges`, raw data
+  private) held the lens on the badged tab itself and read "crisp
+  circles above the lens"; that reading was wrong for a lens that
+  crosses a badge, and morph had drawn badges above the lens since.
+  Placement remains NEAR as described above.
 - `tabBarMinimizeBehavior` and `bottomAccessory`: ported from UIKit's
   code, partly device-confirmed; passport [tab-bar-minimize.md](tab-bar-minimize.md)
   (the probe sets it: `w2search` scene, `PROBE_MINIMIZE=1` = onScrollDown).
