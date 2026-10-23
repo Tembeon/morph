@@ -2,6 +2,25 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
+## 0.8.1 - 2026-10-23
+
+- Custom segments support app-owned content, nullable selection, activation
+  on re-taps, preview/cancel callbacks, custom tracks and lens tint by position.
+- Custom tab glyphs retain their primary widget and use explicit visual
+  replicas for the lens and minimized bar, with text-style and semantic overrides.
+- `MorphTouchTarget` and `MorphTouchFeedback` bring the shared press behavior
+  and shaped feedback to app-owned content without adding glass.
+- `MorphPresentationBoundary` supports custom navigation shells;
+  `MorphMenuPresentationController` exposes menu opening and completed closing,
+  and `menuBuilder` resolves current entries when opening.
+- `MorphThemeData.fontFamily` configures built-in text; search clear labels
+  support localization. A public-only Sonatide example and migration guide
+  demonstrate the new APIs.
+- Menus return plain custom sources to their original appearance and preserve
+  text layout through closing, avoiding the glass capsule and final text jump.
+- Context-menu holds start timing at touch-down, so a short tap after an idle
+  period no longer opens the menu immediately. Native motion tuning is unchanged.
+
 ## 0.8.0 - 2026-10-20
 
 The public API takes UIKit's vocabulary before the first public
