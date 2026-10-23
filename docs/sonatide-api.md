@@ -78,6 +78,17 @@ keep their own renderer's exact feedback and should be used directly.
 
 ## Shells, fonts and menus
 
+`MorphMenuSource` without `color` returns to its original surface-less
+content: the menu platter fades out with the existing look crossfade, so
+a plain label does not briefly become a glass button while closing.
+Sources that declare their own `color` retain the surface hand-off.
+The carried look retains the measured source box, including its original
+content alignment, rather than centering a shrink-wrapped copy of a label.
+For arbitrary app content, the platter fade uses the existing measured
+look timing as an approximation of the native preview return. The whole
+source scales together; the extra horizontal glyph stretch stays on the
+button path.
+
 Wrap a custom chrome-over-navigator shell in `MorphPresentationBoundary`.
 Presenters then use the overlay/navigator outside the outermost boundary.
 An explicit `overlay` still wins, including on `MorphContextMenuRegion`.
