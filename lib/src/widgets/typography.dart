@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/theme/theme.dart';
 
 /// The text of the measured controls: the sizes and weights UIKit draws
 /// each control's labels with, and the system font set the way CoreText
@@ -185,8 +186,9 @@ abstract final class MorphTypography {
   ///
   /// Ambient app font families are not inherited, including on Android
   /// and web. Set [TextStyle.fontFamily] on the supplied style to use an
-  /// app font; SF Pro is not bundled and its measured metrics apply only
-  /// on Apple platforms.
+  /// app font; with [context], the explicit MorphThemeData.fontFamily
+  /// supplies a missing family. SF Pro is not bundled and its measured
+  /// metrics apply only on Apple platforms.
   ///
   /// On Apple platforms, for the system font (no `fontFamily`, or one of
   /// Flutter's system font aliases): the optical size and weight axes
@@ -194,16 +196,26 @@ abstract final class MorphTypography {
   /// unless `letterSpacing` is set. Elsewhere, and for any other family,
   /// [style] as it is otherwise. [apple] overrides the platform check
   /// (tests).
-  static TextStyle resolve(TextStyle style, {bool? apple}) {
-    final complete = style.inherit ? style.copyWith(inherit: false) : style;
+  static TextStyle resolve(
+    TextStyle style, {
+    bool? apple,
+    BuildContext? context,
+  }) {
+    final family = context == null
+        ? null
+        : MorphThemeScope.maybeOf(context)?.fontFamily;
+    final themed = style.fontFamily == null && family != null
+        ? style.copyWith(fontFamily: family)
+        : style;
+    final complete = themed.inherit ? themed.copyWith(inherit: false) : themed;
     if (!(apple ?? usesAppleSystemFont)) return complete;
-    if (!_isSystemFamily(style.fontFamily)) return complete;
-    final size = style.fontSize ?? 14;
-    final wght = weightAxis(style.fontWeight ?? FontWeight.w400);
+    if (!_isSystemFamily(themed.fontFamily)) return complete;
+    final size = themed.fontSize ?? 14;
+    final wght = weightAxis(themed.fontWeight ?? FontWeight.w400);
     return complete.copyWith(
-      letterSpacing: style.letterSpacing ?? tracking(size),
+      letterSpacing: themed.letterSpacing ?? tracking(size),
       fontVariations:
-          style.fontVariations ??
+          themed.fontVariations ??
           [
             FontVariation('opsz', size),
             if (wght != null) FontVariation('wght', wght),

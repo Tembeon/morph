@@ -198,7 +198,7 @@ class MorphMenuController implements MorphMenuHost {
         builder: (BuildContext context, Widget? _) =>
             _prebuildCount == 0 || _motion == null
             ? const SizedBox.shrink()
-            : morphMenuPrebuiltRows(this, _prebuildCount),
+            : morphMenuPrebuiltRows(this, _prebuildCount, context: context),
       ),
     );
     _prebuildEntry = created;

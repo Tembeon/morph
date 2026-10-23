@@ -219,6 +219,7 @@ class _TabAccessoryScope extends InheritedWidget {
 /// changes anyway) and travels with the capsule's center.
 @internal
 Widget morphTabAccessoryContent({
+  BuildContext? context,
   required Listenable live,
   required Rect Function() rect,
   required Rect end,
@@ -251,6 +252,7 @@ Widget morphTabAccessoryContent({
         child: DefaultTextStyle(
           style: MorphTypography.resolve(
             MorphTypography.body.copyWith(color: style.color),
+            context: context,
           ),
           child: IconTheme.merge(
             data: IconThemeData(color: style.color),
@@ -387,6 +389,7 @@ class MorphTabAccessorySlot extends StatelessWidget {
               style: style,
               opacity: opacity,
               child: child,
+              context: context,
             ),
           ],
         ),
@@ -1061,6 +1064,7 @@ class _MorphTabBarChromeState extends State<MorphTabBarChrome>
                 : MorphTabAccessoryEnvironment.regular,
             style: style,
             child: accessory,
+            context: context,
           ),
         ),
       );
@@ -1246,7 +1250,8 @@ class _SearchTabCircle extends StatelessWidget {
                 opacityOf: () => shown().clamp(0.0, 1.0),
                 child: Semantics(
                   button: true,
-                  label: item.label,
+                  label: item.semanticLabel ?? item.label,
+                  value: item.semanticValue,
                   onTap: onTap,
                   excludeSemantics: true,
                   child: ValueListenableBuilder<bool>(
@@ -1266,10 +1271,12 @@ class _SearchTabCircle extends StatelessWidget {
                       behavior: HitTestBehavior.opaque,
                       onTap: onTap,
                       child: Center(
-                        child: Icon(
-                          item.icon,
-                          size: MorphTabBarMetrics.iconSize,
+                        child: morphTabGlyph(
+                          context,
+                          item,
                           color: color,
+                          selected: color == style.selectedColor,
+                          minimized: true,
                         ),
                       ),
                     ),

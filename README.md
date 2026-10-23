@@ -207,6 +207,14 @@ the presentation is popped, like `Navigator.push`. Back, the barrier, and
 Escape go through `PopScope`. If the source leaves the tree, the
 presentation fades out instead of landing on it.
 
+Custom app content uses `MorphSegment.custom`, `MorphTabItem.custom` and
+`MorphTouchTarget` with a passive `MorphTouchFeedback` decorator. Set
+`MorphThemeData.fontFamily` for built-in text, and use
+`MorphPresentationBoundary` around a shell with its own nested navigator.
+See [the consumer API guide](docs/sonatide-api.md) for ownership, preview,
+semantics and menu lifecycle contracts, and the runnable
+[Sonatide examples](example/lib/consumer_api.dart).
+
 ## Group neighbouring glass to keep it fast
 
 Each separate liquid glass layer reads and filters what lies under it. On

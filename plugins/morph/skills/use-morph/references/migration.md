@@ -67,3 +67,33 @@ pattern, not the call:
 
 When a symbol is missing, search `api.md` (generated from the current
 public API) before guessing; anything not there is internal or gone.
+
+## Sonatide extension seams
+
+Keep `morph.dart` as the control import. `MorphSegment.custom` retains widget
+content and exposes read-only input flags; `onActivated` handles re-tap to
+clear a nullable selection, while `onPreviewChanged`/`onPreviewCancelled`
+separate preview from commit. `track` and `lensColorAt` support a color picker
+on the existing measured host.
+
+`MorphTabItem.custom` takes one primary `glyph` and an explicit
+`replicaBuilder` for selected-mask/minimized artwork. Give replicas their own
+keys and state; share only read-only listenables with an animated primary.
+Use `semanticValue` for localized unread information.
+
+Replace app press trackers with one `MorphTouchTarget` and a passive
+`MorphTouchFeedback` decorator. `minSize` controls hit density separately
+from painted size. Use `MorphPresentationBoundary` around a custom shell,
+`MorphThemeData.fontFamily` for built-in text and existing appearance text
+styles for role overrides. Tab appearances now also have ordinary/selected
+text styles. Override `MorphLocalizations.clearTextLabel` for search clear.
+
+`MorphMenuPresentationController` controls sources and context menus and
+exposes completed dismissal through `closed`; `menuBuilder` resolves fresh
+entries when preparing an opening. Existing menu updates and deferred-cache
+behavior still apply. The runnable consumer example and the ownership,
+rendering and verification contracts are in `docs/sonatide-api.md`.
+
+Custom tabs have no IconData, so `MorphTabItem.icon` is now nullable; the
+short constructor still requires non-null IconData. `MorphSearchField.clearLabel`
+is nullable and resolves through localizations when omitted.

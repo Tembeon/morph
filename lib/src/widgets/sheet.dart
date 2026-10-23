@@ -984,6 +984,7 @@ class _SheetViewState extends State<_SheetView>
       content = _builtContent = DefaultTextStyle(
         style: MorphTypography.resolve(
           MorphTypography.body.copyWith(color: style.textColor),
+          context: context,
         ),
         child: _route.detents.any((MorphSheetDetent d) => d.isFitted)
             ? _FitReport(

@@ -173,6 +173,14 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
     });
   }
 
+  @override
+  void dispose() {
+    // Flutter can still dispatch the final event to a detached hit-test
+    // target; release ownership before its clock is disposed.
+    _press.release();
+    super.dispose();
+  }
+
   Widget? _built;
   bool _stale = true;
   Object? _builtFrom;

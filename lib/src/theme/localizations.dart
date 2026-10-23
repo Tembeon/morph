@@ -17,6 +17,9 @@ abstract class MorphLocalizations {
   /// The placeholder of an empty search field.
   String get searchPlaceholder;
 
+  /// The label of a search field's clear button.
+  String get clearTextLabel => 'Clear text';
+
   /// The label of a control that starts a search.
   String get searchLabel;
 

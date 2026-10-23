@@ -944,6 +944,7 @@ class _SearchCircle extends StatelessWidget {
                               height: 1.2,
                               color: style.placeholderColor,
                             ),
+                            context: context,
                           ),
                         ),
                       ),

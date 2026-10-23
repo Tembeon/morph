@@ -111,7 +111,8 @@ Call sites for each: `references/recipes.md`. Exact parameters:
 3. Presentations grow out of their source only through a
    `MorphSourceLink` on a `MorphSource`; without `from:` they present
    from the screen edge as UIKit does.
-4. Style through `MorphThemeData.appearances` (one `Morph*Appearance`
+4. Set `MorphThemeData.fontFamily` for built-in app-font text; explicit
+   appearance families win and native role sizes/weights remain. Style through `MorphThemeData.appearances` (one `Morph*Appearance`
    per control type) or each widget's `appearance:`; tint through
    `MorphThemeData.tint`. Do not fork a control to restyle it.
 5. Pick the tier with `MorphGlassRenderer.adaptive()` (liquid on capable
@@ -120,6 +121,14 @@ Call sites for each: `references/recipes.md`. Exact parameters:
 6. `showMorphSheet`, `showMorphAlert` and `showMorphActionSheet` complete
    when the route is popped, as `Navigator.push` does; back, the barrier
    and Escape go through `PopScope`.
+
+Custom content uses `MorphSegment.custom` (preview, cancel and re-tap
+activation), `MorphTabItem.custom` (one primary glyph plus independent
+visual replicas), and `MorphTouchTarget` with a passive `MorphTouchFeedback`.
+`MorphMenuPresentationController.closed` observes completed dismissal;
+`menuBuilder` resolves current actions when preparing an opening. A custom
+chrome-over-navigator shell uses `MorphPresentationBoundary`. See recipes
+and migration for the ownership contracts.
 
 ## When something looks wrong
 

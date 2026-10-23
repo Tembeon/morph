@@ -565,22 +565,24 @@ List<int> _ordered(
   return row ? [...cancel, ...rest] : [...rest, ...cancel];
 }
 
-TextStyle _buttonText(MorphAlertAction action, MorphAlertAppearance style) =>
-    MorphTypography.resolve(
-      MorphTypography.alertAction.copyWith(
-        height: MorphAlertTuning.textHeight,
-        fontWeight: action.isPreferred
-            ? MorphAlertTuning.preferredWeight
-            : null,
-        color: !action.isEnabled
-            ? style.disabledLabelColor
-            : action.isPreferred
-            ? style.preferredLabelColor
-            : action.style == MorphAlertActionStyle.destructive
-            ? style.destructiveColor
-            : style.labelColor,
-      ),
-    );
+TextStyle _buttonText(
+  MorphAlertAction action,
+  MorphAlertAppearance style, {
+  BuildContext? context,
+}) => MorphTypography.resolve(
+  MorphTypography.alertAction.copyWith(
+    height: MorphAlertTuning.textHeight,
+    fontWeight: action.isPreferred ? MorphAlertTuning.preferredWeight : null,
+    color: !action.isEnabled
+        ? style.disabledLabelColor
+        : action.isPreferred
+        ? style.preferredLabelColor
+        : action.style == MorphAlertActionStyle.destructive
+        ? style.destructiveColor
+        : style.labelColor,
+  ),
+  context: context,
+);
 
 class _AlertView extends StatefulWidget {
   const _AlertView({required this.route});
@@ -872,6 +874,7 @@ class _AlertViewState extends State<_AlertView>
             fontSize: MorphAlertTuning.textFontSize,
             color: style.labelColor,
           ),
+          context: context,
         ),
         child: Builder(
           builder: (BuildContext context) {
@@ -956,7 +959,8 @@ class _AlertViewState extends State<_AlertView>
   double _opacity() =>
       (_alert?.opacity ?? _popover?.opacity ?? 1).clamp(0.0, 1.0);
 
-  (double, MorphAlertAppearance, TextScaler, TextDirection, bool)? _rowKey;
+  (double, MorphAlertAppearance, TextScaler, TextDirection, bool, String?)?
+  _rowKey;
   bool _rowFits = false;
 
   bool _fitsInRow(
@@ -971,6 +975,7 @@ class _AlertViewState extends State<_AlertView>
       scaler,
       direction,
       MorphTypography.usesAppleSystemFont,
+      MorphThemeScope.maybeOf(context)?.fontFamily,
     );
     if (key == _rowKey) return _rowFits;
     _rowKey = key;
@@ -990,7 +995,10 @@ class _AlertViewState extends State<_AlertView>
         2;
     for (final a in _route.actions) {
       final painter = TextPainter(
-        text: TextSpan(text: a.title, style: _buttonText(a, style)),
+        text: TextSpan(
+          text: a.title,
+          style: _buttonText(a, style, context: context),
+        ),
         textDirection: direction,
         textScaler: scaler,
         maxLines: 1,
@@ -1490,6 +1498,7 @@ class _AlertCard extends StatelessWidget {
                 fontWeight: both ? null : MorphAlertTuning.singleHeaderWeight,
                 color: style.titleColor,
               ),
+              context: context,
             ),
           ),
         ),
@@ -1510,6 +1519,7 @@ class _AlertCard extends StatelessWidget {
                       height: MorphAlertTuning.messageHeight,
                       color: style.messageColor,
                     ),
+              context: context,
             ),
           ),
         ),
@@ -1804,7 +1814,7 @@ class _AlertButtonState extends State<_AlertButton> {
                   child: Text(
                     action.title,
                     textAlign: TextAlign.center,
-                    style: _buttonText(action, style),
+                    style: _buttonText(action, style, context: context),
                   ),
                 ),
               ),
@@ -1916,6 +1926,7 @@ class _AlertFieldState extends State<_AlertField>
         height: MorphAlertTuning.textHeight,
         color: style.titleColor,
       ),
+      context: context,
     );
     final placeholder = widget.field.placeholder;
     return Container(

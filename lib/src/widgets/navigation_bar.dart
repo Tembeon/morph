@@ -160,63 +160,77 @@ abstract final class MorphNavigationBarMetrics {
 }
 
 /// The style of a navigation bar's large title: [MorphTypography.largeTitle].
-TextStyle morphLargeTitleStyle(Color color) => MorphTypography.resolve(
-  MorphTypography.largeTitle.copyWith(
-    fontSize: MorphNavigationBarMetrics.largeTitleSize,
-    height: MorphBarMetrics.lineHeight,
-    color: color,
-  ),
-);
-
-/// The style of a navigation bar's inline title: [MorphTypography.title].
-TextStyle morphInlineTitleStyle(Color color) => MorphTypography.resolve(
-  MorphTypography.title.copyWith(
-    fontSize: MorphNavigationBarMetrics.titleSize,
-    height: MorphBarMetrics.lineHeight,
-    color: color,
-  ),
-);
-
-/// The style of a navigation bar's inline title with a subtitle under it.
-TextStyle morphInlineTitleWithSubtitleStyle(Color color) =>
+TextStyle morphLargeTitleStyle(Color color, {BuildContext? context}) =>
     MorphTypography.resolve(
-      TextStyle(
-        fontSize: MorphNavigationBarMetrics.titleWithSubtitleSize,
-        fontWeight: FontWeight.w600,
+      MorphTypography.largeTitle.copyWith(
+        fontSize: MorphNavigationBarMetrics.largeTitleSize,
         height: MorphBarMetrics.lineHeight,
         color: color,
       ),
+      context: context,
     );
+
+/// The style of a navigation bar's inline title: [MorphTypography.title].
+TextStyle morphInlineTitleStyle(Color color, {BuildContext? context}) =>
+    MorphTypography.resolve(
+      MorphTypography.title.copyWith(
+        fontSize: MorphNavigationBarMetrics.titleSize,
+        height: MorphBarMetrics.lineHeight,
+        color: color,
+      ),
+      context: context,
+    );
+
+/// The style of a navigation bar's inline title with a subtitle under it.
+TextStyle morphInlineTitleWithSubtitleStyle(
+  Color color, {
+  BuildContext? context,
+}) => MorphTypography.resolve(
+  TextStyle(
+    fontSize: MorphNavigationBarMetrics.titleWithSubtitleSize,
+    fontWeight: FontWeight.w600,
+    height: MorphBarMetrics.lineHeight,
+    color: color,
+  ),
+  context: context,
+);
 
 /// The style of a navigation bar's inline subtitle, [color] usually the
 /// appearance's [MorphBarAppearance.subtitleColor].
-TextStyle morphInlineSubtitleStyle(Color color) => MorphTypography.resolve(
-  MorphTypography.body.copyWith(
-    fontSize: MorphNavigationBarMetrics.subtitleSize,
-    height: MorphBarMetrics.lineHeight,
-    color: color,
-  ),
-);
-
-/// The style of a large title with a subtitle under it.
-TextStyle morphLargeTitleWithSubtitleStyle(Color color) =>
+TextStyle morphInlineSubtitleStyle(Color color, {BuildContext? context}) =>
     MorphTypography.resolve(
-      MorphTypography.largeTitle.copyWith(
-        fontSize: MorphNavigationBarMetrics.largeTitleWithSubtitleSize,
+      MorphTypography.body.copyWith(
+        fontSize: MorphNavigationBarMetrics.subtitleSize,
         height: MorphBarMetrics.lineHeight,
         color: color,
       ),
+      context: context,
     );
 
-/// The style of the subtitle under a large title.
-TextStyle morphLargeSubtitleStyle(Color color) => MorphTypography.resolve(
-  TextStyle(
-    fontSize: MorphNavigationBarMetrics.largeSubtitleSize,
-    fontWeight: FontWeight.w500,
+/// The style of a large title with a subtitle under it.
+TextStyle morphLargeTitleWithSubtitleStyle(
+  Color color, {
+  BuildContext? context,
+}) => MorphTypography.resolve(
+  MorphTypography.largeTitle.copyWith(
+    fontSize: MorphNavigationBarMetrics.largeTitleWithSubtitleSize,
     height: MorphBarMetrics.lineHeight,
     color: color,
   ),
+  context: context,
 );
+
+/// The style of the subtitle under a large title.
+TextStyle morphLargeSubtitleStyle(Color color, {BuildContext? context}) =>
+    MorphTypography.resolve(
+      TextStyle(
+        fontSize: MorphNavigationBarMetrics.largeSubtitleSize,
+        fontWeight: FontWeight.w500,
+        height: MorphBarMetrics.lineHeight,
+        color: color,
+      ),
+      context: context,
+    );
 
 /// The buttons a navigation bar leans toward while an interactive pop is
 /// in progress: those of the screen the pop leads to.
@@ -398,8 +412,8 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
   String? _outgoing;
   String? _outgoingSubtitle;
   double _exitShift = 0;
-  final Map<(String, String?, TextScaler, TextDirection), Size> _titleSizes =
-      {};
+  final Map<(String, String?, TextScaler, TextDirection, String?), Size>
+  _titleSizes = {};
 
   Size _titleSize(
     String title,
@@ -408,34 +422,46 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
     TextDirection direction,
   ) {
     if (_titleSizes.length > 8) _titleSizes.clear();
-    return _titleSizes.putIfAbsent((title, subtitle, scaler, direction), () {
-      Size measure(String text, TextStyle style) {
-        final painter = TextPainter(
-          text: TextSpan(text: text, style: style),
-          textDirection: direction,
-          textScaler: scaler,
-          maxLines: 1,
-        );
-        painter.layout();
-        final size = painter.size;
-        painter.dispose();
-        return size;
-      }
-
-      const black = Color(0xFF000000);
-      final size = measure(
+    return _titleSizes.putIfAbsent(
+      (
         title,
-        subtitle == null
-            ? morphInlineTitleStyle(black)
-            : morphInlineTitleWithSubtitleStyle(black),
-      );
-      if (subtitle == null) return size;
-      final below = measure(subtitle, morphInlineSubtitleStyle(black));
-      return Size(
-        math.max(size.width, below.width),
-        size.height + below.height,
-      );
-    });
+        subtitle,
+        scaler,
+        direction,
+        MorphThemeScope.maybeOf(context)?.fontFamily,
+      ),
+      () {
+        Size measure(String text, TextStyle style) {
+          final painter = TextPainter(
+            text: TextSpan(text: text, style: style),
+            textDirection: direction,
+            textScaler: scaler,
+            maxLines: 1,
+          );
+          painter.layout();
+          final size = painter.size;
+          painter.dispose();
+          return size;
+        }
+
+        const black = Color(0xFF000000);
+        final size = measure(
+          title,
+          subtitle == null
+              ? morphInlineTitleStyle(black, context: context)
+              : morphInlineTitleWithSubtitleStyle(black, context: context),
+        );
+        if (subtitle == null) return size;
+        final below = measure(
+          subtitle,
+          morphInlineSubtitleStyle(black, context: context),
+        );
+        return Size(
+          math.max(size.width, below.width),
+          size.height + below.height,
+        );
+      },
+    );
   }
 
   @override
@@ -759,8 +785,8 @@ class _InlineTitleState extends State<_InlineTitle> {
   Widget build(BuildContext context) {
     final shown = _shown = _shownNow();
     final style = widget.subtitle == null
-        ? morphInlineTitleStyle(widget.color)
-        : morphInlineTitleWithSubtitleStyle(widget.color);
+        ? morphInlineTitleStyle(widget.color, context: context)
+        : morphInlineTitleWithSubtitleStyle(widget.color, context: context);
     final textHeight = widget.size.height;
     final width = widget.width;
     final rtl = widget.direction == TextDirection.rtl;
@@ -816,7 +842,10 @@ class _InlineTitleState extends State<_InlineTitle> {
               overflow: TextOverflow.ellipsis,
               textAlign: align,
               textScaler: widget.scaler,
-              style: morphInlineSubtitleStyle(widget.subtitleColor),
+              style: morphInlineSubtitleStyle(
+                widget.subtitleColor,
+                context: context,
+              ),
             ),
           ],
         );
@@ -910,7 +939,7 @@ class MorphLargeTitle extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: morphLargeTitleStyle(look.titleColor),
+                style: morphLargeTitleStyle(look.titleColor, context: context),
               ),
             ),
           ),
@@ -919,8 +948,14 @@ class MorphLargeTitle extends StatelessWidget {
     );
     final subtitle = this.subtitle;
     if (subtitle == null) return head;
-    final titleStyle = morphLargeTitleWithSubtitleStyle(look.titleColor);
-    final subtitleStyle = morphLargeSubtitleStyle(look.subtitleColor);
+    final titleStyle = morphLargeTitleWithSubtitleStyle(
+      look.titleColor,
+      context: context,
+    );
+    final subtitleStyle = morphLargeSubtitleStyle(
+      look.subtitleColor,
+      context: context,
+    );
     const height =
         MorphNavigationBarMetrics.largeTitleHeight +
         MorphNavigationBarMetrics.largeSubtitleHeight;

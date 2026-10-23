@@ -248,7 +248,7 @@ void main() {
             return MorphTabBar(
               items: [
                 for (final item in _items)
-                  MorphTabItem(icon: item.icon, label: item.label),
+                  MorphTabItem(icon: item.icon!, label: item.label),
               ],
               selected: selected,
               onChanged: (i) => update(() => selected = i),

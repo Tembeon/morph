@@ -115,15 +115,20 @@ abstract final class MorphBadgeMetrics {
   static const double tabRise = 6;
 
   /// The text style of a badge label in [color].
-  static TextStyle textStyle(Color color) => MorphTypography.resolve(
-    const TextStyle(fontSize: fontSize, fontWeight: fontWeight),
-  ).copyWith(color: color);
+  static TextStyle textStyle(Color color, {BuildContext? context}) =>
+      MorphTypography.resolve(
+        const TextStyle(fontSize: fontSize, fontWeight: fontWeight),
+        context: context,
+      ).copyWith(color: color);
 
   /// The size of a badge showing [label] (null for the dot).
-  static Size sizeOf(String? label) {
+  static Size sizeOf(String? label, {BuildContext? context}) {
     if (label == null || label.isEmpty) return const Size.square(dotSize);
     final painter = TextPainter(
-      text: TextSpan(text: label, style: textStyle(const Color(0xFF000000))),
+      text: TextSpan(
+        text: label,
+        style: textStyle(const Color(0xFF000000), context: context),
+      ),
       textDirection: TextDirection.ltr,
       maxLines: 1,
     );
@@ -216,7 +221,7 @@ class MorphBadged extends StatelessWidget {
     final badge = this.badge;
     if (badge == null || !badge.visible) return child;
     final label = badge.label;
-    final size = MorphBadgeMetrics.sizeOf(label);
+    final size = MorphBadgeMetrics.sizeOf(label, context: context);
     final fill =
         badge.backgroundColor ??
         _systemRed(
@@ -242,6 +247,7 @@ class MorphBadged extends StatelessWidget {
               textScaler: TextScaler.noScaling,
               style: MorphBadgeMetrics.textStyle(
                 badge.foregroundColor ?? MorphBadge.defaultForegroundColor,
+                context: context,
               ),
             ),
     );

@@ -687,14 +687,15 @@ List<MorphPlacedGroup> morphIdentifyBarItems(List<MorphPlacedGroup> groups) {
 /// The label style of bar buttons: [MorphTypography.barButton], or
 /// [MorphTypography.barButtonProminent] when [bold], at the metrics' size.
 @internal
-TextStyle morphBarLabelStyle(MorphBarMetrics metrics, {bool bold = false}) =>
-    MorphTypography.resolve(
-      (bold ? MorphTypography.barButtonProminent : MorphTypography.barButton)
-          .copyWith(
-            fontSize: metrics.fontSize,
-            height: MorphBarMetrics.lineHeight,
-          ),
-    );
+TextStyle morphBarLabelStyle(
+  MorphBarMetrics metrics, {
+  bool bold = false,
+  BuildContext? context,
+}) => MorphTypography.resolve(
+  (bold ? MorphTypography.barButtonProminent : MorphTypography.barButton)
+      .copyWith(fontSize: metrics.fontSize, height: MorphBarMetrics.lineHeight),
+  context: context,
+);
 
 /// The width of the content of [button].
 @internal
@@ -704,6 +705,7 @@ double morphBarContentWidth(
   TextScaler scaler,
   TextDirection direction, {
   bool bold = false,
+  BuildContext? context,
 }) {
   final label = button.label;
   var width = 0.0;
@@ -711,7 +713,7 @@ double morphBarContentWidth(
     final painter = TextPainter(
       text: TextSpan(
         text: label,
-        style: morphBarLabelStyle(metrics, bold: bold),
+        style: morphBarLabelStyle(metrics, bold: bold, context: context),
       ),
       textDirection: direction,
       textScaler: scaler,
@@ -737,6 +739,7 @@ double morphBarContentWidth(
 /// [MorphBarMetrics.groupGap] apart, [top] the capsules' top edge.
 @internal
 List<MorphBarCapsuleLayout> morphLayoutBarGroups({
+  BuildContext? context,
   required List<MorphPlacedGroup> groups,
   required double width,
   required double top,
@@ -750,8 +753,14 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
   final rtl = direction == TextDirection.rtl;
   final measure =
       contentWidth ??
-      (MorphBarButton b, {required bool bold}) =>
-          morphBarContentWidth(b, metrics, scaler, direction, bold: bold);
+      (MorphBarButton b, {required bool bold}) => morphBarContentWidth(
+        b,
+        metrics,
+        scaler,
+        direction,
+        bold: bold,
+        context: context,
+      );
   final out = <MorphBarCapsuleLayout>[];
   final leading = [
     for (final g in groups)
@@ -948,7 +957,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   bool _hasLayout = false;
   double _laidWidth = 0;
   final Map<(String?, bool, bool), double> _widths = {};
-  (TextScaler, TextDirection, MorphBarMetrics)? _widthsFor;
+  (TextScaler, TextDirection, MorphBarMetrics, String?)? _widthsFor;
   bool _prune = false;
   final _FlatBodies _flat = _FlatBodies();
   final _FlatBodies _flatApart = _FlatBodies();
@@ -1248,7 +1257,10 @@ class _MorphBarItemsState extends State<MorphBarItems>
     );
     menu.content.entries = items;
     menu.content.rtl = Directionality.maybeOf(context) == TextDirection.rtl;
-    menu.content.titleStyle = MorphTypography.resolve(menu.style.textStyle);
+    menu.content.titleStyle = MorphTypography.resolve(
+      menu.style.textStyle,
+      context: context,
+    );
     menu.content.textScaler =
         MediaQuery.maybeTextScalerOf(context) ?? TextScaler.noScaling;
     menu.content.beginSession();
@@ -1276,18 +1288,35 @@ class _MorphBarItemsState extends State<MorphBarItems>
     required bool bold,
   }) {
     final metrics = widget.metrics;
-    final key = (scaler, direction, metrics);
+    final key = (
+      scaler,
+      direction,
+      metrics,
+      MorphThemeScope.maybeOf(context)?.fontFamily,
+    );
     if (_widthsFor != key) {
       _widthsFor = key;
       _widths.clear();
     }
     if (button.label == null && !button.back) {
-      return morphBarContentWidth(button, metrics, scaler, direction);
+      return morphBarContentWidth(
+        button,
+        metrics,
+        scaler,
+        direction,
+        context: context,
+      );
     }
     return _widths.putIfAbsent(
       (button.label, button.back, bold),
-      () =>
-          morphBarContentWidth(button, metrics, scaler, direction, bold: bold),
+      () => morphBarContentWidth(
+        button,
+        metrics,
+        scaler,
+        direction,
+        bold: bold,
+        context: context,
+      ),
     );
   }
 
@@ -1330,6 +1359,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
           direction: direction,
           contentWidth: (MorphBarButton b, {required bool bold}) =>
               _contentWidth(b, scaler, direction, bold: bold),
+          context: context,
         );
     final groups = _groups;
     final layout = lay(groups);
@@ -2401,6 +2431,7 @@ class _ButtonContent extends StatelessWidget {
             style: morphBarLabelStyle(
               metrics,
               bold: bold,
+              context: context,
             ).copyWith(color: color),
           );
     if (button.back) {

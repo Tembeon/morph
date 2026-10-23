@@ -793,6 +793,7 @@ class _CompactLabelState extends State<_CompactLabel>
                             ? style.accentColor
                             : style.labelColor,
                       ),
+                      context: context,
                     ),
                   ),
                 ),
@@ -1266,6 +1267,7 @@ class _OverlayViewState extends State<_OverlayView>
         child: DefaultTextStyle(
           style: MorphTypography.resolve(
             TextStyle(fontSize: 17, color: style.dayColor),
+            context: context,
           ),
           child: _Crossfade(
             alignment: below
@@ -1727,12 +1729,14 @@ class _Calendar extends StatelessWidget {
         height: 1.2,
         color: years ? style.accentColor : style.titleColor,
       ),
+      context: context,
     );
     final weekday = MorphTypography.resolve(
       MorphTypography.datePickerWeekday.copyWith(
         height: 15.67 / 13,
         color: style.weekdayColor,
       ),
+      context: context,
     );
     final titleText =
         titleFormatter?.call(month) ??
@@ -1741,11 +1745,14 @@ class _Calendar extends StatelessWidget {
     // them, so a tick of any overlay motion leaves the days untouched.
     // Both grids share one shape, so a page turn's start and end keep the
     // element (and the recorded layer) of the month that stays.
-    final monthGrid = ExcludeSemantics(excluding: false, child: _month(month));
+    final monthGrid = ExcludeSemantics(
+      excluding: false,
+      child: _month(context, month),
+    );
     final previous = previousMonth;
     final previousGrid = previous == null
         ? null
-        : ExcludeSemantics(child: _month(previous));
+        : ExcludeSemantics(child: _month(context, previous));
     final calendar = Padding(
       padding: const EdgeInsets.only(top: _CalendarMetrics.top),
       child: Column(
@@ -2018,7 +2025,7 @@ class _Calendar extends StatelessWidget {
     );
   }
 
-  Widget _month(DateTime month) {
+  Widget _month(BuildContext context, DateTime month) {
     final first = DateTime(month.year, month.month);
     final lead = (first.weekday - firstDayOfWeek) % 7;
     final days = _daysIn(month);
@@ -2067,6 +2074,7 @@ class _Calendar extends StatelessWidget {
                             value.minute,
                           ),
                         ),
+                        context: context,
                       );
                     }(),
                 ],
@@ -2144,6 +2152,7 @@ class _RenderScopedRepaintBoundary extends RenderBox
 // A day is a handful of elements: the open frame builds every day of the
 // month at once, and on a slow phone each element of it counts.
 Widget _day({
+  BuildContext? context,
   required DateTime date,
   required String semanticLabel,
   required String text,
@@ -2179,6 +2188,7 @@ Widget _day({
                 ? MorphTypography.datePickerDaySelected
                 : MorphTypography.datePickerDay)
             .copyWith(height: 1.2, color: color),
+        context: context,
       ),
     ),
   );
@@ -2456,6 +2466,7 @@ const Curve _wheelStepCurve = Cubic(0.25, 0.1, 0.25, 1);
 /// smaller, at the style's faded opacity and darkened toward the
 /// cylinder's edges.
 Widget _wheel({
+  BuildContext? context,
   required _WheelGeometry geometry,
   required MorphDatePickerAppearance style,
   required FixedExtentScrollController controller,
@@ -2480,6 +2491,7 @@ Widget _wheel({
     looping: looping,
     alignment: alignment,
     padding: padding,
+    context: context,
   );
   final up = looping || selected + 1 < count;
   final down = looping || selected > 0;
@@ -2505,7 +2517,15 @@ Widget _wheel({
     child: ExcludeSemantics(
       child: views == null
           ? view()
-          : views.keep(controller, (viewKey, count, looping, style), view),
+          : views.keep(controller, (
+              viewKey,
+              count,
+              looping,
+              style,
+              context == null
+                  ? null
+                  : MorphThemeScope.maybeOf(context)?.fontFamily,
+            ), view),
     ),
   );
 }
@@ -2526,6 +2546,7 @@ class _WheelViews {
 }
 
 Widget _wheelView({
+  BuildContext? context,
   required _WheelGeometry geometry,
   required MorphDatePickerAppearance style,
   required FixedExtentScrollController controller,
@@ -2538,6 +2559,7 @@ Widget _wheelView({
 }) {
   final row = MorphTypography.resolve(
     TextStyle(fontSize: _WheelGeometry.fontSize, color: style.wheelColor),
+    context: context,
   );
   // The context the haptic plays in; a kept view keeps its own.
   return Builder(
@@ -2793,6 +2815,7 @@ class _TimeWheelsState extends State<_TimeWheels> {
                       onSelected: _hourChanged,
                       views: _views,
                       viewKey: (widget.twentyFour, widget.numberFormatter),
+                      context: context,
                     ),
                   ),
                   _column(
@@ -2810,6 +2833,7 @@ class _TimeWheelsState extends State<_TimeWheels> {
                       onSelected: _minuteChanged,
                       views: _views,
                       viewKey: (_step, widget.numberFormatter),
+                      context: context,
                     ),
                   ),
                   if (twelve)
@@ -2833,6 +2857,7 @@ class _TimeWheelsState extends State<_TimeWheels> {
                         onSelected: _meridiemChanged,
                         views: _views,
                         viewKey: widget.localize,
+                        context: context,
                       ),
                     ),
                 ],
@@ -2983,6 +3008,7 @@ class _MonthYearWheelsState extends State<_MonthYearWheels> {
                       onSelected: (int i) {
                         if (!_syncing) setState(() => _month = i % 12 + 1);
                       },
+                      context: context,
                     ),
                   ),
                   PositionedDirectional(
@@ -3004,6 +3030,7 @@ class _MonthYearWheelsState extends State<_MonthYearWheels> {
                       onSelected: (int i) {
                         if (!_syncing) setState(() => _year = _firstYear + i);
                       },
+                      context: context,
                     ),
                   ),
                 ],

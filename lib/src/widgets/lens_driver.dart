@@ -27,9 +27,17 @@ RRect morphLensShape(MorphLensMotion motion, Size size, {required bool rtl}) {
 
 /// Measures a resolved control label at [scaler], disposing its painter.
 @internal
-double morphLensLabelWidth(String text, TextStyle style, TextScaler scaler) {
+double morphLensLabelWidth(
+  String text,
+  TextStyle style,
+  TextScaler scaler, {
+  BuildContext? context,
+}) {
   final painter = TextPainter(
-    text: TextSpan(text: text, style: MorphTypography.resolve(style)),
+    text: TextSpan(
+      text: text,
+      style: MorphTypography.resolve(style, context: context),
+    ),
     textDirection: TextDirection.ltr,
     textScaler: scaler,
     maxLines: 1,
@@ -56,22 +64,27 @@ class MorphLabelWidths {
   List<double> of(
     List<String> labels,
     List<TextStyle> styles,
-    TextScaler scaler,
-  ) {
+    TextScaler scaler, {
+    BuildContext? context,
+  }) {
+    final resolved = [
+      for (final style in styles)
+        MorphTypography.resolve(style, context: context),
+    ];
     final apple = MorphTypography.usesAppleSystemFont;
     if (_scaler == scaler &&
         _apple == apple &&
         listEquals(_labels, labels) &&
-        listEquals(_styles, styles)) {
+        listEquals(_styles, resolved)) {
       return _widths;
     }
     _labels = List.of(labels);
-    _styles = List.of(styles);
+    _styles = resolved;
     _scaler = scaler;
     _apple = apple;
     return _widths = [
       for (final label in labels)
-        styles.fold<double>(
+        resolved.fold<double>(
           0,
           (widest, style) =>
               math.max(widest, morphLensLabelWidth(label, style, scaler)),

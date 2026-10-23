@@ -5,6 +5,9 @@
 /// README.
 library;
 
+export 'src/presentation.dart' show MorphPresentationBoundary;
+export 'src/widgets/control_state.dart'
+    show MorphControlState, MorphControlBuilder;
 export 'src/scope.dart' show MorphSource, MorphSourceLink;
 export 'src/theme/glass.dart' show MorphGlassRenderer, MorphGlassTier;
 export 'src/theme/localizations.dart'
@@ -56,6 +59,8 @@ export 'src/widgets/menu.dart'
         MorphMenuButton,
         MorphMenuSource,
         MorphMenuTrigger;
+export 'src/widgets/menu_presentation.dart'
+    show MorphMenuPresentationController;
 export 'src/widgets/menu_entries.dart'
     show
         MorphMenuDeferred,
@@ -110,12 +115,19 @@ export 'src/widgets/slider.dart' show MorphSlider, MorphSliderAppearance;
 export 'src/widgets/stepper.dart' show MorphStepper, MorphStepperAppearance;
 export 'src/widgets/switch.dart' show MorphSwitch, MorphSwitchAppearance;
 export 'src/widgets/tab_bar.dart'
-    show MorphTabBar, MorphTabBarAppearance, MorphTabItem, MorphTabRole;
+    show
+        MorphTabBar,
+        MorphTabBarAppearance,
+        MorphTabItem,
+        MorphTabRole,
+        MorphTabReplicaBuilder;
 export 'src/widgets/tab_bar_chrome.dart'
     show
         MorphContentScroll,
         MorphContentScrollScope,
         MorphTabAccessoryEnvironment;
 export 'src/widgets/tab_bar_minimize.dart' show MorphTabBarMinimizeBehavior;
+export 'src/widgets/touch_feedback.dart'
+    show MorphTouchTarget, MorphTouchFeedback;
 export 'src/widgets/toolbar.dart' show MorphToolbar;
 export 'src/widgets/typography.dart' show MorphTypography;

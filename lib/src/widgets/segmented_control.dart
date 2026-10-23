@@ -2,9 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart' show SchedulerPhase;
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/control_host.dart';
+import 'package:morph/src/widgets/control_state.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/highlight_motion.dart';
@@ -34,6 +36,11 @@ class MorphSegmentedControl extends StatefulWidget {
     required this.segments,
     required this.selectedIndex,
     required this.onChanged,
+    this.onActivated,
+    this.onPreviewChanged,
+    this.onPreviewCancelled,
+    this.track,
+    this.lensColorAt,
     this.proportionalWidth = false,
     this.appearance,
     super.key,
@@ -56,6 +63,35 @@ class MorphSegmentedControl extends StatefulWidget {
   /// Called with the new index when the user selects a segment; null
   /// disables the control.
   final ValueChanged<int>? onChanged;
+
+  /// Called on every committed activation, including the selected segment.
+  ///
+  /// Use this instead of [onChanged] for re-tap-to-deselect. Changing the
+  /// nullable [selectedIndex] remains the owner's responsibility. Either
+  /// callback enables the control; [onChanged] still reports changes only.
+  final ValueChanged<int>? onActivated;
+
+  /// The selectable segment under the finger, or null when preview ends.
+  ///
+  /// A preview never commits a selection. Release ends preview before
+  /// activation; cancellation also calls [onPreviewCancelled].
+  final ValueChanged<int?>? onPreviewChanged;
+
+  /// Called when an active preview ends without a commit.
+  final VoidCallback? onPreviewCancelled;
+
+  /// Content behind the lens and labels, replacing the plain track fill.
+  ///
+  /// Clip or decorate this child as needed; it receives the track's box.
+  /// It stays mounted and is not rebuilt by lens animation.
+  final Widget? track;
+
+  /// The lens tint at a fractional logical segment index.
+  ///
+  /// Zero is the first center, one the second, including in RTL. Called
+  /// during paint; keep this function pure and cheap. The measured lift
+  /// still fades the tint into the lifted material.
+  final Color Function(double position)? lensColorAt;
 
   /// Whether segments are as wide as their labels instead of equal (UIKit
   /// `apportionsSegmentWidthsByContent`).
@@ -90,7 +126,34 @@ class MorphSegmentedControl extends StatefulWidget {
 @immutable
 class MorphSegment {
   /// Creates a segment labelled [title].
-  const MorphSegment(this.title, {this.enabled = true, this.width});
+  const MorphSegment(this.title, {this.enabled = true, this.width})
+    : child = null,
+      builder = null,
+      semanticLabel = null;
+
+  /// Creates custom content with an explicit screen-reader label.
+  ///
+  /// [builder] sees input edges and retains [child]; neither rebuilds for
+  /// lens frames. Supply [width] for a non-text intrinsic width; otherwise
+  /// content sizing uses [semanticLabel] in the appearance's label styles.
+  const MorphSegment.custom({
+    required String semanticLabel,
+    this.child,
+    this.builder,
+    this.enabled = true,
+    this.width,
+  }) : assert(child != null || builder != null),
+       title = semanticLabel,
+       semanticLabel = semanticLabel;
+
+  /// Custom content, or null for the title.
+  final Widget? child;
+
+  /// Builds custom content from read-only interaction flags.
+  final MorphControlBuilder? builder;
+
+  /// An explicit accessibility label, or null for [title].
+  final String? semanticLabel;
 
   /// The label of the segment.
   final String title;
@@ -109,11 +172,15 @@ class MorphSegment {
   bool operator ==(Object other) =>
       other is MorphSegment &&
       other.title == title &&
+      other.child == child &&
+      other.builder == builder &&
+      other.semanticLabel == semanticLabel &&
       other.enabled == enabled &&
       other.width == width;
 
   @override
-  int get hashCode => Object.hash(title, enabled, width);
+  int get hashCode =>
+      Object.hash(title, enabled, width, child, builder, semanticLabel);
 }
 
 /// The look of a [MorphSegmentedControl].
@@ -324,7 +391,7 @@ class _MorphSegmentedControlState
   @override
   double trackPosition(Offset local) => _rtl ? _width - local.dx : local.dx;
 
-  bool get _enabled => widget.onChanged != null;
+  bool get _enabled => widget.onChanged != null || widget.onActivated != null;
 
   final MorphSegmentHighlightMotion _highlight = MorphSegmentHighlightMotion();
   final ValueNotifier<(int?, double)> _dim = ValueNotifier((null, 1));
@@ -373,6 +440,7 @@ class _MorphSegmentedControlState
     [for (final segment in widget.segments) segment.title],
     [_style.textStyle, _style.selectedTextStyle],
     _scaler,
+    context: context,
   );
 
   List<MorphLensSlot> _layout(double width) {
@@ -468,6 +536,7 @@ class _MorphSegmentedControlState
 
   void _selected(int index) {
     if (index != widget.selectedIndex) widget.onChanged?.call(index);
+    widget.onActivated?.call(index);
     reconcileSelection(() {
       final selected = widget.selectedIndex;
       if (widget.segments.isEmpty) return -1;
@@ -481,12 +550,16 @@ class _MorphSegmentedControlState
     if (_none) {
       motion.place(clock, index);
       setState(() {});
-      widget.onChanged?.call(index);
+      _selected(index);
       wake();
       return;
     }
-    motion.select(clock, index);
-    deliverMotionEvents();
+    if (index == motion.selected) {
+      _selected(index);
+    } else {
+      motion.select(clock, index);
+      deliverMotionEvents();
+    }
     wake();
   }
 
@@ -505,9 +578,68 @@ class _MorphSegmentedControlState
   }
 
   int? _noneDown;
+  int? _preview;
+  int? _hovered;
+  bool _tracking = false;
+  bool _previewStarted = false;
+
+  bool get _customState =>
+      widget.segments.any((segment) => segment.builder != null);
+
+  void _previewAt(Offset local) {
+    final inside = (Offset.zero & Size(_width, _style.height))
+        .inflate(pressSlop)
+        .contains(local);
+    final slot = motion.slotAt(trackPosition(local));
+    final next = inside && _selectable(slot) ? slot : null;
+    if (_preview == next) return;
+    _preview = next;
+    if (next != null) _previewStarted = true;
+    if (_customState) setState(() {});
+    _notifyPreview(next);
+  }
+
+  void _endPreview({bool cancelled = false}) {
+    final hadPreview = _previewStarted;
+    _previewStarted = false;
+    final hadIndex = _preview != null;
+    _tracking = false;
+    _preview = null;
+    if (_customState) setState(() {});
+    if (hadIndex || hadPreview && cancelled) {
+      _notifyPreview(
+        null,
+        changed: hadIndex,
+        cancelled: hadPreview && cancelled,
+      );
+    }
+  }
+
+  void _notifyPreview(
+    int? index, {
+    bool changed = true,
+    bool cancelled = false,
+  }) {
+    void deliver() {
+      if (!mounted) return;
+      if (changed) widget.onPreviewChanged?.call(index);
+      if (cancelled) widget.onPreviewCancelled?.call();
+    }
+
+    // Disable arrives during the parent's build; notify its consumer
+    // after that build rather than asking an ancestor to build again.
+    if (WidgetsBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => deliver());
+    } else {
+      deliver();
+    }
+  }
 
   @override
   void onControlDown(double t, PointerDownEvent event) {
+    _tracking = true;
+    _previewAt(event.localPosition);
     _pressTitle(t, event.localPosition);
     if (!_none) {
       super.onControlDown(t, event);
@@ -518,28 +650,95 @@ class _MorphSegmentedControlState
 
   @override
   void onControlMove(double t, PointerMoveEvent event) {
+    _previewAt(event.localPosition);
     if (_noneDown == null) super.onControlMove(t, event);
   }
 
   @override
   void onControlUp(double t, PointerUpEvent event) {
     _releaseTitle(t);
+    _endPreview();
+    final index = motion.slotAt(trackPosition(event.localPosition));
     if (_noneDown == null) {
+      final previous = motion.selected;
       super.onControlUp(t, event);
+      // The measured motion emits only a changed selection.
+      if (index == previous && _selectable(index)) _selected(index);
       return;
     }
     _noneDown = null;
-    _select(motion.slotAt(trackPosition(event.localPosition)));
+    _select(index);
   }
 
   @override
   void onControlCancel(double t) {
     _releaseTitle(t);
+    _endPreview(cancelled: true);
     if (_noneDown == null) {
       super.onControlCancel(t);
       return;
     }
     _noneDown = null;
+  }
+
+  Color _lensColor(double lift) {
+    final custom = widget.lensColorAt;
+    if (custom == null) {
+      return Color.lerp(_style.lensColor, _style.liftedLensColor, lift)!;
+    }
+    var position = 0.0;
+    for (var i = 1; i < _slots.length; i++) {
+      final before = _slots[i - 1].center;
+      final after = _slots[i].center;
+      if (motion.center >= after) {
+        position = i.toDouble();
+        continue;
+      }
+      position =
+          i - 1 + ((motion.center - before) / (after - before)).clamp(0.0, 1.0);
+      break;
+    }
+    final color = custom(position);
+    return color.withValues(
+      alpha: color.a * (1 - lift * (1 - _style.liftedLensColor.a)),
+    );
+  }
+
+  Widget _label(int i, int selected) {
+    final segment = widget.segments[i];
+    final child =
+        segment.child ??
+        Text(
+          segment.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textScaler: _scaler,
+          style: MorphTypography.resolve(
+            i == selected ? _style.selectedTextStyle : _style.textStyle,
+            context: context,
+          ),
+        );
+    final builder = segment.builder;
+    final content = builder == null
+        ? child
+        : builder(
+            context,
+            MorphControlState(
+              selected: i == selected,
+              active: _preview == i,
+              pressed: _tracking && _preview == i,
+              focused: controlFocused && i == selected,
+              hovered: _hovered == i,
+              enabled: _enabled && segment.enabled,
+            ),
+            segment.child,
+          );
+    if (builder == null) return content;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = i),
+      onExit: (_) => setState(() => _hovered = null),
+      child: content,
+    );
   }
 
   static bool _sameSlots(List<MorphLensSlot> a, List<MorphLensSlot> b) {
@@ -575,23 +774,20 @@ class _MorphSegmentedControlState
     final frame = _frame(Size(_width, _style.height));
     final style = _style;
     return [
-      MorphGlassSurface(
-        kind: MorphGlassKind.track,
-        shape: frame.track,
-        color: style.trackColor,
-        brightness: _brightness,
-        enabled: _enabled,
-        glass: false,
-      ),
+      if (widget.track == null)
+        MorphGlassSurface(
+          kind: MorphGlassKind.track,
+          shape: frame.track,
+          color: style.trackColor,
+          brightness: _brightness,
+          enabled: _enabled,
+          glass: false,
+        ),
       if (!_none)
         MorphGlassSurface(
           kind: MorphGlassKind.lens,
           shape: frame.lens,
-          color: Color.lerp(
-            style.lensColor,
-            style.liftedLensColor,
-            frame.lift,
-          )!,
+          color: _lensColor(frame.lift),
           brightness: _brightness,
           lift: frame.lift,
           scaleX: motion.scaleX,
@@ -616,12 +812,15 @@ class _MorphSegmentedControlState
       listEquals(oldWidget.segments, widget.segments) &&
       oldWidget.selectedIndex == widget.selectedIndex &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
+      (oldWidget.onActivated == null) == (widget.onActivated == null) &&
+      oldWidget.track == widget.track &&
+      oldWidget.lensColorAt == widget.lensColorAt &&
       oldWidget.proportionalWidth == widget.proportionalWidth &&
       oldWidget.appearance == widget.appearance;
 
   // The labels read whether a selection shows besides the motion's.
   @override
-  Object? get buildInputs => (_motion?.selected, _none);
+  Object? get buildInputs => (_motion?.selected, _none, _preview, _tracking);
 
   @override
   Widget buildControl(BuildContext context) {
@@ -668,17 +867,7 @@ class _MorphSegmentedControlState
                         child: _dimmed(
                           !widget.segments[i].enabled,
                           style.disabledOpacity,
-                          Text(
-                            widget.segments[i].title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textScaler: _scaler,
-                            style: MorphTypography.resolve(
-                              i == selected
-                                  ? style.selectedTextStyle
-                                  : style.textStyle,
-                            ),
-                          ),
+                          _label(i, selected),
                         ),
                       ),
                     ),
@@ -693,6 +882,22 @@ class _MorphSegmentedControlState
         final content = morphGlassKeepsContentLive(glass)
             ? RepaintBoundary(child: labels)
             : labels;
+        final surface = glass == null
+            ? CustomPaint(painter: _SegmentedPainter(this), child: content)
+            : MorphGlassLayer(
+                painter: glass,
+                frames: frames,
+                surfaces: _surfaces,
+                content: content,
+                contentSlots: _contentSlots(width),
+              );
+        var painted = surface;
+        if (widget.track case final track?) {
+          painted = Stack(fit: StackFit.expand, children: [track, surface]);
+          // The lens must sample this track even when earlier controls
+          // already captured the surrounding shared backdrop group.
+          if (glass != null) painted = BackdropGroup(child: painted);
+        }
         return RepaintBoundary(
           child: MorphDisabled(
             enabled: _enabled,
@@ -702,24 +907,16 @@ class _MorphSegmentedControlState
               enabled: _enabled,
               onHighlight: highlightControlFocus,
               onStep: _step,
+              onActivate: () {
+                if (!_none) _select(motion.selected);
+              },
               dragAxis: .horizontal,
               child: MorphFocusRing(
                 visible: controlFocused,
                 child: SizedBox(
                   height: style.height,
                   width: width,
-                  child: glass == null
-                      ? CustomPaint(
-                          painter: _SegmentedPainter(this),
-                          child: content,
-                        )
-                      : MorphGlassLayer(
-                          painter: glass,
-                          frames: frames,
-                          surfaces: _surfaces,
-                          content: content,
-                          contentSlots: _contentSlots(width),
-                        ),
+                  child: painted,
                 ),
               ),
             ),
@@ -741,7 +938,7 @@ class _SegmentedPainter extends CustomPainter {
     final frame = state._frame(size);
     final trackPaint = Paint();
     trackPaint.color = style.trackColor;
-    canvas.drawRRect(frame.track, trackPaint);
+    if (state.widget.track == null) canvas.drawRRect(frame.track, trackPaint);
     if (state._none) return;
     final lift = frame.lift;
     final lens = frame.lens;
@@ -750,7 +947,7 @@ class _SegmentedPainter extends CustomPainter {
     shadow.maskFilter = MaskFilter.blur(BlurStyle.normal, 3 + 5 * lift);
     canvas.drawRRect(lens.shift(const Offset(0, 1.5)), shadow);
     final fill = Paint();
-    fill.color = Color.lerp(style.lensColor, style.liftedLensColor, lift)!;
+    fill.color = state._lensColor(lift);
     canvas.drawRRect(lens, fill);
     if (lift > 0.01) {
       final border = Paint();

@@ -25,6 +25,7 @@ import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
+import 'package:morph/src/widgets/menu_presentation.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -266,6 +267,8 @@ enum MorphMenuTrigger {
 abstract class _MorphMenuSourceWidget extends StatefulWidget {
   const _MorphMenuSourceWidget({
     required this.menu,
+    this.menuBuilder,
+    this.controller,
     required this.appearance,
     required this.tuning,
     required this.overlay,
@@ -285,6 +288,14 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 
   /// The entries of the menu, top to bottom when it opens downward.
   final List<MorphMenuEntry> menu;
+
+  /// Resolves current entries when preparing an opening and on rebuild
+  /// while presented. Null uses [menu]. Deferred entries retain their
+  /// existing cache and open-menu updates still use the same controller.
+  final List<MorphMenuEntry> Function(BuildContext context)? menuBuilder;
+
+  /// The optional programmatic opening and completed-dismissal handle.
+  final MorphMenuPresentationController? controller;
 
   /// The look of the menu; null resolves it through
   /// [MorphMenuAppearance.resolve].
@@ -377,7 +388,9 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 class MorphMenuSource extends _MorphMenuSourceWidget {
   /// Creates a source that opens [menu] from [child].
   const MorphMenuSource({
-    required super.menu,
+    super.menu = const [],
+    super.menuBuilder,
+    super.controller,
     required this.child,
     this.look,
     this.shape = const StadiumBorder(),
@@ -524,7 +537,9 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
 class MorphMenuButton extends _MorphMenuSourceWidget {
   /// Creates a menu button.
   const MorphMenuButton({
-    required super.menu,
+    super.menu = const [],
+    super.menuBuilder,
+    super.controller,
     this.child,
     this.size = MorphMenuTuning.buttonDiameter,
     super.appearance,
@@ -740,7 +755,10 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     glyph: () => _glyphFor(_style, true),
     glyphKey: () => widget._source == null ? null : widget._look,
     semanticLabel: () => _semanticLabel,
-    onOpen: (MorphFlight flight) => widget.onOpen?.call(flight),
+    onOpen: (MorphFlight flight) {
+      widget.controller?.presented(flight.closed);
+      widget.onOpen?.call(flight);
+    },
     onTap: _tapped,
   );
 
@@ -811,6 +829,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   @override
   void initState() {
     super.initState();
+    _attachController();
     _content.entries = widget.menu;
     _content.order = widget.order;
     _ticks.follow(frames);
@@ -819,13 +838,37 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   @override
   void didUpdateWidget(_MorphMenuSourceWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.detach(this);
+      _attachController();
+      if (_flight case final flight?) {
+        widget.controller?.presented(flight.closed);
+      }
+    }
     _host.updateEntries(
-      widget.menu,
+      (_motion?.isPresented ?? false) || (_motion?.isArming ?? false)
+          ? _entries
+          : widget.menu,
       order: widget.order,
       dismissOnSelect: widget.dismissOnSelect,
     );
     if (oldWidget.enabled && !widget.enabled) _host.close();
   }
+
+  List<MorphMenuEntry> get _entries =>
+      widget.menuBuilder?.call(context) ?? widget.menu;
+
+  void _attachController() => widget.controller?.attach(
+    this,
+    open: () {
+      if (mounted && widget.enabled && !(_motion?.isOpen ?? false)) {
+        _openFromSemantics();
+      }
+    },
+    close: () {
+      if (_motion != null) _host.close();
+    },
+  );
 
   @override
   void deactivate() {
@@ -841,6 +884,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
 
   @override
   void dispose() {
+    widget.controller?.detach(this);
     _host.dispose();
     _structure.dispose();
     _expanded.dispose();
@@ -849,6 +893,13 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   }
 
   MorphMenuMotion _prepare() {
+    if (!(_motion?.isOpen ?? false)) {
+      _host.updateEntries(
+        _entries,
+        order: widget.order,
+        dismissOnSelect: widget.dismissOnSelect,
+      );
+    }
     final current = _motion;
     if (current != null && current.isPresented) {
       if (current.isClosing) _host.beginReopenSession();
@@ -869,7 +920,10 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
       overlayBox: overlayBox,
     );
     _content.rtl = Directionality.maybeOf(context) == TextDirection.rtl;
-    _content.titleStyle = MorphTypography.resolve(_style.textStyle);
+    _content.titleStyle = MorphTypography.resolve(
+      _style.textStyle,
+      context: context,
+    );
     _content.textScaler =
         MediaQuery.maybeTextScalerOf(context) ?? TextScaler.noScaling;
     _content.beginSession();
@@ -1510,6 +1564,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       content: widget.host.menuContent,
       onSelect: (int target) => _select(layout, target),
       cover: cover,
+      context: context,
     );
   }
 
@@ -2069,6 +2124,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                                     DefaultTextStyle(
                                       style: MorphTypography.resolve(
                                         style.textStyle,
+                                        context: context,
                                       ),
                                       child: _CardHeader(
                                         frames: _ticks,
@@ -2470,11 +2526,14 @@ class _CardHeader extends StatelessWidget {
 
   Color get _title => style.textStyle.color ?? style.iconColor;
 
-  Widget _text(TextStyle base) => Text(
+  Widget _text(BuildContext context, TextStyle base) => Text(
     header.title ?? '',
     maxLines: 1,
     overflow: TextOverflow.ellipsis,
-    style: MorphTypography.resolve(base).copyWith(color: _title),
+    style: MorphTypography.resolve(
+      base,
+      context: context,
+    ).copyWith(color: _title),
   );
 
   @override
@@ -2534,13 +2593,14 @@ class _CardHeader extends StatelessWidget {
                     MorphLiveTemplate(
                       live: frames,
                       template: () => Opacity(opacity: 1 - values().bold),
-                      child: _text(style.textStyle),
+                      child: _text(context, style.textStyle),
                     ),
                   if (faces.bold)
                     MorphLiveTemplate(
                       live: frames,
                       template: () => Opacity(opacity: values().bold),
                       child: _text(
+                        context,
                         style.textStyle.merge(MorphTypography.title),
                       ),
                     ),
@@ -2589,6 +2649,7 @@ class _CardHeader extends StatelessWidget {
 /// their own layer. With a [limit] only the first [limit] elements are
 /// built, leaving out loading rows and free-form widgets.
 Widget _menuRows({
+  BuildContext? context,
   required MorphMenuLayout layout,
   required MorphMenuAppearance style,
   required ValueListenable<int?> hidden,
@@ -2598,7 +2659,7 @@ Widget _menuRows({
   int? limit,
 }) {
   final Widget rows = DefaultTextStyle(
-    style: MorphTypography.resolve(style.textStyle),
+    style: MorphTypography.resolve(style.textStyle, context: context),
     child: _MenuRows(
       layout: layout,
       style: style,
@@ -2623,7 +2684,11 @@ Widget _menuRows({
 /// open menu draws them with, so the opening moves them into the menu
 /// instead of building them in its first frame.
 @internal
-Widget morphMenuPrebuiltRows(MorphMenuController host, int count) {
+Widget morphMenuPrebuiltRows(
+  MorphMenuController host,
+  int count, {
+  BuildContext? context,
+}) {
   final motion = host.menuMotion!;
   final layout = motion.layout;
   return ExcludeFocus(
@@ -2646,6 +2711,7 @@ Widget morphMenuPrebuiltRows(MorphMenuController host, int count) {
                   onSelect: _ignoreSelect,
                   cover: host.menuRowsBlur,
                   limit: count,
+                  context: context,
                 ),
               ),
             ],
@@ -2831,6 +2897,7 @@ class _MenuElement extends StatelessWidget {
       );
 
   Widget _text(
+    BuildContext context,
     String text,
     TextStyle base,
     Color color, {
@@ -2841,7 +2908,10 @@ class _MenuElement extends StatelessWidget {
     maxLines: maxLines,
     overflow: TextOverflow.ellipsis,
     textAlign: align,
-    style: MorphTypography.resolve(base).copyWith(color: color),
+    style: MorphTypography.resolve(
+      base,
+      context: context,
+    ).copyWith(color: color),
   );
 
   @override
@@ -2853,24 +2923,24 @@ class _MenuElement extends StatelessWidget {
       child: switch (element.kind) {
         MorphMenuPlacedKind.row when hidden => Opacity(
           opacity: 0,
-          child: _row(),
+          child: _row(context),
         ),
-        MorphMenuPlacedKind.row => _row(),
-        MorphMenuPlacedKind.header => _header(),
+        MorphMenuPlacedKind.row => _row(context),
+        MorphMenuPlacedKind.header => _header(context),
         MorphMenuPlacedKind.separator => ColoredBox(
           color: style.separatorColor,
         ),
         MorphMenuPlacedKind.palette ||
         MorphMenuPlacedKind.small ||
-        MorphMenuPlacedKind.medium => _cell(),
-        MorphMenuPlacedKind.loading => _loading(),
+        MorphMenuPlacedKind.medium => _cell(context),
+        MorphMenuPlacedKind.loading => _loading(context),
         MorphMenuPlacedKind.widget => _widget(),
         MorphMenuPlacedKind.cardHeader => const SizedBox.shrink(),
       },
     );
   }
 
-  Widget _row() {
+  Widget _row(BuildContext context) {
     final entry = element.entry;
     final String title;
     final String? subtitle;
@@ -2961,6 +3031,7 @@ class _MenuElement extends StatelessWidget {
               crossAxisAlignment: .start,
               children: [
                 _text(
+                  context,
                   title,
                   style.textStyle,
                   color,
@@ -2968,7 +3039,12 @@ class _MenuElement extends StatelessWidget {
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: MorphMenuTuning.subtitleGap),
-                  _text(subtitle, _subtitleStyle, style.secondaryColor),
+                  _text(
+                    context,
+                    subtitle,
+                    _subtitleStyle,
+                    style.secondaryColor,
+                  ),
                 ],
               ],
             ),
@@ -2994,7 +3070,7 @@ class _MenuElement extends StatelessWidget {
 
   static const _subtitleStyle = TextStyle(fontSize: 13);
 
-  Widget _header() {
+  Widget _header(BuildContext context) {
     return Semantics(
       header: true,
       label: element.title,
@@ -3006,6 +3082,7 @@ class _MenuElement extends StatelessWidget {
             end: width - element.titleEnd,
             top: _metrics.headerLabelTop,
             child: _text(
+              context,
               element.title ?? '',
               _subtitleStyle,
               style.secondaryColor,
@@ -3016,7 +3093,7 @@ class _MenuElement extends StatelessWidget {
     );
   }
 
-  Widget _cell() {
+  Widget _cell(BuildContext context) {
     final entry = element.entry;
     final String title;
     final Widget? icon;
@@ -3075,6 +3152,7 @@ class _MenuElement extends StatelessWidget {
             right: 2,
             top: metrics.mediumLabelTop,
             child: _text(
+              context,
               title,
               const TextStyle(fontSize: 12),
               color,
@@ -3121,7 +3199,7 @@ class _MenuElement extends StatelessWidget {
     );
   }
 
-  Widget _loading() {
+  Widget _loading(BuildContext context) {
     final check = element.imageCenter ?? _metrics.imageCenter;
     return Semantics(
       label: element.title,
@@ -3142,6 +3220,7 @@ class _MenuElement extends StatelessWidget {
             child: Align(
               alignment: AlignmentDirectional.centerStart,
               child: _text(
+                context,
                 element.title ?? '',
                 style.textStyle,
                 style.disabledColor,

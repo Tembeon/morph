@@ -15,6 +15,7 @@ class MorphThemeData {
   const MorphThemeData({
     this.brightness,
     this.tint,
+    this.fontFamily,
     this.haptics = true,
     this.glass,
     this.appearances = const <MorphAppearance>[],
@@ -26,6 +27,12 @@ class MorphThemeData {
   /// The accent the controls take, iOS's tint color; null keeps each
   /// control's own system color.
   final Color? tint;
+
+  /// The font family for built-in control text, or null for native defaults.
+  ///
+  /// Explicit families in appearance text styles win. Sizes and weights
+  /// retain their measured roles; this does not inherit DefaultTextStyle.
+  final String? fontFamily;
 
   /// Whether the controls play haptic feedback where their UIKit
   /// counterparts do: a switch flipped by touch, a page control, a wheel
@@ -59,12 +66,14 @@ class MorphThemeData {
   MorphThemeData copyWith({
     Brightness? brightness,
     Color? tint,
+    String? fontFamily,
     bool? haptics,
     MorphGlassRenderer? glass,
     List<MorphAppearance>? appearances,
   }) => MorphThemeData(
     brightness: brightness ?? this.brightness,
     tint: tint ?? this.tint,
+    fontFamily: fontFamily ?? this.fontFamily,
     haptics: haptics ?? this.haptics,
     glass: glass ?? this.glass,
     appearances: appearances ?? this.appearances,
@@ -75,6 +84,7 @@ class MorphThemeData {
       other is MorphThemeData &&
       other.brightness == brightness &&
       other.tint == tint &&
+      other.fontFamily == fontFamily &&
       other.haptics == haptics &&
       other.glass == glass &&
       listEquals(other.appearances, appearances);
@@ -83,6 +93,7 @@ class MorphThemeData {
   int get hashCode => Object.hash(
     brightness,
     tint,
+    fontFamily,
     haptics,
     glass,
     Object.hashAll(appearances),

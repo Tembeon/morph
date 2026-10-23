@@ -212,7 +212,7 @@ class MorphSearchField extends StatefulWidget {
     this.autofocus = false,
     this.appearance,
     this.semanticLabel,
-    this.clearLabel = 'Clear text',
+    this.clearLabel,
     this.height = MorphSearchTuning.height,
     this.glass = true,
     super.key,
@@ -257,7 +257,8 @@ class MorphSearchField extends StatefulWidget {
   final String? semanticLabel;
 
   /// The label screen readers announce for the clear button.
-  final String clearLabel;
+  /// Null uses [MorphLocalizations.clearTextLabel].
+  final String? clearLabel;
 
   /// The largest text scale the text follows.
   static const double maxTextScale = 1.5;
@@ -374,6 +375,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
     ).clamp(maxScaleFactor: MorphSearchField.maxTextScale);
     final text = MorphTypography.resolve(
       MorphTypography.searchField.copyWith(height: 1.2, color: style.textColor),
+      context: context,
     );
     final editable = EditableText(
       key: _editable,
@@ -473,7 +475,9 @@ class _MorphSearchFieldState extends State<MorphSearchField>
               ),
               child: Semantics(
                 button: true,
-                label: widget.clearLabel,
+                label:
+                    widget.clearLabel ??
+                    MorphLocalizations.of(context).clearTextLabel,
                 onTap: widget.enabled ? _clear : null,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,

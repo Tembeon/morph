@@ -124,7 +124,8 @@ class MorphCollapsingTabs extends StatelessWidget {
     final glass = this.glass;
     return Semantics(
       button: true,
-      label: label,
+      label: items[selected].semanticLabel ?? label,
+      value: items[selected].semanticValue,
       onTap: onTap,
       excludeSemantics: true,
       child: ValueListenableBuilder<bool>(
@@ -200,6 +201,7 @@ class MorphCollapsingTabs extends StatelessWidget {
                               child: _TabGlyph(
                                 item: items[i],
                                 color: style.color,
+                                textStyle: style.selectedTextStyle,
                                 showLabel: true,
                               ),
                             ),
@@ -228,6 +230,7 @@ class MorphCollapsingTabs extends StatelessWidget {
                                   _SelectedGlyph(
                                     live: live,
                                     item: items[selected],
+                                    textStyle: style.selectedTextStyle,
                                     color: () => Color.lerp(
                                       style.selectedColor,
                                       style.color,
@@ -307,7 +310,8 @@ extension on MorphCollapsingTabs {
           child: RepaintBoundary(
             child: Semantics(
               button: true,
-              label: label,
+              label: items[selected].semanticLabel ?? label,
+              value: items[selected].semanticValue,
               onTap: onTap,
               excludeSemantics: true,
               child: ValueListenableBuilder<bool>(
@@ -341,6 +345,7 @@ extension on MorphCollapsingTabs {
                               child: _TabGlyph(
                                 item: items[i],
                                 color: style.color,
+                                textStyle: style.selectedTextStyle,
                                 showLabel: true,
                               ),
                             ),
@@ -369,6 +374,7 @@ extension on MorphCollapsingTabs {
                                     ) => _SelectedGlyph(
                                       live: live,
                                       item: items[selected],
+                                      textStyle: style.selectedTextStyle,
                                       color: () => Color.lerp(
                                         style.selectedColor,
                                         style.color,
@@ -404,6 +410,7 @@ class _SelectedGlyph extends StatelessWidget {
     required this.color,
     required this.fade,
     required this.labelShown,
+    required this.textStyle,
   });
 
   final Listenable live;
@@ -411,14 +418,17 @@ class _SelectedGlyph extends StatelessWidget {
   final Color Function() color;
   final double Function() fade;
   final bool labelShown;
+  final TextStyle textStyle;
 
-  TextStyle get _labelStyle => MorphTypography.resolve(
-    MorphTypography.tabLabelSelected,
-  ).copyWith(fontSize: 10 * fade(), color: color());
+  TextStyle _labelStyle(BuildContext context) =>
+      MorphTypography.resolve(textStyle, context: context).copyWith(
+        fontSize: (textStyle.fontSize ?? 10) * fade(),
+        color: textStyle.color ?? color(),
+      );
 
   @override
   Widget build(BuildContext context) {
-    final icon = (IconTheme.of(context).opacity ?? 1) == 1
+    final icon = item.glyph == null && (IconTheme.of(context).opacity ?? 1) == 1
         ? _liveParagraph(
             Icon(
               item.icon,
@@ -435,21 +445,28 @@ class _SelectedGlyph extends StatelessWidget {
               item.label,
               maxLines: 1,
               textScaler: TextScaler.noScaling,
-              style: _labelStyle,
+              style: _labelStyle(context),
             ).build(context),
             live,
-            (TextStyle style) =>
-                style.copyWith(fontSize: 10 * fade(), color: color()),
+            (TextStyle style) => style.copyWith(
+              fontSize: (textStyle.fontSize ?? 10) * fade(),
+              color: textStyle.color ?? color(),
+            ),
           )
         : null;
     if (icon == null || (labelShown && text == null)) {
       return ListenableBuilder(
         listenable: live,
-        builder: (BuildContext context, Widget? _) => _TabGlyph(
+        child: item.glyph == null
+            ? null
+            : item.replicaBuilder!(context, selected: true, minimized: true),
+        builder: (BuildContext context, Widget? glyph) => _TabGlyph(
           item: item,
           color: color(),
           showLabel: false,
           labelOpacity: fade(),
+          glyph: glyph,
+          textStyle: textStyle,
         ),
       );
     }
@@ -555,12 +572,16 @@ class _TabGlyph extends StatelessWidget {
     required this.color,
     required this.showLabel,
     this.labelOpacity = 1,
+    this.glyph,
+    required this.textStyle,
   });
 
   final MorphTabItem item;
   final Color color;
   final bool showLabel;
   final double labelOpacity;
+  final Widget? glyph;
+  final TextStyle textStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -568,7 +589,14 @@ class _TabGlyph extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(item.icon, size: MorphTabBarMetrics.iconSize, color: color),
+        morphTabGlyph(
+          context,
+          item,
+          color: color,
+          selected: false,
+          minimized: true,
+          replica: glyph,
+        ),
         SizedBox(height: MorphTabBarMetrics.labelGap * labelVisible),
         if (labelVisible > 0.01)
           Opacity(
@@ -577,9 +605,11 @@ class _TabGlyph extends StatelessWidget {
               item.label,
               maxLines: 1,
               textScaler: TextScaler.noScaling,
-              style: MorphTypography.resolve(
-                MorphTypography.tabLabelSelected,
-              ).copyWith(fontSize: 10 * labelVisible, color: color),
+              style: MorphTypography.resolve(textStyle, context: context)
+                  .copyWith(
+                    fontSize: (textStyle.fontSize ?? 10) * labelVisible,
+                    color: textStyle.color ?? color,
+                  ),
             ),
           ),
       ],

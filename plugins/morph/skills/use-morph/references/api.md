@@ -306,6 +306,8 @@ const MorphContextMenuRegion({
   Key? key,
   required Widget child,
   List<MorphMenuEntry> menu = const <MorphMenuEntry>[],
+  List<MorphMenuEntry> Function(BuildContext)? menuBuilder,
+  MorphMenuPresentationController? controller,
   MorphSatellite? accessory,
   MorphMenuOrder order = MorphMenuOrder.automatic,
   bool? dismissOnSelect,
@@ -320,6 +322,7 @@ const MorphContextMenuRegion({
   bool opensOnSecondaryTap = true,
   double? maxScrimOpacity,
   Color? scrimColor,
+  OverlayState? overlay,
   String? semanticLabel,
   void Function()? onHold,
   void Function()? onClose,
@@ -335,6 +338,29 @@ static const double measuredLiftScale
 static const double measuredMenuGap
 static double measuredPreviewScale(Size size)
 static const double measuredRetractScale
+```
+
+### MorphControlBuilder
+
+`typedef MorphControlBuilder = Widget Function(BuildContext, MorphControlState, Widget?)`
+
+Builds content at interaction edges, retaining an optional [child].
+
+### MorphControlState
+
+`class MorphControlState`
+
+Read-only interaction flags for custom control content.
+
+```dart
+const MorphControlState({
+  bool selected = false,
+  bool active = false,
+  bool pressed = false,
+  bool focused = false,
+  bool hovered = false,
+  bool enabled = true,
+})
 ```
 
 ### MorphDatePicker
@@ -759,7 +785,9 @@ A round glass button that turns into its menu exactly like an iOS 27 `UIButton` 
 
 ```dart
 const MorphMenuButton({
-  required List<MorphMenuEntry> menu,
+  List<MorphMenuEntry> menu = const [],
+  List<MorphMenuEntry> Function(BuildContext)? menuBuilder,
+  MorphMenuPresentationController? controller,
   Widget? child,
   double size = MorphMenuTuning.buttonDiameter,
   MorphMenuAppearance? appearance,
@@ -868,6 +896,16 @@ priority,
 fixed,
 ```
 
+### MorphMenuPresentationController
+
+`class MorphMenuPresentationController extends ChangeNotifier`
+
+Controls one menu source or context-menu region without exposing its flight.
+
+```dart
+MorphMenuPresentationController()
+```
+
 ### MorphMenuSection
 
 `class MorphMenuSection extends MorphMenuEntry`
@@ -893,7 +931,9 @@ Turns [child] into its own morphing menu, as iOS 27 does for any `UIButton` with
 
 ```dart
 const MorphMenuSource({
-  required List<MorphMenuEntry> menu,
+  List<MorphMenuEntry> menu = const [],
+  List<MorphMenuEntry> Function(BuildContext)? menuBuilder,
+  MorphMenuPresentationController? controller,
   required Widget child,
   Widget? look,
   ShapeBorder shape = const StadiumBorder(),
@@ -1190,6 +1230,16 @@ prominent,
 minimal,
 ```
 
+### MorphPresentationBoundary
+
+`class MorphPresentationBoundary extends InheritedWidget`
+
+Marks a container whose chrome sits above its own navigator, so that what is presented from inside it goes to the world around it.
+
+```dart
+const MorphPresentationBoundary({required Widget child, Key? key})
+```
+
 ### MorphProgressView
 
 `class MorphProgressView extends StatefulWidget`
@@ -1349,7 +1399,7 @@ const MorphSearchField({
   bool autofocus = false,
   MorphSearchFieldAppearance? appearance,
   String? semanticLabel,
-  String clearLabel = 'Clear text',
+  String? clearLabel,
   double height = MorphSearchTuning.height,
   bool glass = true,
   Key? key,
@@ -1448,6 +1498,13 @@ One segment of a [MorphSegmentedControl]: UIKit's segment title (`insertSegment(
 
 ```dart
 const MorphSegment(String title, {bool enabled = true, double? width})
+const MorphSegment.custom({
+  required String semanticLabel,
+  Widget? child,
+  Widget Function(BuildContext, MorphControlState, Widget?)? builder,
+  bool enabled = true,
+  double? width,
+})
 ```
 
 ### MorphSegmentedControl
@@ -1461,6 +1518,11 @@ const MorphSegmentedControl({
   required List<MorphSegment> segments,
   required int? selectedIndex,
   required void Function(int)? onChanged,
+  void Function(int)? onActivated,
+  void Function(int?)? onPreviewChanged,
+  void Function()? onPreviewCancelled,
+  Widget? track,
+  Color Function(double)? lensColorAt,
   bool proportionalWidth = false,
   MorphSegmentedControlAppearance? appearance,
   Key? key,
@@ -1828,6 +1890,8 @@ const MorphTabBarAppearance({
   Color selectedColor = const Color(0xFF0082FC),
   Color color = const Color(0xFF0D0D0D),
   double blurSigma = 12,
+  TextStyle textStyle = MorphTypography.tabLabel,
+  TextStyle selectedTextStyle = MorphTypography.tabLabelSelected,
 })
 static const MorphTabBarAppearance dark
 static const MorphTabBarAppearance light
@@ -1864,8 +1928,26 @@ const MorphTabItem({
   MorphBadge? badge,
   bool enabled = true,
   MorphTabRole? role,
+  String? semanticLabel,
+  String? semanticValue,
+})
+const MorphTabItem.custom({
+  required Widget glyph,
+  required Widget Function(BuildContext, {required bool minimized, required bool selected}) replicaBuilder,
+  required String label,
+  MorphBadge? badge,
+  bool enabled = true,
+  MorphTabRole? role,
+  String? semanticLabel,
+  String? semanticValue,
 })
 ```
+
+### MorphTabReplicaBuilder
+
+`typedef MorphTabReplicaBuilder = Widget Function(BuildContext, {required bool minimized, required bool selected})`
+
+Builds a disposable visual copy of a custom tab glyph.
 
 ### MorphTabRole
 
@@ -1906,6 +1988,7 @@ The settings every morph control below a `MorphTheme` reads.
 const MorphThemeData({
   Brightness? brightness,
   Color? tint,
+  String? fontFamily,
   bool haptics = true,
   MorphGlassRenderer? glass,
   List<MorphAppearance> appearances = const <MorphAppearance>[],
@@ -1930,6 +2013,45 @@ const MorphToolbar({
   Key? key,
 })
 static double get capsuleHeight
+```
+
+### MorphTouchFeedback
+
+`class MorphTouchFeedback extends StatelessWidget`
+
+A passive, shaped press response for the nearest [MorphTouchTarget].
+
+```dart
+const MorphTouchFeedback({
+  required Widget child,
+  ShapeBorder shape = const StadiumBorder(),
+  bool flex = true,
+  Color? highlightColor,
+  Key? key,
+})
+```
+
+### MorphTouchTarget
+
+`class MorphTouchTarget extends StatefulWidget`
+
+One input owner for arbitrary app content, with the measured button press.
+
+```dart
+const MorphTouchTarget({
+  required Widget child,
+  void Function()? onTap,
+  void Function()? onLongPress,
+  bool enabled = true,
+  Size minSize = const Size(48, 48),
+  FocusNode? focusNode,
+  bool autofocus = false,
+  String? semanticLabel,
+  String? semanticValue,
+  bool semanticButton = true,
+  Widget Function(BuildContext, MorphControlState, Widget?)? builder,
+  Key? key,
+})
 ```
 
 ### MorphTypography
@@ -1957,7 +2079,11 @@ static const TextStyle listFooter
 static const TextStyle listHeader
 static const TextStyle listSubtitle
 static const TextStyle menuItem
-static TextStyle resolve(TextStyle style, {bool? apple})
+static TextStyle resolve(
+  TextStyle style, {
+  bool? apple,
+  BuildContext? context,
+})
 static const TextStyle searchField
 static const TextStyle segment
 static const TextStyle segmentSelected

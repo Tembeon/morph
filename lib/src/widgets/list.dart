@@ -307,7 +307,7 @@ class MorphListSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _sectionHeader(look, header),
+            _sectionHeader(look, header, context: context),
             ClipRRect(
               borderRadius: const BorderRadius.all(
                 Radius.circular(MorphListMetrics.cornerRadius),
@@ -334,7 +334,7 @@ class MorphListSection extends StatelessWidget {
                 ),
               ),
             ),
-            _sectionFooter(look, footer),
+            _sectionFooter(look, footer, context: context),
           ],
         ),
       ),
@@ -342,8 +342,11 @@ class MorphListSection extends StatelessWidget {
   }
 }
 
-Widget _sectionHeader(MorphListAppearance look, Widget? header) =>
-    header == null
+Widget _sectionHeader(
+  MorphListAppearance look,
+  Widget? header, {
+  BuildContext? context,
+}) => header == null
     ? const SizedBox(height: MorphListMetrics.noHeaderTop)
     : Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(
@@ -357,14 +360,18 @@ Widget _sectionHeader(MorphListAppearance look, Widget? header) =>
           child: DefaultTextStyle.merge(
             style: MorphTypography.resolve(
               MorphTypography.listHeader.copyWith(color: look.secondaryColor),
+              context: context,
             ),
             child: MorphLabelHeight(child: header),
           ),
         ),
       );
 
-Widget _sectionFooter(MorphListAppearance look, Widget? footer) =>
-    footer == null
+Widget _sectionFooter(
+  MorphListAppearance look,
+  Widget? footer, {
+  BuildContext? context,
+}) => footer == null
     ? const SizedBox(height: MorphListMetrics.noFooterBottom)
     : Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(
@@ -376,6 +383,7 @@ Widget _sectionFooter(MorphListAppearance look, Widget? footer) =>
         child: DefaultTextStyle.merge(
           style: MorphTypography.resolve(
             MorphTypography.listFooter.copyWith(color: look.secondaryColor),
+            context: context,
           ),
           child: MorphLabelHeight(child: footer),
         ),
@@ -426,7 +434,9 @@ class MorphSliverListSection extends StatelessWidget {
       ),
       sliver: SliverMainAxisGroup(
         slivers: [
-          SliverToBoxAdapter(child: _sectionHeader(look, header)),
+          SliverToBoxAdapter(
+            child: _sectionHeader(look, header, context: context),
+          ),
           SliverList.builder(
             itemCount: itemCount,
             itemBuilder: (BuildContext context, int i) {
@@ -457,7 +467,9 @@ class MorphSliverListSection extends StatelessWidget {
               );
             },
           ),
-          SliverToBoxAdapter(child: _sectionFooter(look, footer)),
+          SliverToBoxAdapter(
+            child: _sectionFooter(look, footer, context: context),
+          ),
         ],
       ),
     );
@@ -662,12 +674,15 @@ class _MorphListRowState extends State<MorphListRow>
         MorphListAppearance.resolve(context, null);
     final titleStyle = MorphTypography.resolve(
       MorphTypography.body.copyWith(color: look.titleColor),
+      context: context,
     );
     final secondary = MorphTypography.resolve(
       MorphTypography.body.copyWith(color: look.secondaryColor),
+      context: context,
     );
     final subtitleStyle = MorphTypography.resolve(
       MorphTypography.listSubtitle.copyWith(color: look.secondaryColor),
+      context: context,
     );
     final leading = widget.leading;
     final title = widget.title;

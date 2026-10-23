@@ -36,24 +36,74 @@ enum MorphTabRole {
   search,
 }
 
+/// Builds a disposable visual copy of a custom tab glyph.
+///
+/// [selected] requests the selected artwork; [minimized] requests the
+/// circle artwork. Several replicas can be mounted at once. Create fresh
+/// local state in each copy; never reuse the primary glyph's GlobalKey,
+/// FocusNode, controller or OverlayPortal. Share read-only listenables for
+/// animation instead. Builders run on structural changes, not lens frames.
+typedef MorphTabReplicaBuilder =
+    Widget Function(
+      BuildContext context, {
+      required bool selected,
+      required bool minimized,
+    });
+
 /// One item of a [MorphTabBar].
 class MorphTabItem {
   /// Creates a tab item.
   const MorphTabItem({
-    required this.icon,
+    required IconData this.icon,
     required this.label,
     this.selectedIcon,
     this.badge,
     this.enabled = true,
     this.role,
-  });
+    this.semanticLabel,
+    this.semanticValue,
+  }) : glyph = null,
+       replicaBuilder = null;
+
+  /// Creates a tab with a stateful primary glyph and explicit visual copies.
+  ///
+  /// Only the ordinary expanded row mounts [glyph]. The selected-mask
+  /// row and minimized representations use [replicaBuilder], so the
+  /// primary can own a key, focus node or portal without duplication.
+  /// Both receive an IconTheme with the measured size and current tint.
+  const MorphTabItem.custom({
+    required Widget this.glyph,
+    required MorphTabReplicaBuilder this.replicaBuilder,
+    required this.label,
+    this.badge,
+    this.enabled = true,
+    this.role,
+    this.semanticLabel,
+    this.semanticValue,
+  }) : icon = null,
+       selectedIcon = null;
+
+  /// The primary custom glyph, mounted once in the expanded bar.
+  final Widget? glyph;
+
+  /// Independent artwork for the lens and minimized circles.
+  final MorphTabReplicaBuilder? replicaBuilder;
+
+  /// The accessibility name, or null for [label].
+  final String? semanticLabel;
+
+  /// Additional accessibility information, such as an unread count.
+  ///
+  /// Child and badge semantics are excluded; localize this value in the
+  /// application, for example “3 unread messages” or “New items”.
+  final String? semanticValue;
 
   /// The item's role, or null for an ordinary tab. At most one item of a
   /// bar is the [MorphTabRole.search] tab, conventionally the last.
   final MorphTabRole? role;
 
   /// The item's glyph.
-  final IconData icon;
+  final IconData? icon;
 
   /// The glyph the item shows inside the selection lens (UIKit
   /// `UITabBarItem.selectedImage`), or null for [icon]: a tab half under
@@ -216,6 +266,8 @@ class MorphTabBarAppearance implements MorphAppearance {
     this.selectedColor = const Color(0xFF0082FC),
     this.color = const Color(0xFF0D0D0D),
     this.blurSigma = 12,
+    this.textStyle = MorphTypography.tabLabel,
+    this.selectedTextStyle = MorphTypography.tabLabelSelected,
   });
 
   /// The translucent fill of the bar.
@@ -238,6 +290,15 @@ class MorphTabBarAppearance implements MorphAppearance {
 
   /// The tint of the tabs outside the selection lens.
   final Color color;
+
+  /// The ordinary label style, including an explicit app font if desired.
+  ///
+  /// Widths are measured with both label styles and the clamped text scale.
+  /// Its color overrides [color] when set.
+  final TextStyle textStyle;
+
+  /// The label style inside the lens; its color overrides [selectedColor].
+  final TextStyle selectedTextStyle;
 
   /// The blur of the backdrop behind the bar.
   final double blurSigma;
@@ -266,6 +327,8 @@ class MorphTabBarAppearance implements MorphAppearance {
     Color? selectedColor,
     Color? color,
     double? blurSigma,
+    TextStyle? textStyle,
+    TextStyle? selectedTextStyle,
   }) => MorphTabBarAppearance(
     barColor: barColor ?? this.barColor,
     shadowColor: shadowColor ?? this.shadowColor,
@@ -275,6 +338,8 @@ class MorphTabBarAppearance implements MorphAppearance {
     selectedColor: selectedColor ?? this.selectedColor,
     color: color ?? this.color,
     blurSigma: blurSigma ?? this.blurSigma,
+    textStyle: textStyle ?? this.textStyle,
+    selectedTextStyle: selectedTextStyle ?? this.selectedTextStyle,
   );
 
   /// Resolves [explicit], then the ambient [MorphTheme], then the
@@ -301,7 +366,9 @@ class MorphTabBarAppearance implements MorphAppearance {
       other.lensBorderColor == lensBorderColor &&
       other.selectedColor == selectedColor &&
       other.color == color &&
-      other.blurSigma == blurSigma;
+      other.blurSigma == blurSigma &&
+      other.textStyle == textStyle &&
+      other.selectedTextStyle == selectedTextStyle;
 
   @override
   int get hashCode => Object.hash(
@@ -313,6 +380,8 @@ class MorphTabBarAppearance implements MorphAppearance {
     selectedColor,
     color,
     blurSigma,
+    textStyle,
+    selectedTextStyle,
   );
 }
 
@@ -508,8 +577,9 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
   double _widestLabel(TextScaler scaler) => _labelWidths
       .of(
         [for (final item in widget.items) item.label],
-        const [MorphTypography.tabLabelSelected],
+        [_style.textStyle, _style.selectedTextStyle],
         scaler,
+        context: context,
       )
       .fold(0.0, math.max);
 
@@ -626,6 +696,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
             scaler: scaler,
             selected: selected,
             color: selected ? _style.selectedColor : _style.color,
+            textStyle: selected ? _style.selectedTextStyle : _style.textStyle,
           ),
         ),
       ),
@@ -678,7 +749,11 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
           x.enabled != y.enabled ||
           x.selectedIcon != y.selectedIcon ||
           x.badge != y.badge ||
-          x.role != y.role) {
+          x.role != y.role ||
+          x.glyph != y.glyph ||
+          x.replicaBuilder != y.replicaBuilder ||
+          x.semanticLabel != y.semanticLabel ||
+          x.semanticValue != y.semanticValue) {
         return false;
       }
     }
@@ -723,7 +798,10 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
                         role: SemanticsRole.tab,
                         selected: i == motion.selected,
                         enabled: _selectable(i),
-                        label: widget.items[i].label,
+                        label:
+                            widget.items[i].semanticLabel ??
+                            widget.items[i].label,
+                        value: widget.items[i].semanticValue,
                         onTap: _selectable(i) ? () => _select(i) : null,
                         child: ExcludeSemantics(
                           child: MorphGlyphs(
@@ -733,6 +811,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
                               scaler: scaler,
                               selected: false,
                               color: style.color,
+                              textStyle: style.textStyle,
                             ),
                           ),
                         ),
@@ -760,7 +839,11 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
                     for (final item in widget.items)
                       SizedBox(
                         width: geometry.pitch,
-                        child: _TabBadge(item: item, scaler: scaler),
+                        child: _TabBadge(
+                          item: item,
+                          scaler: scaler,
+                          textStyle: style.textStyle,
+                        ),
                       ),
                   ],
                 ),
@@ -929,24 +1012,83 @@ class _Glass extends StatelessWidget {
   }
 }
 
+/// Builds a tab's primary glyph or one independent replica.
+@internal
+Widget morphTabGlyph(
+  BuildContext context,
+  MorphTabItem item, {
+  required Color color,
+  required bool selected,
+  required bool minimized,
+  Widget? replica,
+}) {
+  final custom = item.glyph;
+  if (custom == null) {
+    return Icon(
+      selected && !minimized ? item.selectedIcon ?? item.icon : item.icon,
+      size: MorphTabBarMetrics.iconSize,
+      color: color,
+    );
+  }
+  final isReplica = selected || minimized;
+  final glyph = isReplica
+      ? replica ??
+            item.replicaBuilder!(
+              context,
+              selected: selected,
+              minimized: minimized,
+            )
+      : custom;
+  return IconTheme.merge(
+    data: IconThemeData(size: MorphTabBarMetrics.iconSize, color: color),
+    child: SizedBox.square(
+      dimension: MorphTabBarMetrics.iconSize,
+      child: Center(
+        child: isReplica
+            ? ExcludeFocus(child: IgnorePointer(child: glyph))
+            : glyph,
+      ),
+    ),
+  );
+}
+
 class _TabLabel extends StatelessWidget {
   const _TabLabel({
     required this.item,
     required this.scaler,
     required this.selected,
     required this.color,
+    required this.textStyle,
   });
 
   final MorphTabItem item;
   final TextScaler scaler;
   final bool selected;
   final Color color;
+  final TextStyle textStyle;
 
   @override
   Widget build(BuildContext context) {
     final style = MorphTypography.resolve(
-      selected ? MorphTypography.tabLabelSelected : MorphTypography.tabLabel,
-    ).copyWith(color: color);
+      textStyle,
+      context: context,
+    ).copyWith(color: textStyle.color ?? color);
+    if (item.glyph != null) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          morphTabGlyph(
+            context,
+            item,
+            color: color,
+            selected: selected,
+            minimized: false,
+          ),
+          const SizedBox(height: MorphTabBarMetrics.labelGap),
+          Text(item.label, maxLines: 1, textScaler: scaler, style: style),
+        ],
+      );
+    }
     if (!selected) {
       final Widget glyph = Icon(
         item.icon,
@@ -962,7 +1104,7 @@ class _TabLabel extends StatelessWidget {
         ],
       );
     }
-    final icon = item.selectedIcon ?? item.icon;
+    final icon = (item.selectedIcon ?? item.icon)!;
     final Widget glyph = SizedBox.square(
       dimension: MorphTabBarMetrics.iconSize,
       child: Center(
@@ -1005,15 +1147,20 @@ class _TabLabel extends StatelessWidget {
 // A badge is the bar's content, as UIKit's: a lifted lens refracts it at
 // its rim and magnifies it in its copy (iOS 27 probe, 2026-10-20).
 class _TabBadge extends StatelessWidget {
-  const _TabBadge({required this.item, required this.scaler});
+  const _TabBadge({
+    required this.item,
+    required this.scaler,
+    required this.textStyle,
+  });
 
   final MorphTabItem item;
   final TextScaler scaler;
+  final TextStyle textStyle;
 
   @override
   Widget build(BuildContext context) {
     if (!(item.badge?.visible ?? false)) return const SizedBox.shrink();
-    final style = MorphTypography.resolve(MorphTypography.tabLabel);
+    final style = MorphTypography.resolve(textStyle, context: context);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

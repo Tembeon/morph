@@ -391,3 +391,69 @@ const MorphThemeData theme = MorphThemeData(
 
 `MorphGlassRenderer.tier(MorphGlassTier.flat)` forces the flat look,
 for example from a user setting; `MorphTheme.of(context)` reads it back.
+
+## Custom reactions and touch feedback
+
+```dart
+Widget reactions(int? selected, ValueChanged<int?> onSelected) =>
+    MorphSegmentedControl(
+      segments: const [
+        MorphSegment.custom(semanticLabel: 'Like', child: Text('♡')),
+        MorphSegment.custom(semanticLabel: 'Listen', child: Text('♫')),
+      ],
+      selectedIndex: selected,
+      onChanged: null,
+      onActivated: (index) => onSelected(selected == index ? null : index),
+    );
+
+Widget appTapTarget(VoidCallback onTap, Widget child) => MorphTouchTarget(
+  semanticLabel: 'Like',
+  onTap: onTap,
+  minSize: const Size(48, 48),
+  child: MorphTouchFeedback(shape: const CircleBorder(), child: child),
+);
+```
+
+For a color selector use `track` and `lensColorAt`; listen to
+`onPreviewChanged` and `onPreviewCancelled` without committing the preview.
+The feedback decorator is passive and adds no glass; flat has a uniform
+highlight, liquid has an approximate glow over the app's painted child.
+
+## Custom tab glyphs and menu lifecycle
+
+```dart
+MorphTabItem customInbox(Widget statefulGlyph) => MorphTabItem.custom(
+  label: 'Inbox',
+  semanticValue: '3 unread messages',
+  glyph: statefulGlyph,
+  replicaBuilder: (context, {required bool selected, required bool minimized}) =>
+      Icon(IconData(selected ? 0xe156 : 0xe158)),
+);
+
+Widget currentMenu(MorphMenuPresentationController controller, String value,
+    ValueChanged<String> onSelect) => MorphMenuSource(
+  controller: controller,
+  menuBuilder: (context) => [
+    for (final option in ['Recent', 'Name'])
+      MorphMenuItem(
+        title: option,
+        state: value == option ? MorphMenuState.on : MorphMenuState.off,
+        onSelected: () => onSelect(option),
+      ),
+  ],
+  child: Text(value),
+);
+```
+
+Only the primary glyph owns its key, focus, controller or portal; every
+replica owns independent visual state. The same builder supplies selected
+and minimized artwork without mounting the primary twice. The native lens
+still masks the two expanded rows. Dispose the menu controller with its
+owner; call `close()` and await its `closed` future before navigation that
+must wait for completed dismissal. `isOpen` stays true through closing.
+
+Set `MorphThemeData(fontFamily: 'SourceCodePro')` above the navigator to use
+an explicitly bundled app font; role sizes and weights remain native.
+Appearance text styles can override the font per role, including the tab
+bar's `textStyle` and `selectedTextStyle`. Wrap a custom shell containing a
+nested Navigator in `MorphPresentationBoundary` so menus cover its chrome.

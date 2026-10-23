@@ -2313,6 +2313,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold>
               widget.appearance,
             ).titleColor,
           ),
+          context: context,
         ),
         child: content,
       ),

@@ -196,6 +196,8 @@ class MorphPress extends StatefulWidget {
   const MorphPress({
     required this.child,
     this.target,
+    this.focusNode,
+    this.autofocus = false,
     this.enabled = true,
     this.focusable = true,
     this.touchEnabled,
@@ -219,6 +221,12 @@ class MorphPress extends StatefulWidget {
   /// that stays: while it reads true the control takes no keyboard focus
   /// and gives up the focus it has, without a build.
   final ValueListenable<bool>? withdrawn;
+
+  /// The caller-owned focus node, or null for an internally owned node.
+  final FocusNode? focusNode;
+
+  /// Whether the node requests focus when first attached.
+  final bool autofocus;
 
   /// Where touches go, or null for a control that tracks them itself.
   final MorphPressTarget? target;
@@ -317,20 +325,38 @@ const List<(SingleActivator, int, bool)> _steps = [
 // when the ring it draws turns on or off.
 class _MorphPressState extends State<MorphPress> {
   final GlobalKey _child = GlobalKey();
-  late final FocusNode _node = FocusNode(debugLabel: 'MorphPress');
-  late final FocusAttachment _attachment = _node.attach(
-    context,
-    onKeyEvent: _key,
-  );
+  late FocusNode _node;
+  late FocusAttachment _attachment;
+  bool _ownsNode = false;
   bool _hasFocus = false;
   bool _highlighted = false;
 
   @override
   void initState() {
     super.initState();
-    _node.addListener(_focusChanged);
+    _attachNode();
     FocusManager.instance.addHighlightModeListener(_modeChanged);
     widget.withdrawn?.addListener(_withdrawnChanged);
+  }
+
+  void _attachNode() {
+    _ownsNode = widget.focusNode == null;
+    _node = widget.focusNode ?? FocusNode(debugLabel: 'MorphPress');
+    _attachment = _node.attach(context, onKeyEvent: _key);
+    _node.addListener(_focusChanged);
+    if (widget.autofocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _canRequestFocus) {
+          FocusScope.of(context).autofocus(_node);
+        }
+      });
+    }
+  }
+
+  void _detachNode() {
+    _node.removeListener(_focusChanged);
+    _attachment.detach();
+    if (_ownsNode) _node.dispose();
   }
 
   void _withdrawnChanged() => _node.canRequestFocus = _canRequestFocus;
@@ -349,6 +375,12 @@ class _MorphPressState extends State<MorphPress> {
   @override
   void didUpdateWidget(MorphPress oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      _detachNode();
+      _attachNode();
+      _dependenciesChanged();
+      _focusChanged();
+    }
     if (!identical(oldWidget.withdrawn, widget.withdrawn)) {
       oldWidget.withdrawn?.removeListener(_withdrawnChanged);
       widget.withdrawn?.addListener(_withdrawnChanged);
@@ -373,9 +405,7 @@ class _MorphPressState extends State<MorphPress> {
   void dispose() {
     widget.withdrawn?.removeListener(_withdrawnChanged);
     FocusManager.instance.removeHighlightModeListener(_modeChanged);
-    _node.removeListener(_focusChanged);
-    _attachment.detach();
-    _node.dispose();
+    _detachNode();
     super.dispose();
   }
 

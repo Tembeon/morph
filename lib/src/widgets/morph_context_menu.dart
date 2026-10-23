@@ -16,6 +16,7 @@ import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
+import 'package:morph/src/widgets/menu_presentation.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -91,6 +92,8 @@ class MorphContextMenuRegion extends StatefulWidget {
     super.key,
     required this.child,
     this.menu = const <MorphMenuEntry>[],
+    this.menuBuilder,
+    this.controller,
     this.accessory,
     this.order = MorphMenuOrder.automatic,
     this.dismissOnSelect,
@@ -107,7 +110,7 @@ class MorphContextMenuRegion extends StatefulWidget {
     this.maxScrimOpacity,
     this.scrimColor,
     @internal this.scrimMotion,
-    @internal this.overlay,
+    this.overlay,
     this.semanticLabel,
     this.onHold,
     @internal this.onOpen,
@@ -126,6 +129,13 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// The open menu follows the widget: a rebuild with other entries
   /// updates it in place and resizes it on the measured springs.
   final List<MorphMenuEntry> menu;
+
+  /// Resolves fresh entries on opening, and on rebuild while presented.
+  /// Null uses [menu]; existing deferred-cache semantics are preserved.
+  final List<MorphMenuEntry> Function(BuildContext context)? menuBuilder;
+
+  /// Programmatic opening, closing and completed dismissal.
+  final MorphMenuPresentationController? controller;
 
   /// A block above the preview, such as a reactions capsule, or null.
   final MorphSatellite? accessory;
@@ -348,7 +358,6 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// above the bars of a navigation stack the region sits in. A floating
   /// bar layered over a nested navigator wants the navigator's owner's
   /// overlay.
-  @internal
   final OverlayState? overlay;
 
   /// Accessibility name of the open menu.
@@ -445,6 +454,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   int? _menuPointer;
   Offset _finger = Offset.zero;
   MorphFlight? _flight;
+  List<MorphMenuEntry>? _sessionMenu;
+  List<MorphMenuEntry> get _entries => _sessionMenu ?? widget.menu;
   MorphFlight? _pressOwner;
   StreamSubscription<MorphFlightEvent>? _pressWatch;
   _Placement? _placement;
@@ -460,11 +471,24 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   @override
   void initState() {
     super.initState();
+    _attachController();
     _tap.onTapDown = _lift;
     _tap.onTapUp = (TapUpDetails _) => _drop();
     _tap.onTapCancel = _drop;
     _syncSecondaryDoor();
   }
+
+  void _attachController() => widget.controller?.attach(
+    this,
+    open: () {
+      if (mounted &&
+          widget.enabled &&
+          !((widget.controller?.isOpen) ?? false)) {
+        _open();
+      }
+    },
+    close: _close,
+  );
 
   void _syncSecondaryDoor() {
     _tap.onSecondaryTapUp = widget.opensOnSecondaryTap
@@ -498,6 +522,17 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   @override
   void didUpdateWidget(MorphContextMenuRegion oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.detach(this);
+      _attachController();
+      if (_flight case final flight? when !flight.isFinished) {
+        widget.controller?.presented(flight.closed);
+      }
+    }
+    if (_flight case final flight? when !flight.isFinished) {
+      _sessionMenu = widget.menuBuilder?.call(context) ?? widget.menu;
+    }
+    if (oldWidget.enabled && !widget.enabled) _close();
     if (oldWidget.enabled && !widget.enabled ||
         oldWidget.tagId != widget.tagId ||
         oldWidget.holdDuration != widget.holdDuration) {
@@ -535,6 +570,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
 
   @override
   void dispose() {
+    widget.controller?.detach(this);
     // The flight is the scope's, not the region's: a held view archived
     // from its own menu keeps flying and dissolves on its way home
     // (MorphFlight.isSourceLost).
@@ -759,13 +795,14 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     final MorphFlight? active = _flight;
     final bool fresh = active == null || active.isFinished;
     if (fresh) {
+      _sessionMenu = widget.menuBuilder?.call(context) ?? widget.menu;
       _sessionTag = widget.tagId ?? this;
       _placement = _place();
     }
     final MorphMenuController? controller = _controller;
     final MorphMenuMotion? motion = controller?.menuMotion;
     if (controller != null &&
-        widget.menu.isNotEmpty &&
+        _entries.isNotEmpty &&
         motion != null &&
         !motion.isOpen) {
       // The menu's opening launches the flight through the controller's
@@ -819,7 +856,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       accessory: room,
     );
     Offset shift;
-    if (driver != null && widget.menu.isNotEmpty) {
+    if (driver != null && _entries.isNotEmpty) {
       shift = driver
           .prepare(
             held: held,
@@ -883,6 +920,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
           }
         }),
       );
+      widget.controller?.presented(flight.closed);
       widget.onOpen?.call(flight);
     }
     return flight;
@@ -956,7 +994,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       fit: StackFit.expand,
       clipBehavior: Clip.none,
       children: <Widget>[
-        if (controller != null && widget.menu.isNotEmpty)
+        if (controller != null && _entries.isNotEmpty)
           _RegionScope(
             state: this,
             child: MorphMenuLayer(host: controller, flight: flight),
@@ -1307,7 +1345,7 @@ class _MenuDriverState extends State<_MenuDriver>
   @override
   void initState() {
     super.initState();
-    _content.entries = _region.menu;
+    _content.entries = widget.region._entries;
     _content.order = _region.order;
   }
 
@@ -1315,7 +1353,7 @@ class _MenuDriverState extends State<_MenuDriver>
   void didUpdateWidget(_MenuDriver oldWidget) {
     super.didUpdateWidget(oldWidget);
     controller.updateEntries(
-      _region.menu,
+      widget.region._entries,
       order: _region.order,
       dismissOnSelect: _region.dismissOnSelect,
     );
@@ -1354,8 +1392,12 @@ class _MenuDriverState extends State<_MenuDriver>
       if (current.isClosing) controller.beginReopenSession();
       return current;
     }
+    _content.entries = widget.region._entries;
     _content.rtl = Directionality.maybeOf(context) == TextDirection.rtl;
-    _content.titleStyle = MorphTypography.resolve(_style.textStyle);
+    _content.titleStyle = MorphTypography.resolve(
+      _style.textStyle,
+      context: context,
+    );
     _content.textScaler =
         MediaQuery.maybeTextScalerOf(context) ?? TextScaler.noScaling;
     _content.beginSession();

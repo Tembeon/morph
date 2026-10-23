@@ -350,6 +350,7 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
   }
 
   void _pointerDown(PointerDownEvent event) {
+    if (!mounted) return;
     _yielded.remove(event.pointer);
     if (widget.enabled &&
         widget.delaysInScrollable &&
@@ -367,6 +368,7 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
   }
 
   void _pointerMove(PointerMoveEvent event) {
+    if (!mounted) return;
     final held = _held[event.pointer];
     if (held != null) {
       held.move = event;
@@ -378,6 +380,7 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
   }
 
   void _pointerUp(PointerUpEvent event) {
+    if (!mounted) return;
     final held = _held.remove(event.pointer);
     if (held != null) _deliver(held, event.timeStamp);
     if (_yielded.remove(event.pointer)) return;
@@ -386,6 +389,7 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
   }
 
   void _pointerCancel(PointerCancelEvent event) {
+    if (!mounted) return;
     if (_held.remove(event.pointer) != null) return;
     if (_yielded.remove(event.pointer)) return;
     _down.remove(event.pointer);

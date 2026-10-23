@@ -267,6 +267,8 @@ class MorphContextMenuRegion extends StatefulWidget
     Key? key,
     required Widget child,
     List<MorphMenuEntry> menu = const <MorphMenuEntry>[],
+    List<MorphMenuEntry> Function(BuildContext)? menuBuilder,
+    MorphMenuPresentationController? controller,
     MorphSatellite? accessory,
     MorphMenuOrder order = MorphMenuOrder.automatic,
     bool? dismissOnSelect,
@@ -281,6 +283,7 @@ class MorphContextMenuRegion extends StatefulWidget
     bool opensOnSecondaryTap = true,
     double? maxScrimOpacity,
     Color? scrimColor,
+    OverlayState? overlay,
     String? semanticLabel,
     void Function()? onHold,
     void Function()? onClose,
@@ -289,6 +292,7 @@ class MorphContextMenuRegion extends StatefulWidget
   final MorphMenuAppearance? appearance
   final Widget child
   static void close(BuildContext context)
+  final MorphMenuPresentationController? controller
   final bool? dismissOnSelect
   final bool enabled
   final Duration holdDuration
@@ -305,17 +309,35 @@ class MorphContextMenuRegion extends StatefulWidget
   static double measuredPreviewScale(Size size)
   static const double measuredRetractScale
   final List<MorphMenuEntry> menu
+  final List<MorphMenuEntry> Function(BuildContext)? menuBuilder
   final void Function()? onClose
   final void Function()? onHold
   final void Function()? onPreviewTap
   final bool opensOnSecondaryTap
   final MorphMenuOrder order
+  final OverlayState? overlay
   final Widget Function(BuildContext)? preview
   final Size? previewSize
   final Widget? replica
   final Color? scrimColor
   final String? semanticLabel
   overrides: createState
+typedef MorphControlBuilder = Widget Function(BuildContext, MorphControlState, Widget?)
+class MorphControlState
+  const MorphControlState({
+    bool selected = false,
+    bool active = false,
+    bool pressed = false,
+    bool focused = false,
+    bool hovered = false,
+    bool enabled = true,
+  })
+  final bool active
+  final bool enabled
+  final bool focused
+  final bool hovered
+  final bool pressed
+  final bool selected
 class MorphDatePicker extends StatefulWidget
   const MorphDatePicker({
     required DateTime value,
@@ -682,6 +704,7 @@ class MorphListSection extends StatelessWidget
 abstract class MorphLocalizations
   const MorphLocalizations()
   String get backLabel
+  String get clearTextLabel
   String get closeLabel
   String get decrementLabel
   String get dismissLabel
@@ -756,7 +779,9 @@ class MorphMenuAppearance implements MorphAppearance
   overrides: ==, hashCode
 class MorphMenuButton extends _MorphMenuSourceWidget
   const MorphMenuButton({
-    required List<MorphMenuEntry> menu,
+    List<MorphMenuEntry> menu = const [],
+    List<MorphMenuEntry> Function(BuildContext)? menuBuilder,
+    MorphMenuPresentationController? controller,
     Widget? child,
     double size = MorphMenuTuning.buttonDiameter,
     MorphMenuAppearance? appearance,
@@ -827,6 +852,13 @@ enum MorphMenuOrder
   automatic,
   priority,
   fixed,
+class MorphMenuPresentationController extends ChangeNotifier
+  MorphMenuPresentationController()
+  void close()
+  Future<void> get closed
+  bool get isOpen
+  void open()
+  overrides: dispose
 class MorphMenuSection extends MorphMenuEntry
   const MorphMenuSection({
     required List<MorphMenuEntry> children,
@@ -844,7 +876,9 @@ class MorphMenuSection extends MorphMenuEntry
   final String? title
 class MorphMenuSource extends _MorphMenuSourceWidget
   const MorphMenuSource({
-    required List<MorphMenuEntry> menu,
+    List<MorphMenuEntry> menu = const [],
+    List<MorphMenuEntry> Function(BuildContext)? menuBuilder,
+    MorphMenuPresentationController? controller,
     required Widget child,
     Widget? look,
     ShapeBorder shape = const StadiumBorder(),
@@ -1140,6 +1174,9 @@ enum MorphPageControlBackgroundStyle
   automatic,
   prominent,
   minimal,
+class MorphPresentationBoundary extends InheritedWidget
+  const MorphPresentationBoundary({required Widget child, Key? key})
+  overrides: updateShouldNotify
 class MorphProgressView extends StatefulWidget
   const MorphProgressView({
     required double value,
@@ -1280,14 +1317,14 @@ class MorphSearchField extends StatefulWidget
     bool autofocus = false,
     MorphSearchFieldAppearance? appearance,
     String? semanticLabel,
-    String clearLabel = 'Clear text',
+    String? clearLabel,
     double height = MorphSearchTuning.height,
     bool glass = true,
     Key? key,
   })
   final MorphSearchFieldAppearance? appearance
   final bool autofocus
-  final String clearLabel
+  final String? clearLabel
   final TextEditingController? controller
   final bool enabled
   final FocusNode? focusNode
@@ -1419,7 +1456,17 @@ class MorphSearchToolbar extends StatefulWidget
   overrides: createState
 class MorphSegment
   const MorphSegment(String title, {bool enabled = true, double? width})
+  const MorphSegment.custom({
+    required String semanticLabel,
+    Widget? child,
+    Widget Function(BuildContext, MorphControlState, Widget?)? builder,
+    bool enabled = true,
+    double? width,
+  })
+  final Widget Function(BuildContext, MorphControlState, Widget?)? builder
+  final Widget? child
   final bool enabled
+  final String? semanticLabel
   final String title
   final double? width
   overrides: ==, hashCode
@@ -1428,17 +1475,27 @@ class MorphSegmentedControl extends StatefulWidget
     required List<MorphSegment> segments,
     required int? selectedIndex,
     required void Function(int)? onChanged,
+    void Function(int)? onActivated,
+    void Function(int?)? onPreviewChanged,
+    void Function()? onPreviewCancelled,
+    Widget? track,
+    Color Function(double)? lensColorAt,
     bool proportionalWidth = false,
     MorphSegmentedControlAppearance? appearance,
     Key? key,
   })
   final MorphSegmentedControlAppearance? appearance
+  final Color Function(double)? lensColorAt
   static const double maxTextScale
+  final void Function(int)? onActivated
   final void Function(int)? onChanged
+  final void Function()? onPreviewCancelled
+  final void Function(int?)? onPreviewChanged
   final bool proportionalWidth
   static const double releaseSlop
   final List<MorphSegment> segments
   final int? selectedIndex
+  final Widget? track
   overrides: createState
 class MorphSegmentedControlAppearance implements MorphAppearance
   const MorphSegmentedControlAppearance({
@@ -1816,6 +1873,8 @@ class MorphTabBarAppearance implements MorphAppearance
     Color selectedColor = const Color(0xFF0082FC),
     Color color = const Color(0xFF0D0D0D),
     double blurSigma = 12,
+    TextStyle textStyle = MorphTypography.tabLabel,
+    TextStyle selectedTextStyle = MorphTypography.tabLabelSelected,
   })
   final Color barColor
   final double blurSigma
@@ -1829,6 +1888,8 @@ class MorphTabBarAppearance implements MorphAppearance
     Color? selectedColor,
     Color? color,
     double? blurSigma,
+    TextStyle? textStyle,
+    TextStyle? selectedTextStyle,
   })
   static const MorphTabBarAppearance dark
   final Color lensBorderColor
@@ -1840,7 +1901,9 @@ class MorphTabBarAppearance implements MorphAppearance
     MorphTabBarAppearance? explicit,
   )
   final Color selectedColor
+  final TextStyle selectedTextStyle
   final Color shadowColor
+  final TextStyle textStyle
   overrides: ==, hashCode
 enum MorphTabBarMinimizeBehavior
   automatic,
@@ -1856,13 +1919,30 @@ class MorphTabItem
     MorphBadge? badge,
     bool enabled = true,
     MorphTabRole? role,
+    String? semanticLabel,
+    String? semanticValue,
+  })
+  const MorphTabItem.custom({
+    required Widget glyph,
+    required Widget Function(BuildContext, {required bool minimized, required bool selected}) replicaBuilder,
+    required String label,
+    MorphBadge? badge,
+    bool enabled = true,
+    MorphTabRole? role,
+    String? semanticLabel,
+    String? semanticValue,
   })
   final MorphBadge? badge
   final bool enabled
-  final IconData icon
+  final Widget? glyph
+  final IconData? icon
   final String label
+  final Widget Function(BuildContext, {required bool minimized, required bool selected})? replicaBuilder
   final MorphTabRole? role
   final IconData? selectedIcon
+  final String? semanticLabel
+  final String? semanticValue
+typedef MorphTabReplicaBuilder = Widget Function(BuildContext, {required bool minimized, required bool selected})
 enum MorphTabRole
   search,
 class MorphTheme extends StatelessWidget
@@ -1883,6 +1963,7 @@ class MorphThemeData
   const MorphThemeData({
     Brightness? brightness,
     Color? tint,
+    String? fontFamily,
     bool haptics = true,
     MorphGlassRenderer? glass,
     List<MorphAppearance> appearances = const <MorphAppearance>[],
@@ -1893,10 +1974,12 @@ class MorphThemeData
   MorphThemeData copyWith({
     Brightness? brightness,
     Color? tint,
+    String? fontFamily,
     bool? haptics,
     MorphGlassRenderer? glass,
     List<MorphAppearance>? appearances,
   })
+  final String? fontFamily
   final MorphGlassRenderer? glass
   final bool haptics
   final Color? tint
@@ -1923,6 +2006,46 @@ class MorphToolbar extends StatelessWidget
   final double sideInset
   final List<MorphBarButtonGroup> trailing
   overrides: build
+class MorphTouchFeedback extends StatelessWidget
+  const MorphTouchFeedback({
+    required Widget child,
+    ShapeBorder shape = const StadiumBorder(),
+    bool flex = true,
+    Color? highlightColor,
+    Key? key,
+  })
+  final Widget child
+  final bool flex
+  final Color? highlightColor
+  final ShapeBorder shape
+  overrides: build
+class MorphTouchTarget extends StatefulWidget
+  const MorphTouchTarget({
+    required Widget child,
+    void Function()? onTap,
+    void Function()? onLongPress,
+    bool enabled = true,
+    Size minSize = const Size(48, 48),
+    FocusNode? focusNode,
+    bool autofocus = false,
+    String? semanticLabel,
+    String? semanticValue,
+    bool semanticButton = true,
+    Widget Function(BuildContext, MorphControlState, Widget?)? builder,
+    Key? key,
+  })
+  final bool autofocus
+  final Widget Function(BuildContext, MorphControlState, Widget?)? builder
+  final Widget child
+  final bool enabled
+  final FocusNode? focusNode
+  final Size minSize
+  final void Function()? onLongPress
+  final void Function()? onTap
+  final bool semanticButton
+  final String? semanticLabel
+  final String? semanticValue
+  overrides: createState
 abstract final class MorphTypography
   MorphTypography()
   static const TextStyle alertAction
@@ -1942,7 +2065,11 @@ abstract final class MorphTypography
   static const TextStyle listHeader
   static const TextStyle listSubtitle
   static const TextStyle menuItem
-  static TextStyle resolve(TextStyle style, {bool? apple})
+  static TextStyle resolve(
+    TextStyle style, {
+    bool? apple,
+    BuildContext? context,
+  })
   static const TextStyle searchField
   static const TextStyle segment
   static const TextStyle segmentSelected

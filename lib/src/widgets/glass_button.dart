@@ -656,6 +656,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
             child: DefaultTextStyle.merge(
               style: MorphTypography.resolve(
                 MorphTypography.button,
+                context: context,
               ).copyWith(color: foreground),
               child: widget.child,
             ),
