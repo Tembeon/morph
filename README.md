@@ -54,7 +54,7 @@ dependencies:
   morph:
     git:
       url: https://github.com/Tembeon/morph.git
-      ref: v0.8.1
+      ref: v0.8.2
 ```
 
 One import covers the whole library:

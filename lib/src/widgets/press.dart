@@ -150,8 +150,9 @@ class MorphPressTracker {
 /// What [MorphPress] reports a control's pointer events to.
 @internal
 abstract interface class MorphPressTarget {
-  /// A pointer came into contact, or was handed over by the arena.
-  void pressDown(PointerDownEvent event);
+  /// A pointer came into contact, or was handed over by the arena after
+  /// [delay] from its original contact.
+  void pressDown(PointerDownEvent event, {Duration delay = Duration.zero});
 
   /// A pointer moved.
   void pressMove(PointerMoveEvent event);
@@ -488,7 +489,7 @@ class _MorphPressState extends State<MorphPress> {
         dragAxis: widget.dragAxis,
         delaysInScrollable: widget.delaysInScrollable,
         behavior: widget.behavior,
-        onPointerDown: target.pressDown,
+        onPointerDown: (event, delay) => target.pressDown(event, delay: delay),
         onPointerMove: target.pressMove,
         onPointerUp: target.pressUp,
         onPointerCancel: target.pressCancel,

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/live.dart';
@@ -24,7 +25,9 @@ import 'package:morph/src/widgets/press.dart';
 /// the target never activates it. Releasing within the glass button's
 /// measured 70-point slop activates, including after exit and re-entry.
 /// [minSize] enlarges only the hit box, not the painted child. A held
-/// action uses Flutter's standard long-press threshold and suppresses tap.
+/// action uses Flutter's standard long-press threshold from the original
+/// contact, including when a scrollable delays the visual response, and
+/// suppresses tap.
 class MorphTouchTarget extends StatefulWidget {
   /// Creates an input owner; both callbacks null disables it.
   const MorphTouchTarget({
@@ -142,9 +145,13 @@ class _MorphTouchTargetState extends MorphControlHost<MorphTouchTarget> {
     motion.size = box?.size ?? (context.findRenderObject()! as RenderBox).size;
     held = false;
     _inside = true;
+    // A scrollable delays the visual response, not the hold's deadline.
     holdAt = widget.onLongPress == null
         ? null
-        : t + kLongPressTimeout.inMicroseconds / Duration.microsecondsPerSecond;
+        : t +
+              (kLongPressTimeout.inMicroseconds -
+                      pressDelay.inMicroseconds / timeDilation) /
+                  Duration.microsecondsPerSecond;
     motion.pointerDown(t, _position(event));
     setState(() {});
   }

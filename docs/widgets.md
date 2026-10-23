@@ -78,6 +78,11 @@ so focus moving under that scope builds nothing; `MorphPress.build`
 therefore reads no other inherited widget. A descendant finds the
 control's node through `node.context`, not `Focus.of`.
 
+For scroll-delayed content, the listener keeps the visual down event stamped
+at delivery and also passes the preceding contact delay through the press
+host as `pressDelay`. Hold actions count that delay toward their deadline;
+their feedback still begins only when the control receives the touch.
+
 ## Internal machinery (all `@internal`)
 
 `spring_state.dart` - `MorphSpringState`: a damped spring in closed form

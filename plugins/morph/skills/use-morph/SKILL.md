@@ -35,7 +35,7 @@ dependencies:
   morph:
     git:
       url: https://github.com/Tembeon/morph.git
-      ref: v0.8.1 # pin a tag; there is no pub.dev release
+      ref: v0.8.2 # pin a tag; there is no pub.dev release
 ```
 
 One import: `import 'package:morph/morph.dart';`.

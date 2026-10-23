@@ -991,7 +991,8 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
   }
 
   @override
-  void pressDown(PointerDownEvent event) => _buttonDown(event);
+  void pressDown(PointerDownEvent event, {Duration delay = Duration.zero}) =>
+      _buttonDown(event);
 
   @override
   void pressMove(PointerMoveEvent event) => _host.menuPointerMove(event);

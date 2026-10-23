@@ -235,8 +235,10 @@ class MorphTouchListener extends StatefulWidget {
     super.key,
   });
 
-  /// Called when a pointer comes into contact.
-  final PointerDownEventListener? onPointerDown;
+  /// Called when contact is delivered, with the time held back before
+  /// delivery. The event keeps the delivery stamp for visual response;
+  /// hold actions also count the preceding contact time.
+  final void Function(PointerDownEvent event, Duration delay)? onPointerDown;
 
   /// Called when a tracked pointer moves.
   final PointerMoveEventListener? onPointerMove;
@@ -322,7 +324,7 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
   void _deliver(_Held held, Duration timeStamp) {
     final down = held.down.copyWith(timeStamp: timeStamp);
     _down[down.pointer] = down;
-    widget.onPointerDown?.call(down);
+    widget.onPointerDown?.call(down, timeStamp - held.down.timeStamp);
     final move = held.move?.copyWith(timeStamp: timeStamp);
     if (move == null || !_down.containsKey(move.pointer)) return;
     _down[move.pointer] = move;
@@ -361,7 +363,7 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
       return;
     }
     _down[event.pointer] = event;
-    widget.onPointerDown?.call(event);
+    widget.onPointerDown?.call(event, Duration.zero);
     if (!widget.enabled) return;
     _arena.axis = _claimAxis();
     _arena.addPointer(event);

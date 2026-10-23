@@ -2,6 +2,15 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
+## 0.8.2 - 2026-10-23
+
+- `MorphTouchTarget` counts its long-press threshold from the original
+  touch-down inside a scrollable, preserving the existing 150 ms delay
+  before visual feedback. A stationary 550 ms hold no longer becomes a tap.
+- Disabling a segment during an active `MorphSegmentedControl` preview
+  cancels the gesture and calls `onPreviewCancelled` once. Releasing the
+  finger cannot activate the disabled segment.
+
 ## 0.8.1 - 2026-10-23
 
 - Custom segments support app-owned content, nullable selection, activation

@@ -761,7 +761,7 @@ class _CompactLabelState extends State<_CompactLabel>
             enabled: widget.enabled,
             delaysInScrollable: true,
             behavior: HitTestBehavior.opaque,
-            onPointerDown: _down,
+            onPointerDown: (event, _) => _down(event),
             onPointerUp: _up,
             onPointerCancel: _up,
             child: MorphFocusRing(

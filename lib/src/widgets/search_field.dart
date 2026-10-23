@@ -505,7 +505,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
         builder: (BuildContext context, Widget? child) => MorphTouchListener(
           enabled: widget.enabled && !_focus.hasFocus,
           delaysInScrollable: true,
-          onPointerDown: _down,
+          onPointerDown: (event, _) => _down(event),
           onPointerUp: _up,
           onPointerCancel: _up,
           child: child!,

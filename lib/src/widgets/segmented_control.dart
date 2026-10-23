@@ -586,6 +586,17 @@ class _MorphSegmentedControlState
   bool get _customState =>
       widget.segments.any((segment) => segment.builder != null);
 
+  @override
+  void didUpdateWidget(MorphSegmentedControl oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final preview = _preview;
+    if (preview != null && !_selectable(preview)) {
+      releaseControlPointer();
+      onControlCancel(clock);
+      wake();
+    }
+  }
+
   void _previewAt(Offset local) {
     final inside = (Offset.zero & Size(_width, _style.height))
         .inflate(pressSlop)

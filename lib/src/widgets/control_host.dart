@@ -15,6 +15,7 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
     with SingleTickerProviderStateMixin<T>, MorphClock<T>
     implements MorphPressTarget {
   final MorphPressTracker _press = MorphPressTracker();
+  Duration _pressDelay = Duration.zero;
   bool _focused = false;
 
   /// Whether this control accepts a new pointer gesture.
@@ -35,6 +36,11 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   /// The press of the active pointer.
   @protected
   MorphPressTracker get press => _press;
+
+  /// How long the active contact was held back by a scrollable before
+  /// its down event reached the control.
+  @protected
+  Duration get pressDelay => _pressDelay;
 
   /// Whether the keyboard focus ring is visible.
   bool get controlFocused => _focused;
@@ -75,12 +81,13 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
 
   /// Accepts a primary contact when enabled and no pointer is active.
   @override
-  void pressDown(PointerDownEvent event) {
+  void pressDown(PointerDownEvent event, {Duration delay = Duration.zero}) {
     if (!controlEnabled ||
         !_press.accepts(event.pointer, event.buttons) ||
         !acceptsControlPointer(event)) {
       return;
     }
+    _pressDelay = delay;
     final slop = pressSlop;
     _press.slop = slop;
     _press.down(
