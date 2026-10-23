@@ -1042,7 +1042,14 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         children: [
           Visibility.maintain(visible: !landing, child: source),
           if (landing)
-            Positioned.fill(child: _landingFace(context, style, glyph, motion)),
+            Positioned.fill(
+              child: _landingFace(
+                context,
+                style,
+                _glyphFor(style, widget.enabled),
+                motion,
+              ),
+            ),
         ],
       );
     }
@@ -1296,7 +1303,9 @@ class _MenuShapes extends StatelessWidget {
           scaleY: now.sourceScale,
         );
       },
-      child: MorphGlyphs(child: this.glyph),
+      // Scale snapping around a wide source's center moves its far text
+      // at the final hand-off; keep the whole view on its exact transform.
+      child: MorphGlyphs(snaps: this.glyph is! _SourceLook, child: this.glyph),
     );
     final Widget surfaces;
     if (glass == null) {

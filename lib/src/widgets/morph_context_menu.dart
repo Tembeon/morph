@@ -433,7 +433,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   // Under Reduce Motion the held view keeps its size.
   bool _still = false;
   int? _clockPointer;
-  Duration _holdOrigin = Duration.zero;
+  final Stopwatch _holdStart = Stopwatch();
   Duration? _holdOffset;
   bool _committed = false;
 
@@ -597,7 +597,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         !_holdClock.isActive) {
       _growing = false;
       _clockPointer = event.pointer;
-      _holdOrigin = SchedulerBinding.instance.currentSystemFrameTimeStamp;
+      _holdStart.reset();
+      _holdStart.start();
       _holdOffset = null;
       _holdClock.start();
     }
@@ -617,13 +618,18 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   }
 
   void _onHoldTick(Duration elapsed) {
-    _holdOffset ??= Duration(
-      microseconds:
-          ((SchedulerBinding.instance.currentSystemFrameTimeStamp - _holdOrigin)
-                      .inMicroseconds /
-                  timeDilation)
-              .round(),
-    );
+    if (_holdOffset == null) {
+      // The ticker starts at its first frame. Bridge only the gap from
+      // this touch, not from the last frame before an idle period.
+      _holdOffset = Duration(
+        microseconds: math.max(
+          0,
+          (_holdStart.elapsedMicroseconds / timeDilation).round() -
+              elapsed.inMicroseconds,
+        ),
+      );
+      _holdStart.stop();
+    }
     final held = elapsed + _holdOffset!;
     if (_growing) {
       _press.value = _still
@@ -646,6 +652,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
 
   void _stopGrowth() {
     _growing = false;
+    _holdStart.stop();
     if (_holdClock.isActive) {
       _holdClock.stop();
     }
