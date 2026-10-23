@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:morph/morph.dart';
 
 /// Public-API consumer examples for Sonatide; run with -t lib/consumer_api.dart.
@@ -222,7 +223,7 @@ class _ConsumerApiExamplesState extends State<ConsumerApiExamples> {
                   replicaBuilder: _replica,
                 ),
                 const MorphTabItem(
-                  icon: IconData(0xe8b6, fontFamily: 'MaterialIcons'),
+                  icon: Icons.search,
                   label: 'Search',
                 ),
               ],
