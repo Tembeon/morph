@@ -7,6 +7,7 @@ void main() => runApp(
     color: const Color(0xFF007AFF),
     builder: (context, child) => MorphTheme(
       data: const MorphThemeData(
+        brightness: Brightness.light,
         glass: MorphGlassRenderer.adaptive(),
         fontFamily: 'SourceCodePro',
       ),
@@ -62,10 +63,7 @@ class _ConsumerApiExamplesState extends State<ConsumerApiExamples> {
     BuildContext context, {
     required bool selected,
     required bool minimized,
-  }) => Text(
-    selected ? '♫' : '♪',
-    style: TextStyle(color: IconTheme.of(context).color),
-  );
+  }) => _MusicGlyph(selected: selected);
 
   @override
   Widget build(BuildContext context) => MorphPresentationBoundary(
@@ -219,11 +217,14 @@ class _ConsumerApiExamplesState extends State<ConsumerApiExamples> {
                       left: 24,
                       child: Text('⌘1'),
                     ),
-                    child: const Text('♪'),
+                    child: const _MusicGlyph(),
                   ),
                   replicaBuilder: _replica,
                 ),
-                const MorphTabItem(icon: IconData(0xe8b6), label: 'Search'),
+                const MorphTabItem(
+                  icon: IconData(0xe8b6, fontFamily: 'MaterialIcons'),
+                  label: 'Search',
+                ),
               ],
               selected: _tab,
               onChanged: (index) => setState(() => _tab = index),
@@ -232,5 +233,17 @@ class _ConsumerApiExamplesState extends State<ConsumerApiExamples> {
         ),
       ],
     ),
+  );
+}
+
+class _MusicGlyph extends StatelessWidget {
+  const _MusicGlyph({this.selected = false});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    selected ? '♫' : '♪',
+    style: TextStyle(color: IconTheme.of(context).color),
   );
 }

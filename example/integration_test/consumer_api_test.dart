@@ -41,7 +41,10 @@ void main() {
             key: ValueKey(tier),
             color: const Color(0xFF007AFF),
             builder: (context, child) => MorphTheme(
-              data: MorphThemeData(glass: MorphGlassRenderer.tier(tier)),
+              data: MorphThemeData(
+                brightness: Brightness.light,
+                glass: MorphGlassRenderer.tier(tier),
+              ),
               child: child!,
             ),
             pageRouteBuilder: <T>(settings, builder) => PageRouteBuilder<T>(

@@ -41,6 +41,8 @@ call `replicaBuilder(context, selected:, minimized:)` for independent visual
 copies. Each copy owns its own local state and cannot receive pointer or focus input. Never return the primary widget
 or share its keys, focus nodes, portals or mutable controllers between copies.
 Share read-only animation listenables if all copies need the same animation.
+Returned glyph widgets inherit `IconTheme`; read its tint in the glyph's
+own build method rather than in the replica factory's source context.
 
 The primary stays mounted while clipped under the lens. The bar does not
 make a raster snapshot, so animations remain live. Builders run at structural

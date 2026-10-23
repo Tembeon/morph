@@ -70,7 +70,8 @@ class MorphTabItem {
   /// Only the ordinary expanded row mounts [glyph]. The selected-mask
   /// row and minimized representations use [replicaBuilder], so the
   /// primary can own a key, focus node or portal without duplication.
-  /// Both receive an IconTheme with the measured size and current tint.
+  /// Returned glyph widgets inherit an IconTheme with the measured size
+  /// and current tint; read it inside the glyph's build method.
   const MorphTabItem.custom({
     required Widget this.glyph,
     required MorphTabReplicaBuilder this.replicaBuilder,
