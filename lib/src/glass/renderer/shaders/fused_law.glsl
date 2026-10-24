@@ -13,7 +13,7 @@
 // extents), then (corner radius, 0, 0, 0), the radius already clamped to
 // the half extents. Shared by the liquid tier's analytic final pass
 // (analytic_geometry.glsl) and the flat tier's fused bodies
-// (lib/src/widgets/shaders/flat_fused_body.frag). An includer that also
+// (lib/src/glass/renderer/shaders/flat_fused_body.frag). An includer that also
 // defines FUSED_TINTS as an array of each box's tint gets fusedBoxTint: the
 // analytic fused tint variants and the tint-only matte variants
 // (fused_tint.glsl).

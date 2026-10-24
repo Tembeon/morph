@@ -399,7 +399,7 @@ rest. Qualification: tool/audit/claude-navigation-options-report.md.
 On by default. `MORPH_FLAT_SHADER_BODIES=false` restores the traced path.
 
 - A flat fused body of <= 4 boxes is filled by the same merge law in a
-  fragment shader (lib/src/widgets/shaders/flat_fused_body.frag, shared
+  fragment shader (lib/src/glass/renderer/shaders/flat_fused_body.frag, shared
   fused_law.glsl) instead of a CPU-traced silhouette.
 - Its path is traced only if something reads it.
 - Qualified on Skia (Redmi 6A).

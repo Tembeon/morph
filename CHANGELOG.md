@@ -2,6 +2,17 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
+## 0.8.4 - 2026-10-24
+
+Shader includes resolve on Windows as well as macOS and Linux.
+
+- Co-locate the flat fused-body shader with its shared merge law, and add the
+  shared shader root to the GPU bundle compiler's search paths. Includes no
+  longer traverse parent directories, which Windows extended paths reject.
+  Shader equations, uniforms, motion and appearance are unchanged.
+- Add tests that follow runtime and bundle shader includes through the actual
+  compiler search roots, rejecting parent-directory traversal.
+
 ## 0.8.3 - 2026-10-24
 
 App-defined contours follow flat and liquid surfaces, and held previews fit the

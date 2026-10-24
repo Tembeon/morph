@@ -106,7 +106,7 @@ abstract class ShaderKeys {
 
   /// The flat tier's fill of a glass container body of merged boxes.
   static String get flatFusedBody =>
-      '${_shadersRoot}lib/src/widgets/shaders/flat_fused_body.frag';
+      '${_shadersRoot}lib/src/glass/renderer/shaders/flat_fused_body.frag';
 
   static final String gpuGeometryShaderBundle =
       '${_shadersRoot}build/shaderbundles/morph_glass.shaderbundle';

@@ -748,3 +748,8 @@ Local patches (some commits include related package changes):
   pushed analytic, analytic_ios27 to 24 B of stack spill and
   analytic_tint(_ios27) to 26 B on the Mali-G78 (Vulkan); now 0 on Vulkan
   and GLES, total arithmetic 45.6 -> 32.
+- 2026-10-24 Windows shader packaging: flat_fused_body.frag lives beside
+  fused_law.glsl in renderer/shaders; the GPU bundle searches both that root
+  and gpu/. Header names no longer contain parent-directory segments, which
+  cannot traverse the extended paths returned by Flutter's Windows file API.
+  Equations and uniforms are unchanged.

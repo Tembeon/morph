@@ -24,7 +24,7 @@ uniform vec4 uRim;
 // The rim's width in local units.
 uniform float uRimWidth;
 
-#include "../../glass/renderer/shaders/fused_law.glsl"
+#include "fused_law.glsl"
 
 out vec4 fragColor;
 

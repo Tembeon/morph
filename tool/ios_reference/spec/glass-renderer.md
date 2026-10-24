@@ -66,6 +66,13 @@ measurements.
   defines, the asset keys, the warm-up and offline.py derive from) for the
   target's runtime stages. The other runtime shaders (glass shadow,
   glyphs, flat bodies) stay pubspec `flutter: shaders:`.
+- Windows packaging (2026-10-24): shader header names contain no parent
+  segments. Flutter's Windows file API opens include-directory handles through
+  extended paths, whose child opens do not normalize `..`. The flat body asset
+  lives beside fused_law.glsl, and the GPU hook searches both shader root and
+  gpu/. This changes source lookup only; equations, uniforms and tuning stay.
+  Regression evidence: Sonatide Windows release40127999960; include-graph tests
+  reproduce the rejected traversal before the fix.
 - Public entry: `MorphThemeData.glass` takes a `MorphGlassRenderer`
   (`.adaptive()` or `.tier(MorphGlassTier)`, lib/src/theme/glass.dart);
   `MorphTheme` installs `GlassAdaptiveScope`, which installs the internal

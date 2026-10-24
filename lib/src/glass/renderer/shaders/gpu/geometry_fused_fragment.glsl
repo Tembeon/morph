@@ -41,8 +41,8 @@ layout(std140) uniform FusedUniforms {
 const float kOpticalCornerRadiusScale = 1.5;
 
 #include "displacement_encoding.glsl"
-#include "../fused_law.glsl"
-#include "../fused_optics.glsl"
+#include "fused_law.glsl"
+#include "fused_optics.glsl"
 
 out vec4 fragColor;
 

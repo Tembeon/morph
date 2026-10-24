@@ -38,14 +38,20 @@ Future<void> buildMorphGlassBundle(
   }
 }
 
+/// Search roots for shared GLSL and the bundle's GPU entry helpers.
+/// Includes use names within these roots: Windows extended file paths do not
+/// normalize parent-directory segments when the compiler opens a header.
+List<Uri> shaderIncludeDirectories(Uri packageRoot) => [
+  packageRoot.resolve('lib/src/glass/renderer/shaders/'),
+  packageRoot.resolve('lib/src/glass/renderer/shaders/gpu/'),
+];
+
 Future<void> _compile(BuildInput input, BuildOutputBuilder output) async {
   await buildShaderBundleJson(
     buildInput: input,
     buildOutput: output,
     manifestFileName: 'morph_glass.shaderbundle.json',
-    includeDirectories: [
-      input.packageRoot.resolve('lib/src/glass/renderer/shaders/gpu/'),
-    ],
+    includeDirectories: shaderIncludeDirectories(input.packageRoot),
     glesLanguageVersion: 300,
     assetMode: ShaderBundleAssetMode.legacyOnly,
   );

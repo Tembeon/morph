@@ -1,6 +1,6 @@
 name: morph
 description: "iOS 27 Liquid Glass controls for Flutter with motion measured on the iPhone: tab bar, glass buttons, menus, sheets, alerts, bars and more, in liquid or flat glass."
-version: 0.8.3
+version: 0.8.4
 publish_to: 'none'
 
 environment:
@@ -36,6 +36,6 @@ flutter:
     - lib/src/glass/renderer/shaders/glass_shadow.frag
     - lib/src/widgets/shaders/glyph_blur.frag
     - lib/src/widgets/shaders/glyph_reduce.frag
-    - lib/src/widgets/shaders/flat_fused_body.frag
+    - lib/src/glass/renderer/shaders/flat_fused_body.frag
   assets:
     - build/shaderbundles/
