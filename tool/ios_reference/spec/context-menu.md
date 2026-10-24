@@ -26,7 +26,7 @@ Internals: `_UIContextMenuView`, the morph container carrying it, the dim
 - COMMIT point `measuredCommitDuration` min(0.42 s, holdDuration): 0.400
   cancels, 0.433 opens, knee 0.434; past it a release opens the menu (and
   the child's tap does not fire).
-- PREVIEW (preview.json, 20 presentations): open preview at
+- PREVIEW (preview.json, 20 presentations): unconstrained open preview at
   `measuredPreviewScale` = min(15 percent of long side, 26 pt) over the long
   side about the held view's center (60x40 -> 69x46, 300x200 -> 326x217.3;
   device-confirmed 138x92 and 326x217.3); resizes from the held size on ONE
@@ -46,6 +46,46 @@ Internals: `_UIContextMenuView`, the morph container carrying it, the dim
   and 12.5 ms after the geometry (`measuredDim`, engine scrimMotion). The
   menu view's own alpha/scale model also closes on 0.35/0.85, and that
   fade is visible (simulator, see Not reproduced / open).
+
+## Viewport fitting (simulator, 2026-10-24)
+
+Eight native `UIContextMenuInteraction` holds in the existing `w2ctx` scene on
+an iPhone 18 Pro simulator, iOS 27.0, 402 x 874 at 3x, with system insets 62/34.
+Received XCUITest touches, resting presentation frames before the open screenshot,
+source/environment hashes and screenshot attachments are retained in
+`~/morph-re/2026-10-24-context-preview-fit/morph-preview-fit-native-*-001`. The compact replay fixture is
+`test/fixtures/ios27-simulator/context_menu/preview_fit.json`; scenario hashes are
+stored per case. These are simulator geometry observations, not physical-device
+haptics, timing, optics or performance evidence.
+
+- The measured lift is a preferred size, not an unconditional enlargement.
+  The preview is uniformly fitted into the safe viewport with 16 pt margins:
+  `min(1, availableWidth / preferredWidth, availableHeight / preferredHeight)`.
+  A 390 x 220 source opens at 370 x 209, centered at x=201; a 350 x 220 source
+  also caps at 370 wide. The 340 x 220 control opens at 366 wide, retaining the
+  measured lift. Native alignment to the 3x pixel grid explains sub-point
+  height/center rounding; replay tolerance is the existing resting 0.5 pt.
+- Height uses the same safe viewport, independently of menu height. A 300 x 1000
+  source fits to 224 x 746; a 390 x 1600 source fits to 182 x 746. Both preview
+  frames span y=78..824. Ordinary 120 x 80 still opens at 138 x 92.
+- Below/above placement and moving the pair are retained when their whole column
+  fits. If it cannot, the preview reaches the safe top and the menu reaches the
+  safe bottom, overlapping the preview instead of pushing either outside.
+  A 300 x 700 source opens at 311.33 x 726, top=78; its 250 x 104 menu sits at
+  y=720..824. The menu paints above the preview, confirmed by the screenshots.
+- A matching Flutter simulator capture of the wide case receives the same
+  XCUITest hold and confirms the 370-point centered preview visually:
+  `~/morph-re/2026-10-24-context-preview-fit/morph-preview-fit-flutter-wide-001`.
+  Its temporary target source is retained alongside the captures; native
+  screenshots are the geometry oracle, not an optics-equivalence claim.
+- The source's original rectangle is unchanged; closing returns to it. The
+  fitted width/height, rather than the unconstrained lift, define the residual
+  source scale past the close hand-off. Springs and hold timing are unchanged.
+
+`MorphSatellite` continues reserving its declared room above the fitted preview;
+this is its existing API contract, not a new native accessory measurement.
+The preferred custom `previewSize` is constrained by the same viewport; native
+preview-provider layout and commit semantics are not newly measured here.
 
 ## Fixtures
 
@@ -290,7 +330,7 @@ and (4).
   `Rect.lerp(sourceRect, preview, value)` (the grown source on the open,
   the natural one on the close; overshoot included). The close's residual
   undershoot plays on the SOURCE (`_followLanding`: the press transform
-  adds min(value, 0) x (measuredPreviewScale - 1) while landing).
+  adds min(value, 0) x (fittedPreview / source - 1) per axis while landing).
 - DIM: the engine's scrim channel (`measuredDim`, `measuredDimOpacity`);
   replay vs dim.json 0.0014 open / 0.0009 close rms of alpha.
 - The region does NOT abort its flight on dispose: a held view deleted

@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "morph",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "The morph Flutter package's own Claude Code plugin: the use-morph skill, kept in step with the package's public API.",
   "owner": {
     "name": "tembeon"

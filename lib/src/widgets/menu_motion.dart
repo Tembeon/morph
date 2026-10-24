@@ -165,8 +165,11 @@ class MorphMenuTuning {
   /// The row glyph size from the iOS 27 menu view tree, in points.
   static const double rowIconSize = 20;
 
-  /// The context menu edge margin; an engineering default, not measured.
-  static const double contextMargin = 12;
+  /// The context preview/menu margin inside the safe area, in points.
+  /// iOS 27 simulator fit captures (2026-10-24): a 390-point card in a
+  /// 402-point window fits to 370; a tall preview spans y=78..824 with
+  /// system insets 62/34. See the context-menu passport.
+  static const double contextMargin = 16;
 
   /// The gap below a row title, from the 60-point subtitle row view tree.
   static const double subtitleGap = 2.67;
@@ -845,9 +848,10 @@ class MorphFusionTurns {
 ///
 /// The menu stands [gap] below the [preview] when it fits there, above it
 /// otherwise (its entries reversed, as for a menu opening upward), and
-/// when it fits on neither side the preview and the menu shift together
-/// until the menu fits below; [MorphMenuMotion.previewShift] is that
-/// shift. Across, the menu centers on the preview when that keeps
+/// when it fits on neither side the preview and the menu shift together.
+/// If their combined height exceeds the safe area, the menu overlaps the
+/// fitted preview; [MorphMenuMotion.previewShift] is the preview's shift.
+/// Across, the menu centers on the preview when that keeps
 /// [MorphMenuTuning.edgeMargin] from the safe area and aligns with the
 /// preview's nearer edge otherwise, as a button menu does.
 class MorphMenuAttachment {
@@ -877,6 +881,29 @@ class MorphMenuAttachment {
 
   /// The distance the preview and the menu keep from the safe area's edges.
   final double margin;
+
+  /// Fits the preferred preview uniformly inside the safe area's margins.
+  /// UIKit bounds the preview itself; menu placement may overlap its lower
+  /// edge when their combined height cannot fit (iOS 27 fit captures).
+  static Size fitPreview({
+    required Size preferred,
+    required Size bounds,
+    EdgeInsets padding = EdgeInsets.zero,
+    double accessory = 0,
+    double margin = MorphMenuTuning.contextMargin,
+  }) {
+    if (preferred.isEmpty) return preferred;
+    final width = math.max(0.0, bounds.width - padding.horizontal - margin * 2);
+    final height = math.max(
+      0.0,
+      bounds.height - padding.vertical - margin * 2 - accessory,
+    );
+    final scale = math.min(
+      1.0,
+      math.min(width / preferred.width, height / preferred.height),
+    );
+    return preferred * scale;
+  }
 
   /// Space UIKit leaves between an open preview and its menu, in points
   /// (iPhone 16 Pro, iOS 27).
@@ -2951,7 +2978,8 @@ class MorphMenuMotion
   /// preview, its accessory and the menu fit inside the safe area minus
   /// [MorphMenuAttachment.margin] that way, above it when they fit that
   /// way, and below it otherwise, the preview and the menu then shifting
-  /// together until the menu fits (the top edge wins). Across, the menu
+  /// together. If their whole column cannot fit, the preview stays inside
+  /// the safe top and the menu overlaps it at the safe bottom. Across, the menu
   /// centers on the preview when that keeps [edgeMargin] from the safe
   /// area and aligns with the preview's nearer edge otherwise; a preview
   /// that leaves the safe area moves back into it.
@@ -2995,8 +3023,10 @@ class MorphMenuMotion
           : shifted.right - size.width;
     }
     x = math.max(left, math.min(x, right - size.width));
+    // UIKit keeps the fitted preview at the top and the menu at the bottom
+    // when a whole column cannot fit; the menu then covers the preview.
     final y = down
-        ? shifted.bottom + gap
+        ? math.min(shifted.bottom + gap, bottom - size.height)
         : shifted.top - attachment.accessory - gap - size.height;
     return (
       rect: Rect.fromLTWH(x, y, size.width, size.height),

@@ -299,7 +299,7 @@ static MorphContentScroll? maybeOf(BuildContext context)
 
 `class MorphContextMenuRegion extends StatefulWidget`
 
-A surface that becomes its own context menu when HELD, as a view with a `UIContextMenuInteraction` does: the thing under a resting finger grows as UIKit's preview grows ([measuredHoldGrowth]), and on the hold its preview lifts ([measuredPreviewScale] about its center) while the [menu] grows out of a blob at its center ([MorphMenuAttachment]) and the page dims.
+A surface that becomes its own context menu when HELD, as a view with a `UIContextMenuInteraction` does: the thing under a resting finger grows as UIKit's preview grows ([measuredHoldGrowth]), and on the hold its preview lifts ([measuredPreviewScale] about its center) within the safe area while the [menu] grows out of a blob at its center ([MorphMenuAttachment]) and the page dims.
 
 ```dart
 const MorphContextMenuRegion({
@@ -1799,6 +1799,25 @@ const MorphSubmenu({
 })
 ```
 
+### MorphSurfaceBorders
+
+`class MorphSurfaceBorders`
+
+Optional app-authored contours, independent of the glass tier and motion.
+
+```dart
+const MorphSurfaceBorders({
+  BorderSide bar = BorderSide.none,
+  BorderSide track = BorderSide.none,
+  BorderSide menu = BorderSide.none,
+  BorderSide button = BorderSide.none,
+  BorderSide lens = BorderSide.none,
+  BorderSide knob = BorderSide.none,
+  BorderSide thumb = BorderSide.none,
+})
+const MorphSurfaceBorders.all(BorderSide border)
+```
+
 ### MorphSwitch
 
 `class MorphSwitch extends StatefulWidget`
@@ -1991,6 +2010,8 @@ const MorphThemeData({
   String? fontFamily,
   bool haptics = true,
   MorphGlassRenderer? glass,
+  MorphSurfaceBorders? borders,
+  MorphSurfaceBorders? liquidBorders,
   List<MorphAppearance> appearances = const <MorphAppearance>[],
 })
 ```

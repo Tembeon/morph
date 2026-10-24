@@ -2,6 +2,22 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
+## 0.8.3 - 2026-10-24
+
+App-defined contours follow flat and liquid surfaces, and held previews fit the
+safe viewport using measured UIKit geometry.
+
+- `MorphSurfaceBorders` and `MorphThemeData.borders` configure contours by
+  surface role. `liquidBorders` gives actual Liquid rendering its own contours,
+  while Flat fallbacks retain the default borders. Contours follow live and
+  fused geometry without changing layout or hit targets.
+- Context-menu previews scale uniformly to fit the safe viewport with measured
+  16-point margins. A menu that cannot fit beside a tall preview overlaps it
+  at the safe bottom, paints above it and retains its actions. Closing returns
+  to the source's original size; hold timing and spring tuning are unchanged.
+- Native simulator fixtures cover eight preview sizes. Widget and Impeller
+  host tests cover fitting, overlapping menu actions and both renderer tiers.
+
 ## 0.8.2 - 2026-10-23
 
 - `MorphTouchTarget` counts its long-press threshold from the original

@@ -1,0 +1,199 @@
+{
+  "provenance": {
+    "date": "2026-10-24",
+    "target": "iPhone 18 Pro simulator",
+    "os": "iOS 27.0",
+    "canvas": [
+      402,
+      874
+    ],
+    "safeInsets": [
+      0,
+      62,
+      0,
+      34
+    ],
+    "scene": "w2ctx",
+    "menuRows": 2,
+    "capture": "Morph laboratory native XCUITest holds; resting frames before open screenshot",
+    "rounding": "Native view frames rounded to two decimals; pixel alignment at 3x"
+  },
+  "cases": [
+    {
+      "name": "wide",
+      "source": [
+        201,
+        320.0,
+        390.0,
+        220.0
+      ],
+      "preview": [
+        201,
+        320.17,
+        370,
+        209
+      ],
+      "menu": [
+        201,
+        492.67,
+        250,
+        104
+      ],
+      "scenarioSha256": "0ab0e6d0d4c380b018521b7cc4680b78d5698103397d857ccf81e1b1c0b8e66b"
+    },
+    {
+      "name": "edgewidth",
+      "source": [
+        201,
+        320.0,
+        350.0,
+        220.0
+      ],
+      "preview": [
+        201,
+        320,
+        370,
+        232.67
+      ],
+      "menu": [
+        201,
+        504.33,
+        250,
+        104
+      ],
+      "scenarioSha256": "13a0bb786a05abc861a57f9a344e246a7a724689bbf21a9927bb2b95f0b15d47"
+    },
+    {
+      "name": "near-width",
+      "source": [
+        201,
+        320.0,
+        340.0,
+        220.0
+      ],
+      "preview": [
+        201,
+        320.17,
+        366,
+        237
+      ],
+      "menu": [
+        201,
+        506.67,
+        250,
+        104
+      ],
+      "scenarioSha256": "f510c4245e004ce322ca91c5a2fda3588372fb6eb640592c44f3b0dbbb6a4324"
+    },
+    {
+      "name": "tall",
+      "source": [
+        201,
+        420.0,
+        300.0,
+        700.0
+      ],
+      "preview": [
+        201,
+        441,
+        311.33,
+        726
+      ],
+      "menu": [
+        201,
+        772,
+        250,
+        104
+      ],
+      "scenarioSha256": "b0ccdc05eb02d31b40df2a628644945685f7242765e6f90a68ec0371d4178c39"
+    },
+    {
+      "name": "wide-tall",
+      "source": [
+        201,
+        420.0,
+        390.0,
+        700.0
+      ],
+      "preview": [
+        201,
+        410.17,
+        370,
+        664.33
+      ],
+      "menu": [
+        201,
+        772,
+        250,
+        104
+      ],
+      "scenarioSha256": "40c21cac39d05ceaa86e537ffa166be7e02db68ea38666eaaabf7435af11e9d9"
+    },
+    {
+      "name": "too-tall",
+      "source": [
+        201,
+        420.0,
+        300.0,
+        1000.0
+      ],
+      "preview": [
+        201,
+        451,
+        224,
+        746
+      ],
+      "menu": [
+        201,
+        772,
+        250,
+        104
+      ],
+      "scenarioSha256": "a9b4e7d89e2dcb519743fd3f8450d14ead6d711ba4a784b7de96396b35dc12eb"
+    },
+    {
+      "name": "huge",
+      "source": [
+        201,
+        420.0,
+        390.0,
+        1600.0
+      ],
+      "preview": [
+        201,
+        451,
+        182,
+        746
+      ],
+      "menu": [
+        201,
+        772,
+        250,
+        104
+      ],
+      "scenarioSha256": "9b9d5d31a6fe48f55e2ceffb388a200fcf91398fd13ab46eb7c6f9c01a09581c"
+    },
+    {
+      "name": "small",
+      "source": [
+        201,
+        320.0,
+        120.0,
+        80.0
+      ],
+      "preview": [
+        201,
+        320,
+        138,
+        92
+      ],
+      "menu": [
+        201,
+        434,
+        250,
+        104
+      ],
+      "scenarioSha256": "51b75f09943d43e4890fde5b2b988d87c8155e4e4a20f21842162a354233db1d"
+    }
+  ]
+}

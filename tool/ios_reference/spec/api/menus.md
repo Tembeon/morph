@@ -206,4 +206,4 @@ Fixtures are under `test/fixtures/ios27-device/` unless named otherwise.
 | context-menu preview-actions | region API | rows and custom preview covered; highlight / dismissal previews and suggested actions absent |
 | context-menu preview-commit | none | `.pop` missing; dismiss commit unbacked |
 | context-menu source-change | none | unbacked |
-| context-menu presentation-geometry | `holds.json`, `growth.json`, `preview.json`, `morph.json` | replayed below the preview; above captured, not replayed; shift unbacked |
+| context-menu presentation-geometry | `holds.json`, `growth.json`, `preview.json`, `morph.json`; simulator `preview_fit.json` | device bottom-edge replay plus simulator width/height fitting and overflow overlap; full dynamic geometry not covered |

@@ -761,7 +761,7 @@ void main() {
     final Rect open = tester.getRect(find.byKey(_heroBox).last);
     final Rect menu = _menuFrame(tester);
     expect(menu.height, _rowsHeight(10));
-    expect(menu.bottom, _near(600 - 12));
+    expect(menu.bottom, _near(600 - MorphMenuTuning.contextMargin));
     expect(menu.top, _near(open.bottom + _gap));
     expect(open.center.dy, lessThan(home.center.dy - 100));
     expect(open.center.dx, _near(home.center.dx));

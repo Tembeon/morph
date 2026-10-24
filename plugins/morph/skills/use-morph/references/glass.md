@@ -59,3 +59,17 @@ Flat draws the same outlines with solid fills from the appearances (no
 backdrop sampling), so it is the right default for low-end devices and a
 fine user choice. Check both tiers when designing: a tint that reads on
 glass may need its own appearance color on flat.
+
+## Optional app contours
+
+Set `MorphThemeData.borders` to `MorphSurfaceBorders` to add `BorderSide`
+contours per role (`bar`, `track`, `menu`, `button`, `lens`, `knob`, `thumb`),
+or use `MorphSurfaceBorders.all(side)`. The built-in Flat and Liquid renderers
+follow live geometry, opacity and fused menu silhouettes. Defaults add nothing;
+null inherits and an empty configuration clears contours. Give fused source
+and menu roles the same border. Custom painters and custom track widgets own
+their decoration; changing borders does not change physics or hit targets.
+
+Use `MorphThemeData.liquidBorders` for a different treatment on actual Liquid,
+for example only outlining plain tracks. Empty removes added Liquid contours;
+null inherits or uses `borders`. Flat and adaptive/Liquid fallbacks keep `borders`.

@@ -12,6 +12,7 @@ export 'src/scope.dart' show MorphSource, MorphSourceLink;
 export 'src/theme/glass.dart' show MorphGlassRenderer, MorphGlassTier;
 export 'src/theme/localizations.dart'
     show DefaultMorphLocalizations, MorphLocalizations;
+export 'src/theme/surface_borders.dart' show MorphSurfaceBorders;
 export 'src/theme/theme.dart' show MorphAppearance, MorphThemeData;
 export 'src/widgets/activity_indicator.dart'
     show

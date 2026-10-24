@@ -4,6 +4,8 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/theme/glass.dart';
+import 'package:morph/src/theme/surface_borders.dart';
+import 'package:morph/src/widgets/glass_border.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
@@ -78,6 +80,8 @@ class GlassBuiltInPainter extends MorphGlassPainter {
     this.light = 1,
     this.tint = 0,
     this.frostControls = false,
+    this.borders = const MorphSurfaceBorders(),
+    this.liquidBorders,
   });
 
   /// The quality tier asked for; see [effectiveTier] for the one drawn.
@@ -108,6 +112,12 @@ class GlassBuiltInPainter extends MorphGlassPainter {
   /// raster per surface on an iPhone 16 Pro, and at control size over a
   /// plain page the frost is rarely visible.
   final bool frostControls;
+
+  /// Optional app contours; empty keeps the native rendering path unchanged.
+  final MorphSurfaceBorders borders;
+
+  /// Contours on actual liquid rendering; null uses [borders].
+  final MorphSurfaceBorders? liquidBorders;
 
   /// Whether the runtime GPU context and liquid shaders are ready.
   ///
@@ -171,6 +181,8 @@ class GlassBuiltInPainter extends MorphGlassPainter {
     double? light,
     double? tint,
     bool? frostControls,
+    MorphSurfaceBorders? borders,
+    MorphSurfaceBorders? liquidBorders,
   }) => GlassBuiltInPainter(
     tier: tier ?? this.tier,
     material: material ?? this.material,
@@ -179,6 +191,8 @@ class GlassBuiltInPainter extends MorphGlassPainter {
     light: light ?? this.light,
     tint: tint ?? this.tint,
     frostControls: frostControls ?? this.frostControls,
+    borders: borders ?? this.borders,
+    liquidBorders: liquidBorders ?? this.liquidBorders,
   );
 
   /// The growth of the tab bar items seen through a fully lifted lens.
@@ -315,10 +329,18 @@ class GlassBuiltInPainter extends MorphGlassPainter {
 
   @override
   Widget buildSurface(BuildContext context, MorphGlassSurface surface) =>
-      _surface(
+      buildFrom(
         context,
+        MorphGlassMode.surface,
         MorphMorphFixedSource(MorphGlassFrame([surface])),
-        (f) => f.surfaces.single,
+      );
+
+  @override
+  Widget buildFill(BuildContext context, MorphGlassSurface surface) =>
+      _bordered(
+        MorphGlassMode.fill,
+        MorphMorphFixedSource(MorphGlassFrame([surface])),
+        super.buildFill(context, surface),
       );
 
   @override
@@ -326,10 +348,10 @@ class GlassBuiltInPainter extends MorphGlassPainter {
     BuildContext context,
     MorphGlassOutline outline,
     List<MorphGlassSurface> surfaces,
-  ) => _body(
+  ) => buildFrom(
     context,
+    MorphGlassMode.body,
     MorphMorphFixedSource(MorphGlassFrame(surfaces, outline: outline)),
-    (f) => (f.surfaces, f.outline!),
   );
 
   @override
@@ -340,8 +362,9 @@ class GlassBuiltInPainter extends MorphGlassPainter {
     List<Rect> contentSlots = const [],
     double spacing = 0,
     MorphGlassOutline? outline,
-  }) => _layer(
+  }) => buildFrom(
     context,
+    MorphGlassMode.layer,
     MorphMorphFixedSource(
       MorphGlassFrame(
         surfaces,
@@ -352,6 +375,23 @@ class GlassBuiltInPainter extends MorphGlassPainter {
     ),
     content: content,
   );
+
+  Widget _bordered(MorphGlassMode mode, MorphGlassSource source, Widget child) {
+    final tier = effectiveTier;
+    final contours = tier == MorphGlassTier.liquid
+        ? liquidBorders ?? borders
+        : borders;
+    if (!_exact || contours.isEmpty) return child;
+    return CustomPaint(
+      foregroundPainter: MorphSurfaceBorderPainter(
+        source: source,
+        borders: contours,
+        tier: tier,
+        mode: mode,
+      ),
+      child: child,
+    );
+  }
 
   /// What decides the widget tree of [mode] for [frame]: two frames with
   /// equal structures draw through the same render objects, so the second
@@ -392,6 +432,17 @@ class GlassBuiltInPainter extends MorphGlassPainter {
   /// Builds the tree of [mode] whose render objects follow [source].
   @internal
   Widget buildFrom(
+    BuildContext context,
+    MorphGlassMode mode,
+    MorphGlassSource source, {
+    Widget? content,
+  }) => _bordered(
+    mode,
+    source,
+    _buildFrom(context, mode, source, content: content),
+  );
+
+  Widget _buildFrom(
     BuildContext context,
     MorphGlassMode mode,
     MorphGlassSource source, {
@@ -639,11 +690,22 @@ class GlassBuiltInPainter extends MorphGlassPainter {
       other.refraction == refraction &&
       other.light == light &&
       other.tint == tint &&
-      other.frostControls == frostControls;
+      other.frostControls == frostControls &&
+      other.borders == borders &&
+      other.liquidBorders == liquidBorders;
 
   @override
-  int get hashCode =>
-      Object.hash(tier, material, blur, refraction, light, tint, frostControls);
+  int get hashCode => Object.hash(
+    tier,
+    material,
+    blur,
+    refraction,
+    light,
+    tint,
+    frostControls,
+    borders,
+    liquidBorders,
+  );
 }
 
 /// Whether a layer host keeps one tree of slots for [frame]: a

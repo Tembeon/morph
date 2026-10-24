@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/theme/theme.dart';
+import 'package:morph/src/theme/surface_borders.dart';
+import 'package:morph/src/theme/glass.dart';
+import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 
@@ -95,11 +98,47 @@ class MorphTheme extends StatelessWidget {
       GlassBuiltInPainter.liquidUnavailableReason;
 
   @override
-  Widget build(BuildContext context) => MorphThemeScope(
-    data: data,
-    child: switch (data.glass) {
-      null => child,
-      final glass => GlassAdaptiveScope(tier: glass.fixedTier, child: child),
-    },
-  );
+  Widget build(BuildContext context) {
+    final ambient = MorphGlassScope.maybeOf(context);
+    final borders =
+        data.borders ??
+        (ambient is GlassBuiltInPainter
+            ? ambient.borders
+            : const MorphSurfaceBorders());
+    final liquidBorders =
+        data.liquidBorders ??
+        (ambient is GlassBuiltInPainter ? ambient.liquidBorders : null);
+    final hasContours = data.borders != null || data.liquidBorders != null;
+    final Widget themed;
+    if (data.glass case final glass?) {
+      themed = GlassAdaptiveScope(
+        tier: glass.fixedTier,
+        renderer: GlassBuiltInPainter(
+          borders: borders,
+          liquidBorders: liquidBorders,
+        ),
+        child: child,
+      );
+    } else if (hasContours && ambient is GlassBuiltInPainter) {
+      themed = MorphGlassScope(
+        painter: ambient.copyWith(
+          borders: borders,
+          liquidBorders: liquidBorders,
+        ),
+        child: child,
+      );
+    } else if (hasContours && ambient == null) {
+      themed = GlassAdaptiveScope(
+        tier: MorphGlassTier.flat,
+        renderer: GlassBuiltInPainter(
+          borders: borders,
+          liquidBorders: liquidBorders,
+        ),
+        child: child,
+      );
+    } else {
+      themed = child;
+    }
+    return MorphThemeScope(data: data, child: themed);
+  }
 }

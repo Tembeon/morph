@@ -1793,6 +1793,35 @@ class MorphSubmenu extends MorphMenuEntry
   final bool singleSelection
   final String? subtitle
   final String title
+class MorphSurfaceBorders
+  const MorphSurfaceBorders({
+    BorderSide bar = BorderSide.none,
+    BorderSide track = BorderSide.none,
+    BorderSide menu = BorderSide.none,
+    BorderSide button = BorderSide.none,
+    BorderSide lens = BorderSide.none,
+    BorderSide knob = BorderSide.none,
+    BorderSide thumb = BorderSide.none,
+  })
+  const MorphSurfaceBorders.all(BorderSide border)
+  final BorderSide bar
+  final BorderSide button
+  MorphSurfaceBorders copyWith({
+    BorderSide? bar,
+    BorderSide? track,
+    BorderSide? menu,
+    BorderSide? button,
+    BorderSide? lens,
+    BorderSide? knob,
+    BorderSide? thumb,
+  })
+  bool get isEmpty
+  final BorderSide knob
+  final BorderSide lens
+  final BorderSide menu
+  final BorderSide thumb
+  final BorderSide track
+  overrides: ==, hashCode
 class MorphSwitch extends StatefulWidget
   const MorphSwitch({
     required bool value,
@@ -1966,10 +1995,13 @@ class MorphThemeData
     String? fontFamily,
     bool haptics = true,
     MorphGlassRenderer? glass,
+    MorphSurfaceBorders? borders,
+    MorphSurfaceBorders? liquidBorders,
     List<MorphAppearance> appearances = const <MorphAppearance>[],
   })
   T? appearance<T extends MorphAppearance>()
   final List<MorphAppearance> appearances
+  final MorphSurfaceBorders? borders
   final Brightness? brightness
   MorphThemeData copyWith({
     Brightness? brightness,
@@ -1977,11 +2009,14 @@ class MorphThemeData
     String? fontFamily,
     bool? haptics,
     MorphGlassRenderer? glass,
+    MorphSurfaceBorders? borders,
+    MorphSurfaceBorders? liquidBorders,
     List<MorphAppearance>? appearances,
   })
   final String? fontFamily
   final MorphGlassRenderer? glass
   final bool haptics
+  final MorphSurfaceBorders? liquidBorders
   final Color? tint
   overrides: ==, hashCode
 class MorphToolbar extends StatelessWidget

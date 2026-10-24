@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/theme/glass.dart';
+import 'package:morph/src/theme/surface_borders.dart';
 
 /// A control's look as one value: its colors, metrics and materials.
 ///
@@ -18,6 +19,8 @@ class MorphThemeData {
     this.fontFamily,
     this.haptics = true,
     this.glass,
+    this.borders,
+    this.liquidBorders,
     this.appearances = const <MorphAppearance>[],
   });
 
@@ -49,6 +52,22 @@ class MorphThemeData {
   /// theme above; with no glass chosen above, the controls draw flat.
   final MorphGlassRenderer? glass;
 
+  /// Default app contours, also used when liquid falls back to flat.
+  ///
+  /// Null inherits the renderer above; an empty value clears these contours.
+  /// [liquidBorders] can give actual liquid rendering a different treatment.
+  /// They follow live surface geometry and fused menu outlines, without
+  /// changing layout, hit targets, native optics or motion. The defaults
+  /// add no contour. Custom glass painters own their decoration.
+  final MorphSurfaceBorders? borders;
+
+  /// Contours for actual liquid rendering, independent of the requested tier.
+  ///
+  /// Null inherits the liquid override above, or uses [borders] when none is
+  /// set. An empty value removes added contours on liquid only. A fallback
+  /// to flat always uses [borders], including the adaptive renderer.
+  final MorphSurfaceBorders? liquidBorders;
+
   /// Looks that replace a control's built-in tables, at most one per type.
   ///
   /// A control's own `appearance` argument still wins over these.
@@ -69,6 +88,8 @@ class MorphThemeData {
     String? fontFamily,
     bool? haptics,
     MorphGlassRenderer? glass,
+    MorphSurfaceBorders? borders,
+    MorphSurfaceBorders? liquidBorders,
     List<MorphAppearance>? appearances,
   }) => MorphThemeData(
     brightness: brightness ?? this.brightness,
@@ -76,6 +97,8 @@ class MorphThemeData {
     fontFamily: fontFamily ?? this.fontFamily,
     haptics: haptics ?? this.haptics,
     glass: glass ?? this.glass,
+    borders: borders ?? this.borders,
+    liquidBorders: liquidBorders ?? this.liquidBorders,
     appearances: appearances ?? this.appearances,
   );
 
@@ -87,6 +110,8 @@ class MorphThemeData {
       other.fontFamily == fontFamily &&
       other.haptics == haptics &&
       other.glass == glass &&
+      other.borders == borders &&
+      other.liquidBorders == liquidBorders &&
       listEquals(other.appearances, appearances);
 
   @override
@@ -96,6 +121,8 @@ class MorphThemeData {
     fontFamily,
     haptics,
     glass,
+    borders,
+    liquidBorders,
     Object.hashAll(appearances),
   );
 }

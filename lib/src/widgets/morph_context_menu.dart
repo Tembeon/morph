@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/physics.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -62,7 +63,7 @@ class MorphSatellite {
 /// with a `UIContextMenuInteraction` does: the thing under a resting
 /// finger grows as UIKit's preview grows ([measuredHoldGrowth]), and on
 /// the hold its preview lifts ([measuredPreviewScale] about its center)
-/// while the [menu] grows out of a blob at its center
+/// within the safe area while the [menu] grows out of a blob at its center
 /// ([MorphMenuAttachment]) and the page dims.
 ///
 /// The menu IS the button menu, as in UIKit: the card, rows, sections,
@@ -70,8 +71,9 @@ class MorphSatellite {
 /// [MorphMenuButton], on the context menu's measured morph. It stands
 /// [measuredMenuGap] below the lifted preview, above it (its entries
 /// reversed unless [order] is [MorphMenuOrder.fixed]) when it does not
-/// fit below, and when it fits
-/// on neither side the preview moves with it until it fits. The finger
+/// fit below, and when it fits on neither side the preview moves with it.
+/// The preview scales uniformly to fit inside the safe area; a menu taller
+/// than the remaining room overlaps it. The finger
 /// that held the preview may slide onto a row and choose it on release,
 /// with a selection haptic on each row; let go on the preview, it leaves
 /// the menu open. A touch outside the menu, Esc, a chosen row or [close]
@@ -173,8 +175,8 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// preview is not measured.
   final WidgetBuilder? preview;
 
-  /// The size of the [preview] (`preferredContentSize`); null gives it the
-  /// held view's lifted size.
+  /// The preferred size of the [preview] (`preferredContentSize`), uniformly
+  /// fitted into the safe viewport. Null prefers the held view's lifted size.
   final Size? previewSize;
 
   /// Called when the open preview is tapped (`willPerformPreviewAction`,
@@ -198,12 +200,10 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// growth [measuredHoldGrowth] of the time held - the same number of
   /// points for every size, as UIKit's preview grows; a finger that lets
   /// go or scrolls before the commit point drops it back at once. Open,
-  /// the preview is [measuredPreviewScale] of its natural size about its
-  /// natural center, and the menu stands off the lifted preview: the
-  /// preview goes from the grown size to the lifted one (a small view
-  /// shrinks a little, a large one keeps growing) and back to its natural
-  /// size on the way home. Off, the preview keeps its natural size
-  /// throughout.
+  /// preferred preview is [measuredPreviewScale] of its natural size about
+  /// its natural center, then uniformly fitted into the safe viewport. It
+  /// returns to its natural size on the way home. Off skips hold growth
+  /// and the preferred lift; viewport fitting still applies.
   ///
   /// Under Reduce Motion the held view keeps its natural size, as UIKit
   /// holds its preview at scale 1 then (read from UIKit, notes private).
@@ -417,10 +417,9 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     vsync: this,
   );
   MorphFlexSpec _flex = MorphFlexSpec.ultraSmall;
-  // The held view's scale below its natural size while its flight lands:
-  // the close spring's undershoot after the latch, which UIKit's preview
-  // plays as a shrink below its natural size.
-  final ValueNotifier<double> _landing = ValueNotifier<double>(0);
+  // The close spring continues on the source after its hand-off. A fitted
+  // preview can be smaller, so its residual can grow instead of shrink.
+  final ValueNotifier<Offset> _landing = ValueNotifier<Offset>(Offset.zero);
   late final Listenable _heroScale = Listenable.merge(<Listenable>[
     _press,
     _landing,
@@ -838,11 +837,6 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     final Size size = widget.preview == null
         ? held.size * scale
         : widget.previewSize ?? held.size * scale;
-    final Rect lifted = Rect.fromCenter(
-      center: held.center,
-      width: size.width,
-      height: size.height,
-    );
     final MorphSatellite? accessory = widget.accessory;
     final double room = accessory == null
         ? 0
@@ -855,6 +849,17 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       context,
       overlayBox.size,
       overlayBox: overlayBox,
+    );
+    final fitted = MorphMenuAttachment.fitPreview(
+      preferred: size,
+      bounds: overlayBox.size,
+      padding: padding,
+      accessory: room,
+    );
+    final lifted = Rect.fromCenter(
+      center: held.center,
+      width: fitted.width,
+      height: fitted.height,
     );
     final _MenuDriverState? driver = _driver.currentState;
     final MorphMenuAttachment attachment = MorphMenuAttachment(
@@ -908,7 +913,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     );
     if (!identical(flight, _flight)) {
       _flight = flight;
-      _followLanding(flight, placement.held.size);
+      _followLanding(flight, placement);
       late final StreamSubscription<MorphFlightEvent> closing;
       closing = flight.events.listen((MorphFlightEvent event) {
         if (event != MorphFlightEvent.closing) return;
@@ -964,18 +969,21 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     }
   }
 
-  /// Plays the close spring's undershoot past the latch on the held view:
-  /// the lifted size is a linear function of the flight value, so below
-  /// zero the view shrinks under its natural size by the same law.
-  void _followLanding(MorphFlight flight, Size natural) {
-    final double lift = widget.lifts
-        ? MorphContextMenuRegion.measuredPreviewScale(natural) - 1
-        : 0;
+  /// Continues the fitted preview's close spring on the source after hand-off.
+  void _followLanding(MorphFlight flight, _Placement placement) {
+    final natural = placement.held.size;
+    final preview = placement.preview.size;
+    final lift = natural.isEmpty
+        ? Offset.zero
+        : Offset(
+            preview.width / natural.width - 1,
+            preview.height / natural.height - 1,
+          );
     void land() {
       if (mounted && identical(flight, _flight)) {
         _landing.value = flight.isLanding
-            ? math.min(flight.controller.value, 0) * lift
-            : 0;
+            ? lift * math.min(flight.controller.value, 0)
+            : Offset.zero;
       }
     }
 
@@ -984,7 +992,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       flight.closed.whenComplete(() {
         flight.frameTicks.removeListener(land);
         if (mounted && identical(flight, _flight)) {
-          _landing.value = 0;
+          _landing.value = Offset.zero;
         }
       }),
     );
@@ -1001,17 +1009,11 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       fit: StackFit.expand,
       clipBehavior: Clip.none,
       children: <Widget>[
-        if (controller != null && _entries.isNotEmpty)
-          _RegionScope(
-            state: this,
-            child: MorphMenuLayer(host: controller, flight: flight),
-          ),
         // A frame of the flight repaints the preview's transform alone.
         RepaintBoundary(
           child: _PreviewLayer(
             flight: flight,
             placement: placement,
-            onTap: widget.onPreviewTap == null ? null : _previewTapped,
             preview: widget.preview == null
                 ? null
                 : _RegionScope(
@@ -1026,6 +1028,11 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
             ),
           ),
         ),
+        if (controller != null && _entries.isNotEmpty)
+          _RegionScope(
+            state: this,
+            child: MorphMenuLayer(host: controller, flight: flight),
+          ),
         if (accessory != null)
           _AccessoryLayer(
             flight: flight,
@@ -1035,6 +1042,22 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
               state: this,
               child: GlassPlaneScope.chrome(
                 child: Builder(builder: accessory.builder),
+              ),
+            ),
+          ),
+        if (widget.onPreviewTap != null)
+          Positioned.fromRect(
+            rect: placement.preview,
+            child: _PreviewTapRegion(
+              accepts: (position) =>
+                  !(controller?.menuMotion?.menuBlob.rect.contains(
+                        position + placement.preview.topLeft,
+                      ) ??
+                      false),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _previewTapped,
+                child: const SizedBox.expand(),
               ),
             ),
           ),
@@ -1056,14 +1079,19 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       // Apart while it grows or lands, so those frames repaint the
       // source, not the page around it.
       live: _heroScale,
-      apartOf: () => _press.value != 0 || _landing.value != 0,
+      apartOf: () => _press.value != 0 || _landing.value != Offset.zero,
       child: MorphLiveTransform(
         live: _heroScale,
         writeInto: (Matrix4 into) {
-          final double scale =
-              (_size.isEmpty ? 1 : 1 + _press.value / _size.longestSide) +
-              _landing.value;
-          into.scaleByDouble(scale, scale, 1, 1);
+          final double scale = _size.isEmpty
+              ? 1
+              : 1 + _press.value / _size.longestSide;
+          into.scaleByDouble(
+            scale + _landing.value.dx,
+            scale + _landing.value.dy,
+            1,
+            1,
+          );
         },
         child: tagged,
       ),
@@ -1123,14 +1151,12 @@ class _PreviewLayer extends StatelessWidget {
     required this.placement,
     required this.child,
     this.preview,
-    this.onTap,
   });
 
   final MorphFlight flight;
   final _Placement placement;
   final Widget child;
   final Widget? preview;
-  final VoidCallback? onTap;
 
   /// How far the custom preview has faded in over the held view's copy.
   double get _shown => (flight.controller.value * 2).clamp(0.0, 1.0);
@@ -1165,7 +1191,6 @@ class _PreviewLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Widget? preview = this.preview;
-    final VoidCallback? onTap = this.onTap;
     final Widget copy = _carried(
       placement.held.size,
       preview == null
@@ -1190,24 +1215,38 @@ class _PreviewLayer extends StatelessWidget {
       clipBehavior: Clip.none,
       children: <Widget>[copy, ?custom],
     );
-    if (onTap == null) return IgnorePointer(child: layer);
-    // Only the preview takes the tap; everywhere else the touch goes on to
-    // the menu under it.
-    return Stack(
-      clipBehavior: Clip.none,
-      children: <Widget>[
-        IgnorePointer(child: layer),
-        Positioned.fromRect(
-          rect: placement.preview,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onTap,
-            child: const SizedBox.expand(),
-          ),
-        ),
-      ],
-    );
+    return IgnorePointer(child: layer);
   }
+}
+
+// The menu paints above the preview, including when their frames overlap.
+// Its full-overlay input listener must still leave preview taps reachable.
+class _PreviewTapRegion extends SingleChildRenderObjectWidget {
+  const _PreviewTapRegion({required this.accepts, required super.child});
+
+  final bool Function(Offset position) accepts;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _PreviewTapBox(accepts);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant _PreviewTapBox renderObject,
+  ) {
+    renderObject.accepts = accepts;
+  }
+}
+
+class _PreviewTapBox extends RenderProxyBox {
+  _PreviewTapBox(this.accepts);
+
+  bool Function(Offset position) accepts;
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
+      accepts(position) && super.hitTest(result, position: position);
 }
 
 /// The accessory above the preview: laid out once, centered on the open

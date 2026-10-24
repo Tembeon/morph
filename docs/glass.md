@@ -42,6 +42,37 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
   whose appearance matches beyond tint, so clear glass keeps its own layer
   in a regular container.
 
+## App contours
+
+`MorphThemeData.borders` accepts `MorphSurfaceBorders`: a Flutter `BorderSide`
+for each bar, track, menu, button, lens, knob and thumb. All roles default to
+`BorderSide.none`; null inherits the painter above, and an empty
+`MorphSurfaceBorders()` clears its contours. The built-in renderer draws them
+on Flat and Liquid without changing layout, hit targets, optics or physics.
+`MorphThemeData.liquidBorders` optionally overrides them on actual Liquid only;
+an empty value leaves its native bevel untouched. A Flat fallback always keeps
+`borders`, even when the app requested Liquid or adaptive glass. Null inherits
+the liquid override above, or uses `borders` when no override exists.
+
+```dart
+MorphTheme(
+  data: MorphThemeData(
+    glass: const MorphGlassRenderer.adaptive(),
+    borders: MorphSurfaceBorders.all(BorderSide(color: appOutline)),
+    liquidBorders: MorphSurfaceBorders(track: BorderSide(color: appOutline)),
+  ),
+  child: app,
+)
+```
+
+Contours follow the existing surface frame stream, including opacity and fused
+menu silhouettes, through a repaint listener rather than per-frame widget
+builds. A fused body uses the first visible member with a non-empty border;
+use the same border for source and menu roles for a uniform transition.
+Stroke width, color and alignment follow `BorderSide`. Custom glass painters
+and custom segmented track widgets own their decoration. With no borders the
+renderer adds no contour painter.
+
 ## The surfaces channel
 
 - Controls never call the painter themselves. They mount a

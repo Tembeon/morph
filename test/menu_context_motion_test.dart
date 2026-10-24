@@ -277,7 +277,7 @@ void main() {
       bounds: _screen,
     );
     expect(tall.down, isTrue);
-    expect(tall.rect.bottom, 874 - 12);
+    expect(tall.rect.bottom, 874 - MorphMenuTuning.contextMargin);
     expect(tall.rect.top, preview.bottom + tall.shift.dy + 16);
     expect(tall.shift.dx, 0);
     expect(tall.shift.dy, lessThan(0));
